@@ -29,9 +29,13 @@ import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/cr
 import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated/clients'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authenticated/settings.team'
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
 import { Route as AuthenticatedSettingsCompanyRouteImport } from './routes/_authenticated/settings.company'
+import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
+import { Route as AuthenticatedAdminSubscriptionsRouteImport } from './routes/_authenticated/admin.subscriptions'
+import { Route as AuthenticatedAdminPlansRouteImport } from './routes/_authenticated/admin.plans'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -134,6 +138,11 @@ const AuthenticatedSettingsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedSettingsTeamRoute =
   AuthenticatedSettingsTeamRouteImport.update({
     id: '/team',
@@ -152,13 +161,30 @@ const AuthenticatedSettingsCompanyRoute =
     path: '/company',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSettingsAuditRoute =
+  AuthenticatedSettingsAuditRouteImport.update({
+    id: '/audit',
+    path: '/audit',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedAdminSubscriptionsRoute =
+  AuthenticatedAdminSubscriptionsRouteImport.update({
+    id: '/subscriptions',
+    path: '/subscriptions',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminPlansRoute = AuthenticatedAdminPlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/clients': typeof AuthenticatedClientsRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -172,9 +198,13 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/stock': typeof AuthenticatedStockRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/admin/plans': typeof AuthenticatedAdminPlansRoute
+  '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
+  '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -182,7 +212,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/admin': typeof AuthenticatedAdminRoute
   '/clients': typeof AuthenticatedClientsRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -195,9 +224,13 @@ export interface FileRoutesByTo {
   '/service-orders': typeof AuthenticatedServiceOrdersRoute
   '/stock': typeof AuthenticatedStockRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/admin/plans': typeof AuthenticatedAdminPlansRoute
+  '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
+  '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
 }
 export interface FileRoutesById {
@@ -207,7 +240,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/clients': typeof AuthenticatedClientsRoute
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -221,9 +254,13 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/_authenticated/stock': typeof AuthenticatedStockRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/_authenticated/admin/plans': typeof AuthenticatedAdminPlansRoute
+  '/_authenticated/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
+  '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/_authenticated/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
 }
 export interface FileRouteTypes {
@@ -247,9 +284,13 @@ export interface FileRouteTypes {
     | '/settings'
     | '/stock'
     | '/invite/$token'
+    | '/admin/plans'
+    | '/admin/subscriptions'
+    | '/settings/audit'
     | '/settings/company'
     | '/settings/roles'
     | '/settings/team'
+    | '/admin/'
     | '/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -257,7 +298,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/forgot-password'
     | '/reset-password'
-    | '/admin'
     | '/clients'
     | '/crm'
     | '/dashboard'
@@ -270,9 +310,13 @@ export interface FileRouteTypes {
     | '/service-orders'
     | '/stock'
     | '/invite/$token'
+    | '/admin/plans'
+    | '/admin/subscriptions'
+    | '/settings/audit'
     | '/settings/company'
     | '/settings/roles'
     | '/settings/team'
+    | '/admin'
     | '/settings'
   id:
     | '__root__'
@@ -295,9 +339,13 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/stock'
     | '/invite/$token'
+    | '/_authenticated/admin/plans'
+    | '/_authenticated/admin/subscriptions'
+    | '/_authenticated/settings/audit'
     | '/_authenticated/settings/company'
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/team'
+    | '/_authenticated/admin/'
     | '/_authenticated/settings/'
   fileRoutesById: FileRoutesById
 }
@@ -452,6 +500,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/settings/team': {
       id: '/_authenticated/settings/team'
       path: '/team'
@@ -473,10 +528,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsCompanyRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/settings/audit': {
+      id: '/_authenticated/settings/audit'
+      path: '/audit'
+      fullPath: '/settings/audit'
+      preLoaderRoute: typeof AuthenticatedSettingsAuditRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/admin/subscriptions': {
+      id: '/_authenticated/admin/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/admin/subscriptions'
+      preLoaderRoute: typeof AuthenticatedAdminSubscriptionsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/plans': {
+      id: '/_authenticated/admin/plans'
+      path: '/plans'
+      fullPath: '/admin/plans'
+      preLoaderRoute: typeof AuthenticatedAdminPlansRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminPlansRoute: typeof AuthenticatedAdminPlansRoute
+  AuthenticatedAdminSubscriptionsRoute: typeof AuthenticatedAdminSubscriptionsRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminPlansRoute: AuthenticatedAdminPlansRoute,
+  AuthenticatedAdminSubscriptionsRoute: AuthenticatedAdminSubscriptionsRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedSettingsRouteChildren {
+  AuthenticatedSettingsAuditRoute: typeof AuthenticatedSettingsAuditRoute
   AuthenticatedSettingsCompanyRoute: typeof AuthenticatedSettingsCompanyRoute
   AuthenticatedSettingsRolesRoute: typeof AuthenticatedSettingsRolesRoute
   AuthenticatedSettingsTeamRoute: typeof AuthenticatedSettingsTeamRoute
@@ -484,6 +576,7 @@ interface AuthenticatedSettingsRouteChildren {
 }
 
 const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
+  AuthenticatedSettingsAuditRoute: AuthenticatedSettingsAuditRoute,
   AuthenticatedSettingsCompanyRoute: AuthenticatedSettingsCompanyRoute,
   AuthenticatedSettingsRolesRoute: AuthenticatedSettingsRolesRoute,
   AuthenticatedSettingsTeamRoute: AuthenticatedSettingsTeamRoute,
@@ -496,7 +589,7 @@ const AuthenticatedSettingsRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -512,7 +605,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedClientsRoute: AuthenticatedClientsRoute,
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,

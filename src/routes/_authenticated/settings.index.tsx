@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Building2, Users, Shield, UserCircle } from "lucide-react";
+import { Building2, Users, Shield, UserCircle, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getMyContext } from "@/lib/account.functions";
@@ -18,6 +18,7 @@ function SettingsOverview() {
     { to: "/settings/company", title: "Empresa", icon: Building2, desc: "Razão social, CNPJ, logo e contato." },
     { to: "/settings/team", title: "Equipe", icon: Users, desc: "Convide usuários e gerencie papéis." },
     { to: "/settings/roles", title: "Permissões", icon: Shield, desc: "Matriz de permissões por papel." },
+    { to: "/settings/audit", title: "Auditoria", icon: FileText, desc: "Histórico completo de ações." },
     { to: "/profile", title: "Meu perfil", icon: UserCircle, desc: "Nome, telefone e avatar." },
   ];
 

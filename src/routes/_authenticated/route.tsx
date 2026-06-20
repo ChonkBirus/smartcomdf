@@ -53,6 +53,7 @@ function AuthenticatedLayout() {
             email={data?.profile?.email}
             avatarUrl={data?.profile?.avatar_url}
             companyName={data?.company?.trade_name ?? data?.company?.corporate_name}
+            userId={data?.profile?.id}
           />
           <main className="flex-1 p-4 md:p-6 lg:p-8">
             <Outlet />
