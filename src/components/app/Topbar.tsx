@@ -1,4 +1,4 @@
-import { Bell, LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -9,10 +9,12 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "./ThemeToggle";
+import { NotificationsBell } from "./NotificationsBell";
 import { supabase } from "@/integrations/supabase/client";
 
-export function Topbar({ name, email, avatarUrl, companyName }: {
-  name?: string | null; email?: string | null; avatarUrl?: string | null; companyName?: string | null;
+export function Topbar({ name, email, avatarUrl, companyName, userId }: {
+  name?: string | null; email?: string | null; avatarUrl?: string | null;
+  companyName?: string | null; userId?: string | null;
 }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -35,9 +37,7 @@ export function Topbar({ name, email, avatarUrl, companyName }: {
         </div>
       )}
       <div className="ml-auto flex items-center gap-1">
-        <Button variant="ghost" size="icon" aria-label="Notificações">
-          <Bell className="h-4 w-4" />
-        </Button>
+        <NotificationsBell userId={userId} />
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
