@@ -578,6 +578,30 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { _token: string }; Returns: string }
+      admin_companies_overview: {
+        Args: never
+        Returns: {
+          cnpj: string
+          corporate_name: string
+          created_at: string
+          id: string
+          plan_name: string
+          plan_slug: string
+          status: Database["public"]["Enums"]["company_status"]
+          subscription_active: boolean
+          subscription_expires: string
+          subscription_trial: boolean
+          trade_name: string
+          users_count: number
+        }[]
+      }
+      admin_set_company_status: {
+        Args: {
+          _company_id: string
+          _status: Database["public"]["Enums"]["company_status"]
+        }
+        Returns: undefined
+      }
       current_company_id: { Args: never; Returns: string }
       has_company_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
@@ -591,6 +615,26 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: never; Returns: boolean }
+      log_activity: { Args: { _description: string }; Returns: string }
+      log_audit: {
+        Args: {
+          _action: string
+          _module: string
+          _new_data?: Json
+          _old_data?: Json
+          _record_id?: string
+        }
+        Returns: string
+      }
+      notify_user: {
+        Args: {
+          _company_id: string
+          _message?: string
+          _title: string
+          _user_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role:
