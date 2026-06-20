@@ -18,7 +18,7 @@ export const listCompanies = createServerFn({ method: "GET" })
 
 const setStatusSchema = z.object({
   company_id: z.string().uuid(),
-  status: z.enum(["trial", "active", "suspended", "cancelled"]),
+  status: z.enum(["trial", "active", "inactive", "blocked"]),
 });
 
 export const setCompanyStatus = createServerFn({ method: "POST" })
