@@ -1,11 +1,10 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Building2, Users, CreditCard } from "lucide-react";
+import { Building2, Users, CreditCard, Shield } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/app/KpiCard";
 import { EmptyState } from "@/components/app/EmptyState";
-import { Shield } from "lucide-react";
 import { getMyContext } from "@/lib/account.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
