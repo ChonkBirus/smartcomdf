@@ -10,11 +10,6 @@ import { getMyContext } from "@/lib/account.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Super Admin — SecureERP" }] }),
-  beforeLoad: async () => {
-    const { supabase } = await import("@/integrations/supabase/client").then((m) => ({ supabase: m.supabase }));
-    const { data } = await supabase.from("user_roles").select("role").eq("role", "super_admin").limit(1);
-    if (!data || data.length === 0) throw redirect({ to: "/dashboard" });
-  },
   component: AdminPage,
 });
 
