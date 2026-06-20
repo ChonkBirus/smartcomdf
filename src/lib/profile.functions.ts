@@ -30,8 +30,8 @@ const companySchema = z.object({
   trade_name: z.string().trim().max(150).optional().or(z.literal("")),
   cnpj: z.string().trim().max(20).optional().or(z.literal("")),
   phone: z.string().trim().max(20).optional().or(z.literal("")),
+  whatsapp: z.string().trim().max(20).optional().or(z.literal("")),
   email: z.string().trim().email().max(255).optional().or(z.literal("")),
-  address: z.string().trim().max(500).optional().or(z.literal("")),
   logo_url: z.string().trim().max(500).optional().or(z.literal("")),
 });
 
@@ -59,14 +59,15 @@ export const updateMyCompany = createServerFn({ method: "POST" })
         trade_name: data.trade_name || null,
         cnpj: data.cnpj || null,
         phone: data.phone || null,
+        whatsapp: data.whatsapp || null,
         email: data.email || null,
-        address: data.address || null,
         logo_url: data.logo_url || null,
       })
       .eq("id", me.company_id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 export const getSignedImageUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

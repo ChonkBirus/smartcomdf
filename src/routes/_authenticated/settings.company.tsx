@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+
 import { supabase } from "@/integrations/supabase/client";
 import { getMyContext } from "@/lib/account.functions";
 import { updateMyCompany, getSignedImageUrl } from "@/lib/profile.functions";
@@ -26,7 +26,7 @@ function CompanyPage() {
   const c = data?.company;
 
   const [form, setForm] = useState({
-    corporate_name: "", trade_name: "", cnpj: "", phone: "", email: "", address: "", logo_url: "",
+    corporate_name: "", trade_name: "", cnpj: "", phone: "", whatsapp: "", email: "", logo_url: "",
   });
   const [signedLogo, setSignedLogo] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -38,12 +38,13 @@ function CompanyPage() {
         trade_name: c.trade_name ?? "",
         cnpj: c.cnpj ?? "",
         phone: c.phone ?? "",
+        whatsapp: (c as any).whatsapp ?? "",
         email: c.email ?? "",
-        address: c.address ?? "",
         logo_url: c.logo_url ?? "",
       });
     }
   }, [c]);
+
 
   useEffect(() => {
     if (form.logo_url) {
@@ -132,9 +133,10 @@ function CompanyPage() {
           <Field label="E-mail">
             <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </Field>
-          <Field label="Endereço" full>
-            <Textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+          <Field label="WhatsApp">
+            <Input value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} />
           </Field>
+
 
           <div className="md:col-span-2 flex justify-end">
             <Button type="submit" disabled={saveMut.isPending}>Salvar</Button>
