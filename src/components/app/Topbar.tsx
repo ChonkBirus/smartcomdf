@@ -54,9 +54,10 @@ export function Topbar({ name, email, avatarUrl, companyName }: {
               <div className="text-xs text-muted-foreground truncate">{email}</div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
+            <DropdownMenuItem onClick={() => navigate({ to: "/profile" })}>
               <UserIcon className="mr-2 h-4 w-4" /> Meu perfil
             </DropdownMenuItem>
+
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut} className="text-destructive">
               <LogOut className="mr-2 h-4 w-4" /> Sair
