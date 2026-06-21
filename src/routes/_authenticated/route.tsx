@@ -9,6 +9,9 @@ import { Topbar } from "@/components/app/Topbar";
 import { getMyContext } from "@/lib/account.functions";
 import { AuthLoadingScreen } from "@/components/app/AuthLoadingScreen";
 import { PermissionsProvider } from "@/lib/permissions";
+import { FeaturesProvider, useSubscription, type PlanInfo } from "@/lib/features";
+import { UpgradeModal } from "@/components/app/UpgradeModal";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
