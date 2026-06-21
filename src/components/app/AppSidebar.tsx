@@ -9,40 +9,42 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
-type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }> };
+import { usePermissions, type ModuleSlug } from "@/lib/permissions";
+
+type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; module: ModuleSlug };
 
 const groups: { label: string; items: Item[] }[] = [
   {
     label: "Geral",
-    items: [{ title: "Dashboard", url: "/dashboard", icon: LayoutDashboard }],
+    items: [{ title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, module: "dashboard" }],
   },
   {
     label: "Cadastros",
     items: [
-      { title: "Produtos", url: "/products", icon: Package },
-      { title: "Clientes", url: "/clients", icon: Users },
+      { title: "Produtos", url: "/products", icon: Package, module: "products" },
+      { title: "Clientes", url: "/clients", icon: Users, module: "clients" },
     ],
   },
   {
     label: "Operação",
     items: [
-      { title: "Estoque", url: "/stock", icon: Boxes },
-      { title: "Orçamentos", url: "/quotes", icon: FileText },
+      { title: "Estoque", url: "/stock", icon: Boxes, module: "stock" },
+      { title: "Orçamentos", url: "/quotes", icon: FileText, module: "quotes" },
     ],
   },
   {
     label: "Gestão",
     items: [
-      { title: "Financeiro", url: "/financial", icon: DollarSign },
-      { title: "CRM", url: "/crm", icon: HeartHandshake },
-      { title: "Ordens de Serviço", url: "/service-orders", icon: Wrench },
+      { title: "Financeiro", url: "/financial", icon: DollarSign, module: "financial" },
+      { title: "CRM", url: "/crm", icon: HeartHandshake, module: "crm" },
+      { title: "Ordens de Serviço", url: "/service-orders", icon: Wrench, module: "orders" },
     ],
   },
   {
     label: "Sistema",
     items: [
-      { title: "Relatórios", url: "/reports", icon: BarChart3 },
-      { title: "Configurações", url: "/settings", icon: Settings },
+      { title: "Relatórios", url: "/reports", icon: BarChart3, module: "reports" },
+      { title: "Configurações", url: "/settings", icon: Settings, module: "settings" },
     ],
   },
 ];
