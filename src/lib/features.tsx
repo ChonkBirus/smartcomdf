@@ -102,7 +102,15 @@ export function useFeatures() {
 
 export function usePlan() {
   const { plan } = useContext(FeaturesContext);
-  return plan;
+  const getCurrentPlan = () => plan;
+  const getPlanLimits = () => ({
+    max_users: plan?.max_users ?? 0,
+    max_storage_gb: plan?.max_storage_gb ?? 0,
+    max_customers: plan?.max_customers ?? 0,
+    max_products: plan?.max_products ?? 0,
+    max_service_orders: plan?.max_service_orders ?? 0,
+  });
+  return { plan, getCurrentPlan, getPlanLimits };
 }
 
 export function useSubscription() {
