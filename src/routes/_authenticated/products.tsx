@@ -1,17 +1,463 @@
+import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Package } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  Plus,
+  Search,
+  Package,
+  Pencil,
+  Eye,
+  Trash2,
+  Settings2,
+  ImageIcon,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/EmptyState";
-import { PermissionRoute } from "@/components/app/PermissionRoute";
+import { PermissionRoute, Can } from "@/components/app/PermissionRoute";
+import { FeatureGate } from "@/components/app/FeatureGate";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { toast } from "sonner";
+import {
+  listBrands,
+  listCategories,
+  listManufacturers,
+  listProducts,
+  softDeleteProduct,
+} from "@/lib/products.functions";
+import { getMyContext } from "@/lib/account.functions";
+import { TaxonomyDialog } from "@/components/products/TaxonomyDialog";
+import { ProductFormSheet } from "@/components/products/ProductFormSheet";
 
 export const Route = createFileRoute("/_authenticated/products")({
   head: () => ({ meta: [{ title: "Produtos — SecureERP" }] }),
   component: () => (
     <PermissionRoute module="products">
-      <div className="mx-auto max-w-7xl">
-        <PageHeader title="Produtos" description="Catálogo de produtos da sua empresa." />
-        <EmptyState icon={<Package className="h-6 w-6" />} title="Em breve" description="Este módulo será liberado em breve." />
-      </div>
+      <FeatureGate feature="products">
+        <ProductsPage />
+      </FeatureGate>
     </PermissionRoute>
   ),
 });
+
+type SortKey = "name" | "created_at" | "sale_price";
+type SortDir = "asc" | "desc";
+
+function ProductsPage() {
+  const qc = useQueryClient();
+  const ctxFn = useServerFn(getMyContext);
+  const listFn = useServerFn(listProducts);
+  const catFn = useServerFn(listCategories);
+  const brandFn = useServerFn(listBrands);
+  const manFn = useServerFn(listManufacturers);
+  const deleteFn = useServerFn(softDeleteProduct);
+
+  const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => ctxFn() });
+  const companyId = (me as any)?.company?.id ?? null;
+
+  const [search, setSearch] = useState("");
+  const [searchDraft, setSearchDraft] = useState("");
+  const [categoryId, setCategoryId] = useState<string>("_all");
+  const [brandId, setBrandId] = useState<string>("_all");
+  const [manufacturerId, setManufacturerId] = useState<string>("_all");
+  const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
+  const [sort, setSort] = useState<SortKey>("name");
+  const [direction, setDirection] = useState<SortDir>("asc");
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
+
+  const [taxonomyOpen, setTaxonomyOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const filters = useMemo(
+    () => ({
+      search: search || undefined,
+      category_id: categoryId !== "_all" ? categoryId : undefined,
+      brand_id: brandId !== "_all" ? brandId : undefined,
+      manufacturer_id: manufacturerId !== "_all" ? manufacturerId : undefined,
+      status,
+      page,
+      page_size: pageSize,
+      sort,
+      direction,
+    }),
+    [search, categoryId, brandId, manufacturerId, status, page, sort, direction],
+  );
+
+  const { data, isFetching } = useQuery({
+    queryKey: ["products", filters],
+    queryFn: () => listFn({ data: filters }),
+  });
+  const { data: categories = [] } = useQuery({ queryKey: ["categories"], queryFn: () => catFn() });
+  const { data: brands = [] } = useQuery({ queryKey: ["brands"], queryFn: () => brandFn() });
+  const { data: manufacturers = [] } = useQuery({ queryKey: ["manufacturers"], queryFn: () => manFn() });
+
+  const remove = useMutation({
+    mutationFn: (id: string) => deleteFn({ data: { id } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["products"] });
+      toast.success("Produto removido.");
+      setDeletingId(null);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  const handleSort = (k: SortKey) => {
+    if (sort === k) setDirection(direction === "asc" ? "desc" : "asc");
+    else {
+      setSort(k);
+      setDirection("asc");
+    }
+    setPage(1);
+  };
+
+  const SortIcon = ({ k }: { k: SortKey }) =>
+    sort !== k ? (
+      <ArrowUpDown className="ml-1 inline h-3 w-3 opacity-40" />
+    ) : direction === "asc" ? (
+      <ArrowUp className="ml-1 inline h-3 w-3" />
+    ) : (
+      <ArrowDown className="ml-1 inline h-3 w-3" />
+    );
+
+  return (
+    <div className="mx-auto max-w-7xl">
+      <PageHeader
+        title="Produtos"
+        description="Catálogo mestre da sua empresa: cadastre, organize e gerencie seu portfólio."
+        actions={
+          <>
+            <Button variant="outline" onClick={() => setTaxonomyOpen(true)}>
+              <Settings2 className="mr-1.5 h-4 w-4" />
+              Categorias / Marcas / Fabricantes
+            </Button>
+            <Can module="products" action="create">
+              <Button
+                onClick={() => {
+                  setEditingId(null);
+                  setFormOpen(true);
+                }}
+              >
+                <Plus className="mr-1.5 h-4 w-4" />
+                Novo produto
+              </Button>
+            </Can>
+          </>
+        }
+      />
+
+      {/* Filters */}
+      <div className="card-elevated mb-4 rounded-lg border border-border bg-card p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <form
+            className="flex flex-1 min-w-[220px] items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setSearch(searchDraft.trim());
+              setPage(1);
+            }}
+          >
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome, SKU ou código de barras..."
+                className="pl-8"
+                value={searchDraft}
+                onChange={(e) => setSearchDraft(e.target.value)}
+              />
+            </div>
+            <Button type="submit" variant="secondary" size="sm">
+              Buscar
+            </Button>
+          </form>
+
+          <Select
+            value={categoryId}
+            onValueChange={(v) => {
+              setCategoryId(v);
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_all">Todas categorias</SelectItem>
+              {categories.map((c: any) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={brandId}
+            onValueChange={(v) => {
+              setBrandId(v);
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Marca" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_all">Todas marcas</SelectItem>
+              {brands.map((b: any) => (
+                <SelectItem key={b.id} value={b.id}>
+                  {b.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={manufacturerId}
+            onValueChange={(v) => {
+              setManufacturerId(v);
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Fabricante" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_all">Todos fabricantes</SelectItem>
+              {manufacturers.map((m: any) => (
+                <SelectItem key={m.id} value={m.id}>
+                  {m.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={status}
+            onValueChange={(v) => {
+              setStatus(v as any);
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[130px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos status</SelectItem>
+              <SelectItem value="active">Ativos</SelectItem>
+              <SelectItem value="inactive">Inativos</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="card-elevated overflow-hidden rounded-lg border border-border bg-card">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="w-14 px-3 py-2"></th>
+                <th
+                  className="cursor-pointer px-3 py-2 text-left hover:text-foreground"
+                  onClick={() => handleSort("name")}
+                >
+                  Nome <SortIcon k="name" />
+                </th>
+                <th className="px-3 py-2 text-left">SKU</th>
+                <th className="px-3 py-2 text-left">Categoria</th>
+                <th className="px-3 py-2 text-left">Marca</th>
+                <th
+                  className="cursor-pointer px-3 py-2 text-right hover:text-foreground"
+                  onClick={() => handleSort("sale_price")}
+                >
+                  Preço <SortIcon k="sale_price" />
+                </th>
+                <th className="px-3 py-2 text-center">Status</th>
+                <th
+                  className="cursor-pointer px-3 py-2 text-center hover:text-foreground"
+                  onClick={() => handleSort("created_at")}
+                >
+                  Criado <SortIcon k="created_at" />
+                </th>
+                <th className="px-3 py-2 text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {!data && isFetching && (
+                <tr>
+                  <td colSpan={9} className="py-10 text-center text-muted-foreground">
+                    Carregando...
+                  </td>
+                </tr>
+              )}
+              {data && data.items.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="py-0">
+                    <EmptyState
+                      icon={<Package className="h-6 w-6" />}
+                      title="Nenhum produto encontrado"
+                      description="Ajuste os filtros ou cadastre um novo produto."
+                    />
+                  </td>
+                </tr>
+              )}
+              {data?.items.map((p: any) => (
+                <tr key={p.id} className="border-t border-border hover:bg-muted/30">
+                  <td className="px-3 py-2">
+                    <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
+                      {p.image_url ? (
+                        <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 font-medium">{p.name}</td>
+                  <td className="px-3 py-2 font-mono text-xs">{p.sku}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{p.category?.name ?? "—"}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{p.brand?.name ?? "—"}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    R$ {Number(p.sale_price).toFixed(2)}
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    <Badge variant={p.active ? "default" : "secondary"}>{p.active ? "Ativo" : "Inativo"}</Badge>
+                  </td>
+                  <td className="px-3 py-2 text-center text-xs text-muted-foreground">
+                    {new Date(p.created_at).toLocaleDateString("pt-BR")}
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="flex justify-center gap-1">
+                      <Can
+                        module="products"
+                        action="view"
+                        fallback={null}
+                      >
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Visualizar"
+                          onClick={() => {
+                            setEditingId(p.id);
+                            setFormOpen(true);
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </Can>
+                      <Can module="products" action="edit">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Editar"
+                          onClick={() => {
+                            setEditingId(p.id);
+                            setFormOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </Can>
+                      <Can module="products" action="delete">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive"
+                          title="Remover"
+                          onClick={() => setDeletingId(p.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </Can>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex items-center justify-between border-t border-border px-4 py-3 text-xs text-muted-foreground">
+          <div>
+            {total} {total === 1 ? "produto" : "produtos"} · Página {page} de {totalPages}
+          </div>
+          <Pagination className="m-0">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  className={page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                />
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext
+                  className={page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      </div>
+
+      <TaxonomyDialog open={taxonomyOpen} onOpenChange={setTaxonomyOpen} />
+      <ProductFormSheet
+        open={formOpen}
+        onOpenChange={(o) => {
+          setFormOpen(o);
+          if (!o) setEditingId(null);
+        }}
+        productId={editingId}
+        companyId={companyId}
+      />
+
+      <AlertDialog open={!!deletingId} onOpenChange={(o) => !o && setDeletingId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover produto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O produto será desativado e arquivado. Ele não aparecerá mais nas listagens, mas seu histórico será
+              preservado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deletingId && remove.mutate(deletingId)}
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
