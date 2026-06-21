@@ -8,6 +8,7 @@ import { AppSidebar } from "@/components/app/AppSidebar";
 import { Topbar } from "@/components/app/Topbar";
 import { getMyContext } from "@/lib/account.functions";
 import { AuthLoadingScreen } from "@/components/app/AuthLoadingScreen";
+import { PermissionsProvider } from "@/lib/permissions";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
