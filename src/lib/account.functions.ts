@@ -10,7 +10,7 @@ export const getMyContext = createServerFn({ method: "GET" })
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("*, companies(*)")
+      .select("*, companies(*, plans(*))")
       .eq("id", userId)
       .maybeSingle();
 
@@ -22,11 +22,36 @@ export const getMyContext = createServerFn({ method: "GET" })
     const { data: permsRpc } = await supabase.rpc("get_my_permissions");
     const permissions: string[] = Array.isArray(permsRpc) ? (permsRpc as string[]) : [];
 
+    const { data: featsRpc } = await supabase.rpc("get_my_features");
+    const features: string[] = Array.isArray(featsRpc) ? (featsRpc as string[]) : [];
+
+    let subscription: {
+      trial: boolean;
+      active: boolean;
+      expiration_date: string | null;
+      start_date: string;
+    } | null = null;
+    const companyId = profile?.company_id ?? null;
+    if (companyId) {
+      const { data: sub } = await supabase
+        .from("subscriptions")
+        .select("trial, active, expiration_date, start_date")
+        .eq("company_id", companyId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      subscription = sub ?? null;
+    }
+
+    const company = profile?.companies ?? null;
     return {
       profile,
-      company: profile?.companies ?? null,
+      company,
+      plan: (company as { plans?: unknown } | null)?.plans ?? null,
+      subscription,
       roles: roles ?? [],
       permissions,
+      features,
       isSuperAdmin: (roles ?? []).some((r) => r.role === "super_admin"),
       isOwner: (roles ?? []).some((r) => r.role === "owner"),
     };
