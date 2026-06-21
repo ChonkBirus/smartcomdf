@@ -3,14 +3,18 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { translateAuthError } from "@/lib/auth-errors";
+
+const REMEMBER_KEY = "secureerp.remember_email";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Entrar — SecureERP" }] }),
@@ -28,6 +32,9 @@ const signupSchema = loginSchema.extend({
 function AuthPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [showLoginPwd, setShowLoginPwd] = useState(false);
+  const [showSignupPwd, setShowSignupPwd] = useState(false);
+  const [remember, setRemember] = useState(true);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -35,14 +42,17 @@ function AuthPage() {
     });
   }, [navigate]);
 
-  const loginForm = useForm({ resolver: zodResolver(loginSchema), defaultValues: { email: "", password: "" } });
+  const rememberedEmail = typeof window !== "undefined" ? localStorage.getItem(REMEMBER_KEY) ?? "" : "";
+  const loginForm = useForm({ resolver: zodResolver(loginSchema), defaultValues: { email: rememberedEmail, password: "" } });
   const signupForm = useForm({ resolver: zodResolver(signupSchema), defaultValues: { full_name: "", email: "", password: "" } });
 
   const onLogin = async (d: z.infer<typeof loginSchema>) => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword(d);
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(translateAuthError(error.message));
+    if (remember) localStorage.setItem(REMEMBER_KEY, d.email);
+    else localStorage.removeItem(REMEMBER_KEY);
     navigate({ to: "/dashboard", replace: true });
   };
 
@@ -57,7 +67,7 @@ function AuthPage() {
       },
     });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(translateAuthError(error.message));
     toast.success("Conta criada! Confirme seu e-mail e faça login.");
   };
 
@@ -92,10 +102,19 @@ function AuthPage() {
                   </div>
                   <div>
                     <Label htmlFor="lp">Senha</Label>
-                    <Input id="lp" type="password" autoComplete="current-password" {...loginForm.register("password")} className="mt-1.5" />
+                    <div className="relative mt-1.5">
+                      <Input id="lp" type={showLoginPwd ? "text" : "password"} autoComplete="current-password" {...loginForm.register("password")} className="pr-10" />
+                      <button type="button" onClick={() => setShowLoginPwd((v) => !v)} className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground" aria-label={showLoginPwd ? "Ocultar senha" : "Mostrar senha"}>
+                        {showLoginPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                     {loginForm.formState.errors.password && <p className="mt-1 text-xs text-destructive">{loginForm.formState.errors.password.message}</p>}
                   </div>
-                  <div className="flex justify-end">
+                  <div className="flex items-center justify-between">
+                    <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+                      <Checkbox checked={remember} onCheckedChange={(c) => setRemember(c === true)} />
+                      Lembrar sessão
+                    </label>
                     <Link to="/forgot-password" className="text-xs text-primary hover:underline">Esqueci minha senha</Link>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
@@ -120,7 +139,12 @@ function AuthPage() {
                   </div>
                   <div>
                     <Label htmlFor="sp">Senha</Label>
-                    <Input id="sp" type="password" autoComplete="new-password" {...signupForm.register("password")} className="mt-1.5" />
+                    <div className="relative mt-1.5">
+                      <Input id="sp" type={showSignupPwd ? "text" : "password"} autoComplete="new-password" {...signupForm.register("password")} className="pr-10" />
+                      <button type="button" onClick={() => setShowSignupPwd((v) => !v)} className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground" aria-label={showSignupPwd ? "Ocultar senha" : "Mostrar senha"}>
+                        {showSignupPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                     {signupForm.formState.errors.password && <p className="mt-1 text-xs text-destructive">{signupForm.formState.errors.password.message}</p>}
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
