@@ -178,6 +178,7 @@ export type Database = {
       categories: {
         Row: {
           active: boolean
+          category_type: Database["public"]["Enums"]["category_type"]
           company_id: string
           created_at: string
           description: string | null
@@ -187,6 +188,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          category_type?: Database["public"]["Enums"]["category_type"]
           company_id: string
           created_at?: string
           description?: string | null
@@ -196,6 +198,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          category_type?: Database["public"]["Enums"]["category_type"]
           company_id?: string
           created_at?: string
           description?: string | null
@@ -339,6 +342,149 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      item_images: {
+        Row: {
+          company_id: string
+          created_at: string
+          file_name: string
+          file_path: string
+          file_url: string
+          id: string
+          is_primary: boolean
+          item_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_url: string
+          id?: string
+          is_primary?: boolean
+          item_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_url?: string
+          id?: string
+          is_primary?: boolean
+          item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_images_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      items: {
+        Row: {
+          active: boolean
+          barcode: string | null
+          brand_id: string | null
+          category_id: string | null
+          company_id: string
+          controls_stock: boolean
+          cost_price: number
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          id: string
+          item_type: Database["public"]["Enums"]["item_type"]
+          manufacturer_id: string | null
+          minimum_stock: number
+          name: string
+          sale_price: number
+          sku: string | null
+          unit: Database["public"]["Enums"]["product_unit"]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          barcode?: string | null
+          brand_id?: string | null
+          category_id?: string | null
+          company_id: string
+          controls_stock?: boolean
+          cost_price?: number
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          item_type?: Database["public"]["Enums"]["item_type"]
+          manufacturer_id?: string | null
+          minimum_stock?: number
+          name: string
+          sale_price?: number
+          sku?: string | null
+          unit?: Database["public"]["Enums"]["product_unit"]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          barcode?: string | null
+          brand_id?: string | null
+          category_id?: string | null
+          company_id?: string
+          controls_stock?: boolean
+          cost_price?: number
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          item_type?: Database["public"]["Enums"]["item_type"]
+          manufacturer_id?: string | null
+          minimum_stock?: number
+          name?: string
+          sale_price?: number
+          sku?: string | null
+          unit?: Database["public"]["Enums"]["product_unit"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_manufacturer_id_fkey"
+            columns: ["manufacturer_id"]
+            isOneToOne: false
+            referencedRelation: "manufacturers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       manufacturers: {
         Row: {
@@ -535,143 +681,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      product_images: {
-        Row: {
-          company_id: string
-          created_at: string
-          file_name: string
-          file_path: string
-          file_url: string
-          id: string
-          is_primary: boolean
-          product_id: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          file_name: string
-          file_path: string
-          file_url: string
-          id?: string
-          is_primary?: boolean
-          product_id: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          file_name?: string
-          file_path?: string
-          file_url?: string
-          id?: string
-          is_primary?: boolean
-          product_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_images_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_images_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      products: {
-        Row: {
-          active: boolean
-          barcode: string | null
-          brand_id: string | null
-          category_id: string | null
-          company_id: string
-          cost_price: number
-          created_at: string
-          deleted_at: string | null
-          description: string | null
-          id: string
-          manufacturer_id: string | null
-          minimum_stock: number
-          name: string
-          sale_price: number
-          sku: string
-          unit: Database["public"]["Enums"]["product_unit"]
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean
-          barcode?: string | null
-          brand_id?: string | null
-          category_id?: string | null
-          company_id: string
-          cost_price?: number
-          created_at?: string
-          deleted_at?: string | null
-          description?: string | null
-          id?: string
-          manufacturer_id?: string | null
-          minimum_stock?: number
-          name: string
-          sale_price?: number
-          sku: string
-          unit?: Database["public"]["Enums"]["product_unit"]
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean
-          barcode?: string | null
-          brand_id?: string | null
-          category_id?: string | null
-          company_id?: string
-          cost_price?: number
-          created_at?: string
-          deleted_at?: string | null
-          description?: string | null
-          id?: string
-          manufacturer_id?: string | null
-          minimum_stock?: number
-          name?: string
-          sale_price?: number
-          sku?: string
-          unit?: Database["public"]["Enums"]["product_unit"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "products_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brands"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "products_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "products_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "products_manufacturer_id_fkey"
-            columns: ["manufacturer_id"]
-            isOneToOne: false
-            referencedRelation: "manufacturers"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       profile_roles: {
         Row: {
@@ -1033,8 +1042,10 @@ export type Database = {
         | "commercial"
         | "stock"
         | "technician"
+      category_type: "PRODUCT" | "SERVICE" | "BOTH"
       company_status: "active" | "inactive" | "trial" | "blocked"
       invitation_status: "pending" | "accepted" | "expired" | "revoked"
+      item_type: "PRODUCT" | "SERVICE"
       product_unit: "UN" | "CX" | "MT" | "M2" | "M3" | "RL" | "KIT"
     }
     CompositeTypes: {
@@ -1172,8 +1183,10 @@ export const Constants = {
         "stock",
         "technician",
       ],
+      category_type: ["PRODUCT", "SERVICE", "BOTH"],
       company_status: ["active", "inactive", "trial", "blocked"],
       invitation_status: ["pending", "accepted", "expired", "revoked"],
+      item_type: ["PRODUCT", "SERVICE"],
       product_unit: ["UN", "CX", "MT", "M2", "M3", "RL", "KIT"],
     },
   },
