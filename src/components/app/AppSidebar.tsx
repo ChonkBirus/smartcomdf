@@ -55,6 +55,7 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { canView } = usePermissions();
+  const { hasFeature, openUpgrade } = useFeatures();
 
   const visibleGroups = groups
     .map((g) => ({ ...g, items: g.items.filter((it) => canView(it.module)) }))
@@ -83,6 +84,26 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
               <SidebarMenu>
                 {g.items.map((it) => {
                   const active = pathname === it.url || pathname.startsWith(it.url + "/");
+                  const locked = it.feature ? !hasFeature(it.feature) : false;
+                  if (locked) {
+                    return (
+                      <SidebarMenuItem key={it.url}>
+                        <SidebarMenuButton
+                          tooltip={`${it.title} — Premium`}
+                          onClick={() => openUpgrade(it.feature)}
+                          className="opacity-60"
+                        >
+                          <it.icon className="h-4 w-4 shrink-0" />
+                          {!collapsed && (
+                            <>
+                              <span className="flex-1">{it.title}</span>
+                              <Lock className="h-3 w-3 text-muted-foreground" />
+                            </>
+                          )}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  }
                   return (
                     <SidebarMenuItem key={it.url}>
                       <SidebarMenuButton asChild isActive={active} tooltip={it.title}>
