@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
@@ -73,9 +74,13 @@ function CategoriesPanel() {
   const saveFn = useServerFn(saveCategory);
   const toggleFn = useServerFn(toggleCategoryActive);
   const { data: items = [] } = useQuery({ queryKey: ["categories"], queryFn: () => listFn() });
-  const [editing, setEditing] = useState<{ id?: string; name: string; description?: string; active: boolean } | null>(
-    null,
-  );
+  const [editing, setEditing] = useState<{
+    id?: string;
+    name: string;
+    description?: string;
+    category_type: "PRODUCT" | "SERVICE" | "BOTH";
+    active: boolean;
+  } | null>(null);
 
   const save = useMutation({
     mutationFn: (v: any) => saveFn({ data: v }),
@@ -96,7 +101,10 @@ function CategoriesPanel() {
     <div className="space-y-4">
       <div className="flex justify-end">
         {canCreate("products") && (
-          <Button size="sm" onClick={() => setEditing({ name: "", description: "", active: true })}>
+          <Button
+            size="sm"
+            onClick={() => setEditing({ name: "", description: "", category_type: "BOTH", active: true })}
+          >
             <Plus className="mr-1 h-4 w-4" /> Nova categoria
           </Button>
         )}
@@ -109,7 +117,23 @@ function CategoriesPanel() {
               <Label>Nome*</Label>
               <Input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
             </div>
-            <div className="flex items-center gap-2 pt-6">
+            <div className="space-y-1.5">
+              <Label>Aplica-se a</Label>
+              <Select
+                value={editing.category_type}
+                onValueChange={(v) => setEditing({ ...editing, category_type: v as any })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PRODUCT">Apenas produtos</SelectItem>
+                  <SelectItem value="SERVICE">Apenas serviços</SelectItem>
+                  <SelectItem value="BOTH">Produtos e serviços</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
               <Switch checked={editing.active} onCheckedChange={(v) => setEditing({ ...editing, active: v })} />
               <Label>Ativo</Label>
             </div>

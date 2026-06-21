@@ -5,7 +5,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const UNITS = ["UN", "CX", "MT", "M2", "M3", "RL", "KIT"] as const;
 export type ProductUnit = (typeof UNITS)[number];
 
-const SIGNED_TTL = 60 * 60; // 1 hour
+export type ItemType = "PRODUCT" | "SERVICE";
+export type CategoryType = "PRODUCT" | "SERVICE" | "BOTH";
+
+const SIGNED_TTL = 60 * 60;
 
 async function getCompanyId(supabase: any, userId: string): Promise<string> {
   const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
@@ -42,18 +45,20 @@ async function logAudit(supabase: any, module: string, action: string, recordId?
 export const listCategories = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    const sb = context.supabase as any;
+    const { data, error } = await sb
       .from("categories")
-      .select("id, name, description, active, created_at")
+      .select("id, name, description, active, category_type, created_at")
       .order("name", { ascending: true });
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return (data ?? []) as any[];
   });
 
 const categorySchema = z.object({
   id: z.string().uuid().optional(),
   name: z.string().trim().min(1, "Nome obrigatório").max(120),
   description: z.string().trim().max(500).optional().or(z.literal("")),
+  category_type: z.enum(["PRODUCT", "SERVICE", "BOTH"]).default("BOTH"),
   active: z.boolean().default(true),
 });
 
@@ -61,9 +66,15 @@ export const saveCategory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => categorySchema.parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const company_id = await getCompanyId(supabase, userId);
-    const payload = { name: data.name, description: data.description || null, active: data.active, company_id };
+    const supabase = context.supabase as any;
+    const company_id = await getCompanyId(supabase, context.userId);
+    const payload: any = {
+      name: data.name,
+      description: data.description || null,
+      category_type: data.category_type,
+      active: data.active,
+      company_id,
+    };
     if (data.id) {
       const { data: row, error } = await supabase
         .from("categories")
@@ -87,9 +98,10 @@ export const toggleCategoryActive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid(), active: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("categories").update({ active: data.active }).eq("id", data.id);
+    const sb = context.supabase as any;
+    const { error } = await sb.from("categories").update({ active: data.active }).eq("id", data.id);
     if (error) throw new Error(error.message);
-    await logAudit(context.supabase, "categories", data.active ? "activate" : "deactivate", data.id);
+    await logAudit(sb, "categories", data.active ? "activate" : "deactivate", data.id);
     return { ok: true };
   });
 
@@ -99,12 +111,13 @@ export const toggleCategoryActive = createServerFn({ method: "POST" })
 export const listBrands = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    const sb = context.supabase as any;
+    const { data, error } = await sb
       .from("brands")
       .select("id, name, description, active, created_at")
       .order("name", { ascending: true });
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return (data ?? []) as any[];
   });
 
 const brandSchema = z.object({
@@ -118,20 +131,20 @@ export const saveBrand = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => brandSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const company_id = await getCompanyId(supabase, userId);
-    const payload = { name: data.name, description: data.description || null, active: data.active, company_id };
+    const sb = context.supabase as any;
+    const company_id = await getCompanyId(sb, context.userId);
+    const payload: any = { name: data.name, description: data.description || null, active: data.active, company_id };
     if (data.id) {
-      const { data: row, error } = await supabase.from("brands").update(payload).eq("id", data.id).select("*").single();
+      const { data: row, error } = await sb.from("brands").update(payload).eq("id", data.id).select("*").single();
       if (error) throw new Error(error.message);
-      await logAudit(supabase, "brands", "update", row.id, payload);
-      await logActivity(supabase, `Marca atualizada: ${row.name}`);
+      await logAudit(sb, "brands", "update", row.id, payload);
+      await logActivity(sb, `Marca atualizada: ${row.name}`);
       return row;
     }
-    const { data: row, error } = await supabase.from("brands").insert(payload).select("*").single();
+    const { data: row, error } = await sb.from("brands").insert(payload).select("*").single();
     if (error) throw new Error(error.message);
-    await logAudit(supabase, "brands", "create", row.id, payload);
-    await logActivity(supabase, `Marca criada: ${row.name}`);
+    await logAudit(sb, "brands", "create", row.id, payload);
+    await logActivity(sb, `Marca criada: ${row.name}`);
     return row;
   });
 
@@ -139,9 +152,10 @@ export const toggleBrandActive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid(), active: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("brands").update({ active: data.active }).eq("id", data.id);
+    const sb = context.supabase as any;
+    const { error } = await sb.from("brands").update({ active: data.active }).eq("id", data.id);
     if (error) throw new Error(error.message);
-    await logAudit(context.supabase, "brands", data.active ? "activate" : "deactivate", data.id);
+    await logAudit(sb, "brands", data.active ? "activate" : "deactivate", data.id);
     return { ok: true };
   });
 
@@ -151,12 +165,13 @@ export const toggleBrandActive = createServerFn({ method: "POST" })
 export const listManufacturers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    const sb = context.supabase as any;
+    const { data, error } = await sb
       .from("manufacturers")
       .select("id, name, website, phone, email, active, created_at")
       .order("name", { ascending: true });
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return (data ?? []) as any[];
   });
 
 const manufacturerSchema = z.object({
@@ -172,9 +187,9 @@ export const saveManufacturer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => manufacturerSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const company_id = await getCompanyId(supabase, userId);
-    const payload = {
+    const sb = context.supabase as any;
+    const company_id = await getCompanyId(sb, context.userId);
+    const payload: any = {
       name: data.name,
       website: data.website || null,
       phone: data.phone || null,
@@ -183,21 +198,21 @@ export const saveManufacturer = createServerFn({ method: "POST" })
       company_id,
     };
     if (data.id) {
-      const { data: row, error } = await supabase
+      const { data: row, error } = await sb
         .from("manufacturers")
         .update(payload)
         .eq("id", data.id)
         .select("*")
         .single();
       if (error) throw new Error(error.message);
-      await logAudit(supabase, "manufacturers", "update", row.id, payload);
-      await logActivity(supabase, `Fabricante atualizado: ${row.name}`);
+      await logAudit(sb, "manufacturers", "update", row.id, payload);
+      await logActivity(sb, `Fabricante atualizado: ${row.name}`);
       return row;
     }
-    const { data: row, error } = await supabase.from("manufacturers").insert(payload).select("*").single();
+    const { data: row, error } = await sb.from("manufacturers").insert(payload).select("*").single();
     if (error) throw new Error(error.message);
-    await logAudit(supabase, "manufacturers", "create", row.id, payload);
-    await logActivity(supabase, `Fabricante criado: ${row.name}`);
+    await logAudit(sb, "manufacturers", "create", row.id, payload);
+    await logActivity(sb, `Fabricante criado: ${row.name}`);
     return row;
   });
 
@@ -205,21 +220,20 @@ export const toggleManufacturerActive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid(), active: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("manufacturers")
-      .update({ active: data.active })
-      .eq("id", data.id);
+    const sb = context.supabase as any;
+    const { error } = await sb.from("manufacturers").update({ active: data.active }).eq("id", data.id);
     if (error) throw new Error(error.message);
-    await logAudit(context.supabase, "manufacturers", data.active ? "activate" : "deactivate", data.id);
+    await logAudit(sb, "manufacturers", data.active ? "activate" : "deactivate", data.id);
     return { ok: true };
   });
 
 // ============================================================
-// PRODUCTS
+// ITEMS (Products + Services)
 // ============================================================
-const listProductsSchema = z
+const listItemsSchema = z
   .object({
     search: z.string().trim().max(200).optional(),
+    item_type: z.enum(["all", "PRODUCT", "SERVICE"]).default("all"),
     category_id: z.string().uuid().optional(),
     brand_id: z.string().uuid().optional(),
     manufacturer_id: z.string().uuid().optional(),
@@ -229,20 +243,20 @@ const listProductsSchema = z
     sort: z.enum(["name", "created_at", "sale_price"]).default("name"),
     direction: z.enum(["asc", "desc"]).default("asc"),
   })
-  .default({ status: "all", page: 1, page_size: 20, sort: "name", direction: "asc" });
+  .default({ item_type: "all", status: "all", page: 1, page_size: 20, sort: "name", direction: "asc" });
 
-export const listProducts = createServerFn({ method: "POST" })
+export const listItems = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => listProductsSchema.parse(d ?? {}))
+  .inputValidator((d) => listItemsSchema.parse(d ?? {}))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
+    const sb = context.supabase as any;
     const from = (data.page - 1) * data.page_size;
     const to = from + data.page_size - 1;
 
-    let q = supabase
-      .from("products")
+    let q = sb
+      .from("items")
       .select(
-        "id, name, sku, barcode, sale_price, cost_price, active, unit, minimum_stock, created_at, category:categories(id,name), brand:brands(id,name), manufacturer:manufacturers(id,name)",
+        "id, name, sku, barcode, sale_price, cost_price, active, unit, minimum_stock, controls_stock, item_type, created_at, category:categories(id,name), brand:brands(id,name), manufacturer:manufacturers(id,name)",
         { count: "exact" },
       )
       .is("deleted_at", null)
@@ -253,6 +267,7 @@ export const listProducts = createServerFn({ method: "POST" })
       const term = `%${data.search.replace(/[%_]/g, (m) => "\\" + m)}%`;
       q = q.or(`name.ilike.${term},sku.ilike.${term},barcode.ilike.${term}`);
     }
+    if (data.item_type !== "all") q = q.eq("item_type", data.item_type);
     if (data.category_id) q = q.eq("category_id", data.category_id);
     if (data.brand_id) q = q.eq("brand_id", data.brand_id);
     if (data.manufacturer_id) q = q.eq("manufacturer_id", data.manufacturer_id);
@@ -263,17 +278,17 @@ export const listProducts = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     const ids = (rows ?? []).map((r: any) => r.id);
-    let primaryByProduct: Record<string, { file_path: string; file_name: string }> = {};
+    let primaryByItem: Record<string, { file_path: string; file_name: string }> = {};
     if (ids.length) {
-      const { data: imgs } = await supabase
-        .from("product_images")
-        .select("product_id, file_path, file_name, is_primary, created_at")
-        .in("product_id", ids)
+      const { data: imgs } = await sb
+        .from("item_images")
+        .select("item_id, file_path, file_name, is_primary, created_at")
+        .in("item_id", ids)
         .order("is_primary", { ascending: false })
         .order("created_at", { ascending: true });
       (imgs ?? []).forEach((img: any) => {
-        if (!primaryByProduct[img.product_id]) {
-          primaryByProduct[img.product_id] = { file_path: img.file_path, file_name: img.file_name };
+        if (!primaryByItem[img.item_id]) {
+          primaryByItem[img.item_id] = { file_path: img.file_path, file_name: img.file_name };
         }
       });
     }
@@ -281,45 +296,46 @@ export const listProducts = createServerFn({ method: "POST" })
     const items = await Promise.all(
       (rows ?? []).map(async (r: any) => ({
         ...r,
-        image_url: await signImageUrl(supabase, primaryByProduct[r.id]?.file_path),
+        image_url: await signImageUrl(sb, primaryByItem[r.id]?.file_path),
       })),
     );
 
     return { items, total: count ?? 0, page: data.page, page_size: data.page_size };
   });
 
-export const getProduct = createServerFn({ method: "POST" })
+export const getItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    const { data: p, error } = await supabase
-      .from("products")
+    const sb = context.supabase as any;
+    const { data: p, error } = await sb
+      .from("items")
       .select("*, category:categories(id,name), brand:brands(id,name), manufacturer:manufacturers(id,name)")
       .eq("id", data.id)
       .is("deleted_at", null)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!p) throw new Error("Produto não encontrado.");
+    if (!p) throw new Error("Item não encontrado.");
 
-    const { data: imgs } = await supabase
-      .from("product_images")
+    const { data: imgs } = await sb
+      .from("item_images")
       .select("id, file_path, file_name, is_primary, created_at")
-      .eq("product_id", data.id)
+      .eq("item_id", data.id)
       .order("is_primary", { ascending: false })
       .order("created_at", { ascending: true });
 
     const images = await Promise.all(
-      (imgs ?? []).map(async (i: any) => ({ ...i, url: await signImageUrl(supabase, i.file_path) })),
+      (imgs ?? []).map(async (i: any) => ({ ...i, url: await signImageUrl(sb, i.file_path) })),
     );
     return { ...p, images };
   });
 
-const productSchema = z.object({
+const itemSchema = z.object({
   id: z.string().uuid().optional(),
+  item_type: z.enum(["PRODUCT", "SERVICE"]).default("PRODUCT"),
   name: z.string().trim().min(1, "Nome obrigatório").max(200),
   description: z.string().trim().max(2000).optional().or(z.literal("")),
-  sku: z.string().trim().min(1, "SKU obrigatório").max(80),
+  sku: z.string().trim().max(80).optional().or(z.literal("")),
   barcode: z.string().trim().max(80).optional().or(z.literal("")),
   category_id: z.string().uuid("Categoria obrigatória"),
   brand_id: z.string().uuid().optional().nullable(),
@@ -327,91 +343,104 @@ const productSchema = z.object({
   unit: z.enum(UNITS).default("UN"),
   cost_price: z.number().min(0, "Preço de custo inválido").default(0),
   sale_price: z.number().min(0, "Preço de venda inválido").default(0),
+  controls_stock: z.boolean().default(true),
   minimum_stock: z.number().min(0).default(0),
   active: z.boolean().default(true),
 });
 
-export const saveProduct = createServerFn({ method: "POST" })
+export const saveItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => productSchema.parse(d))
+  .inputValidator((d) => itemSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const company_id = await getCompanyId(supabase, userId);
+    const sb = context.supabase as any;
+    const company_id = await getCompanyId(sb, context.userId);
+    const isService = data.item_type === "SERVICE";
 
-    const payload = {
+    // Detect type change for audit
+    let oldType: string | null = null;
+    if (data.id) {
+      const { data: old } = await sb.from("items").select("item_type").eq("id", data.id).maybeSingle();
+      oldType = old?.item_type ?? null;
+    }
+
+    const payload: any = {
+      item_type: data.item_type,
       name: data.name,
       description: data.description || null,
-      sku: data.sku,
-      barcode: data.barcode || null,
+      sku: data.sku ? data.sku.trim() : null,
+      barcode: isService ? null : data.barcode || null,
       category_id: data.category_id,
       brand_id: data.brand_id || null,
-      manufacturer_id: data.manufacturer_id || null,
+      manufacturer_id: isService ? null : data.manufacturer_id || null,
       unit: data.unit,
       cost_price: data.cost_price,
       sale_price: data.sale_price,
-      minimum_stock: data.minimum_stock,
+      controls_stock: isService ? false : data.controls_stock,
+      minimum_stock: isService ? 0 : data.minimum_stock,
       active: data.active,
       company_id,
     };
 
     if (data.id) {
-      const { data: row, error } = await supabase
-        .from("products")
-        .update(payload)
-        .eq("id", data.id)
-        .select("*")
-        .single();
+      const { data: row, error } = await sb.from("items").update(payload).eq("id", data.id).select("*").single();
       if (error) {
-        if (error.code === "23505") throw new Error("Já existe um produto com este SKU.");
+        if (error.code === "23505") throw new Error("Já existe um item com este SKU.");
         throw new Error(error.message);
       }
-      await logAudit(supabase, "products", "update", row.id, payload);
-      await logActivity(supabase, `Produto atualizado: ${row.name}`);
+      await logAudit(sb, "items", "update", row.id, payload);
+      if (oldType && oldType !== data.item_type) {
+        await logAudit(sb, "items", "type_change", row.id, { from: oldType, to: data.item_type });
+        await logActivity(sb, `Item ${row.name}: tipo alterado de ${oldType} para ${data.item_type}`);
+      } else {
+        await logActivity(sb, `Item atualizado: ${row.name}`);
+      }
       return row;
     }
-    const { data: row, error } = await supabase.from("products").insert(payload).select("*").single();
+    const { data: row, error } = await sb.from("items").insert(payload).select("*").single();
     if (error) {
-      if (error.code === "23505") throw new Error("Já existe um produto com este SKU.");
+      if (error.code === "23505") throw new Error("Já existe um item com este SKU.");
       throw new Error(error.message);
     }
-    await logAudit(supabase, "products", "create", row.id, payload);
-    await logActivity(supabase, `Produto criado: ${row.name}`);
+    await logAudit(sb, "items", "create", row.id, payload);
+    await logActivity(sb, `${data.item_type === "SERVICE" ? "Serviço" : "Produto"} criado: ${row.name}`);
     return row;
   });
 
-export const softDeleteProduct = createServerFn({ method: "POST" })
+export const softDeleteItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("products")
+    const sb = context.supabase as any;
+    const { error } = await sb
+      .from("items")
       .update({ deleted_at: new Date().toISOString(), active: false })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
-    await logAudit(context.supabase, "products", "soft_delete", data.id);
-    await logActivity(context.supabase, `Produto removido.`);
+    await logAudit(sb, "items", "soft_delete", data.id);
+    await logActivity(sb, "Item removido.");
     return { ok: true };
   });
 
-export const toggleProductActive = createServerFn({ method: "POST" })
+export const toggleItemActive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid(), active: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("products").update({ active: data.active }).eq("id", data.id);
+    const sb = context.supabase as any;
+    const { error } = await sb.from("items").update({ active: data.active }).eq("id", data.id);
     if (error) throw new Error(error.message);
-    await logAudit(context.supabase, "products", data.active ? "activate" : "deactivate", data.id);
+    await logAudit(sb, "items", data.active ? "activate" : "deactivate", data.id);
     return { ok: true };
   });
 
 // ============================================================
-// PRODUCT IMAGES
+// ITEM IMAGES
 // ============================================================
-export const registerProductImage = createServerFn({ method: "POST" })
+export const registerItemImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     z
       .object({
-        product_id: z.string().uuid(),
+        item_id: z.string().uuid(),
         file_path: z.string().min(1).max(500),
         file_name: z.string().min(1).max(200),
         is_primary: z.boolean().default(false),
@@ -419,55 +448,68 @@ export const registerProductImage = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const company_id = await getCompanyId(supabase, userId);
+    const sb = context.supabase as any;
+    const company_id = await getCompanyId(sb, context.userId);
 
-    // Ensure at least the first image is primary
-    const { count } = await supabase
-      .from("product_images")
+    const { count } = await sb
+      .from("item_images")
       .select("id", { count: "exact", head: true })
-      .eq("product_id", data.product_id);
+      .eq("item_id", data.item_id);
     const isPrimary = data.is_primary || (count ?? 0) === 0;
 
-    const { data: row, error } = await supabase
-      .from("product_images")
+    const { data: row, error } = await sb
+      .from("item_images")
       .insert({
         company_id,
-        product_id: data.product_id,
+        item_id: data.item_id,
         file_path: data.file_path,
-        file_url: data.file_path, // historical column; signed URL generated on read
         file_name: data.file_name,
+        file_url: data.file_path,
         is_primary: isPrimary,
       })
       .select("id, file_path, file_name, is_primary, created_at")
       .single();
     if (error) throw new Error(error.message);
-    return { ...row, url: await signImageUrl(supabase, row.file_path) };
+    const { data: signed } = await sb.storage.from("product-images").createSignedUrl(row.file_path, SIGNED_TTL);
+    await logAudit(sb, "item_images", "create", row.id, { item_id: data.item_id, file_name: data.file_name });
+    return { ...row, url: signed?.signedUrl ?? null };
   });
 
-export const setPrimaryProductImage = createServerFn({ method: "POST" })
+export const setPrimaryItemImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("product_images").update({ is_primary: true }).eq("id", data.id);
+    const sb = context.supabase as any;
+    const { error } = await sb.from("item_images").update({ is_primary: true }).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
 
-export const deleteProductImage = createServerFn({ method: "POST" })
+export const deleteItemImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    const { data: img } = await supabase
-      .from("product_images")
-      .select("file_path")
-      .eq("id", data.id)
-      .maybeSingle();
+    const sb = context.supabase as any;
+    const { data: img } = await sb.from("item_images").select("file_path").eq("id", data.id).maybeSingle();
+    const { error } = await sb.from("item_images").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
     if (img?.file_path) {
-      await supabase.storage.from("product-images").remove([img.file_path]);
+      try {
+        await sb.storage.from("product-images").remove([img.file_path]);
+      } catch {}
     }
-    const { error } = await supabase.from("product_images").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
+    await logAudit(sb, "item_images", "delete", data.id);
     return { ok: true };
   });
+
+// ============================================================
+// Backwards-compat aliases (legacy imports)
+// ============================================================
+export const listProducts = listItems;
+export const getProduct = getItem;
+export const saveProduct = saveItem;
+export const softDeleteProduct = softDeleteItem;
+export const toggleProductActive = toggleItemActive;
+export const registerProductImage = registerItemImage;
+export const setPrimaryProductImage = setPrimaryItemImage;
+export const deleteProductImage = deleteItemImage;

@@ -5,16 +5,12 @@ import { Upload, Star, StarOff, Trash2, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  registerProductImage,
-  setPrimaryProductImage,
-  deleteProductImage,
-} from "@/lib/products.functions";
+import { registerItemImage, setPrimaryItemImage, deleteItemImage } from "@/lib/products.functions";
 
 const ACCEPT = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
 const MAX_SIZE = 5 * 1024 * 1024;
 
-export type ProductImage = {
+export type ItemImage = {
   id: string;
   file_path: string;
   file_name: string;
@@ -23,28 +19,28 @@ export type ProductImage = {
 };
 
 export function ImageUploader({
-  productId,
+  itemId,
   companyId,
   images,
   onChange,
 }: {
-  productId: string;
+  itemId: string;
   companyId: string;
-  images: ProductImage[];
-  onChange: (images: ProductImage[]) => void;
+  images: ItemImage[];
+  onChange: (images: ItemImage[]) => void;
 }) {
   const qc = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const registerFn = useServerFn(registerProductImage);
-  const setPrimaryFn = useServerFn(setPrimaryProductImage);
-  const deleteFn = useServerFn(deleteProductImage);
+  const registerFn = useServerFn(registerItemImage);
+  const setPrimaryFn = useServerFn(setPrimaryItemImage);
+  const deleteFn = useServerFn(deleteItemImage);
 
   const handleFiles = async (files: FileList | null) => {
     if (!files?.length) return;
     setUploading(true);
     try {
-      const accepted: ProductImage[] = [];
+      const accepted: ItemImage[] = [];
       for (const file of Array.from(files)) {
         if (!ACCEPT.includes(file.type)) {
           toast.error(`Formato não suportado: ${file.name}`);
@@ -55,7 +51,7 @@ export function ImageUploader({
           continue;
         }
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-        const path = `${companyId}/${productId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${safeName}`;
+        const path = `${companyId}/${itemId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${safeName}`;
         const { error: upErr } = await supabase.storage
           .from("product-images")
           .upload(path, file, { contentType: file.type, upsert: false });
@@ -64,14 +60,14 @@ export function ImageUploader({
           continue;
         }
         const row = await registerFn({
-          data: { product_id: productId, file_path: path, file_name: file.name, is_primary: false },
+          data: { item_id: itemId, file_path: path, file_name: file.name, is_primary: false },
         });
-        accepted.push(row as ProductImage);
+        accepted.push(row as ItemImage);
       }
       if (accepted.length) {
         onChange([...images, ...accepted]);
         toast.success(`${accepted.length} imagem(ns) enviada(s).`);
-        qc.invalidateQueries({ queryKey: ["products"] });
+        qc.invalidateQueries({ queryKey: ["items"] });
       }
     } finally {
       setUploading(false);
@@ -83,7 +79,7 @@ export function ImageUploader({
     mutationFn: (id: string) => setPrimaryFn({ data: { id } }),
     onSuccess: (_d, id) => {
       onChange(images.map((i) => ({ ...i, is_primary: i.id === id })));
-      qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: ["items"] });
     },
   });
 
@@ -91,7 +87,7 @@ export function ImageUploader({
     mutationFn: (id: string) => deleteFn({ data: { id } }),
     onSuccess: (_d, id) => {
       onChange(images.filter((i) => i.id !== id));
-      qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: ["items"] });
     },
   });
 
@@ -173,3 +169,6 @@ export function ImageUploader({
     </div>
   );
 }
+
+// Back-compat
+export type ProductImage = ItemImage;
