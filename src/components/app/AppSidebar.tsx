@@ -17,35 +17,35 @@ type Item = { title: string; url: string; icon: React.ComponentType<{ className?
 const groups: { label: string; items: Item[] }[] = [
   {
     label: "Geral",
-    items: [{ title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, module: "dashboard" }],
+    items: [{ title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, module: "dashboard", feature: "dashboard" }],
   },
   {
     label: "Cadastros",
     items: [
-      { title: "Produtos", url: "/products", icon: Package, module: "products" },
-      { title: "Clientes", url: "/clients", icon: Users, module: "clients" },
+      { title: "Produtos", url: "/products", icon: Package, module: "products", feature: "products" },
+      { title: "Clientes", url: "/clients", icon: Users, module: "clients", feature: "customers" },
     ],
   },
   {
     label: "Operação",
     items: [
-      { title: "Estoque", url: "/stock", icon: Boxes, module: "stock" },
-      { title: "Orçamentos", url: "/quotes", icon: FileText, module: "quotes" },
+      { title: "Estoque", url: "/stock", icon: Boxes, module: "stock", feature: "inventory" },
+      { title: "Orçamentos", url: "/quotes", icon: FileText, module: "quotes", feature: "quotes" },
     ],
   },
   {
     label: "Gestão",
     items: [
-      { title: "Financeiro", url: "/financial", icon: DollarSign, module: "financial" },
-      { title: "CRM", url: "/crm", icon: HeartHandshake, module: "crm" },
-      { title: "Ordens de Serviço", url: "/service-orders", icon: Wrench, module: "orders" },
+      { title: "Financeiro", url: "/financial", icon: DollarSign, module: "financial", feature: "financial" },
+      { title: "CRM", url: "/crm", icon: HeartHandshake, module: "crm", feature: "crm" },
+      { title: "Ordens de Serviço", url: "/service-orders", icon: Wrench, module: "orders", feature: "service_orders" },
     ],
   },
   {
     label: "Sistema",
     items: [
-      { title: "Relatórios", url: "/reports", icon: BarChart3, module: "reports" },
-      { title: "Configurações", url: "/settings", icon: Settings, module: "settings" },
+      { title: "Relatórios", url: "/reports", icon: BarChart3, module: "reports", feature: "reports" },
+      { title: "Configurações", url: "/settings", icon: Settings, module: "settings", feature: "settings" },
     ],
   },
 ];
