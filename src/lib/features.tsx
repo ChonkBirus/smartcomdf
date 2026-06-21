@@ -135,6 +135,6 @@ export function useSubscription() {
 }
 
 export function useUpgradeDialog() {
-  const { upgradeFor, openUpgrade, closeUpgrade } = useContext(FeaturesContext);
-  return { upgradeFor, openUpgrade, closeUpgrade };
+  const { upgradeFor, upgradeOpen, openUpgrade, closeUpgrade } = useContext(FeaturesContext);
+  return { upgradeFor, upgradeOpen, openUpgrade, closeUpgrade };
 }
