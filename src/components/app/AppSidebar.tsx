@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Package, Users, Boxes, FileText,
-  DollarSign, HeartHandshake, Wrench, BarChart3, Settings, Shield, ShieldCheck,
+  DollarSign, HeartHandshake, Wrench, BarChart3, Settings, Shield, ShieldCheck, Lock,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -10,8 +10,9 @@ import {
 import { cn } from "@/lib/utils";
 
 import { usePermissions, type ModuleSlug } from "@/lib/permissions";
+import { useFeatures, type FeatureCode } from "@/lib/features";
 
-type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; module: ModuleSlug };
+type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; module: ModuleSlug; feature?: FeatureCode };
 
 const groups: { label: string; items: Item[] }[] = [
   {
