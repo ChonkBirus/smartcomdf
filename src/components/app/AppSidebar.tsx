@@ -55,7 +55,7 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { canView } = usePermissions();
-  const { hasFeature, openUpgrade } = useFeatures();
+  const { hasFeature } = useFeatures();
 
   const visibleGroups = groups
     .map((g) => ({ ...g, items: g.items.filter((it) => canView(it.module)) }))
