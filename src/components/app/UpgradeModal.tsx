@@ -53,7 +53,7 @@ export function UpgradeModal() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && closeUpgrade()}>
+    <Dialog open={upgradeOpen} onOpenChange={(o) => !o && closeUpgrade()}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
