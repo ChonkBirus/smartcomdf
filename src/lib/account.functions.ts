@@ -19,10 +19,14 @@ export const getMyContext = createServerFn({ method: "GET" })
       .select("role, company_id")
       .eq("user_id", userId);
 
+    const { data: permsRpc } = await supabase.rpc("get_my_permissions");
+    const permissions: string[] = Array.isArray(permsRpc) ? (permsRpc as string[]) : [];
+
     return {
       profile,
       company: profile?.companies ?? null,
       roles: roles ?? [],
+      permissions,
       isSuperAdmin: (roles ?? []).some((r) => r.role === "super_admin"),
       isOwner: (roles ?? []).some((r) => r.role === "owner"),
     };
