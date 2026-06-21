@@ -100,7 +100,10 @@ function CategoriesPanel() {
     <div className="space-y-4">
       <div className="flex justify-end">
         {canCreate("products") && (
-          <Button size="sm" onClick={() => setEditing({ name: "", description: "", active: true })}>
+          <Button
+            size="sm"
+            onClick={() => setEditing({ name: "", description: "", category_type: "BOTH", active: true })}
+          >
             <Plus className="mr-1 h-4 w-4" /> Nova categoria
           </Button>
         )}
@@ -113,7 +116,23 @@ function CategoriesPanel() {
               <Label>Nome*</Label>
               <Input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
             </div>
-            <div className="flex items-center gap-2 pt-6">
+            <div className="space-y-1.5">
+              <Label>Aplica-se a</Label>
+              <Select
+                value={editing.category_type}
+                onValueChange={(v) => setEditing({ ...editing, category_type: v as any })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PRODUCT">Apenas produtos</SelectItem>
+                  <SelectItem value="SERVICE">Apenas serviços</SelectItem>
+                  <SelectItem value="BOTH">Produtos e serviços</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
               <Switch checked={editing.active} onCheckedChange={(v) => setEditing({ ...editing, active: v })} />
               <Label>Ativo</Label>
             </div>
