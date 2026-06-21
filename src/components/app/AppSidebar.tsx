@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Package, Users, Boxes, FileText,
-  DollarSign, HeartHandshake, Wrench, BarChart3, Settings, Shield, ShieldCheck,
+  DollarSign, HeartHandshake, Wrench, BarChart3, Settings, Shield, ShieldCheck, Lock,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -10,41 +10,42 @@ import {
 import { cn } from "@/lib/utils";
 
 import { usePermissions, type ModuleSlug } from "@/lib/permissions";
+import { useFeatures, type FeatureCode } from "@/lib/features";
 
-type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; module: ModuleSlug };
+type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; module: ModuleSlug; feature?: FeatureCode };
 
 const groups: { label: string; items: Item[] }[] = [
   {
     label: "Geral",
-    items: [{ title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, module: "dashboard" }],
+    items: [{ title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, module: "dashboard", feature: "dashboard" }],
   },
   {
     label: "Cadastros",
     items: [
-      { title: "Produtos", url: "/products", icon: Package, module: "products" },
-      { title: "Clientes", url: "/clients", icon: Users, module: "clients" },
+      { title: "Produtos", url: "/products", icon: Package, module: "products", feature: "products" },
+      { title: "Clientes", url: "/clients", icon: Users, module: "clients", feature: "customers" },
     ],
   },
   {
     label: "Operação",
     items: [
-      { title: "Estoque", url: "/stock", icon: Boxes, module: "stock" },
-      { title: "Orçamentos", url: "/quotes", icon: FileText, module: "quotes" },
+      { title: "Estoque", url: "/stock", icon: Boxes, module: "stock", feature: "inventory" },
+      { title: "Orçamentos", url: "/quotes", icon: FileText, module: "quotes", feature: "quotes" },
     ],
   },
   {
     label: "Gestão",
     items: [
-      { title: "Financeiro", url: "/financial", icon: DollarSign, module: "financial" },
-      { title: "CRM", url: "/crm", icon: HeartHandshake, module: "crm" },
-      { title: "Ordens de Serviço", url: "/service-orders", icon: Wrench, module: "orders" },
+      { title: "Financeiro", url: "/financial", icon: DollarSign, module: "financial", feature: "financial" },
+      { title: "CRM", url: "/crm", icon: HeartHandshake, module: "crm", feature: "crm" },
+      { title: "Ordens de Serviço", url: "/service-orders", icon: Wrench, module: "orders", feature: "service_orders" },
     ],
   },
   {
     label: "Sistema",
     items: [
-      { title: "Relatórios", url: "/reports", icon: BarChart3, module: "reports" },
-      { title: "Configurações", url: "/settings", icon: Settings, module: "settings" },
+      { title: "Relatórios", url: "/reports", icon: BarChart3, module: "reports", feature: "reports" },
+      { title: "Configurações", url: "/settings", icon: Settings, module: "settings", feature: "settings" },
     ],
   },
 ];
@@ -54,6 +55,7 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { canView } = usePermissions();
+  const { hasFeature, openUpgrade } = useFeatures();
 
   const visibleGroups = groups
     .map((g) => ({ ...g, items: g.items.filter((it) => canView(it.module)) }))
@@ -82,6 +84,26 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
               <SidebarMenu>
                 {g.items.map((it) => {
                   const active = pathname === it.url || pathname.startsWith(it.url + "/");
+                  const locked = it.feature ? !hasFeature(it.feature) : false;
+                  if (locked) {
+                    return (
+                      <SidebarMenuItem key={it.url}>
+                        <SidebarMenuButton
+                          tooltip={`${it.title} — Premium`}
+                          onClick={() => openUpgrade(it.feature)}
+                          className="opacity-60"
+                        >
+                          <it.icon className="h-4 w-4 shrink-0" />
+                          {!collapsed && (
+                            <>
+                              <span className="flex-1">{it.title}</span>
+                              <Lock className="h-3 w-3 text-muted-foreground" />
+                            </>
+                          )}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  }
                   return (
                     <SidebarMenuItem key={it.url}>
                       <SidebarMenuButton asChild isActive={active} tooltip={it.title}>

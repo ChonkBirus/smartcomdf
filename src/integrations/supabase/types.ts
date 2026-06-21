@@ -231,6 +231,39 @@ export type Database = {
           },
         ]
       }
+      features: {
+        Row: {
+          active: boolean
+          category: string | null
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string | null
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           company_id: string
@@ -296,12 +329,54 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_features: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          feature_id: string
+          id: string
+          plan_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          feature_id: string
+          id?: string
+          plan_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          feature_id?: string
+          id?: string
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_features_feature_id_fkey"
+            columns: ["feature_id"]
+            isOneToOne: false
+            referencedRelation: "features"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_features_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plans: {
         Row: {
           active: boolean
           annual_price: number
           created_at: string
           id: string
+          max_customers: number
+          max_products: number
+          max_service_orders: number
           max_storage_gb: number
           max_users: number
           monthly_price: number
@@ -314,6 +389,9 @@ export type Database = {
           annual_price?: number
           created_at?: string
           id?: string
+          max_customers?: number
+          max_products?: number
+          max_service_orders?: number
           max_storage_gb?: number
           max_users?: number
           monthly_price?: number
@@ -326,6 +404,9 @@ export type Database = {
           annual_price?: number
           created_at?: string
           id?: string
+          max_customers?: number
+          max_products?: number
+          max_service_orders?: number
           max_storage_gb?: number
           max_users?: number
           monthly_price?: number
@@ -649,11 +730,13 @@ export type Database = {
         Returns: undefined
       }
       current_company_id: { Args: never; Returns: string }
+      get_my_features: { Args: never; Returns: string[] }
       get_my_permissions: { Args: never; Returns: string[] }
       has_company_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
       }
+      has_feature: { Args: { _code: string }; Returns: boolean }
       has_permission: { Args: { _slug: string }; Returns: boolean }
       has_role: {
         Args: {
