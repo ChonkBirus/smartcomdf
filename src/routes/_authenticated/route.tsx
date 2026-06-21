@@ -42,22 +42,28 @@ function AuthenticatedLayout() {
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <AppSidebar isSuperAdmin={data?.isSuperAdmin} />
-        <SidebarInset className="flex min-h-screen flex-1 flex-col">
-          <Topbar
-            name={data?.profile?.full_name}
-            email={data?.profile?.email}
-            avatarUrl={data?.profile?.avatar_url}
-            companyName={data?.company?.trade_name ?? data?.company?.corporate_name}
-            userId={data?.profile?.id}
-          />
-          <main className="flex-1 p-4 md:p-6 lg:p-8">
-            <Outlet />
-          </main>
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+    <PermissionsProvider
+      permissions={data?.permissions ?? []}
+      isSuperAdmin={!!data?.isSuperAdmin}
+      isOwner={!!data?.isOwner}
+    >
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full bg-background">
+          <AppSidebar isSuperAdmin={data?.isSuperAdmin} />
+          <SidebarInset className="flex min-h-screen flex-1 flex-col">
+            <Topbar
+              name={data?.profile?.full_name}
+              email={data?.profile?.email}
+              avatarUrl={data?.profile?.avatar_url}
+              companyName={data?.company?.trade_name ?? data?.company?.corporate_name}
+              userId={data?.profile?.id}
+            />
+            <main className="flex-1 p-4 md:p-6 lg:p-8">
+              <Outlet />
+            </main>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
+    </PermissionsProvider>
   );
 }
