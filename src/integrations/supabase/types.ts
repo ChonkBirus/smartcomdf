@@ -335,6 +335,52 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_roles: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          id: string
+          profile_id: string
+          role_id: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          profile_id: string
+          role_id: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          profile_id?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_roles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_roles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           active: boolean
@@ -603,10 +649,12 @@ export type Database = {
         Returns: undefined
       }
       current_company_id: { Args: never; Returns: string }
+      get_my_permissions: { Args: never; Returns: string[] }
       has_company_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
       }
+      has_permission: { Args: { _slug: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
