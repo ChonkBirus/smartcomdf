@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { translateAuthError } from "@/lib/auth-errors";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({ meta: [{ title: "Nova senha — SecureERP" }] }),
@@ -29,7 +30,7 @@ function ResetPassword() {
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password: d.password });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(translateAuthError(error.message));
     toast.success("Senha atualizada!");
     navigate({ to: "/dashboard", replace: true });
   };
