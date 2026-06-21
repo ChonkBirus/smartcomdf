@@ -92,3 +92,23 @@ export const logFeatureBlocked = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+export const getCompanyUsage = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", userId)
+      .maybeSingle();
+    const companyId = profile?.company_id;
+    if (!companyId) return { users: 0 };
+
+    const { count: users } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("company_id", companyId);
+
+    return { users: users ?? 0 };
+  });

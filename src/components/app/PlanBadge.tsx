@@ -4,7 +4,7 @@ import { usePlan } from "@/lib/features";
 import { cn } from "@/lib/utils";
 
 export function PlanBadge({ className }: { className?: string }) {
-  const plan = usePlan();
+  const { plan } = usePlan();
   if (!plan) return null;
   const slug = plan.slug;
   const Icon = slug === "business" ? Crown : slug === "pro" ? Sparkles : Zap;

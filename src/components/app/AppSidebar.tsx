@@ -55,7 +55,7 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { canView } = usePermissions();
-  const { hasFeature, openUpgrade } = useFeatures();
+  const { hasFeature } = useFeatures();
 
   const visibleGroups = groups
     .map((g) => ({ ...g, items: g.items.filter((it) => canView(it.module)) }))
@@ -88,18 +88,19 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
                   if (locked) {
                     return (
                       <SidebarMenuItem key={it.url}>
-                        <SidebarMenuButton
-                          tooltip={`${it.title} — Premium`}
-                          onClick={() => openUpgrade(it.feature)}
-                          className="opacity-60"
-                        >
-                          <it.icon className="h-4 w-4 shrink-0" />
-                          {!collapsed && (
-                            <>
-                              <span className="flex-1">{it.title}</span>
-                              <Lock className="h-3 w-3 text-muted-foreground" />
-                            </>
-                          )}
+                        <SidebarMenuButton asChild isActive={active} tooltip={`${it.title} — Plano Superior`}>
+                          <Link to={it.url} className={cn("flex items-center gap-2 opacity-70")}>
+                            <it.icon className="h-4 w-4 shrink-0" />
+                            {!collapsed && (
+                              <>
+                                <span className="flex-1 truncate">{it.title}</span>
+                                <span className="flex items-center gap-1 rounded-sm bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-semibold text-amber-600 dark:text-amber-400">
+                                  <Lock className="h-2.5 w-2.5" />
+                                  Premium
+                                </span>
+                              </>
+                            )}
+                          </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     );
