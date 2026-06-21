@@ -28,19 +28,16 @@ const FEATURE_LABELS: Record<string, string> = {
 };
 
 export function UpgradeModal() {
-  const { upgradeFor, closeUpgrade } = useUpgradeDialog();
+  const { upgradeFor, upgradeOpen, closeUpgrade } = useUpgradeDialog();
   const { plan: currentPlan } = usePlan();
   const { hasFeature } = useFeatures();
   const listFn = useServerFn(listPlansWithFeatures);
   const requestFn = useServerFn(requestPlanUpgrade);
 
-  const isOpen = upgradeFor !== null || (upgradeFor as unknown) === "";
-  const open = upgradeFor !== null;
-
   const { data: plans } = useQuery({
     queryKey: ["billing", "plans-with-features"],
     queryFn: () => listFn(),
-    enabled: isOpen,
+    enabled: upgradeOpen,
   });
 
   const featureLabel = upgradeFor ? FEATURE_LABELS[upgradeFor] ?? upgradeFor : null;
@@ -56,7 +53,7 @@ export function UpgradeModal() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && closeUpgrade()}>
+    <Dialog open={upgradeOpen} onOpenChange={(o) => !o && closeUpgrade()}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

@@ -49,6 +49,7 @@ type Ctx = {
   subscription: SubscriptionInfo;
   isSuperAdmin: boolean;
   upgradeFor: FeatureCode | null;
+  upgradeOpen: boolean;
   openUpgrade: (f?: FeatureCode) => void;
   closeUpgrade: () => void;
 };
@@ -59,6 +60,7 @@ const FeaturesContext = createContext<Ctx>({
   subscription: null,
   isSuperAdmin: false,
   upgradeFor: null,
+  upgradeOpen: false,
   openUpgrade: () => {},
   closeUpgrade: () => {},
 });
@@ -76,7 +78,8 @@ export function FeaturesProvider({
   subscription: SubscriptionInfo;
   isSuperAdmin: boolean;
 }) {
-  const [upgradeFor, setUpgradeFor] = useState<FeatureCode | null>(null);
+  const [upgradeFor, setUpgradeForState] = useState<FeatureCode | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   const value = useMemo<Ctx>(
     () => ({
@@ -85,10 +88,17 @@ export function FeaturesProvider({
       subscription,
       isSuperAdmin,
       upgradeFor,
-      openUpgrade: (f) => setUpgradeFor((f ?? null) as FeatureCode | null),
-      closeUpgrade: () => setUpgradeFor(null),
+      upgradeOpen,
+      openUpgrade: (f) => {
+        setUpgradeForState((f ?? null) as FeatureCode | null);
+        setUpgradeOpen(true);
+      },
+      closeUpgrade: () => {
+        setUpgradeOpen(false);
+        setUpgradeForState(null);
+      },
     }),
-    [features, plan, subscription, isSuperAdmin, upgradeFor],
+    [features, plan, subscription, isSuperAdmin, upgradeFor, upgradeOpen],
   );
 
   return <FeaturesContext.Provider value={value}>{children}</FeaturesContext.Provider>;
@@ -125,6 +135,6 @@ export function useSubscription() {
 }
 
 export function useUpgradeDialog() {
-  const { upgradeFor, openUpgrade, closeUpgrade } = useContext(FeaturesContext);
-  return { upgradeFor, openUpgrade, closeUpgrade };
+  const { upgradeFor, upgradeOpen, openUpgrade, closeUpgrade } = useContext(FeaturesContext);
+  return { upgradeFor, upgradeOpen, openUpgrade, closeUpgrade };
 }
