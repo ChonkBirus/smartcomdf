@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app/AppSidebar";
 import { Topbar } from "@/components/app/Topbar";
 import { getMyContext } from "@/lib/account.functions";
+import { AuthLoadingScreen } from "@/components/app/AuthLoadingScreen";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -36,11 +37,7 @@ function AuthenticatedLayout() {
   }, [data, isLoading, navigate]);
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    );
+    return <AuthLoadingScreen message="Carregando seu perfil..." />;
   }
 
   return (
