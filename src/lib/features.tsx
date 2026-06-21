@@ -49,6 +49,7 @@ type Ctx = {
   subscription: SubscriptionInfo;
   isSuperAdmin: boolean;
   upgradeFor: FeatureCode | null;
+  upgradeOpen: boolean;
   openUpgrade: (f?: FeatureCode) => void;
   closeUpgrade: () => void;
 };
@@ -59,6 +60,7 @@ const FeaturesContext = createContext<Ctx>({
   subscription: null,
   isSuperAdmin: false,
   upgradeFor: null,
+  upgradeOpen: false,
   openUpgrade: () => {},
   closeUpgrade: () => {},
 });
