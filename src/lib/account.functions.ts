@@ -75,7 +75,7 @@ export const createCompanyForCurrentUser = createServerFn({ method: "POST" })
 
     await supabaseAdmin.from("profiles").update({ company_id: company.id }).eq("id", userId);
     await supabaseAdmin.from("user_roles").insert({ user_id: userId, company_id: company.id, role: "owner" });
-    await supabaseAdmin.from("settings").insert({ company_id: company.id });
+    await supabaseAdmin.from("company_settings").insert({ company_id: company.id });
     await supabaseAdmin.from("subscriptions").insert({
       company_id: company.id,
       plan_id: plan.id,

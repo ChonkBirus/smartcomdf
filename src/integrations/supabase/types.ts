@@ -190,6 +190,47 @@ export type Database = {
           },
         ]
       }
+      company_settings: {
+        Row: {
+          company_id: string
+          created_at: string
+          currency: string
+          dark_mode: boolean
+          id: string
+          language: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          currency?: string
+          dark_mode?: boolean
+          id?: string
+          language?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          currency?: string
+          dark_mode?: boolean
+          id?: string
+          language?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           company_id: string
@@ -400,47 +441,6 @@ export type Database = {
           slug?: string
         }
         Relationships: []
-      }
-      settings: {
-        Row: {
-          company_id: string
-          created_at: string
-          currency: string
-          dark_mode: boolean
-          id: string
-          language: string
-          timezone: string
-          updated_at: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          currency?: string
-          dark_mode?: boolean
-          id?: string
-          language?: string
-          timezone?: string
-          updated_at?: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          currency?: string
-          dark_mode?: boolean
-          id?: string
-          language?: string
-          timezone?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "settings_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: true
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       subscriptions: {
         Row: {
