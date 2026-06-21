@@ -53,6 +53,11 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const { canView } = usePermissions();
+
+  const visibleGroups = groups
+    .map((g) => ({ ...g, items: g.items.filter((it) => canView(it.module)) }))
+    .filter((g) => g.items.length > 0);
 
   return (
     <Sidebar collapsible="icon">
@@ -70,7 +75,7 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {groups.map((g) => (
+        {visibleGroups.map((g) => (
           <SidebarGroup key={g.label}>
             {!collapsed && <SidebarGroupLabel>{g.label}</SidebarGroupLabel>}
             <SidebarGroupContent>
