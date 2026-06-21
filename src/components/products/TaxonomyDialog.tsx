@@ -73,9 +73,13 @@ function CategoriesPanel() {
   const saveFn = useServerFn(saveCategory);
   const toggleFn = useServerFn(toggleCategoryActive);
   const { data: items = [] } = useQuery({ queryKey: ["categories"], queryFn: () => listFn() });
-  const [editing, setEditing] = useState<{ id?: string; name: string; description?: string; active: boolean } | null>(
-    null,
-  );
+  const [editing, setEditing] = useState<{
+    id?: string;
+    name: string;
+    description?: string;
+    category_type: "PRODUCT" | "SERVICE" | "BOTH";
+    active: boolean;
+  } | null>(null);
 
   const save = useMutation({
     mutationFn: (v: any) => saveFn({ data: v }),
