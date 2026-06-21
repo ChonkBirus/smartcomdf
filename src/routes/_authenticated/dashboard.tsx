@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Users, Package, FileText, DollarSign, TrendingUp, Activity } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/app/KpiCard";
+import { SubscriptionCard } from "@/components/app/SubscriptionCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 
