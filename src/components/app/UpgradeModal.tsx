@@ -29,7 +29,7 @@ const FEATURE_LABELS: Record<string, string> = {
 
 export function UpgradeModal() {
   const { upgradeFor, closeUpgrade } = useUpgradeDialog();
-  const currentPlan = usePlan();
+  const { plan: currentPlan } = usePlan();
   const { hasFeature } = useFeatures();
   const listFn = useServerFn(listPlansWithFeatures);
   const requestFn = useServerFn(requestPlanUpgrade);
