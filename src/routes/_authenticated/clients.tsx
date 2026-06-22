@@ -137,11 +137,11 @@ function ClientsPage() {
       />
 
       <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <KpiCard label="Total" value={metrics?.total ?? 0} icon={Users} />
-        <KpiCard label="Ativos" value={metrics?.active ?? 0} icon={Users} />
-        <KpiCard label="Pessoa Física" value={metrics?.individual ?? 0} icon={UserIcon} />
-        <KpiCard label="Pessoa Jurídica" value={metrics?.company ?? 0} icon={Building2} />
-        <KpiCard label="Novos no mês" value={metrics?.new_this_month ?? 0} icon={Plus} />
+        <KpiCard title="Total" value={metrics?.total ?? 0} icon={<Users className="h-5 w-5" />} />
+        <KpiCard title="Ativos" value={metrics?.active ?? 0} icon={<Users className="h-5 w-5" />} />
+        <KpiCard title="Pessoa Física" value={metrics?.individual ?? 0} icon={<UserIcon className="h-5 w-5" />} />
+        <KpiCard title="Pessoa Jurídica" value={metrics?.company ?? 0} icon={<Building2 className="h-5 w-5" />} />
+        <KpiCard title="Novos no mês" value={metrics?.new_this_month ?? 0} icon={<Plus className="h-5 w-5" />} />
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
