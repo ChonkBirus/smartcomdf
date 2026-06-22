@@ -56,7 +56,7 @@ function Dashboard() {
             <CardContent className="space-y-1.5 text-sm">
               {(stock?.recent ?? []).length === 0 ? (
                 <p className="text-muted-foreground">Nenhuma movimentação recente.</p>
-              ) : stock!.recent.map((r) => (
+              ) : stock!.recent.map((r: any) => (
                 <div key={r.id} className="flex items-center justify-between gap-2">
                   <span className="truncate">{r.item_name}</span>
                   <span className="text-xs text-muted-foreground">{r.movement_type} · {r.quantity}</span>
