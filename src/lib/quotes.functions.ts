@@ -431,3 +431,44 @@ export const expireOutdatedQuotes = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { expired: Number(data ?? 0) };
   });
+
+// ============================================================
+// HISTORY
+// ============================================================
+export const getQuoteHistory = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ quote_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const { data: rows, error } = await sb
+      .from("quote_history")
+      .select("id, quote_id, event_type, actor_label, meta, created_at")
+      .eq("quote_id", data.quote_id)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (rows ?? []) as QuoteHistoryEvent[];
+  });
+
+export const logQuoteEvent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    quote_id: z.string().uuid(),
+    event_type: z.enum(["sent", "link_copied", "whatsapp_sent", "pdf_downloaded", "email_sent"]),
+    actor_label: z.string().trim().max(120).optional(),
+    meta: z.record(z.string(), z.any()).optional(),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const { data: q } = await sb.from("quotes").select("company_id").eq("id", data.quote_id).maybeSingle();
+    if (!q) throw new Error("Orçamento não encontrado.");
+    const { error } = await sb.from("quote_history").insert({
+      company_id: q.company_id,
+      quote_id: data.quote_id,
+      event_type: data.event_type,
+      actor_user_id: context.userId,
+      actor_label: data.actor_label ?? null,
+      meta: data.meta ?? {},
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
