@@ -1,10 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Users, Package, FileText, DollarSign, TrendingUp, Activity } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Users, Package, FileText, DollarSign, TrendingUp, Activity, PackageX, AlertTriangle, Boxes } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/app/KpiCard";
 import { SubscriptionCard } from "@/components/app/SubscriptionCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { stockOverview } from "@/lib/stock.functions";
+import { usePermissions } from "@/lib/permissions";
+import { useFeatures } from "@/lib/features";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — SecureERP" }] }),
