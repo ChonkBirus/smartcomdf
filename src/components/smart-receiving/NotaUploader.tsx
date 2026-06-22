@@ -2,20 +2,32 @@ import { useRef, useState } from "react";
 import { Camera, Upload, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
-import { createNotaDocument, parseNotaDocument } from "@/lib/smart-receiving.functions";
+import { parseNotaDocument, uploadNotaFile } from "@/lib/smart-receiving.functions";
 import { useAuth } from "@/lib/auth-context";
 
 const ACCEPT = "application/pdf,image/png,image/jpeg,image/webp";
 const MAX_SIZE = 15 * 1024 * 1024;
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const comma = result.indexOf(",");
+      resolve(comma >= 0 ? result.slice(comma + 1) : result);
+    };
+    reader.onerror = () => reject(new Error("Falha ao ler o arquivo."));
+    reader.readAsDataURL(file);
+  });
+}
 
 export function NotaUploader({ onCreated }: { onCreated: (id: string) => void }) {
   const cameraRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState<string>("");
-  const create = useServerFn(createNotaDocument);
+  const upload = useServerFn(uploadNotaFile);
   const parse = useServerFn(parseNotaDocument);
   const { user } = useAuth();
 
@@ -24,27 +36,16 @@ export function NotaUploader({ onCreated }: { onCreated: (id: string) => void })
     if (file.size > MAX_SIZE) { toast.error("Arquivo acima de 15 MB."); return; }
     setBusy(true);
     try {
-      setStage("Enviando arquivo...");
-      // Get company_id from profile via RPC-less path: use a quick select
-      const { data: profile } = await supabase.from("profiles").select("company_id").eq("id", user.id).maybeSingle();
-      const cid = profile?.company_id;
-      if (!cid) throw new Error("Sem empresa.");
+      setStage("Lendo arquivo...");
+      const file_base64 = await fileToBase64(file);
 
-      const ext = file.name.split(".").pop() || "bin";
-      const path = `${cid}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("nota-documents").upload(path, file, {
-        contentType: file.type || "application/octet-stream",
-        upsert: false,
-      });
-      if (upErr) throw upErr;
-
-      setStage("Registrando documento...");
-      const { id } = await create({
+      setStage("Enviando para o servidor...");
+      const { id } = await upload({
         data: {
-          file_path: path,
           original_name: file.name,
           mime_type: file.type || "application/octet-stream",
           file_size: file.size,
+          file_base64,
         },
       });
 

@@ -161,6 +161,58 @@ export const createNotaDocument = createServerFn({ method: "POST" })
   });
 
 // ============================================================
+// UPLOAD + CREATE in one server call (avoids Preview proxy stripping auth on
+// direct browser → Supabase Storage uploads)
+// ============================================================
+export const uploadNotaFile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({
+      original_name: z.string().min(1).max(255),
+      mime_type: z.string().min(1).max(120),
+      file_size: z.number().int().positive().max(20 * 1024 * 1024),
+      file_base64: z.string().min(1),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const { data: profile } = await sb
+      .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const cid = profile?.company_id;
+    if (!cid) throw new Error("Sem empresa.");
+
+    const buf = Buffer.from(data.file_base64, "base64");
+    const ext = (data.original_name.split(".").pop() || "bin").toLowerCase().slice(0, 8);
+    const path = `${cid}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+    const { error: upErr } = await sb.storage
+      .from("nota-documents")
+      .upload(path, buf, { contentType: data.mime_type || "application/octet-stream", upsert: false });
+    if (upErr) throw new Error("Falha no upload: " + upErr.message);
+
+    const { data: row, error } = await sb.from("nota_documents").insert({
+      company_id: cid,
+      uploaded_by: context.userId,
+      file_path: path,
+      original_name: data.original_name,
+      mime_type: data.mime_type,
+      file_size: data.file_size,
+      status: "UPLOADED",
+    }).select("id").single();
+    if (error) {
+      await sb.storage.from("nota-documents").remove([path]).catch(() => {});
+      throw new Error(error.message);
+    }
+
+    await sb.rpc("log_audit", {
+      _module: "smart_receiving", _action: "upload", _record_id: row.id,
+      _new_data: { original_name: data.original_name, mime_type: data.mime_type },
+    });
+
+    return { id: row.id as string, file_path: path };
+  });
+
+// ============================================================
 // PARSE with AI (Lovable AI Gateway - Gemini multimodal)
 // ============================================================
 const AI_SYSTEM_PROMPT = `Você é um assistente especializado em ler notas fiscais brasileiras (NF-e, NFC-e, cupons fiscais e recibos) de empresas de segurança eletrônica.
