@@ -1504,6 +1504,172 @@ export type Database = {
           },
         ]
       }
+      quote_items: {
+        Row: {
+          company_id: string
+          cost_price: number
+          created_at: string
+          description: string | null
+          id: string
+          item_id: string | null
+          kind: Database["public"]["Enums"]["quote_item_kind"]
+          name: string
+          position: number
+          quantity: number
+          quote_id: string
+          total: number
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          cost_price?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_id?: string | null
+          kind?: Database["public"]["Enums"]["quote_item_kind"]
+          name: string
+          position?: number
+          quantity?: number
+          quote_id: string
+          total?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          cost_price?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_id?: string | null
+          kind?: Database["public"]["Enums"]["quote_item_kind"]
+          name?: string
+          position?: number
+          quantity?: number
+          quote_id?: string
+          total?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          approved_at: string | null
+          cancelled_at: string | null
+          company_id: string
+          completion_estimate: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          customer_notes: string | null
+          delivery_terms: string | null
+          discount: number
+          id: string
+          internal_notes: string | null
+          issue_date: string
+          items_subtotal: number
+          labor_cost: number
+          payment_terms: string | null
+          quote_number: string
+          status: Database["public"]["Enums"]["quote_status"]
+          title: string | null
+          total_amount: number
+          updated_at: string
+          valid_until: string | null
+          warranty_terms: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          cancelled_at?: string | null
+          company_id: string
+          completion_estimate?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          customer_notes?: string | null
+          delivery_terms?: string | null
+          discount?: number
+          id?: string
+          internal_notes?: string | null
+          issue_date?: string
+          items_subtotal?: number
+          labor_cost?: number
+          payment_terms?: string | null
+          quote_number: string
+          status?: Database["public"]["Enums"]["quote_status"]
+          title?: string | null
+          total_amount?: number
+          updated_at?: string
+          valid_until?: string | null
+          warranty_terms?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          cancelled_at?: string | null
+          company_id?: string
+          completion_estimate?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          customer_notes?: string | null
+          delivery_terms?: string | null
+          discount?: number
+          id?: string
+          internal_notes?: string | null
+          issue_date?: string
+          items_subtotal?: number
+          labor_cost?: number
+          payment_terms?: string | null
+          quote_number?: string
+          status?: Database["public"]["Enums"]["quote_status"]
+          title?: string | null
+          total_amount?: number
+          updated_at?: string
+          valid_until?: string | null
+          warranty_terms?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           created_at: string
@@ -2021,6 +2187,7 @@ export type Database = {
         }
         Returns: string
       }
+      next_quote_number: { Args: { _company_id: string }; Returns: string }
       notify_user: {
         Args: {
           _company_id: string
@@ -2030,6 +2197,8 @@ export type Database = {
         }
         Returns: string
       }
+      quote_recalc_totals: { Args: { _quote_id: string }; Returns: undefined }
+      quotes_mark_expired: { Args: never; Returns: number }
       receive_purchase_order: {
         Args: {
           _items: Json
@@ -2090,6 +2259,15 @@ export type Database = {
         | "PARTIALLY_RECEIVED"
         | "RECEIVED"
         | "CANCELLED"
+      quote_item_kind: "PRODUCT" | "SERVICE" | "LABOR" | "OTHER"
+      quote_status:
+        | "DRAFT"
+        | "SENT"
+        | "VIEWED"
+        | "APPROVED"
+        | "REJECTED"
+        | "CANCELLED"
+        | "EXPIRED"
       stock_movement_type:
         | "ENTRY"
         | "EXIT"
@@ -2265,6 +2443,16 @@ export const Constants = {
         "PARTIALLY_RECEIVED",
         "RECEIVED",
         "CANCELLED",
+      ],
+      quote_item_kind: ["PRODUCT", "SERVICE", "LABOR", "OTHER"],
+      quote_status: [
+        "DRAFT",
+        "SENT",
+        "VIEWED",
+        "APPROVED",
+        "REJECTED",
+        "CANCELLED",
+        "EXPIRED",
       ],
       stock_movement_type: [
         "ENTRY",
