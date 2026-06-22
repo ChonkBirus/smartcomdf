@@ -22,6 +22,7 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedServiceOrdersRouteImport } from './routes/_authenticated/service-orders'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedQuotesRouteImport } from './routes/_authenticated/quotes'
+import { Route as AuthenticatedPurchasesAnalyticsRouteImport } from './routes/_authenticated/purchases-analytics'
 import { Route as AuthenticatedPurchasesRouteImport } from './routes/_authenticated/purchases'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
@@ -106,6 +107,12 @@ const AuthenticatedQuotesRoute = AuthenticatedQuotesRouteImport.update({
   path: '/quotes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPurchasesAnalyticsRoute =
+  AuthenticatedPurchasesAnalyticsRouteImport.update({
+    id: '/purchases-analytics',
+    path: '/purchases-analytics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPurchasesRoute = AuthenticatedPurchasesRouteImport.update({
   id: '/purchases',
   path: '/purchases',
@@ -212,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/products': typeof AuthenticatedProductsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/purchases': typeof AuthenticatedPurchasesRoute
+  '/purchases-analytics': typeof AuthenticatedPurchasesAnalyticsRoute
   '/quotes': typeof AuthenticatedQuotesRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/service-orders': typeof AuthenticatedServiceOrdersRoute
@@ -242,6 +250,7 @@ export interface FileRoutesByTo {
   '/products': typeof AuthenticatedProductsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/purchases': typeof AuthenticatedPurchasesRoute
+  '/purchases-analytics': typeof AuthenticatedPurchasesAnalyticsRoute
   '/quotes': typeof AuthenticatedQuotesRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/service-orders': typeof AuthenticatedServiceOrdersRoute
@@ -274,6 +283,7 @@ export interface FileRoutesById {
   '/_authenticated/products': typeof AuthenticatedProductsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/purchases': typeof AuthenticatedPurchasesRoute
+  '/_authenticated/purchases-analytics': typeof AuthenticatedPurchasesAnalyticsRoute
   '/_authenticated/quotes': typeof AuthenticatedQuotesRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/service-orders': typeof AuthenticatedServiceOrdersRoute
@@ -307,6 +317,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/profile'
     | '/purchases'
+    | '/purchases-analytics'
     | '/quotes'
     | '/reports'
     | '/service-orders'
@@ -337,6 +348,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/profile'
     | '/purchases'
+    | '/purchases-analytics'
     | '/quotes'
     | '/reports'
     | '/service-orders'
@@ -368,6 +380,7 @@ export interface FileRouteTypes {
     | '/_authenticated/products'
     | '/_authenticated/profile'
     | '/_authenticated/purchases'
+    | '/_authenticated/purchases-analytics'
     | '/_authenticated/quotes'
     | '/_authenticated/reports'
     | '/_authenticated/service-orders'
@@ -486,6 +499,13 @@ declare module '@tanstack/react-router' {
       path: '/quotes'
       fullPath: '/quotes'
       preLoaderRoute: typeof AuthenticatedQuotesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/purchases-analytics': {
+      id: '/_authenticated/purchases-analytics'
+      path: '/purchases-analytics'
+      fullPath: '/purchases-analytics'
+      preLoaderRoute: typeof AuthenticatedPurchasesAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/purchases': {
@@ -656,6 +676,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedPurchasesRoute: typeof AuthenticatedPurchasesRoute
+  AuthenticatedPurchasesAnalyticsRoute: typeof AuthenticatedPurchasesAnalyticsRoute
   AuthenticatedQuotesRoute: typeof AuthenticatedQuotesRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedServiceOrdersRoute: typeof AuthenticatedServiceOrdersRoute
@@ -675,6 +696,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProductsRoute: AuthenticatedProductsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedPurchasesRoute: AuthenticatedPurchasesRoute,
+  AuthenticatedPurchasesAnalyticsRoute: AuthenticatedPurchasesAnalyticsRoute,
   AuthenticatedQuotesRoute: AuthenticatedQuotesRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedServiceOrdersRoute: AuthenticatedServiceOrdersRoute,
