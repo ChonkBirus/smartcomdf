@@ -1504,6 +1504,54 @@ export type Database = {
           },
         ]
       }
+      quote_history: {
+        Row: {
+          actor_label: string | null
+          actor_user_id: string | null
+          company_id: string
+          created_at: string
+          event_type: string
+          id: string
+          meta: Json
+          quote_id: string
+        }
+        Insert: {
+          actor_label?: string | null
+          actor_user_id?: string | null
+          company_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          meta?: Json
+          quote_id: string
+        }
+        Update: {
+          actor_label?: string | null
+          actor_user_id?: string | null
+          company_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          meta?: Json
+          quote_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_history_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_history_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_items: {
         Row: {
           company_id: string
@@ -1579,6 +1627,10 @@ export type Database = {
       }
       quotes: {
         Row: {
+          accepted_at: string | null
+          accepted_by_document: string | null
+          accepted_by_name: string | null
+          accepted_ip: string | null
           approved_at: string | null
           cancelled_at: string | null
           company_id: string
@@ -1589,21 +1641,28 @@ export type Database = {
           customer_notes: string | null
           delivery_terms: string | null
           discount: number
+          first_sent_at: string | null
           id: string
           internal_notes: string | null
           issue_date: string
           items_subtotal: number
           labor_cost: number
           payment_terms: string | null
+          public_token: string
           quote_number: string
           status: Database["public"]["Enums"]["quote_status"]
           title: string | null
           total_amount: number
           updated_at: string
           valid_until: string | null
+          viewed_at: string | null
           warranty_terms: string | null
         }
         Insert: {
+          accepted_at?: string | null
+          accepted_by_document?: string | null
+          accepted_by_name?: string | null
+          accepted_ip?: string | null
           approved_at?: string | null
           cancelled_at?: string | null
           company_id: string
@@ -1614,21 +1673,28 @@ export type Database = {
           customer_notes?: string | null
           delivery_terms?: string | null
           discount?: number
+          first_sent_at?: string | null
           id?: string
           internal_notes?: string | null
           issue_date?: string
           items_subtotal?: number
           labor_cost?: number
           payment_terms?: string | null
+          public_token?: string
           quote_number: string
           status?: Database["public"]["Enums"]["quote_status"]
           title?: string | null
           total_amount?: number
           updated_at?: string
           valid_until?: string | null
+          viewed_at?: string | null
           warranty_terms?: string | null
         }
         Update: {
+          accepted_at?: string | null
+          accepted_by_document?: string | null
+          accepted_by_name?: string | null
+          accepted_ip?: string | null
           approved_at?: string | null
           cancelled_at?: string | null
           company_id?: string
@@ -1639,18 +1705,21 @@ export type Database = {
           customer_notes?: string | null
           delivery_terms?: string | null
           discount?: number
+          first_sent_at?: string | null
           id?: string
           internal_notes?: string | null
           issue_date?: string
           items_subtotal?: number
           labor_cost?: number
           payment_terms?: string | null
+          public_token?: string
           quote_number?: string
           status?: Database["public"]["Enums"]["quote_status"]
           title?: string | null
           total_amount?: number
           updated_at?: string
           valid_until?: string | null
+          viewed_at?: string | null
           warranty_terms?: string | null
         }
         Relationships: [
@@ -2113,6 +2182,10 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { _token: string }; Returns: string }
+      accept_public_quote: {
+        Args: { _document?: string; _name: string; _token: string }
+        Returns: Json
+      }
       admin_companies_overview: {
         Args: never
         Returns: {
@@ -2162,6 +2235,7 @@ export type Database = {
       current_company_id: { Args: never; Returns: string }
       get_my_features: { Args: never; Returns: string[] }
       get_my_permissions: { Args: never; Returns: string[] }
+      get_public_quote_by_token: { Args: { _token: string }; Returns: Json }
       has_company_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
@@ -2207,6 +2281,10 @@ export type Database = {
           _po_id: string
         }
         Returns: Json
+      }
+      register_public_quote_view: {
+        Args: { _token: string }
+        Returns: undefined
       }
       transfer_stock: {
         Args: {
