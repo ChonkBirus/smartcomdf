@@ -84,27 +84,33 @@ export type CustomerTag = {
 
 const onlyDigits = (s: string) => s.replace(/\D/g, "");
 
+const nstr = (max: number) =>
+  z.preprocess((v) => (v === null || v === undefined ? "" : v), z.string().trim().max(max)).optional();
+
 const addressSchema = z.object({
   id: z.string().uuid().optional(),
   address_type: z.enum(["BILLING", "INSTALLATION", "DELIVERY", "OTHER"]).default("BILLING"),
-  zipcode: z.string().trim().max(20).optional().or(z.literal("")),
-  street: z.string().trim().max(200).optional().or(z.literal("")),
-  number: z.string().trim().max(20).optional().or(z.literal("")),
-  complement: z.string().trim().max(100).optional().or(z.literal("")),
-  district: z.string().trim().max(100).optional().or(z.literal("")),
-  city: z.string().trim().max(100).optional().or(z.literal("")),
-  state: z.string().trim().max(2).optional().or(z.literal("")),
-  reference: z.string().trim().max(200).optional().or(z.literal("")),
+  zipcode: nstr(20),
+  street: nstr(200),
+  number: nstr(20),
+  complement: nstr(100),
+  district: nstr(100),
+  city: nstr(100),
+  state: nstr(2),
+  reference: nstr(200),
   is_primary: z.boolean().default(false),
 });
 
 const contactSchema = z.object({
   id: z.string().uuid().optional(),
   name: z.string().trim().min(1).max(150),
-  role: z.string().trim().max(100).optional().or(z.literal("")),
-  email: z.string().trim().email().max(200).optional().or(z.literal("")),
-  phone: z.string().trim().max(30).optional().or(z.literal("")),
-  whatsapp: z.string().trim().max(30).optional().or(z.literal("")),
+  role: nstr(100),
+  email: z.preprocess(
+    (v) => (v === null || v === undefined || v === "" ? undefined : v),
+    z.string().trim().email().max(200),
+  ).optional(),
+  phone: nstr(30),
+  whatsapp: nstr(30),
   is_primary: z.boolean().default(false),
   active: z.boolean().default(true),
 });
