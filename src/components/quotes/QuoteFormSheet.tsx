@@ -59,7 +59,7 @@ export function QuoteFormSheet({
 
   const { data: customersData } = useQuery({
     queryKey: ["customers", "quote-form"],
-    queryFn: () => fetchCustomers({ data: { status: "ACTIVE", page: 1, page_size: 200 } as any }),
+    queryFn: () => fetchCustomers({ data: { customer_status: "ACTIVE", page: 1, page_size: 200 } as any }),
     enabled: open,
   });
   const customers = (customersData as any)?.rows ?? [];
