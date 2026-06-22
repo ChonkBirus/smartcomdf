@@ -136,7 +136,7 @@ function QuotesPage() {
         title="Orçamentos"
         description="Crie, envie e acompanhe orçamentos."
         actions={
-          <Can permission="quotes.create">
+          <Can module="quotes" action="create">
             <Button onClick={openNew}>
               <Plus className="mr-1 h-4 w-4" />Novo orçamento
             </Button>
@@ -214,31 +214,31 @@ function QuotesPage() {
                   <td className="px-3 py-2 text-right font-medium">{fmtBRL(q.total_amount)}</td>
                   <td className="px-3 py-2">
                     <div className="flex justify-end gap-1">
-                      <Can permission="quotes.edit">
+                      <Can module="quotes" action="edit">
                         <Button size="icon" variant="ghost" onClick={() => openEdit(q.id)} title="Editar">
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </Can>
                       {["DRAFT", "VIEWED"].includes(q.status) && (
-                        <Can permission="quotes.edit">
+                        <Can module="quotes" action="edit">
                           <Button size="icon" variant="ghost" onClick={() => sendMut.mutate(q.id)} title="Marcar como enviado">
                             <Send className="h-4 w-4" />
                           </Button>
                         </Can>
                       )}
-                      <Can permission="quotes.create">
+                      <Can module="quotes" action="create">
                         <Button size="icon" variant="ghost" onClick={() => dupMut.mutate(q.id)} title="Duplicar">
                           <Copy className="h-4 w-4" />
                         </Button>
                       </Can>
                       {!["CANCELLED", "EXPIRED"].includes(q.status) && (
-                        <Can permission="quotes.edit">
+                        <Can module="quotes" action="edit">
                           <Button size="icon" variant="ghost" onClick={() => cancelMut.mutate(q.id)} title="Cancelar">
                             <XCircle className="h-4 w-4" />
                           </Button>
                         </Can>
                       )}
-                      <Can permission="quotes.delete">
+                      <Can module="quotes" action="delete">
                         <Button
                           size="icon" variant="ghost"
                           onClick={() => setConfirmDel({ id: q.id, number: q.quote_number })}
