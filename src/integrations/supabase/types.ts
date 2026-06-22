@@ -360,6 +360,338 @@ export type Database = {
           },
         ]
       }
+      customer_addresses: {
+        Row: {
+          address_type: Database["public"]["Enums"]["customer_address_type"]
+          city: string | null
+          company_id: string
+          complement: string | null
+          created_at: string
+          customer_id: string
+          district: string | null
+          id: string
+          is_primary: boolean
+          number: string | null
+          reference: string | null
+          state: string | null
+          street: string | null
+          updated_at: string
+          zipcode: string | null
+        }
+        Insert: {
+          address_type?: Database["public"]["Enums"]["customer_address_type"]
+          city?: string | null
+          company_id: string
+          complement?: string | null
+          created_at?: string
+          customer_id: string
+          district?: string | null
+          id?: string
+          is_primary?: boolean
+          number?: string | null
+          reference?: string | null
+          state?: string | null
+          street?: string | null
+          updated_at?: string
+          zipcode?: string | null
+        }
+        Update: {
+          address_type?: Database["public"]["Enums"]["customer_address_type"]
+          city?: string | null
+          company_id?: string
+          complement?: string | null
+          created_at?: string
+          customer_id?: string
+          district?: string | null
+          id?: string
+          is_primary?: boolean
+          number?: string | null
+          reference?: string | null
+          state?: string | null
+          street?: string | null
+          updated_at?: string
+          zipcode?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_addresses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_addresses_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_contacts: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          customer_id: string
+          email: string | null
+          id: string
+          is_primary: boolean
+          name: string
+          phone: string | null
+          role: string | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          customer_id: string
+          email?: string | null
+          id?: string
+          is_primary?: boolean
+          name: string
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          customer_id?: string
+          email?: string | null
+          id?: string
+          is_primary?: boolean
+          name?: string
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_contacts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_history: {
+        Row: {
+          company_id: string
+          created_at: string
+          customer_id: string
+          description: string | null
+          history_type: Database["public"]["Enums"]["customer_history_type"]
+          id: string
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          customer_id: string
+          description?: string | null
+          history_type?: Database["public"]["Enums"]["customer_history_type"]
+          id?: string
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          customer_id?: string
+          description?: string | null
+          history_type?: Database["public"]["Enums"]["customer_history_type"]
+          id?: string
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_history_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_history_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_tag_relations: {
+        Row: {
+          company_id: string
+          created_at: string
+          customer_id: string
+          id: string
+          tag_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          customer_id: string
+          id?: string
+          tag_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_tag_relations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_tag_relations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_tag_relations_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "customer_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_tags: {
+        Row: {
+          color: string
+          company_id: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string
+          company_id: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_tags_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          active: boolean
+          company_id: string
+          corporate_name: string | null
+          cpf_cnpj: string
+          created_at: string
+          created_by: string | null
+          customer_origin: string | null
+          customer_status: Database["public"]["Enums"]["customer_status"]
+          customer_type: Database["public"]["Enums"]["customer_type"]
+          deleted_at: string | null
+          email: string | null
+          id: string
+          municipal_registration: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          state_registration: string | null
+          trade_name: string | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          corporate_name?: string | null
+          cpf_cnpj: string
+          created_at?: string
+          created_by?: string | null
+          customer_origin?: string | null
+          customer_status?: Database["public"]["Enums"]["customer_status"]
+          customer_type?: Database["public"]["Enums"]["customer_type"]
+          deleted_at?: string | null
+          email?: string | null
+          id?: string
+          municipal_registration?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          state_registration?: string | null
+          trade_name?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          corporate_name?: string | null
+          cpf_cnpj?: string
+          created_at?: string
+          created_by?: string | null
+          customer_origin?: string | null
+          customer_status?: Database["public"]["Enums"]["customer_status"]
+          customer_type?: Database["public"]["Enums"]["customer_type"]
+          deleted_at?: string | null
+          email?: string | null
+          id?: string
+          municipal_registration?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          state_registration?: string | null
+          trade_name?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       features: {
         Row: {
           active: boolean
@@ -1729,6 +2061,16 @@ export type Database = {
         | "technician"
       category_type: "PRODUCT" | "SERVICE" | "BOTH"
       company_status: "active" | "inactive" | "trial" | "blocked"
+      customer_address_type: "BILLING" | "INSTALLATION" | "DELIVERY" | "OTHER"
+      customer_history_type:
+        | "NOTE"
+        | "CALL"
+        | "WHATSAPP"
+        | "EMAIL"
+        | "MEETING"
+        | "SYSTEM"
+      customer_status: "LEAD" | "ACTIVE" | "INACTIVE" | "BLOCKED"
+      customer_type: "INDIVIDUAL" | "COMPANY"
       invitation_status: "pending" | "accepted" | "expired" | "revoked"
       item_type: "PRODUCT" | "SERVICE"
       nota_document_status:
@@ -1892,6 +2234,17 @@ export const Constants = {
       ],
       category_type: ["PRODUCT", "SERVICE", "BOTH"],
       company_status: ["active", "inactive", "trial", "blocked"],
+      customer_address_type: ["BILLING", "INSTALLATION", "DELIVERY", "OTHER"],
+      customer_history_type: [
+        "NOTE",
+        "CALL",
+        "WHATSAPP",
+        "EMAIL",
+        "MEETING",
+        "SYSTEM",
+      ],
+      customer_status: ["LEAD", "ACTIVE", "INACTIVE", "BLOCKED"],
+      customer_type: ["INDIVIDUAL", "COMPANY"],
       invitation_status: ["pending", "accepted", "expired", "revoked"],
       item_type: ["PRODUCT", "SERVICE"],
       nota_document_status: [

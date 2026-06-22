@@ -1,0 +1,463 @@
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Plus, Trash2, Star } from "lucide-react";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+import {
+  getCustomer, saveCustomer, listCustomerTags, createCustomerTag,
+  type CustomerAddress, type CustomerContact, type CustomerType, type CustomerStatus, type CustomerAddressType,
+} from "@/lib/customers.functions";
+
+type AddrRow = Omit<CustomerAddress, "id" | "company_id" | "customer_id" | "created_at" | "updated_at"> & { id?: string };
+type ContactRow = Omit<CustomerContact, "id" | "company_id" | "customer_id" | "created_at" | "updated_at"> & { id?: string };
+
+type FormState = {
+  id?: string;
+  customer_type: CustomerType;
+  name: string;
+  corporate_name: string;
+  trade_name: string;
+  cpf_cnpj: string;
+  state_registration: string;
+  municipal_registration: string;
+  email: string;
+  phone: string;
+  whatsapp: string;
+  customer_status: CustomerStatus;
+  customer_origin: string;
+  notes: string;
+  active: boolean;
+  addresses: AddrRow[];
+  contacts: ContactRow[];
+  tag_ids: string[];
+};
+
+const EMPTY: FormState = {
+  customer_type: "INDIVIDUAL",
+  name: "", corporate_name: "", trade_name: "", cpf_cnpj: "",
+  state_registration: "", municipal_registration: "",
+  email: "", phone: "", whatsapp: "",
+  customer_status: "ACTIVE", customer_origin: "",
+  notes: "", active: true,
+  addresses: [],
+  contacts: [],
+  tag_ids: [],
+};
+
+const EMPTY_ADDR: AddrRow = {
+  address_type: "BILLING", zipcode: null, street: null, number: null,
+  complement: null, district: null, city: null, state: null, reference: null,
+  is_primary: false,
+};
+const EMPTY_CONTACT: ContactRow = {
+  name: "", role: null, email: null, phone: null, whatsapp: null,
+  is_primary: false, active: true,
+};
+
+function maskCpfCnpj(v: string, type: CustomerType) {
+  const d = v.replace(/\D/g, "").slice(0, type === "INDIVIDUAL" ? 11 : 14);
+  if (type === "INDIVIDUAL") return d.replace(/(\d{3})(\d{3})?(\d{3})?(\d{2})?/, (_, a, b, c, d2) => [a, b, c].filter(Boolean).join(".") + (d2 ? "-" + d2 : ""));
+  return d.replace(/(\d{2})(\d{3})?(\d{3})?(\d{4})?(\d{2})?/, (_, a, b, c, d2, e) => {
+    let s = a;
+    if (b) s += "." + b;
+    if (c) s += "." + c;
+    if (d2) s += "/" + d2;
+    if (e) s += "-" + e;
+    return s;
+  });
+}
+
+function maskPhone(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 10) return d.replace(/(\d{0,2})(\d{0,4})(\d{0,4})/, (_, a, b, c) => [a && `(${a})`, b, c && `-${c}`].filter(Boolean).join(" ").trim());
+  return d.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3");
+}
+
+function maskZip(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 8);
+  return d.replace(/(\d{5})(\d{0,3})/, (_, a, b) => (b ? `${a}-${b}` : a));
+}
+
+export function CustomerFormSheet({
+  open, onOpenChange, customerId,
+}: { open: boolean; onOpenChange: (o: boolean) => void; customerId: string | null }) {
+  const qc = useQueryClient();
+  const fetchOne = useServerFn(getCustomer);
+  const save = useServerFn(saveCustomer);
+  const fetchTags = useServerFn(listCustomerTags);
+  const newTag = useServerFn(createCustomerTag);
+
+  const [form, setForm] = useState<FormState>(EMPTY);
+  const [newTagName, setNewTagName] = useState("");
+
+  const { data: existing } = useQuery({
+    queryKey: ["customer", customerId],
+    queryFn: () => fetchOne({ data: { id: customerId! } }),
+    enabled: !!customerId && open,
+  });
+
+  const { data: tags } = useQuery({
+    queryKey: ["customer-tags"],
+    queryFn: () => fetchTags(),
+    enabled: open,
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    if (customerId && existing) {
+      setForm({
+        id: existing.id,
+        customer_type: existing.customer_type,
+        name: existing.name,
+        corporate_name: existing.corporate_name ?? "",
+        trade_name: existing.trade_name ?? "",
+        cpf_cnpj: existing.cpf_cnpj,
+        state_registration: existing.state_registration ?? "",
+        municipal_registration: existing.municipal_registration ?? "",
+        email: existing.email ?? "",
+        phone: existing.phone ?? "",
+        whatsapp: existing.whatsapp ?? "",
+        customer_status: existing.customer_status,
+        customer_origin: existing.customer_origin ?? "",
+        notes: existing.notes ?? "",
+        active: existing.active,
+        addresses: existing.addresses.map((a) => ({ ...a })),
+        contacts: existing.contacts.map((c) => ({ ...c })),
+        tag_ids: existing.tags.map((t) => t.id),
+      });
+    } else if (!customerId) {
+      setForm(EMPTY);
+    }
+  }, [open, customerId, existing]);
+
+  const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
+    setForm((s) => ({ ...s, [k]: v }));
+
+  const mutation = useMutation({
+    mutationFn: (payload: FormState) => save({ data: payload as any }),
+    onSuccess: () => {
+      toast.success(form.id ? "Cliente atualizado." : "Cliente cadastrado.");
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      qc.invalidateQueries({ queryKey: ["customer-metrics"] });
+      onOpenChange(false);
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao salvar."),
+  });
+
+  const tagMut = useMutation({
+    mutationFn: (name: string) => newTag({ data: { name, color: "#3B82F6" } }),
+    onSuccess: (t) => {
+      toast.success("Tag criada.");
+      qc.invalidateQueries({ queryKey: ["customer-tags"] });
+      set("tag_ids", [...form.tag_ids, t.id]);
+      setNewTagName("");
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha."),
+  });
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.name.trim()) return toast.error("Nome obrigatório.");
+    if (!form.cpf_cnpj.trim()) return toast.error("CPF/CNPJ obrigatório.");
+    mutation.mutate(form);
+  }
+
+  const isCompany = form.customer_type === "COMPANY";
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
+        <SheetHeader>
+          <SheetTitle>{form.id ? "Editar cliente" : "Novo cliente"}</SheetTitle>
+          <SheetDescription>Cadastro completo: dados, endereços, contatos e tags.</SheetDescription>
+        </SheetHeader>
+
+        <form onSubmit={onSubmit} className="mt-4 space-y-4">
+          <Tabs defaultValue="main">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="main">Dados</TabsTrigger>
+              <TabsTrigger value="addresses">Endereços</TabsTrigger>
+              <TabsTrigger value="contacts">Contatos</TabsTrigger>
+              <TabsTrigger value="extra">Tags/Notas</TabsTrigger>
+            </TabsList>
+
+            {/* MAIN */}
+            <TabsContent value="main" className="space-y-4 pt-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label>Tipo *</Label>
+                  <Select
+                    value={form.customer_type}
+                    onValueChange={(v) => set("customer_type", v as CustomerType)}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="INDIVIDUAL">Pessoa Física</SelectItem>
+                      <SelectItem value="COMPANY">Pessoa Jurídica</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <Select
+                    value={form.customer_status}
+                    onValueChange={(v) => set("customer_status", v as CustomerStatus)}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="LEAD">Lead</SelectItem>
+                      <SelectItem value="ACTIVE">Ativo</SelectItem>
+                      <SelectItem value="INACTIVE">Inativo</SelectItem>
+                      <SelectItem value="BLOCKED">Bloqueado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <Label>{isCompany ? "Nome (referência) *" : "Nome completo *"}</Label>
+                  <Input value={form.name} onChange={(e) => set("name", e.target.value)} required />
+                </div>
+                {isCompany && (
+                  <>
+                    <div>
+                      <Label>Razão social</Label>
+                      <Input value={form.corporate_name} onChange={(e) => set("corporate_name", e.target.value)} />
+                    </div>
+                    <div>
+                      <Label>Nome fantasia</Label>
+                      <Input value={form.trade_name} onChange={(e) => set("trade_name", e.target.value)} />
+                    </div>
+                  </>
+                )}
+                <div>
+                  <Label>{isCompany ? "CNPJ *" : "CPF *"}</Label>
+                  <Input
+                    value={maskCpfCnpj(form.cpf_cnpj, form.customer_type)}
+                    onChange={(e) => set("cpf_cnpj", e.target.value)}
+                    required
+                  />
+                </div>
+                {isCompany && (
+                  <>
+                    <div>
+                      <Label>Inscrição estadual</Label>
+                      <Input value={form.state_registration} onChange={(e) => set("state_registration", e.target.value)} />
+                    </div>
+                    <div>
+                      <Label>Inscrição municipal</Label>
+                      <Input value={form.municipal_registration} onChange={(e) => set("municipal_registration", e.target.value)} />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <Separator />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div><Label>E-mail</Label><Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} /></div>
+                <div><Label>Telefone</Label><Input value={maskPhone(form.phone)} onChange={(e) => set("phone", e.target.value)} /></div>
+                <div><Label>WhatsApp</Label><Input value={maskPhone(form.whatsapp)} onChange={(e) => set("whatsapp", e.target.value)} /></div>
+                <div><Label>Origem</Label><Input value={form.customer_origin} onChange={(e) => set("customer_origin", e.target.value)} placeholder="Indicação, site, Instagram..." /></div>
+              </div>
+
+              <div className="flex items-center justify-between rounded-md border p-3">
+                <div>
+                  <Label className="font-medium">Ativo</Label>
+                  <p className="text-xs text-muted-foreground">Clientes inativos não aparecem em novos orçamentos.</p>
+                </div>
+                <Switch checked={form.active} onCheckedChange={(v) => set("active", v)} />
+              </div>
+            </TabsContent>
+
+            {/* ADDRESSES */}
+            <TabsContent value="addresses" className="space-y-3 pt-4">
+              {form.addresses.length === 0 && (
+                <p className="text-sm text-muted-foreground">Nenhum endereço cadastrado.</p>
+              )}
+              {form.addresses.map((a, i) => (
+                <div key={i} className="space-y-3 rounded-md border p-3">
+                  <div className="flex items-center justify-between">
+                    <Select
+                      value={a.address_type}
+                      onValueChange={(v) => {
+                        const next = [...form.addresses];
+                        next[i] = { ...a, address_type: v as CustomerAddressType };
+                        set("addresses", next);
+                      }}
+                    >
+                      <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="BILLING">Cobrança</SelectItem>
+                        <SelectItem value="INSTALLATION">Instalação</SelectItem>
+                        <SelectItem value="DELIVERY">Entrega</SelectItem>
+                        <SelectItem value="OTHER">Outro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button" size="sm" variant={a.is_primary ? "default" : "outline"}
+                        onClick={() => {
+                          const next = form.addresses.map((x, idx) => ({ ...x, is_primary: idx === i }));
+                          set("addresses", next);
+                        }}
+                      >
+                        <Star className="mr-1 h-3.5 w-3.5" />Principal
+                      </Button>
+                      <Button
+                        type="button" size="icon" variant="ghost"
+                        onClick={() => set("addresses", form.addresses.filter((_, idx) => idx !== i))}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    <div><Label>CEP</Label><Input value={maskZip(a.zipcode ?? "")} onChange={(e) => {
+                      const next = [...form.addresses]; next[i] = { ...a, zipcode: e.target.value }; set("addresses", next);
+                    }} /></div>
+                    <div className="sm:col-span-2"><Label>Rua</Label><Input value={a.street ?? ""} onChange={(e) => {
+                      const next = [...form.addresses]; next[i] = { ...a, street: e.target.value }; set("addresses", next);
+                    }} /></div>
+                    <div><Label>Número</Label><Input value={a.number ?? ""} onChange={(e) => {
+                      const next = [...form.addresses]; next[i] = { ...a, number: e.target.value }; set("addresses", next);
+                    }} /></div>
+                    <div><Label>Complemento</Label><Input value={a.complement ?? ""} onChange={(e) => {
+                      const next = [...form.addresses]; next[i] = { ...a, complement: e.target.value }; set("addresses", next);
+                    }} /></div>
+                    <div><Label>Bairro</Label><Input value={a.district ?? ""} onChange={(e) => {
+                      const next = [...form.addresses]; next[i] = { ...a, district: e.target.value }; set("addresses", next);
+                    }} /></div>
+                    <div><Label>Cidade</Label><Input value={a.city ?? ""} onChange={(e) => {
+                      const next = [...form.addresses]; next[i] = { ...a, city: e.target.value }; set("addresses", next);
+                    }} /></div>
+                    <div><Label>UF</Label><Input maxLength={2} value={a.state ?? ""} onChange={(e) => {
+                      const next = [...form.addresses]; next[i] = { ...a, state: e.target.value.toUpperCase() }; set("addresses", next);
+                    }} /></div>
+                    <div className="sm:col-span-3"><Label>Referência</Label><Input value={a.reference ?? ""} onChange={(e) => {
+                      const next = [...form.addresses]; next[i] = { ...a, reference: e.target.value }; set("addresses", next);
+                    }} /></div>
+                  </div>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm"
+                onClick={() => set("addresses", [...form.addresses, { ...EMPTY_ADDR, is_primary: form.addresses.length === 0 }])}>
+                <Plus className="mr-1 h-4 w-4" />Adicionar endereço
+              </Button>
+            </TabsContent>
+
+            {/* CONTACTS */}
+            <TabsContent value="contacts" className="space-y-3 pt-4">
+              {form.contacts.length === 0 && (
+                <p className="text-sm text-muted-foreground">Nenhum contato adicional.</p>
+              )}
+              {form.contacts.map((c, i) => (
+                <div key={i} className="space-y-2 rounded-md border p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label>Nome *</Label>
+                      <Input value={c.name} onChange={(e) => {
+                        const next = [...form.contacts]; next[i] = { ...c, name: e.target.value }; set("contacts", next);
+                      }} />
+                    </div>
+                    <div className="ml-2 flex items-center gap-1">
+                      <Button
+                        type="button" size="sm" variant={c.is_primary ? "default" : "outline"}
+                        onClick={() => {
+                          const next = form.contacts.map((x, idx) => ({ ...x, is_primary: idx === i }));
+                          set("contacts", next);
+                        }}
+                      >
+                        <Star className="mr-1 h-3.5 w-3.5" />Principal
+                      </Button>
+                      <Button type="button" size="icon" variant="ghost"
+                        onClick={() => set("contacts", form.contacts.filter((_, idx) => idx !== i))}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <div><Label>Cargo/Função</Label><Input value={c.role ?? ""} onChange={(e) => {
+                      const next = [...form.contacts]; next[i] = { ...c, role: e.target.value }; set("contacts", next);
+                    }} /></div>
+                    <div><Label>E-mail</Label><Input value={c.email ?? ""} onChange={(e) => {
+                      const next = [...form.contacts]; next[i] = { ...c, email: e.target.value }; set("contacts", next);
+                    }} /></div>
+                    <div><Label>Telefone</Label><Input value={maskPhone(c.phone ?? "")} onChange={(e) => {
+                      const next = [...form.contacts]; next[i] = { ...c, phone: e.target.value }; set("contacts", next);
+                    }} /></div>
+                    <div><Label>WhatsApp</Label><Input value={maskPhone(c.whatsapp ?? "")} onChange={(e) => {
+                      const next = [...form.contacts]; next[i] = { ...c, whatsapp: e.target.value }; set("contacts", next);
+                    }} /></div>
+                  </div>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm"
+                onClick={() => set("contacts", [...form.contacts, { ...EMPTY_CONTACT, is_primary: form.contacts.length === 0 }])}>
+                <Plus className="mr-1 h-4 w-4" />Adicionar contato
+              </Button>
+            </TabsContent>
+
+            {/* TAGS */}
+            <TabsContent value="extra" className="space-y-4 pt-4">
+              <div>
+                <Label>Tags</Label>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {(tags ?? []).map((t) => {
+                    const selected = form.tag_ids.includes(t.id);
+                    return (
+                      <Badge key={t.id}
+                        variant={selected ? "default" : "outline"}
+                        className="cursor-pointer"
+                        style={selected ? { backgroundColor: t.color, color: "white", borderColor: t.color } : { borderColor: t.color, color: t.color }}
+                        onClick={() => {
+                          set("tag_ids", selected ? form.tag_ids.filter((id) => id !== t.id) : [...form.tag_ids, t.id]);
+                        }}
+                      >
+                        {t.name}
+                      </Badge>
+                    );
+                  })}
+                  {(tags ?? []).length === 0 && (
+                    <span className="text-xs text-muted-foreground">Nenhuma tag criada ainda.</span>
+                  )}
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <Input placeholder="Nova tag..." value={newTagName} onChange={(e) => setNewTagName(e.target.value)} />
+                  <Button type="button" variant="outline" disabled={!newTagName.trim() || tagMut.isPending}
+                    onClick={() => tagMut.mutate(newTagName.trim())}>
+                    Criar tag
+                  </Button>
+                </div>
+              </div>
+              <Separator />
+              <div>
+                <Label>Observações internas</Label>
+                <Textarea rows={4} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending ? "Salvando..." : "Salvar cliente"}
+            </Button>
+          </div>
+        </form>
+      </SheetContent>
+    </Sheet>
+  );
+}
