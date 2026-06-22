@@ -90,6 +90,32 @@ function maskZip(v: string) {
   return d.replace(/(\d{5})(\d{0,3})/, (_, a, b) => (b ? `${a}-${b}` : a));
 }
 
+function isValidCPF(v: string) {
+  const c = v.replace(/\D/g, "");
+  if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
+  let s = 0;
+  for (let i = 0; i < 9; i++) s += parseInt(c[i]) * (10 - i);
+  let d1 = 11 - (s % 11); if (d1 >= 10) d1 = 0;
+  if (d1 !== parseInt(c[9])) return false;
+  s = 0;
+  for (let i = 0; i < 10; i++) s += parseInt(c[i]) * (11 - i);
+  let d2 = 11 - (s % 11); if (d2 >= 10) d2 = 0;
+  return d2 === parseInt(c[10]);
+}
+
+function isValidCNPJ(v: string) {
+  const c = v.replace(/\D/g, "");
+  if (c.length !== 14 || /^(\d)\1+$/.test(c)) return false;
+  const calc = (len: number) => {
+    const w = len === 12 ? [5,4,3,2,9,8,7,6,5,4,3,2] : [6,5,4,3,2,9,8,7,6,5,4,3,2];
+    let s = 0;
+    for (let i = 0; i < len; i++) s += parseInt(c[i]) * w[i];
+    const r = s % 11;
+    return r < 2 ? 0 : 11 - r;
+  };
+  return calc(12) === parseInt(c[12]) && calc(13) === parseInt(c[13]);
+}
+
 export function CustomerFormSheet({
   open, onOpenChange, customerId,
 }: { open: boolean; onOpenChange: (o: boolean) => void; customerId: string | null }) {
@@ -171,10 +197,16 @@ export function CustomerFormSheet({
     e.preventDefault();
     if (!form.name.trim()) return toast.error("Nome obrigatório.");
     if (!form.cpf_cnpj.trim()) return toast.error("CPF/CNPJ obrigatório.");
+    if (!docValid) return toast.error(isCompany ? "CNPJ inválido." : "CPF inválido.");
     mutation.mutate(form);
   }
 
   const isCompany = form.customer_type === "COMPANY";
+  const docDigits = form.cpf_cnpj.replace(/\D/g, "");
+  const docExpectedLen = isCompany ? 14 : 11;
+  const docValid = isCompany ? isValidCNPJ(form.cpf_cnpj) : isValidCPF(form.cpf_cnpj);
+  const docTouched = docDigits.length > 0;
+  const docComplete = docDigits.length === docExpectedLen;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -248,8 +280,19 @@ export function CustomerFormSheet({
                   <Input
                     value={maskCpfCnpj(form.cpf_cnpj, form.customer_type)}
                     onChange={(e) => set("cpf_cnpj", e.target.value)}
+                    aria-invalid={docTouched && docComplete && !docValid}
+                    className={docTouched && docComplete && !docValid ? "border-destructive focus-visible:ring-destructive" : docTouched && docValid ? "border-emerald-500" : ""}
                     required
                   />
+                  {docTouched && (
+                    docValid ? (
+                      <p className="mt-1 text-xs text-emerald-600">{isCompany ? "CNPJ válido" : "CPF válido"}</p>
+                    ) : docComplete ? (
+                      <p className="mt-1 text-xs text-destructive">{isCompany ? "CNPJ inválido" : "CPF inválido"}</p>
+                    ) : (
+                      <p className="mt-1 text-xs text-muted-foreground">{docDigits.length}/{docExpectedLen} dígitos</p>
+                    )
+                  )}
                 </div>
                 {isCompany && (
                   <>
