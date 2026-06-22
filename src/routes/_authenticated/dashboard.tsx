@@ -18,6 +18,15 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function Dashboard() {
+  const { canView } = usePermissions();
+  const { hasFeature } = useFeatures();
+  const showStock = canView("stock") && hasFeature("inventory");
+  const fetchOverview = useServerFn(stockOverview);
+  const { data: stock } = useQuery({
+    queryKey: ["stock_overview"],
+    queryFn: () => fetchOverview(),
+    enabled: showStock,
+  });
   return (
     <div className="mx-auto max-w-7xl">
       <PageHeader
