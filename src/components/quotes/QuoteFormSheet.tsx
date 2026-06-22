@@ -189,8 +189,6 @@ export function QuoteFormSheet({
     setLine(i, {
       item_id: it.id,
       name: it.name,
-      unit_price: Number(it.sale_price || 0),
-      cost_price: Number(it.cost_price || 0),
       kind: "PRODUCT",
     });
   }
