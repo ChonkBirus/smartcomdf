@@ -3,8 +3,8 @@ import { Camera, Upload, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
+import { supabase } from "@/integrations/supabase/client";
 import { parseNotaDocument, uploadNotaFile } from "@/lib/smart-receiving.functions";
-import { useAuth } from "@/lib/auth-context";
 
 const ACCEPT = "application/pdf,image/png,image/jpeg,image/webp";
 const MAX_SIZE = 15 * 1024 * 1024;
@@ -29,11 +29,17 @@ export function NotaUploader({ onCreated }: { onCreated: (id: string) => void })
   const [stage, setStage] = useState<string>("");
   const upload = useServerFn(uploadNotaFile);
   const parse = useServerFn(parseNotaDocument);
-  const { user } = useAuth();
 
   async function handleFile(file: File) {
-    if (!user) { toast.error("Faça login novamente."); return; }
     if (file.size > MAX_SIZE) { toast.error("Arquivo acima de 15 MB."); return; }
+    // Garante que o token mais recente está disponível antes do RPC.
+    // Em refresh de token o contexto local pode estar momentaneamente vazio,
+    // mas o Supabase client tem persistência própria.
+    const { data: sess } = await supabase.auth.getSession();
+    if (!sess.session) {
+      toast.error("Sessão expirada. Faça login novamente.");
+      return;
+    }
     setBusy(true);
     try {
       setStage("Lendo arquivo...");
