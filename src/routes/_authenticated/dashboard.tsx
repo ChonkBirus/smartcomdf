@@ -1,10 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Users, Package, FileText, DollarSign, TrendingUp, Activity } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Users, Package, FileText, DollarSign, TrendingUp, Activity, PackageX, AlertTriangle, Boxes } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/app/KpiCard";
 import { SubscriptionCard } from "@/components/app/SubscriptionCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { stockOverview } from "@/lib/stock.functions";
+import { usePermissions } from "@/lib/permissions";
+import { useFeatures } from "@/lib/features";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — SecureERP" }] }),
@@ -12,6 +18,15 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function Dashboard() {
+  const { canView } = usePermissions();
+  const { hasFeature } = useFeatures();
+  const showStock = canView("stock") && hasFeature("inventory");
+  const fetchOverview = useServerFn(stockOverview);
+  const { data: stock } = useQuery({
+    queryKey: ["stock_overview"],
+    queryFn: () => fetchOverview(),
+    enabled: showStock,
+  });
   return (
     <div className="mx-auto max-w-7xl">
       <PageHeader
@@ -29,6 +44,32 @@ function Dashboard() {
         <KpiCard title="Faturamento" value={formatCurrency(86420)} icon={<DollarSign className="h-5 w-5" />}
           trend={{ value: "+5,4% no mês", positive: true }} />
       </div>
+
+      {showStock && (
+        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+          <KpiCard title="Itens sem estoque" value={String(stock?.outOfStock ?? 0)} icon={<PackageX className="h-5 w-5" />} />
+          <KpiCard title="Abaixo do mínimo" value={String(stock?.lowStock ?? 0)} icon={<AlertTriangle className="h-5 w-5" />} />
+          <Card className="card-elevated">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base"><Boxes className="h-4 w-4 text-primary" /> Últimas movimentações</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1.5 text-sm">
+              {(stock?.recent ?? []).length === 0 ? (
+                <p className="text-muted-foreground">Nenhuma movimentação recente.</p>
+              ) : stock!.recent.map((r: any) => (
+                <div key={r.id} className="flex items-center justify-between gap-2">
+                  <span className="truncate">{r.item_name}</span>
+                  <span className="text-xs text-muted-foreground">{r.movement_type} · {r.quantity}</span>
+                </div>
+              ))}
+              <div className="pt-2">
+                <Button asChild size="sm" variant="outline" className="w-full"><Link to="/stock">Abrir estoque</Link></Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         <Card className="card-elevated lg:col-span-2">

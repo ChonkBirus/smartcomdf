@@ -835,6 +835,170 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_balances: {
+        Row: {
+          company_id: string
+          id: string
+          item_id: string
+          location_id: string
+          quantity: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          id?: string
+          item_id: string
+          location_id: string
+          quantity?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          id?: string
+          item_id?: string
+          location_id?: string
+          quantity?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_balances_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_balances_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_balances_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "stock_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_locations: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_locations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_movements: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          item_id: string
+          location_id: string
+          movement_type: Database["public"]["Enums"]["stock_movement_type"]
+          new_balance: number
+          notes: string | null
+          previous_balance: number
+          quantity: number
+          reason: string | null
+          related_movement_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          item_id: string
+          location_id: string
+          movement_type: Database["public"]["Enums"]["stock_movement_type"]
+          new_balance?: number
+          notes?: string | null
+          previous_balance?: number
+          quantity: number
+          reason?: string | null
+          related_movement_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          location_id?: string
+          movement_type?: Database["public"]["Enums"]["stock_movement_type"]
+          new_balance?: number
+          notes?: string | null
+          previous_balance?: number
+          quantity?: number
+          reason?: string | null
+          related_movement_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "stock_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_related_movement_id_fkey"
+            columns: ["related_movement_id"]
+            isOneToOne: false
+            referencedRelation: "stock_movements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           active: boolean
@@ -995,6 +1159,19 @@ export type Database = {
         }
         Returns: undefined
       }
+      apply_stock_movement: {
+        Args: {
+          _final_quantity?: number
+          _item_id: string
+          _location_id: string
+          _movement_type: Database["public"]["Enums"]["stock_movement_type"]
+          _notes?: string
+          _quantity: number
+          _reason?: string
+          _related_movement_id?: string
+        }
+        Returns: string
+      }
       current_company_id: { Args: never; Returns: string }
       get_my_features: { Args: never; Returns: string[] }
       get_my_permissions: { Args: never; Returns: string[] }
@@ -1032,6 +1209,16 @@ export type Database = {
         }
         Returns: string
       }
+      transfer_stock: {
+        Args: {
+          _from_location: string
+          _item_id: string
+          _notes?: string
+          _quantity: number
+          _to_location: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role:
@@ -1047,6 +1234,12 @@ export type Database = {
       invitation_status: "pending" | "accepted" | "expired" | "revoked"
       item_type: "PRODUCT" | "SERVICE"
       product_unit: "UN" | "CX" | "MT" | "M2" | "M3" | "RL" | "KIT"
+      stock_movement_type:
+        | "ENTRY"
+        | "EXIT"
+        | "ADJUSTMENT"
+        | "TRANSFER_IN"
+        | "TRANSFER_OUT"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1188,6 +1381,13 @@ export const Constants = {
       invitation_status: ["pending", "accepted", "expired", "revoked"],
       item_type: ["PRODUCT", "SERVICE"],
       product_unit: ["UN", "CX", "MT", "M2", "M3", "RL", "KIT"],
+      stock_movement_type: [
+        "ENTRY",
+        "EXIT",
+        "ADJUSTMENT",
+        "TRANSFER_IN",
+        "TRANSFER_OUT",
+      ],
     },
   },
 } as const
