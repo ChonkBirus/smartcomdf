@@ -49,6 +49,7 @@ type PublicQuote = {
   items: Array<{
     id: string; name: string; description: string | null;
     kind: string; quantity: number; position: number;
+    unit?: string | null; image_url?: string | null;
   }>;
 };
 
@@ -165,39 +166,53 @@ function PublicQuotePage() {
             <FileText className="mr-2 inline h-4 w-4" />
             Itens da proposta
           </div>
-          <table className="w-full text-sm">
-            <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
-              <tr>
-                <th className="w-10 px-4 py-2 text-center">#</th>
-                <th className="px-4 py-2">Descrição</th>
-                <th className="w-20 px-4 py-2 text-center">Qtd</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibleItems.map((it, i) => (
-                <tr key={it.id} className="border-t">
-                  <td className="px-4 py-3 text-center text-muted-foreground">{i + 1}</td>
-                  <td className="px-4 py-3">
-                    <p className="font-medium">{it.name}</p>
-                    {it.description && (
-                      <p className="text-xs text-muted-foreground">{it.description}</p>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center">
+          <ul className="divide-y">
+            {visibleItems.map((it, i) => (
+              <li key={it.id} className="flex gap-3 p-4">
+                <span className="mt-1 w-6 shrink-0 text-center text-xs text-muted-foreground">
+                  {i + 1}
+                </span>
+                {it.image_url ? (
+                  <img
+                    src={it.image_url}
+                    alt={it.name}
+                    className="h-16 w-16 shrink-0 rounded border bg-muted object-cover"
+                  />
+                ) : (
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded border bg-muted text-muted-foreground">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium">{it.name}</p>
+                  {it.description && (
+                    <p className="mt-0.5 text-xs text-muted-foreground whitespace-pre-line">
+                      {it.description}
+                    </p>
+                  )}
+                </div>
+                <div className="shrink-0 text-right text-sm">
+                  <span className="font-semibold">
                     {String(Number(it.quantity)).replace(".", ",")}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </span>
+                  <span className="ml-1 text-xs text-muted-foreground">
+                    {it.unit || "UN"}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
 
         {/* Total */}
         <div className="rounded-lg border-2 border-primary bg-primary/5 p-5 text-center shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Valor total da proposta
+            Valor Total da Proposta
           </p>
           <p className="mt-1 text-3xl font-bold">{fmtBRL(quote.total_amount)}</p>
+          <p className="mt-2 text-xs italic text-muted-foreground">
+            Valor total com materiais, serviços e mão de obra inclusos.
+          </p>
           {quote.completion_estimate && (
             <p className="mt-2 text-sm text-muted-foreground">
               Estimativa de conclusão: <strong>{quote.completion_estimate}</strong>

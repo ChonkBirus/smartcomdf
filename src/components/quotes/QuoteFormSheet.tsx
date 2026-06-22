@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { listCustomers } from "@/lib/customers.functions";
 import { listStockItems } from "@/lib/stock.functions";
 import { getQuote, saveQuote, type QuoteItemKind } from "@/lib/quotes.functions";
+import { usePermissions } from "@/lib/permissions";
 
 type Line = {
   id?: string;
@@ -38,6 +39,8 @@ export function QuoteFormSheet({
   open, onOpenChange, quoteId,
 }: { open: boolean; onOpenChange: (o: boolean) => void; quoteId: string | null }) {
   const qc = useQueryClient();
+  const { has } = usePermissions();
+  const canSeeInternal = has("quotes.view_internal_values");
   const fetchOne = useServerFn(getQuote);
   const save = useServerFn(saveQuote);
   const fetchCustomers = useServerFn(listCustomers);
@@ -359,11 +362,13 @@ export function QuoteFormSheet({
                       <Input type="number" min="0" step="0.01" value={l.unit_price}
                         onChange={(e) => setLine(i, { unit_price: Number(e.target.value) || 0 })} />
                     </div>
-                    <div className="col-span-4 sm:col-span-2">
-                      <Label className="text-xs">Custo</Label>
-                      <Input type="number" min="0" step="0.01" value={l.cost_price}
-                        onChange={(e) => setLine(i, { cost_price: Number(e.target.value) || 0 })} />
-                    </div>
+                    {canSeeInternal && (
+                      <div className="col-span-4 sm:col-span-2">
+                        <Label className="text-xs">Custo (interno)</Label>
+                        <Input type="number" min="0" step="0.01" value={l.cost_price}
+                          onChange={(e) => setLine(i, { cost_price: Number(e.target.value) || 0 })} />
+                      </div>
+                    )}
                     <div className="col-span-12">
                       <Label className="text-xs">Descrição (aparece ao cliente)</Label>
                       <Textarea rows={2} value={l.description}
@@ -371,10 +376,12 @@ export function QuoteFormSheet({
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>Margem: {l.cost_price > 0
-                      ? `${(((l.unit_price - l.cost_price) / l.cost_price) * 100).toFixed(1)}%`
-                      : "—"}
-                    </span>
+                    {canSeeInternal ? (
+                      <span>Margem: {l.cost_price > 0
+                        ? `${(((l.unit_price - l.cost_price) / l.cost_price) * 100).toFixed(1)}%`
+                        : "—"}
+                      </span>
+                    ) : <span />}
                     <span className="font-medium text-foreground">
                       Subtotal: {fmtBRL(l.quantity * l.unit_price)}
                     </span>

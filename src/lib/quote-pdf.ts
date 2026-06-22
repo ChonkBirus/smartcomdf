@@ -91,7 +91,7 @@ export function generateQuotePDF(opts: {
   const cContact = [customer?.phone, customer?.email].filter(Boolean).join(" • ");
   if (cContact) { doc.text(cContact, 40, y); y += 12; }
 
-  // Items table — NO unit price, NO subtotal per row
+  // Items table — NO unit price, NO subtotal per row, NO labor as line
   const visible = items.filter((it) => it.kind !== "LABOR");
   y += 8;
   autoTable(doc, {
@@ -113,12 +113,18 @@ export function generateQuotePDF(opts: {
   // @ts-ignore
   y = (doc as any).lastAutoTable.finalY + 18;
 
-  // Single total
+  // Single total + mandatory disclosure
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
   doc.text("VALOR TOTAL DA PROPOSTA", 40, y);
   doc.text(fmtBRL(quote.total_amount), W - 40, y, { align: "right" });
-  y += 24;
+  y += 14;
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(9);
+  doc.setTextColor(110);
+  doc.text("Valor total com materiais, serviços e mão de obra inclusos.", 40, y);
+  doc.setTextColor(0);
+  y += 18;
 
   // Conditions
   doc.setFontSize(10);
