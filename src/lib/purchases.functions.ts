@@ -357,3 +357,138 @@ export const purchaseOverview = createServerFn({ method: "GET" })
     const received = (rows ?? []).filter((r: any) => r.status === "RECEIVED").length;
     return { monthTotal: total, monthPending: pending, monthReceived: received, count: rows?.length ?? 0 };
   });
+
+// ============================================================
+// ANALYTICS (Dashboard de Compras)
+// ============================================================
+export type PurchaseAnalyticsRange = "30d" | "90d" | "6m" | "12m" | "ytd";
+
+function rangeStart(range: PurchaseAnalyticsRange): Date {
+  const d = new Date(); d.setHours(0, 0, 0, 0);
+  switch (range) {
+    case "30d": d.setDate(d.getDate() - 30); break;
+    case "90d": d.setDate(d.getDate() - 90); break;
+    case "6m": d.setMonth(d.getMonth() - 6); d.setDate(1); break;
+    case "12m": d.setMonth(d.getMonth() - 12); d.setDate(1); break;
+    case "ytd": d.setMonth(0); d.setDate(1); break;
+  }
+  return d;
+}
+
+export const purchaseAnalytics = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    range: z.enum(["30d", "90d", "6m", "12m", "ytd"]).default("90d"),
+  }).parse(d ?? {}))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const start = rangeStart(data.range);
+    const startISO = start.toISOString().slice(0, 10);
+
+    // Orders in range
+    const { data: orders, error } = await sb
+      .from("purchase_orders")
+      .select("id, status, total_amount, issue_date, approved_at, supplier_id, updated_at, suppliers:supplier_id(corporate_name, trade_name)")
+      .gte("issue_date", startISO)
+      .order("issue_date", { ascending: true });
+    if (error) throw new Error(error.message);
+
+    const list = (orders ?? []) as any[];
+    const nonCancelled = list.filter((o) => o.status !== "CANCELLED");
+
+    // KPIs
+    const totalAmount = nonCancelled.reduce((s, o) => s + Number(o.total_amount || 0), 0);
+    const ordersCount = nonCancelled.length;
+    const avgTicket = ordersCount ? totalAmount / ordersCount : 0;
+    const receivedCount = nonCancelled.filter((o) => o.status === "RECEIVED").length;
+    const pendingCount = nonCancelled.filter((o) => ["DRAFT", "PENDING", "APPROVED", "PARTIALLY_RECEIVED"].includes(o.status)).length;
+    const cancelledCount = list.length - nonCancelled.length;
+    const fillRate = ordersCount ? (receivedCount / ordersCount) * 100 : 0;
+
+    // Lead time (approved_at -> updated_at when RECEIVED) in days
+    const receivedWithApproval = nonCancelled.filter(
+      (o) => o.status === "RECEIVED" && o.approved_at,
+    );
+    const leadTimes = receivedWithApproval.map((o) => {
+      const a = new Date(o.approved_at).getTime();
+      const r = new Date(o.updated_at).getTime();
+      return (r - a) / (1000 * 60 * 60 * 24);
+    });
+    const avgLeadTime = leadTimes.length
+      ? leadTimes.reduce((s, n) => s + n, 0) / leadTimes.length
+      : 0;
+
+    // Monthly evolution
+    const monthMap = new Map<string, { month: string; total: number; count: number }>();
+    for (const o of nonCancelled) {
+      const key = String(o.issue_date).slice(0, 7); // YYYY-MM
+      const rec = monthMap.get(key) || { month: key, total: 0, count: 0 };
+      rec.total += Number(o.total_amount || 0);
+      rec.count += 1;
+      monthMap.set(key, rec);
+    }
+    const monthly = Array.from(monthMap.values()).sort((a, b) => a.month.localeCompare(b.month));
+
+    // Status distribution (all incl. cancelled)
+    const statusMap = new Map<string, number>();
+    for (const o of list) statusMap.set(o.status, (statusMap.get(o.status) || 0) + 1);
+    const statusDist = Array.from(statusMap.entries()).map(([status, count]) => ({ status, count }));
+
+    // Top suppliers (by amount, non-cancelled)
+    const supMap = new Map<string, { supplier_id: string; name: string; total: number; orders: number }>();
+    for (const o of nonCancelled) {
+      if (!o.supplier_id) continue;
+      const name = o.suppliers?.trade_name || o.suppliers?.corporate_name || "—";
+      const rec = supMap.get(o.supplier_id) || { supplier_id: o.supplier_id, name, total: 0, orders: 0 };
+      rec.total += Number(o.total_amount || 0);
+      rec.orders += 1;
+      supMap.set(o.supplier_id, rec);
+    }
+    const topSuppliers = Array.from(supMap.values())
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5);
+
+    // Top items (need line items)
+    const orderIds = nonCancelled.map((o) => o.id);
+    let topItems: { item_id: string; name: string; sku: string | null; qty: number; total: number }[] = [];
+    if (orderIds.length) {
+      const { data: lines } = await sb
+        .from("purchase_order_items")
+        .select("item_id, quantity, total_cost, items:item_id(name, sku)")
+        .in("purchase_order_id", orderIds);
+      const itMap = new Map<string, { item_id: string; name: string; sku: string | null; qty: number; total: number }>();
+      for (const l of (lines ?? []) as any[]) {
+        const rec = itMap.get(l.item_id) || {
+          item_id: l.item_id,
+          name: l.items?.name ?? "—",
+          sku: l.items?.sku ?? null,
+          qty: 0,
+          total: 0,
+        };
+        rec.qty += Number(l.quantity || 0);
+        rec.total += Number(l.total_cost || 0);
+        itMap.set(l.item_id, rec);
+      }
+      topItems = Array.from(itMap.values()).sort((a, b) => b.total - a.total).slice(0, 10);
+    }
+
+    return {
+      range: data.range,
+      startDate: startISO,
+      kpis: {
+        totalAmount,
+        ordersCount,
+        avgTicket,
+        receivedCount,
+        pendingCount,
+        cancelledCount,
+        fillRate,
+        avgLeadTime,
+        suppliersActive: supMap.size,
+      },
+      monthly,
+      statusDist,
+      topSuppliers,
+      topItems,
+    };
+  });
