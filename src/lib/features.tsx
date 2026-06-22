@@ -21,7 +21,11 @@ export type FeatureCode =
   | "api_access"
   | "white_label"
   | "notifications"
-  | "audit";
+  | "audit"
+  | "suppliers"
+  | "purchases"
+  | "smart_receiving"
+  | "ai_parser";
 
 export type PlanInfo = {
   id: string;
