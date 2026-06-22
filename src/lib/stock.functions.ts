@@ -283,9 +283,19 @@ export const stockOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
-    const balances = await (await import("./stock.functions")).listBalances({ data: {} } as any).catch(() => [] as StockBalanceRow[]);
-    const out = balances.filter((b) => b.status === "OUT").length;
-    const low = balances.filter((b) => b.status === "LOW").length;
+    const { data: items } = await sb
+      .from("items").select("id, minimum_stock")
+      .eq("controls_stock", true).eq("item_type", "PRODUCT").is("deleted_at", null);
+    const { data: bals } = await sb.from("stock_balances").select("item_id, quantity");
+    const totalByItem = new Map<string, number>();
+    for (const b of bals ?? []) totalByItem.set(b.item_id, (totalByItem.get(b.item_id) ?? 0) + Number(b.quantity));
+    let out = 0, low = 0;
+    for (const it of items ?? []) {
+      const q = totalByItem.get(it.id) ?? 0;
+      const min = Number(it.minimum_stock || 0);
+      if (q <= 0) out++;
+      else if (min > 0 && q <= min) low++;
+    }
     const { data: recent } = await sb
       .from("stock_movements")
       .select("id, created_at, movement_type, quantity, items:item_id(name)")
