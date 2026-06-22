@@ -90,7 +90,7 @@ function PublicQuotePage() {
   const acceptMut = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.rpc("accept_public_quote", {
-        _token: token, _name: name, _document: doc || null,
+        _token: token, _name: name, _document: doc || undefined,
       });
       if (error) throw error;
       return data;
