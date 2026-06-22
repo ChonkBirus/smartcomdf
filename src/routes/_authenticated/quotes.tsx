@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  FileText, Plus, Pencil, Trash2, Copy, Search, Send, XCircle, CheckCircle2,
+  FileText, Plus, Pencil, Trash2, Copy, Search, Send, XCircle, CheckCircle2, Share2,
 } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/EmptyState";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { QuoteFormSheet } from "@/components/quotes/QuoteFormSheet";
+import { QuoteSendSheet } from "@/components/quotes/QuoteSendSheet";
 import {
   listQuotes, quoteMetrics, deleteQuote, duplicateQuote,
   markQuoteSent, cancelQuote,
