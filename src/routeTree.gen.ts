@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as AuthenticatedSuppliersRouteImport } from './routes/_authenticated/suppliers'
 import { Route as AuthenticatedStockRouteImport } from './routes/_authenticated/stock'
+import { Route as AuthenticatedSmartReceivingRouteImport } from './routes/_authenticated/smart-receiving'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedServiceOrdersRouteImport } from './routes/_authenticated/service-orders'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
@@ -78,6 +79,12 @@ const AuthenticatedStockRoute = AuthenticatedStockRouteImport.update({
   path: '/stock',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSmartReceivingRoute =
+  AuthenticatedSmartReceivingRouteImport.update({
+    id: '/smart-receiving',
+    path: '/smart-receiving',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -209,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/reports': typeof AuthenticatedReportsRoute
   '/service-orders': typeof AuthenticatedServiceOrdersRoute
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
+  '/smart-receiving': typeof AuthenticatedSmartReceivingRoute
   '/stock': typeof AuthenticatedStockRoute
   '/suppliers': typeof AuthenticatedSuppliersRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -237,6 +245,7 @@ export interface FileRoutesByTo {
   '/quotes': typeof AuthenticatedQuotesRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/service-orders': typeof AuthenticatedServiceOrdersRoute
+  '/smart-receiving': typeof AuthenticatedSmartReceivingRoute
   '/stock': typeof AuthenticatedStockRoute
   '/suppliers': typeof AuthenticatedSuppliersRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -269,6 +278,7 @@ export interface FileRoutesById {
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/service-orders': typeof AuthenticatedServiceOrdersRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
+  '/_authenticated/smart-receiving': typeof AuthenticatedSmartReceivingRoute
   '/_authenticated/stock': typeof AuthenticatedStockRoute
   '/_authenticated/suppliers': typeof AuthenticatedSuppliersRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -301,6 +311,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/service-orders'
     | '/settings'
+    | '/smart-receiving'
     | '/stock'
     | '/suppliers'
     | '/invite/$token'
@@ -329,6 +340,7 @@ export interface FileRouteTypes {
     | '/quotes'
     | '/reports'
     | '/service-orders'
+    | '/smart-receiving'
     | '/stock'
     | '/suppliers'
     | '/invite/$token'
@@ -360,6 +372,7 @@ export interface FileRouteTypes {
     | '/_authenticated/reports'
     | '/_authenticated/service-orders'
     | '/_authenticated/settings'
+    | '/_authenticated/smart-receiving'
     | '/_authenticated/stock'
     | '/_authenticated/suppliers'
     | '/invite/$token'
@@ -438,6 +451,13 @@ declare module '@tanstack/react-router' {
       path: '/stock'
       fullPath: '/stock'
       preLoaderRoute: typeof AuthenticatedStockRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/smart-receiving': {
+      id: '/_authenticated/smart-receiving'
+      path: '/smart-receiving'
+      fullPath: '/smart-receiving'
+      preLoaderRoute: typeof AuthenticatedSmartReceivingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
@@ -640,6 +660,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedServiceOrdersRoute: typeof AuthenticatedServiceOrdersRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
+  AuthenticatedSmartReceivingRoute: typeof AuthenticatedSmartReceivingRoute
   AuthenticatedStockRoute: typeof AuthenticatedStockRoute
   AuthenticatedSuppliersRoute: typeof AuthenticatedSuppliersRoute
 }
@@ -658,6 +679,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedServiceOrdersRoute: AuthenticatedServiceOrdersRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
+  AuthenticatedSmartReceivingRoute: AuthenticatedSmartReceivingRoute,
   AuthenticatedStockRoute: AuthenticatedStockRoute,
   AuthenticatedSuppliersRoute: AuthenticatedSuppliersRoute,
 }
