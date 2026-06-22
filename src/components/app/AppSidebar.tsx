@@ -28,6 +28,13 @@ const groups: { label: string; items: Item[] }[] = [
     ],
   },
   {
+    label: "Compras",
+    items: [
+      { title: "Fornecedores", url: "/suppliers", icon: Building2, module: "suppliers", feature: "suppliers" },
+      { title: "Pedidos de Compra", url: "/purchases", icon: ShoppingCart, module: "purchases", feature: "purchases" },
+    ],
+  },
+  {
     label: "Operação",
     items: [
       { title: "Estoque", url: "/stock", icon: Boxes, module: "stock", feature: "inventory" },
