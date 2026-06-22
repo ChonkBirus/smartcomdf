@@ -1,6 +1,9 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 
-export type PermissionAction = "view" | "create" | "edit" | "delete";
+export type PermissionAction =
+  | "view" | "create" | "edit" | "delete"
+  | "approve" | "cancel" | "receive" | "manage" | "adjust" | "transfer"
+  | "upload" | "process" | "confirm" | "disable";
 export type ModuleSlug =
   | "dashboard"
   | "products"
@@ -11,7 +14,10 @@ export type ModuleSlug =
   | "crm"
   | "orders"
   | "reports"
-  | "settings";
+  | "settings"
+  | "suppliers"
+  | "purchases"
+  | "smart_receiving";
 
 type Ctx = {
   permissions: Set<string>;
