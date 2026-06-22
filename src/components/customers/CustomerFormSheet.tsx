@@ -197,10 +197,16 @@ export function CustomerFormSheet({
     e.preventDefault();
     if (!form.name.trim()) return toast.error("Nome obrigatório.");
     if (!form.cpf_cnpj.trim()) return toast.error("CPF/CNPJ obrigatório.");
+    if (!docValid) return toast.error(isCompany ? "CNPJ inválido." : "CPF inválido.");
     mutation.mutate(form);
   }
 
   const isCompany = form.customer_type === "COMPANY";
+  const docDigits = form.cpf_cnpj.replace(/\D/g, "");
+  const docExpectedLen = isCompany ? 14 : 11;
+  const docValid = isCompany ? isValidCNPJ(form.cpf_cnpj) : isValidCPF(form.cpf_cnpj);
+  const docTouched = docDigits.length > 0;
+  const docComplete = docDigits.length === docExpectedLen;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
