@@ -29,9 +29,24 @@ export type Quote = {
   total_amount: number;
   approved_at: string | null;
   cancelled_at: string | null;
+  public_token: string;
+  viewed_at: string | null;
+  accepted_at: string | null;
+  accepted_by_name: string | null;
+  accepted_by_document: string | null;
+  first_sent_at: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type QuoteHistoryEvent = {
+  id: string;
+  quote_id: string;
+  event_type: string;
+  actor_label: string | null;
+  meta: Record<string, any>;
+  created_at: string;
 };
 
 export type QuoteItem = {
