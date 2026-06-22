@@ -154,6 +154,25 @@ const FEATURE_META: Record<string, FeatureMeta> = {
     useCases: ["Consultorias revendendo o ERP", "Holdings com múltiplas marcas"],
     minPlan: "business",
   },
+  smart_receiving: {
+    label: "Recebimento Inteligente",
+    tagline: "IA lê notas fiscais e dá entrada no estoque",
+    description:
+      "Tire uma foto ou envie um PDF da nota fiscal — a IA identifica fornecedor, itens, quantidades e preços, e cria a entrada no estoque automaticamente.",
+    benefits: [
+      "OCR + IA com Gemini multimodal",
+      "Reconhece itens existentes do catálogo",
+      "Cria novos itens sob aprovação",
+      "Entrada no estoque em 1 clique",
+      "Aprende com correções do usuário",
+    ],
+    useCases: [
+      "Compras presenciais em lojas",
+      "Receber notas escaneadas",
+      "Reduzir digitação manual",
+    ],
+    minPlan: "pro",
+  },
 };
 
 function generic(code: string): FeatureMeta {

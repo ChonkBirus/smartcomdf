@@ -46,6 +46,56 @@ export type Database = {
           },
         ]
       }
+      ai_parser_corrections: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          hits: number
+          id: string
+          last_used_at: string
+          source_code: string | null
+          source_text: string
+          source_type: string
+          target_id: string | null
+          target_label: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          hits?: number
+          id?: string
+          last_used_at?: string
+          source_code?: string | null
+          source_text: string
+          source_type: string
+          target_id?: string | null
+          target_label?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          hits?: number
+          id?: string
+          last_used_at?: string
+          source_code?: string | null
+          source_text?: string
+          source_type?: string
+          target_id?: string | null
+          target_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_parser_corrections_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attachments: {
         Row: {
           company_id: string
@@ -529,6 +579,227 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nota_document_items: {
+        Row: {
+          company_id: string
+          confirmed_quantity: number | null
+          confirmed_unit_cost: number | null
+          created_at: string
+          created_item_id: string | null
+          document_id: string
+          id: string
+          line_no: number | null
+          match_confidence: number | null
+          match_reason: string | null
+          matched_item_id: string | null
+          new_item_payload: Json | null
+          raw_code: string | null
+          raw_name: string
+          raw_quantity: number | null
+          raw_total: number | null
+          raw_unit: string | null
+          raw_unit_cost: number | null
+          status: Database["public"]["Enums"]["nota_item_status"]
+          stock_movement_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          confirmed_quantity?: number | null
+          confirmed_unit_cost?: number | null
+          created_at?: string
+          created_item_id?: string | null
+          document_id: string
+          id?: string
+          line_no?: number | null
+          match_confidence?: number | null
+          match_reason?: string | null
+          matched_item_id?: string | null
+          new_item_payload?: Json | null
+          raw_code?: string | null
+          raw_name: string
+          raw_quantity?: number | null
+          raw_total?: number | null
+          raw_unit?: string | null
+          raw_unit_cost?: number | null
+          status?: Database["public"]["Enums"]["nota_item_status"]
+          stock_movement_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          confirmed_quantity?: number | null
+          confirmed_unit_cost?: number | null
+          created_at?: string
+          created_item_id?: string | null
+          document_id?: string
+          id?: string
+          line_no?: number | null
+          match_confidence?: number | null
+          match_reason?: string | null
+          matched_item_id?: string | null
+          new_item_payload?: Json | null
+          raw_code?: string | null
+          raw_name?: string
+          raw_quantity?: number | null
+          raw_total?: number | null
+          raw_unit?: string | null
+          raw_unit_cost?: number | null
+          status?: Database["public"]["Enums"]["nota_item_status"]
+          stock_movement_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nota_document_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nota_document_items_created_item_id_fkey"
+            columns: ["created_item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nota_document_items_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "nota_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nota_document_items_matched_item_id_fkey"
+            columns: ["matched_item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nota_document_items_stock_movement_id_fkey"
+            columns: ["stock_movement_id"]
+            isOneToOne: false
+            referencedRelation: "stock_movements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nota_documents: {
+        Row: {
+          ai_confidence: number | null
+          ai_invoice_number: string | null
+          ai_issue_date: string | null
+          ai_model: string | null
+          ai_raw: Json | null
+          ai_supplier_cnpj: string | null
+          ai_supplier_name: string | null
+          ai_total_amount: number | null
+          company_id: string
+          confirmed_at: string | null
+          created_at: string
+          error_message: string | null
+          file_path: string
+          file_size: number | null
+          id: string
+          location_id: string | null
+          mime_type: string | null
+          notes: string | null
+          original_name: string | null
+          processed_at: string | null
+          purchase_order_id: string | null
+          status: Database["public"]["Enums"]["nota_document_status"]
+          supplier_id: string | null
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          ai_confidence?: number | null
+          ai_invoice_number?: string | null
+          ai_issue_date?: string | null
+          ai_model?: string | null
+          ai_raw?: Json | null
+          ai_supplier_cnpj?: string | null
+          ai_supplier_name?: string | null
+          ai_total_amount?: number | null
+          company_id: string
+          confirmed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_path: string
+          file_size?: number | null
+          id?: string
+          location_id?: string | null
+          mime_type?: string | null
+          notes?: string | null
+          original_name?: string | null
+          processed_at?: string | null
+          purchase_order_id?: string | null
+          status?: Database["public"]["Enums"]["nota_document_status"]
+          supplier_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          ai_confidence?: number | null
+          ai_invoice_number?: string | null
+          ai_issue_date?: string | null
+          ai_model?: string | null
+          ai_raw?: Json | null
+          ai_supplier_cnpj?: string | null
+          ai_supplier_name?: string | null
+          ai_total_amount?: number | null
+          company_id?: string
+          confirmed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          location_id?: string | null
+          mime_type?: string | null
+          notes?: string | null
+          original_name?: string | null
+          processed_at?: string | null
+          purchase_order_id?: string | null
+          status?: Database["public"]["Enums"]["nota_document_status"]
+          supplier_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nota_documents_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nota_documents_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "stock_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nota_documents_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nota_documents_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -1381,6 +1652,15 @@ export type Database = {
         }
         Returns: string
       }
+      confirm_nota_receiving: {
+        Args: {
+          _doc_id: string
+          _location_id: string
+          _notes?: string
+          _supplier_id?: string
+        }
+        Returns: Json
+      }
       current_company_id: { Args: never; Returns: string }
       get_my_features: { Args: never; Returns: string[] }
       get_my_permissions: { Args: never; Returns: string[] }
@@ -1451,6 +1731,15 @@ export type Database = {
       company_status: "active" | "inactive" | "trial" | "blocked"
       invitation_status: "pending" | "accepted" | "expired" | "revoked"
       item_type: "PRODUCT" | "SERVICE"
+      nota_document_status:
+        | "UPLOADED"
+        | "PROCESSING"
+        | "PARSED"
+        | "REVIEWED"
+        | "CONFIRMED"
+        | "FAILED"
+        | "CANCELLED"
+      nota_item_status: "PENDING" | "MATCHED" | "NEW" | "IGNORED"
       product_unit: "UN" | "CX" | "MT" | "M2" | "M3" | "RL" | "KIT"
       purchase_order_status:
         | "DRAFT"
@@ -1605,6 +1894,16 @@ export const Constants = {
       company_status: ["active", "inactive", "trial", "blocked"],
       invitation_status: ["pending", "accepted", "expired", "revoked"],
       item_type: ["PRODUCT", "SERVICE"],
+      nota_document_status: [
+        "UPLOADED",
+        "PROCESSING",
+        "PARSED",
+        "REVIEWED",
+        "CONFIRMED",
+        "FAILED",
+        "CANCELLED",
+      ],
+      nota_item_status: ["PENDING", "MATCHED", "NEW", "IGNORED"],
       product_unit: ["UN", "CX", "MT", "M2", "M3", "RL", "KIT"],
       purchase_order_status: [
         "DRAFT",
