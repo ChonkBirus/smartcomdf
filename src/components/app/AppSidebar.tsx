@@ -32,6 +32,7 @@ const groups: { label: string; items: Item[] }[] = [
     items: [
       { title: "Fornecedores", url: "/suppliers", icon: Building2, module: "suppliers", feature: "suppliers" },
       { title: "Pedidos de Compra", url: "/purchases", icon: ShoppingCart, module: "purchases", feature: "purchases" },
+      { title: "Dashboard de Compras", url: "/purchases-analytics", icon: BarChart3, module: "purchases", feature: "purchases" },
       { title: "Recebimento IA", url: "/smart-receiving", icon: Sparkles, module: "smart_receiving", feature: "smart_receiving" },
     ],
   },
