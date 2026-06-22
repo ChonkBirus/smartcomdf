@@ -63,6 +63,7 @@ function QuotesPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [confirmDel, setConfirmDel] = useState<{ id: string; number: string } | null>(null);
+  const [sendingId, setSendingId] = useState<string | null>(null);
 
   const fetchList = useServerFn(listQuotes);
   const fetchMetrics = useServerFn(quoteMetrics);
@@ -220,6 +221,11 @@ function QuotesPage() {
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </Can>
+                      <Can module="quotes" action="edit">
+                        <Button size="icon" variant="ghost" onClick={() => setSendingId(q.id)} title="Enviar / compartilhar">
+                          <Share2 className="h-4 w-4" />
+                        </Button>
+                      </Can>
                       {["DRAFT", "VIEWED"].includes(q.status) && (
                         <Can module="quotes" action="edit">
                           <Button size="icon" variant="ghost" onClick={() => sendMut.mutate(q.id)} title="Marcar como enviado">
@@ -258,6 +264,7 @@ function QuotesPage() {
       )}
 
       <QuoteFormSheet open={open} onOpenChange={setOpen} quoteId={editing} />
+      <QuoteSendSheet open={!!sendingId} onOpenChange={(o) => !o && setSendingId(null)} quoteId={sendingId} />
 
       <AlertDialog open={!!confirmDel} onOpenChange={(o) => !o && setConfirmDel(null)}>
         <AlertDialogContent>
