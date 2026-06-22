@@ -45,6 +45,32 @@ function Dashboard() {
           trend={{ value: "+5,4% no mês", positive: true }} />
       </div>
 
+      {showStock && (
+        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+          <KpiCard title="Itens sem estoque" value={String(stock?.outOfStock ?? 0)} icon={<PackageX className="h-5 w-5" />} />
+          <KpiCard title="Abaixo do mínimo" value={String(stock?.lowStock ?? 0)} icon={<AlertTriangle className="h-5 w-5" />} />
+          <Card className="card-elevated">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base"><Boxes className="h-4 w-4 text-primary" /> Últimas movimentações</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1.5 text-sm">
+              {(stock?.recent ?? []).length === 0 ? (
+                <p className="text-muted-foreground">Nenhuma movimentação recente.</p>
+              ) : stock!.recent.map((r) => (
+                <div key={r.id} className="flex items-center justify-between gap-2">
+                  <span className="truncate">{r.item_name}</span>
+                  <span className="text-xs text-muted-foreground">{r.movement_type} · {r.quantity}</span>
+                </div>
+              ))}
+              <div className="pt-2">
+                <Button asChild size="sm" variant="outline" className="w-full"><Link to="/stock">Abrir estoque</Link></Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         <Card className="card-elevated lg:col-span-2">
           <CardHeader>
