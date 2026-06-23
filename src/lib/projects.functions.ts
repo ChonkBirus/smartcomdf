@@ -131,7 +131,8 @@ export const getProject = createServerFn({ method: "GET" })
         customers:customer_id(id,name,trade_name,corporate_name,cpf_cnpj,email,phone,whatsapp),
         address:customer_address_id(*),
         contact:customer_contact_id(*),
-        quotes:quote_id(id,quote_number,total_amount,accepted_at,accepted_by_name)
+        quotes:quote_id(id,quote_number,total_amount,accepted_at,accepted_by_name),
+        responsible:responsible_user_id(full_name,email)
       `)
       .eq("id", data.id)
       .maybeSingle();
