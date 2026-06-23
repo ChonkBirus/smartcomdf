@@ -279,33 +279,65 @@ export function QuoteFormSheet({
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                      <Command>
-                        <CommandInput placeholder="Buscar por nome ou razão social..." />
+                      <Command
+                        filter={(value, search) => {
+                          const v = value.toLowerCase();
+                          const s = search.toLowerCase().trim();
+                          return !s || v.includes(s) ? 1 : 0;
+                        }}
+                      >
+                        <CommandInput placeholder="Selecione ou pesquise um cliente..." />
                         <CommandList>
-                          <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
-                          <CommandGroup>
-                            {customers.map((c: any) => {
-                              const label = c.trade_name || c.name;
-                              const sub = c.corporate_name && c.corporate_name !== c.name ? c.corporate_name : "";
-                              return (
-                                <CommandItem
-                                  key={c.id}
-                                  value={`${label} ${sub} ${c.cpf_cnpj ?? ""}`}
-                                  onSelect={() => { setCustomerId(c.id); setCustomerOpen(false); }}
-                                >
-                                  <Check className={cn("mr-2 h-4 w-4", customerId === c.id ? "opacity-100" : "opacity-0")} />
-                                  <div className="flex flex-col">
-                                    <span>{label}</span>
-                                    {sub && <span className="text-xs text-muted-foreground">{sub}</span>}
-                                  </div>
-                                </CommandItem>
-                              );
-                            })}
-                          </CommandGroup>
+                          {customersLoading ? (
+                            <div className="py-6 text-center text-sm text-muted-foreground">Carregando clientes...</div>
+                          ) : customersError ? (
+                            <div className="py-6 text-center text-sm text-destructive">
+                              Não foi possível carregar os clientes. Tente novamente.
+                            </div>
+                          ) : customers.length === 0 ? (
+                            <div className="py-6 text-center text-sm text-muted-foreground">
+                              Nenhum cliente cadastrado.
+                            </div>
+                          ) : (
+                            <>
+                              <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
+                              <CommandGroup>
+                                {customers.map((c: any) => {
+                                  const isPJ = c.customer_type === "COMPANY";
+                                  const label = isPJ
+                                    ? (c.trade_name || c.corporate_name || c.name)
+                                    : c.name;
+                                  const doc = c.cpf_cnpj ?? "";
+                                  const wa = c.whatsapp ?? c.phone ?? "";
+                                  const sub = [doc, wa].filter(Boolean).join(" • ");
+                                  return (
+                                    <CommandItem
+                                      key={c.id}
+                                      value={`${label} ${c.corporate_name ?? ""} ${c.trade_name ?? ""} ${c.name ?? ""} ${doc} ${wa} ${c.email ?? ""}`}
+                                      onSelect={() => {
+                                        setCustomerId(c.id);
+                                        setCustomerTouched(true);
+                                        setCustomerOpen(false);
+                                      }}
+                                    >
+                                      <Check className={cn("mr-2 h-4 w-4", customerId === c.id ? "opacity-100" : "opacity-0")} />
+                                      <div className="flex flex-col">
+                                        <span>{label}</span>
+                                        {sub && <span className="text-xs text-muted-foreground">{sub}</span>}
+                                      </div>
+                                    </CommandItem>
+                                  );
+                                })}
+                              </CommandGroup>
+                            </>
+                          )}
                         </CommandList>
                       </Command>
                     </PopoverContent>
                   </Popover>
+                  {customerTouched && !customerId && (
+                    <p className="mt-1 text-xs text-destructive">Selecione um cliente para criar o orçamento.</p>
+                  )}
                 </div>
                 <div className="sm:col-span-2">
                   <Label>Título / Assunto</Label>
