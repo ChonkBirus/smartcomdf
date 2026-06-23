@@ -128,6 +128,7 @@ export function CustomerFormSheet({
 
   const [form, setForm] = useState<FormState>(EMPTY);
   const [newTagName, setNewTagName] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: existing } = useQuery({
     queryKey: ["customer", customerId],
