@@ -108,6 +108,14 @@ export type QuoteCustomerOption = {
   raw: QuoteCustomerRaw;
 };
 
+export type QuoteCustomersResult = {
+  companyId: string | null;
+  customers: QuoteCustomerRaw[];
+  items: QuoteCustomerRaw[];
+  options: QuoteCustomerOption[];
+  debug?: Record<string, unknown>;
+};
+
 const onlyDigits = (s: string) => s.replace(/\D/g, "");
 
 const customerDisplayName = (customer: Pick<Customer, "customer_type" | "name" | "trade_name" | "corporate_name">) => {
@@ -128,6 +136,104 @@ const quoteCustomerOption = (customer: QuoteCustomerRaw): QuoteCustomerOption =>
   description: customerDescription(customer),
   raw: customer,
 });
+
+const getActiveCustomersForQuoteFromDb = async ({
+  sb,
+  companyId,
+  userId,
+  profile,
+  dev,
+}: {
+  sb: any;
+  companyId: string | null | undefined;
+  userId: string;
+  profile: any;
+  dev: boolean;
+}): Promise<QuoteCustomersResult> => {
+  if (!companyId) {
+    return {
+      companyId: null,
+      customers: [],
+      items: [],
+      options: [],
+      debug: dev
+        ? {
+            userId,
+            profile: profile ?? null,
+            companyId: null,
+            profileLoaded: !!profile,
+            companyIdExists: false,
+            customersTableRecordsInCompany: 0,
+            activeTrueCount: 0,
+            statusActiveCount: 0,
+            queryReturnedEmpty: true,
+            error: null,
+          }
+        : undefined,
+    };
+  }
+
+  const { count: companyCount } = await sb
+    .from("customers")
+    .select("id", { count: "exact", head: true })
+    .eq("company_id", companyId)
+    .is("deleted_at", null);
+
+  const { data: rows, error } = await sb
+    .from("customers")
+    .select(
+      `id,
+       customer_type,
+       name,
+       corporate_name,
+       trade_name,
+       cpf_cnpj,
+       email,
+       phone,
+       whatsapp,
+       active,
+       customer_status,
+       customer_addresses!left(*),
+       customer_contacts!left(*)`,
+    )
+    .eq("company_id", companyId)
+    .is("deleted_at", null)
+    .order("name", { ascending: true });
+
+  if (error) throw new Error(error.message);
+
+  const allCustomers = (rows ?? []) as QuoteCustomerRaw[];
+  const customers = allCustomers.filter(
+    (customer) => customer.active === true || customer.customer_status === "ACTIVE",
+  );
+  const options = customers.map(quoteCustomerOption);
+
+  return {
+    companyId,
+    customers,
+    items: customers,
+    options,
+    debug: dev
+      ? {
+          userId,
+          profile: profile ?? null,
+          companyId,
+          profileLoaded: !!profile,
+          companyIdExists: !!companyId,
+          customersTableRecordsInCompany: companyCount ?? allCustomers.length,
+          activeTrueCount: allCustomers.filter((customer) => customer.active === true).length,
+          statusActiveCount: allCustomers.filter((customer) => customer.customer_status === "ACTIVE").length,
+          queryReturnedEmpty: customers.length === 0,
+          componentExpectedShape: "options: { value, label, description, raw }[]",
+          error: null,
+        }
+      : undefined,
+  };
+};
+
+export const customerService = {
+  getActiveCustomersForQuote: getActiveCustomersForQuoteFromDb,
+};
 
 const nstr = (max: number) =>
   z.preprocess((v) => (v === null || v === undefined ? "" : v), z.string().trim().max(max)).optional();
@@ -286,7 +392,7 @@ export const getActiveCustomersForQuote = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const dev = process.env.NODE_ENV !== "production";
+    const dev = process.env.NODE_ENV === "development";
 
     const { data: profile, error: profileError } = await sb
       .from("profiles")
@@ -296,28 +402,7 @@ export const getActiveCustomersForQuote = createServerFn({ method: "GET" })
     if (profileError) throw new Error(profileError.message);
 
     const companyId = data.company_id ?? profile?.company_id ?? null;
-    if (!companyId) {
-      return {
-        companyId: null,
-        customers: [] as QuoteCustomerRaw[],
-        items: [] as QuoteCustomerRaw[],
-        options: [] as QuoteCustomerOption[],
-        debug: dev
-          ? {
-              userId: context.userId,
-              profile: profile ?? null,
-              companyId: null,
-              profileLoaded: !!profile,
-              companyIdExists: false,
-              customersTableRecordsInCompany: 0,
-              activeTrueCount: 0,
-              statusActiveCount: 0,
-              queryReturnedEmpty: true,
-              error: null,
-            }
-          : undefined,
-      };
-    }
+    if (!companyId) return customerService.getActiveCustomersForQuote({ sb, companyId, userId: context.userId, profile, dev });
 
     if (data.company_id && profile?.company_id && data.company_id !== profile.company_id) {
       const { data: isSuperAdmin, error: roleError } = await sb.rpc("is_super_admin");
@@ -325,63 +410,7 @@ export const getActiveCustomersForQuote = createServerFn({ method: "GET" })
       if (!isSuperAdmin) throw new Error("Empresa inválida para o usuário autenticado.");
     }
 
-    const { count: companyCount } = await sb
-      .from("customers")
-      .select("id", { count: "exact", head: true })
-      .eq("company_id", companyId)
-      .is("deleted_at", null);
-
-    const { data: rows, error } = await sb
-      .from("customers")
-      .select(
-        `id,
-         customer_type,
-         name,
-         corporate_name,
-         trade_name,
-         cpf_cnpj,
-         email,
-         phone,
-         whatsapp,
-         active,
-         customer_status,
-         customer_addresses!left(*),
-         customer_contacts!left(*)`,
-      )
-      .eq("company_id", companyId)
-      .is("deleted_at", null)
-      .order("name", { ascending: true });
-
-    if (error) throw new Error(error.message);
-
-    const allCustomers = (rows ?? []) as QuoteCustomerRaw[];
-    const customers = allCustomers.filter(
-      (customer) => customer.active === true || customer.customer_status === "ACTIVE",
-    );
-
-    const options = customers.map(quoteCustomerOption);
-
-    return {
-      companyId,
-      customers,
-      items: customers,
-      options,
-      debug: dev
-        ? {
-            userId: context.userId,
-            profile: profile ?? null,
-            companyId,
-            profileLoaded: !!profile,
-            companyIdExists: !!companyId,
-            customersTableRecordsInCompany: companyCount ?? allCustomers.length,
-            activeTrueCount: allCustomers.filter((customer) => customer.active === true).length,
-            statusActiveCount: allCustomers.filter((customer) => customer.customer_status === "ACTIVE").length,
-            queryReturnedEmpty: customers.length === 0,
-            componentExpectedShape: "options: { value, label, description, raw }[]",
-            error: null,
-          }
-        : undefined,
-    };
+    return customerService.getActiveCustomersForQuote({ sb, companyId, userId: context.userId, profile, dev });
   });
 
 // ============================================================
