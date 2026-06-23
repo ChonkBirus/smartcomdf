@@ -50,11 +50,26 @@ const fmtBRL = (n: number) =>
   Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const fmtDate = (s: string | null) => s ? new Date(s).toLocaleDateString("pt-BR") : "—";
 
+const PLANNING_LABEL: Record<string, { label: string; cls: string }> = {
+  PENDING: { label: "Pendente", cls: "bg-muted text-muted-foreground" },
+  IN_PROGRESS: { label: "Em planejamento", cls: "bg-sky-100 text-sky-900 dark:bg-sky-950/40 dark:text-sky-300" },
+  READY_FOR_SERVICE_ORDER: { label: "Pronto p/ OS", cls: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300" },
+};
+const MATERIAL_LABEL: Record<string, { label: string; cls: string }> = {
+  NOT_CHECKED: { label: "Não verificado", cls: "bg-muted text-muted-foreground" },
+  AVAILABLE: { label: "OK", cls: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300" },
+  PARTIALLY_AVAILABLE: { label: "Parcial", cls: "bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-300" },
+  UNAVAILABLE: { label: "Insuficiente", cls: "bg-rose-100 text-rose-900 dark:bg-rose-950/40 dark:text-rose-300" },
+  RESERVED: { label: "Reservado", cls: "bg-sky-100 text-sky-900 dark:bg-sky-950/40 dark:text-sky-300" },
+};
+
 function ProjectsPage() {
   const fetchList = useServerFn(listProjects);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("");
   const [priority, setPriority] = useState<string>("");
+  const [planning, setPlanning] = useState<string>("");
+  const [material, setMaterial] = useState<string>("");
 
   const filters = useMemo(() => ({
     search: search || undefined,
@@ -62,10 +77,16 @@ function ProjectsPage() {
     priority: priority || undefined,
   }), [search, status, priority]);
 
-  const { data: rows = [], isLoading } = useQuery({
+  const { data: allRows = [], isLoading } = useQuery({
     queryKey: ["projects", filters],
     queryFn: () => fetchList({ data: filters }),
   });
+
+  const rows = useMemo(() => allRows.filter((p: any) => {
+    if (planning && p.planning_status !== planning) return false;
+    if (material && p.material_status !== material) return false;
+    return true;
+  }), [allRows, planning, material]);
 
   return (
     <div className="space-y-4">
@@ -85,7 +106,7 @@ function ProjectsPage() {
           />
         </div>
         <Select value={status || "all"} onValueChange={(v) => setStatus(v === "all" ? "" : v)}>
-          <SelectTrigger className="w-48"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os status</SelectItem>
             {Object.entries(STATUS_LABEL).map(([k, v]) => (
@@ -94,11 +115,29 @@ function ProjectsPage() {
           </SelectContent>
         </Select>
         <Select value={priority || "all"} onValueChange={(v) => setPriority(v === "all" ? "" : v)}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="Prioridade" /></SelectTrigger>
+          <SelectTrigger className="w-36"><SelectValue placeholder="Prioridade" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas</SelectItem>
             {Object.entries(PRIORITY_LABEL).map(([k, v]) => (
               <SelectItem key={k} value={k}>{v}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={planning || "all"} onValueChange={(v) => setPlanning(v === "all" ? "" : v)}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Planejamento" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Planejamento</SelectItem>
+            {Object.entries(PLANNING_LABEL).map(([k, v]) => (
+              <SelectItem key={k} value={k}>{v.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={material || "all"} onValueChange={(v) => setMaterial(v === "all" ? "" : v)}>
+          <SelectTrigger className="w-40"><SelectValue placeholder="Materiais" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Materiais</SelectItem>
+            {Object.entries(MATERIAL_LABEL).map(([k, v]) => (
+              <SelectItem key={k} value={k}>{v.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -121,41 +160,45 @@ function ProjectsPage() {
               <TableRow>
                 <TableHead>Número</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Orçamento</TableHead>
+                <TableHead>Responsável</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Planejamento</TableHead>
+                <TableHead>Materiais</TableHead>
                 <TableHead>Prioridade</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-                <TableHead>Previsão início</TableHead>
-                <TableHead>Previsão fim</TableHead>
-                <TableHead>Criado em</TableHead>
+                <TableHead>Início previsto</TableHead>
+                <TableHead>Fim previsto</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rows.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.project_number}</TableCell>
-                  <TableCell>{p.customer_name}</TableCell>
-                  <TableCell className="text-muted-foreground">{p.quote_number ?? "—"}</TableCell>
-                  <TableCell>
-                    <Badge variant={STATUS_VARIANT[p.status]}>{STATUS_LABEL[p.status]}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={PRIORITY_VARIANT[p.priority]}>{PRIORITY_LABEL[p.priority]}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right font-medium">{fmtBRL(p.total_amount)}</TableCell>
-                  <TableCell>{fmtDate(p.expected_start_date)}</TableCell>
-                  <TableCell>{fmtDate(p.expected_end_date)}</TableCell>
-                  <TableCell className="text-muted-foreground">{fmtDate(p.created_at)}</TableCell>
-                  <TableCell className="text-right">
-                    <Button asChild variant="ghost" size="icon">
-                      <Link to="/projects/$id" params={{ id: p.id }}>
-                        <Eye className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {rows.map((p: any) => {
+                const plan = PLANNING_LABEL[p.planning_status] ?? PLANNING_LABEL.PENDING;
+                const mat = MATERIAL_LABEL[p.material_status] ?? MATERIAL_LABEL.NOT_CHECKED;
+                return (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">{p.project_number}</TableCell>
+                    <TableCell>{p.customer_name}</TableCell>
+                    <TableCell className="text-muted-foreground">{p.responsible_name ?? "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant={STATUS_VARIANT[p.status as ProjectStatus]}>{STATUS_LABEL[p.status as ProjectStatus]}</Badge>
+                    </TableCell>
+                    <TableCell><span className={`rounded px-2 py-0.5 text-xs ${plan.cls}`}>{plan.label}</span></TableCell>
+                    <TableCell><span className={`rounded px-2 py-0.5 text-xs ${mat.cls}`}>{mat.label}</span></TableCell>
+                    <TableCell>
+                      <Badge variant={PRIORITY_VARIANT[p.priority as ProjectPriority]}>{PRIORITY_LABEL[p.priority as ProjectPriority]}</Badge>
+                    </TableCell>
+                    <TableCell>{fmtDate((p as any).planned_start_date ?? p.expected_start_date)}</TableCell>
+                    <TableCell>{fmtDate((p as any).planned_end_date ?? p.expected_end_date)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button asChild variant="ghost" size="icon">
+                        <Link to="/projects/$id" params={{ id: p.id }}>
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
@@ -163,3 +206,4 @@ function ProjectsPage() {
     </div>
   );
 }
+
