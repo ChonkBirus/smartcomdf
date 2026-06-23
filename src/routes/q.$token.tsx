@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { CheckCircle2, ShieldCheck, FileText, AlertTriangle } from "lucide-react";
+import { CheckCircle2, ShieldCheck, FileText, AlertTriangle, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/q/$token")({
