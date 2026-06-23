@@ -41,6 +41,7 @@ const groups: { label: string; items: Item[] }[] = [
     items: [
       { title: "Estoque", url: "/stock", icon: Boxes, module: "stock", feature: "inventory" },
       { title: "Orçamentos", url: "/quotes", icon: FileText, module: "quotes", feature: "quotes" },
+      { title: "Projetos", url: "/projects", icon: Briefcase, module: "projects" },
     ],
   },
   {
