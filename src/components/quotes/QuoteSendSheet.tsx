@@ -231,9 +231,12 @@ export function QuoteSendSheet({
                   />
                 </div>
 
-                <div className="grid gap-2 sm:grid-cols-3">
+                <div className="grid gap-2 sm:grid-cols-2">
                   <Button onClick={handleWhatsApp} className="w-full">
                     <MessageCircle className="mr-1 h-4 w-4" />WhatsApp
+                  </Button>
+                  <Button variant="outline" onClick={handleEmail} className="w-full">
+                    <Mail className="mr-1 h-4 w-4" />E-mail
                   </Button>
                   <Button variant="outline" onClick={handleDownloadPDF} className="w-full">
                     <Download className="mr-1 h-4 w-4" />PDF
