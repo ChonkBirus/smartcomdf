@@ -94,7 +94,7 @@ export const listProjects = createServerFn({ method: "GET" })
     const sb = context.supabase as any;
     let q = sb
       .from("projects")
-      .select("*, customers:customer_id(name,trade_name,corporate_name), quotes:quote_id(quote_number)")
+      .select("*, customers:customer_id(name,trade_name,corporate_name), quotes:quote_id(quote_number), responsible:responsible_user_id(full_name,email)")
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
     if (data.status) q = q.eq("status", data.status);
@@ -116,6 +116,7 @@ export const listProjects = createServerFn({ method: "GET" })
       customer_name:
         r.customers?.trade_name || r.customers?.name || r.customers?.corporate_name || "—",
       quote_number: r.quotes?.quote_number ?? null,
+      responsible_name: r.responsible?.full_name ?? r.responsible?.email ?? null,
     })) as Project[];
   });
 
