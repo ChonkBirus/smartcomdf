@@ -197,9 +197,32 @@ export function CustomerFormSheet({
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.name.trim()) return toast.error("Nome obrigatório.");
-    if (!form.cpf_cnpj.trim()) return toast.error("CPF/CNPJ obrigatório.");
-    if (!docValid) return toast.error(isCompany ? "CNPJ inválido." : "CPF inválido.");
+    const errs: Record<string, string> = {};
+    if (!form.name.trim()) errs.name = "Nome é obrigatório.";
+    if (!form.cpf_cnpj.trim()) errs.cpf_cnpj = (isCompany ? "CNPJ" : "CPF") + " é obrigatório.";
+    else if (!docValid) errs.cpf_cnpj = isCompany ? "CNPJ inválido." : "CPF inválido.";
+    if (!form.email.trim()) errs.email = "E-mail é obrigatório.";
+    else if (!isValidEmail(form.email)) errs.email = "Informe um e-mail válido.";
+    if (!form.phone.trim() && !form.whatsapp.trim()) errs.whatsapp = "Informe WhatsApp ou Telefone.";
+    form.contacts.forEach((c, i) => {
+      if (!c.name?.trim()) errs[`contact_${i}_name`] = "Nome é obrigatório.";
+      if (!c.phone && !c.whatsapp) errs[`contact_${i}_phone`] = "Informe telefone ou WhatsApp.";
+      if (c.email && !isValidEmail(c.email)) errs[`contact_${i}_email`] = "Informe um e-mail válido.";
+    });
+    form.addresses.forEach((a, i) => {
+      if (!a.country) errs[`addr_${i}_country`] = "País é obrigatório.";
+      if (!a.zipcode?.trim()) errs[`addr_${i}_zipcode`] = "CEP é obrigatório.";
+      if (!a.street?.trim()) errs[`addr_${i}_street`] = "Rua é obrigatória.";
+      if (!a.number?.trim()) errs[`addr_${i}_number`] = "Número é obrigatório.";
+      if (!a.district?.trim()) errs[`addr_${i}_district`] = "Bairro é obrigatório.";
+      if (!a.city?.trim()) errs[`addr_${i}_city`] = "Cidade é obrigatória.";
+      if (!a.state?.trim()) errs[`addr_${i}_state`] = "UF é obrigatório.";
+    });
+    setErrors(errs);
+    if (Object.keys(errs).length > 0) {
+      toast.error("Verifique os campos destacados.");
+      return;
+    }
     mutation.mutate(form);
   }
 
