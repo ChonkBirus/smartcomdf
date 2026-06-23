@@ -35,6 +35,7 @@ export type CustomerAddress = {
   company_id: string;
   customer_id: string;
   address_type: CustomerAddressType;
+  country: string;
   zipcode: string | null;
   street: string | null;
   number: string | null;
