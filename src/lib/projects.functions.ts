@@ -34,6 +34,20 @@ export type Project = {
   updated_at: string;
   customer_name?: string;
   quote_number?: string | null;
+  responsible_user_id: string | null;
+  responsible_name?: string | null;
+  planned_start_date: string | null;
+  planned_end_date: string | null;
+  planned_start_time: string | null;
+  planned_end_time: string | null;
+  operational_notes: string | null;
+  customer_instructions: string | null;
+  access_instructions: string | null;
+  parking_instructions: string | null;
+  material_status: "NOT_CHECKED" | "AVAILABLE" | "PARTIALLY_AVAILABLE" | "UNAVAILABLE" | "RESERVED";
+  planning_status: "PENDING" | "IN_PROGRESS" | "READY_FOR_SERVICE_ORDER";
+  materials_checked_at: string | null;
+  ready_for_os_at: string | null;
 };
 
 export type ProjectItem = {
@@ -80,7 +94,7 @@ export const listProjects = createServerFn({ method: "GET" })
     const sb = context.supabase as any;
     let q = sb
       .from("projects")
-      .select("*, customers:customer_id(name,trade_name,corporate_name), quotes:quote_id(quote_number)")
+      .select("*, customers:customer_id(name,trade_name,corporate_name), quotes:quote_id(quote_number), responsible:responsible_user_id(full_name,email)")
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
     if (data.status) q = q.eq("status", data.status);
@@ -102,6 +116,7 @@ export const listProjects = createServerFn({ method: "GET" })
       customer_name:
         r.customers?.trade_name || r.customers?.name || r.customers?.corporate_name || "—",
       quote_number: r.quotes?.quote_number ?? null,
+      responsible_name: r.responsible?.full_name ?? r.responsible?.email ?? null,
     })) as Project[];
   });
 
@@ -116,7 +131,8 @@ export const getProject = createServerFn({ method: "GET" })
         customers:customer_id(id,name,trade_name,corporate_name,cpf_cnpj,email,phone,whatsapp),
         address:customer_address_id(*),
         contact:customer_contact_id(*),
-        quotes:quote_id(id,quote_number,total_amount,accepted_at,accepted_by_name)
+        quotes:quote_id(id,quote_number,total_amount,accepted_at,accepted_by_name),
+        responsible:responsible_user_id(full_name,email)
       `)
       .eq("id", data.id)
       .maybeSingle();
@@ -181,6 +197,7 @@ export const getProject = createServerFn({ method: "GET" })
         customer_name:
           p.customers?.trade_name || p.customers?.name || p.customers?.corporate_name || "—",
         quote_number: p.quotes?.quote_number ?? null,
+        responsible_name: p.responsible?.full_name ?? p.responsible?.email ?? null,
       } as Project,
       customer: p.customers,
       address: p.address,

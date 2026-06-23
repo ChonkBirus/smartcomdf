@@ -24,10 +24,12 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   getProject, updateProjectBasics, cancelProject,
   type ProjectStatus, type ProjectPriority,
 } from "@/lib/projects.functions";
+import { ProjectPlanningPanel } from "@/components/projects/ProjectPlanningPanel";
 
 export const Route = createFileRoute("/_authenticated/projects_/$id")({
   head: () => ({ meta: [{ title: "Detalhe do Projeto — SecureERP" }] }),
@@ -145,7 +147,14 @@ function ProjectDetailPage() {
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Visão geral</TabsTrigger>
+          <TabsTrigger value="planning">Planejamento</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-3">
         <div className="rounded-lg border bg-card p-4">
           <div className="mb-2 flex items-center gap-2 text-sm font-medium">
             <User2 className="h-4 w-4" />Cliente
@@ -308,6 +317,16 @@ function ProjectDetailPage() {
           <p className="whitespace-pre-wrap text-sm text-muted-foreground">{project.notes}</p>
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="planning">
+          <ProjectPlanningPanel
+            project={project}
+            onChanged={() => qc.invalidateQueries({ queryKey: ["project", id] })}
+          />
+        </TabsContent>
+      </Tabs>
+
 
       <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <AlertDialogContent>

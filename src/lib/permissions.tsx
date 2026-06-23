@@ -4,7 +4,8 @@ export type PermissionAction =
   | "view" | "create" | "edit" | "delete"
   | "approve" | "cancel" | "receive" | "manage" | "adjust" | "transfer"
   | "upload" | "process" | "confirm" | "disable" | "send_pix"
-  | "convert_from_quote";
+  | "convert_from_quote"
+  | "plan" | "assign_responsible" | "manage_team" | "check_materials" | "mark_ready_for_os";
 export type ModuleSlug =
   | "dashboard"
   | "products"
