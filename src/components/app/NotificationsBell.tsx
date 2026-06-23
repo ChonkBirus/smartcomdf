@@ -24,7 +24,10 @@ export function NotificationsBell({ userId }: { userId?: string | null }) {
   const { data } = useQuery({
     queryKey: ["notifications"],
     queryFn: () => fetchFn(),
-    refetchOnWindowFocus: true,
+    // Realtime channel below already invalidates on new rows, so no need
+    // to refetch on every focus or remount.
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const markOne = useMutation({
