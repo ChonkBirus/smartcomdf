@@ -38,7 +38,16 @@ export type Quote = {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  payment_status: QuotePaymentStatus;
+  down_payment_percent: number;
+  down_payment_amount: number;
+  remaining_amount: number;
+  payment_approved_at: string | null;
 };
+
+export type QuotePaymentStatus =
+  | "NOT_STARTED" | "WAITING_PAYMENT" | "PAYMENT_APPROVED"
+  | "PAYMENT_REJECTED" | "PAYMENT_CANCELLED";
 
 export type QuoteHistoryEvent = {
   id: string;
