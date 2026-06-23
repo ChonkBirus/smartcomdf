@@ -35,6 +35,7 @@ export type CustomerAddress = {
   company_id: string;
   customer_id: string;
   address_type: CustomerAddressType;
+  country: string;
   zipcode: string | null;
   street: string | null;
   number: string | null;
@@ -90,6 +91,7 @@ const nstr = (max: number) =>
 const addressSchema = z.object({
   id: z.string().uuid().optional(),
   address_type: z.enum(["BILLING", "INSTALLATION", "DELIVERY", "OTHER"]).default("BILLING"),
+  country: z.string().trim().min(2).max(2).default("BR"),
   zipcode: nstr(20),
   street: nstr(200),
   number: nstr(20),
@@ -103,31 +105,35 @@ const addressSchema = z.object({
 
 const contactSchema = z.object({
   id: z.string().uuid().optional(),
-  name: z.string().trim().min(1).max(150),
+  name: z.string().trim().min(1, "Nome é obrigatório.").max(150),
   role: nstr(100),
   email: z.preprocess(
     (v) => (v === null || v === undefined || v === "" ? undefined : v),
-    z.string().trim().email().max(200),
+    z.string().trim().email("Informe um e-mail válido.").max(200),
   ).optional(),
   phone: nstr(30),
   whatsapp: nstr(30),
   is_primary: z.boolean().default(false),
   active: z.boolean().default(true),
+}).refine((c) => (c.phone && c.phone.length > 0) || (c.whatsapp && c.whatsapp.length > 0), {
+  message: "Informe telefone ou WhatsApp.",
+  path: ["phone"],
 });
 
 const customerSchema = z.object({
   id: z.string().uuid().optional(),
   customer_type: z.enum(["INDIVIDUAL", "COMPANY"]),
-  name: z.string().trim().min(2).max(200),
+  name: z.string().trim().min(2, "Nome é obrigatório.").max(200),
   corporate_name: nstr(200),
   trade_name: nstr(200),
-  cpf_cnpj: z.string().trim().min(11).max(20),
+  cpf_cnpj: z.string().trim().min(11, "CPF/CNPJ é obrigatório.").max(20),
   state_registration: nstr(50),
   municipal_registration: nstr(50),
-  email: z.preprocess(
-    (v) => (v === null || v === undefined || v === "" ? undefined : v),
-    z.string().trim().email().max(200),
-  ).optional(),
+  email: z.string({ required_error: "E-mail é obrigatório." })
+    .trim()
+    .min(1, "E-mail é obrigatório.")
+    .email("Informe um e-mail válido.")
+    .max(200),
   phone: nstr(30),
   whatsapp: nstr(30),
   customer_status: z.enum(["LEAD", "ACTIVE", "INACTIVE", "BLOCKED"]).default("ACTIVE"),
@@ -137,6 +143,9 @@ const customerSchema = z.object({
   addresses: z.array(addressSchema).default([]),
   contacts: z.array(contactSchema).default([]),
   tag_ids: z.array(z.string().uuid()).default([]),
+}).refine((d) => (d.phone && d.phone.length > 0) || (d.whatsapp && d.whatsapp.length > 0), {
+  message: "Informe WhatsApp ou Telefone.",
+  path: ["whatsapp"],
 });
 
 // ============================================================
@@ -349,6 +358,7 @@ export const saveCustomer = createServerFn({ method: "POST" })
         company_id: cid,
         customer_id: customerId,
         address_type: a.address_type,
+        country: (a.country || "BR").toUpperCase(),
         zipcode: a.zipcode || null,
         street: a.street || null,
         number: a.number || null,

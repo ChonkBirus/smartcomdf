@@ -1,0 +1,2 @@
+ALTER TABLE public.customer_addresses
+  ADD COLUMN IF NOT EXISTS country text NOT NULL DEFAULT 'BR';

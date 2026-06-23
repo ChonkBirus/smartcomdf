@@ -19,6 +19,7 @@ import {
   getCustomer, saveCustomer, listCustomerTags, createCustomerTag,
   type CustomerAddress, type CustomerContact, type CustomerType, type CustomerStatus, type CustomerAddressType,
 } from "@/lib/customers.functions";
+import { COUNTRIES, statesFor, isValidEmail } from "@/lib/locations";
 
 type AddrRow = Omit<CustomerAddress, "id" | "company_id" | "customer_id" | "created_at" | "updated_at"> & { id?: string };
 type ContactRow = Omit<CustomerContact, "id" | "company_id" | "customer_id" | "created_at" | "updated_at"> & { id?: string };
@@ -57,7 +58,7 @@ const EMPTY: FormState = {
 };
 
 const EMPTY_ADDR: AddrRow = {
-  address_type: "BILLING", zipcode: null, street: null, number: null,
+  address_type: "BILLING", country: "BR", zipcode: null, street: null, number: null,
   complement: null, district: null, city: null, state: null, reference: null,
   is_primary: false,
 };
@@ -127,6 +128,7 @@ export function CustomerFormSheet({
 
   const [form, setForm] = useState<FormState>(EMPTY);
   const [newTagName, setNewTagName] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: existing } = useQuery({
     queryKey: ["customer", customerId],
@@ -195,9 +197,32 @@ export function CustomerFormSheet({
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.name.trim()) return toast.error("Nome obrigatório.");
-    if (!form.cpf_cnpj.trim()) return toast.error("CPF/CNPJ obrigatório.");
-    if (!docValid) return toast.error(isCompany ? "CNPJ inválido." : "CPF inválido.");
+    const errs: Record<string, string> = {};
+    if (!form.name.trim()) errs.name = "Nome é obrigatório.";
+    if (!form.cpf_cnpj.trim()) errs.cpf_cnpj = (isCompany ? "CNPJ" : "CPF") + " é obrigatório.";
+    else if (!docValid) errs.cpf_cnpj = isCompany ? "CNPJ inválido." : "CPF inválido.";
+    if (!form.email.trim()) errs.email = "E-mail é obrigatório.";
+    else if (!isValidEmail(form.email)) errs.email = "Informe um e-mail válido.";
+    if (!form.phone.trim() && !form.whatsapp.trim()) errs.whatsapp = "Informe WhatsApp ou Telefone.";
+    form.contacts.forEach((c, i) => {
+      if (!c.name?.trim()) errs[`contact_${i}_name`] = "Nome é obrigatório.";
+      if (!c.phone && !c.whatsapp) errs[`contact_${i}_phone`] = "Informe telefone ou WhatsApp.";
+      if (c.email && !isValidEmail(c.email)) errs[`contact_${i}_email`] = "Informe um e-mail válido.";
+    });
+    form.addresses.forEach((a, i) => {
+      if (!a.country) errs[`addr_${i}_country`] = "País é obrigatório.";
+      if (!a.zipcode?.trim()) errs[`addr_${i}_zipcode`] = "CEP é obrigatório.";
+      if (!a.street?.trim()) errs[`addr_${i}_street`] = "Rua é obrigatória.";
+      if (!a.number?.trim()) errs[`addr_${i}_number`] = "Número é obrigatório.";
+      if (!a.district?.trim()) errs[`addr_${i}_district`] = "Bairro é obrigatório.";
+      if (!a.city?.trim()) errs[`addr_${i}_city`] = "Cidade é obrigatória.";
+      if (!a.state?.trim()) errs[`addr_${i}_state`] = "UF é obrigatório.";
+    });
+    setErrors(errs);
+    if (Object.keys(errs).length > 0) {
+      toast.error("Verifique os campos destacados.");
+      return;
+    }
     mutation.mutate(form);
   }
 
@@ -261,7 +286,9 @@ export function CustomerFormSheet({
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <Label>{isCompany ? "Nome (referência) *" : "Nome completo *"}</Label>
-                  <Input value={form.name} onChange={(e) => set("name", e.target.value)} required />
+                  <Input value={form.name} onChange={(e) => set("name", e.target.value)} aria-invalid={!!errors.name}
+                    className={errors.name ? "border-destructive" : ""} />
+                  {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name}</p>}
                 </div>
                 {isCompany && (
                   <>
@@ -280,11 +307,12 @@ export function CustomerFormSheet({
                   <Input
                     value={maskCpfCnpj(form.cpf_cnpj, form.customer_type)}
                     onChange={(e) => set("cpf_cnpj", e.target.value)}
-                    aria-invalid={docTouched && docComplete && !docValid}
-                    className={docTouched && docComplete && !docValid ? "border-destructive focus-visible:ring-destructive" : docTouched && docValid ? "border-emerald-500" : ""}
-                    required
+                    aria-invalid={!!errors.cpf_cnpj || (docTouched && docComplete && !docValid)}
+                    className={(errors.cpf_cnpj || (docTouched && docComplete && !docValid)) ? "border-destructive focus-visible:ring-destructive" : docTouched && docValid ? "border-emerald-500" : ""}
                   />
-                  {docTouched && (
+                  {errors.cpf_cnpj ? (
+                    <p className="mt-1 text-xs text-destructive">{errors.cpf_cnpj}</p>
+                  ) : docTouched && (
                     docValid ? (
                       <p className="mt-1 text-xs text-emerald-600">{isCompany ? "CNPJ válido" : "CPF válido"}</p>
                     ) : docComplete ? (
@@ -310,9 +338,28 @@ export function CustomerFormSheet({
 
               <Separator />
               <div className="grid gap-3 sm:grid-cols-2">
-                <div><Label>E-mail</Label><Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} /></div>
-                <div><Label>Telefone</Label><Input value={maskPhone(form.phone)} onChange={(e) => set("phone", e.target.value)} /></div>
-                <div><Label>WhatsApp</Label><Input value={maskPhone(form.whatsapp)} onChange={(e) => set("whatsapp", e.target.value)} /></div>
+                <div>
+                  <Label>E-mail *</Label>
+                  <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)}
+                    aria-invalid={!!errors.email}
+                    className={errors.email ? "border-destructive" : ""} />
+                  {errors.email
+                    ? <p className="mt-1 text-xs text-destructive">{errors.email}</p>
+                    : <p className="mt-1 text-xs text-muted-foreground">Este campo é obrigatório.</p>}
+                </div>
+                <div>
+                  <Label>Telefone</Label>
+                  <Input value={maskPhone(form.phone)} onChange={(e) => set("phone", e.target.value)}
+                    aria-invalid={!!errors.whatsapp}
+                    className={errors.whatsapp ? "border-destructive" : ""} />
+                </div>
+                <div>
+                  <Label>WhatsApp *</Label>
+                  <Input value={maskPhone(form.whatsapp)} onChange={(e) => set("whatsapp", e.target.value)}
+                    aria-invalid={!!errors.whatsapp}
+                    className={errors.whatsapp ? "border-destructive" : ""} />
+                  {errors.whatsapp && <p className="mt-1 text-xs text-destructive">{errors.whatsapp}</p>}
+                </div>
                 <div><Label>Origem</Label><Input value={form.customer_origin} onChange={(e) => set("customer_origin", e.target.value)} placeholder="Indicação, site, Instagram..." /></div>
               </div>
 
@@ -368,27 +415,97 @@ export function CustomerFormSheet({
                     </div>
                   </div>
                   <div className="grid gap-2 sm:grid-cols-3">
-                    <div><Label>CEP</Label><Input value={maskZip(a.zipcode ?? "")} onChange={(e) => {
-                      const next = [...form.addresses]; next[i] = { ...a, zipcode: e.target.value }; set("addresses", next);
-                    }} /></div>
-                    <div className="sm:col-span-2"><Label>Rua</Label><Input value={a.street ?? ""} onChange={(e) => {
-                      const next = [...form.addresses]; next[i] = { ...a, street: e.target.value }; set("addresses", next);
-                    }} /></div>
-                    <div><Label>Número</Label><Input value={a.number ?? ""} onChange={(e) => {
-                      const next = [...form.addresses]; next[i] = { ...a, number: e.target.value }; set("addresses", next);
-                    }} /></div>
+                    <div>
+                      <Label>País *</Label>
+                      <Select
+                        value={a.country || "BR"}
+                        onValueChange={(v) => {
+                          const next = [...form.addresses];
+                          next[i] = { ...a, country: v, state: null };
+                          set("addresses", next);
+                        }}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {COUNTRIES.map((c) => (
+                            <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>CEP *</Label>
+                      <Input value={a.country === "US" ? (a.zipcode ?? "") : maskZip(a.zipcode ?? "")}
+                        aria-invalid={!!errors[`addr_${i}_zipcode`]}
+                        className={errors[`addr_${i}_zipcode`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.addresses]; next[i] = { ...a, zipcode: e.target.value }; set("addresses", next);
+                        }} />
+                      {errors[`addr_${i}_zipcode`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_zipcode`]}</p>}
+                    </div>
+                    <div>
+                      <Label>UF *</Label>
+                      <Select
+                        value={a.state ?? ""}
+                        onValueChange={(v) => {
+                          const next = [...form.addresses]; next[i] = { ...a, state: v }; set("addresses", next);
+                        }}
+                      >
+                        <SelectTrigger aria-invalid={!!errors[`addr_${i}_state`]}
+                          className={errors[`addr_${i}_state`] ? "border-destructive" : ""}>
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {statesFor(a.country || "BR").map((s) => (
+                            <SelectItem key={s.code} value={s.code}>{s.code} — {s.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors[`addr_${i}_state`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_state`]}</p>}
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Label>Rua *</Label>
+                      <Input value={a.street ?? ""}
+                        aria-invalid={!!errors[`addr_${i}_street`]}
+                        className={errors[`addr_${i}_street`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.addresses]; next[i] = { ...a, street: e.target.value }; set("addresses", next);
+                        }} />
+                      {errors[`addr_${i}_street`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_street`]}</p>}
+                    </div>
+                    <div>
+                      <Label>Número *</Label>
+                      <Input value={a.number ?? ""}
+                        aria-invalid={!!errors[`addr_${i}_number`]}
+                        className={errors[`addr_${i}_number`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.addresses]; next[i] = { ...a, number: e.target.value }; set("addresses", next);
+                        }} />
+                      {errors[`addr_${i}_number`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_number`]}</p>}
+                    </div>
                     <div><Label>Complemento</Label><Input value={a.complement ?? ""} onChange={(e) => {
                       const next = [...form.addresses]; next[i] = { ...a, complement: e.target.value }; set("addresses", next);
                     }} /></div>
-                    <div><Label>Bairro</Label><Input value={a.district ?? ""} onChange={(e) => {
-                      const next = [...form.addresses]; next[i] = { ...a, district: e.target.value }; set("addresses", next);
-                    }} /></div>
-                    <div><Label>Cidade</Label><Input value={a.city ?? ""} onChange={(e) => {
-                      const next = [...form.addresses]; next[i] = { ...a, city: e.target.value }; set("addresses", next);
-                    }} /></div>
-                    <div><Label>UF</Label><Input maxLength={2} value={a.state ?? ""} onChange={(e) => {
-                      const next = [...form.addresses]; next[i] = { ...a, state: e.target.value.toUpperCase() }; set("addresses", next);
-                    }} /></div>
+                    <div>
+                      <Label>Bairro *</Label>
+                      <Input value={a.district ?? ""}
+                        aria-invalid={!!errors[`addr_${i}_district`]}
+                        className={errors[`addr_${i}_district`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.addresses]; next[i] = { ...a, district: e.target.value }; set("addresses", next);
+                        }} />
+                      {errors[`addr_${i}_district`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_district`]}</p>}
+                    </div>
+                    <div>
+                      <Label>Cidade *</Label>
+                      <Input value={a.city ?? ""}
+                        aria-invalid={!!errors[`addr_${i}_city`]}
+                        className={errors[`addr_${i}_city`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.addresses]; next[i] = { ...a, city: e.target.value }; set("addresses", next);
+                        }} />
+                      {errors[`addr_${i}_city`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_city`]}</p>}
+                    </div>
                     <div className="sm:col-span-3"><Label>Referência</Label><Input value={a.reference ?? ""} onChange={(e) => {
                       const next = [...form.addresses]; next[i] = { ...a, reference: e.target.value }; set("addresses", next);
                     }} /></div>
@@ -411,9 +528,13 @@ export function CustomerFormSheet({
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <Label>Nome *</Label>
-                      <Input value={c.name} onChange={(e) => {
-                        const next = [...form.contacts]; next[i] = { ...c, name: e.target.value }; set("contacts", next);
-                      }} />
+                      <Input value={c.name}
+                        aria-invalid={!!errors[`contact_${i}_name`]}
+                        className={errors[`contact_${i}_name`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.contacts]; next[i] = { ...c, name: e.target.value }; set("contacts", next);
+                        }} />
+                      {errors[`contact_${i}_name`] && <p className="mt-1 text-xs text-destructive">{errors[`contact_${i}_name`]}</p>}
                     </div>
                     <div className="ml-2 flex items-center gap-1">
                       <Button
@@ -435,15 +556,35 @@ export function CustomerFormSheet({
                     <div><Label>Cargo/Função</Label><Input value={c.role ?? ""} onChange={(e) => {
                       const next = [...form.contacts]; next[i] = { ...c, role: e.target.value }; set("contacts", next);
                     }} /></div>
-                    <div><Label>E-mail</Label><Input value={c.email ?? ""} onChange={(e) => {
-                      const next = [...form.contacts]; next[i] = { ...c, email: e.target.value }; set("contacts", next);
-                    }} /></div>
-                    <div><Label>Telefone</Label><Input value={maskPhone(c.phone ?? "")} onChange={(e) => {
-                      const next = [...form.contacts]; next[i] = { ...c, phone: e.target.value }; set("contacts", next);
-                    }} /></div>
-                    <div><Label>WhatsApp</Label><Input value={maskPhone(c.whatsapp ?? "")} onChange={(e) => {
-                      const next = [...form.contacts]; next[i] = { ...c, whatsapp: e.target.value }; set("contacts", next);
-                    }} /></div>
+                    <div>
+                      <Label>E-mail</Label>
+                      <Input value={c.email ?? ""}
+                        aria-invalid={!!errors[`contact_${i}_email`]}
+                        className={errors[`contact_${i}_email`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.contacts]; next[i] = { ...c, email: e.target.value }; set("contacts", next);
+                        }} />
+                      {errors[`contact_${i}_email`] && <p className="mt-1 text-xs text-destructive">{errors[`contact_${i}_email`]}</p>}
+                    </div>
+                    <div>
+                      <Label>Telefone *</Label>
+                      <Input value={maskPhone(c.phone ?? "")}
+                        aria-invalid={!!errors[`contact_${i}_phone`]}
+                        className={errors[`contact_${i}_phone`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.contacts]; next[i] = { ...c, phone: e.target.value }; set("contacts", next);
+                        }} />
+                      {errors[`contact_${i}_phone`] && <p className="mt-1 text-xs text-destructive">{errors[`contact_${i}_phone`]}</p>}
+                    </div>
+                    <div>
+                      <Label>WhatsApp *</Label>
+                      <Input value={maskPhone(c.whatsapp ?? "")}
+                        aria-invalid={!!errors[`contact_${i}_phone`]}
+                        className={errors[`contact_${i}_phone`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.contacts]; next[i] = { ...c, whatsapp: e.target.value }; set("contacts", next);
+                        }} />
+                    </div>
                   </div>
                 </div>
               ))}
