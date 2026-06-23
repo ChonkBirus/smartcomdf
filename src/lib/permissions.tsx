@@ -19,7 +19,8 @@ export type ModuleSlug =
   | "settings"
   | "suppliers"
   | "purchases"
-  | "smart_receiving";
+  | "smart_receiving"
+  | "projects";
 
 type Ctx = {
   permissions: Set<string>;
