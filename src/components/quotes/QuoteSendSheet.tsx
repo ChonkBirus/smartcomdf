@@ -479,6 +479,36 @@ export function QuoteSendSheet({
           </div>
         </ScrollArea>
       </SheetContent>
+
+      <AlertDialog open={approveOpen} onOpenChange={setApproveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar pagamento aprovado?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação indicará que a entrada do orçamento foi recebida.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="approve-note">Observação (opcional)</Label>
+            <Textarea
+              id="approve-note"
+              value={approveNote}
+              onChange={(e) => setApproveNote(e.target.value)}
+              placeholder="Ex: pago via Pix em 12/06."
+              className="min-h-[80px]"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => activePayment && approveMut.mutate(activePayment.id)}
+              disabled={!activePayment || approveMut.isPending}
+            >
+              Aprovar pagamento
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   );
 }
