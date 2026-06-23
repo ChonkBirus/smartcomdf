@@ -24,10 +24,12 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   getProject, updateProjectBasics, cancelProject,
   type ProjectStatus, type ProjectPriority,
 } from "@/lib/projects.functions";
+import { ProjectPlanningPanel } from "@/components/projects/ProjectPlanningPanel";
 
 export const Route = createFileRoute("/_authenticated/projects_/$id")({
   head: () => ({ meta: [{ title: "Detalhe do Projeto — SecureERP" }] }),
