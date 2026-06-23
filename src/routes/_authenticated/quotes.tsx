@@ -26,7 +26,7 @@ import { QuoteSendSheet } from "@/components/quotes/QuoteSendSheet";
 import {
   listQuotes, quoteMetrics, deleteQuote, duplicateQuote,
   markQuoteSent, cancelQuote,
-  type QuoteStatus,
+  type QuoteStatus, type QuotePaymentStatus,
 } from "@/lib/quotes.functions";
 
 export const Route = createFileRoute("/_authenticated/quotes")({
