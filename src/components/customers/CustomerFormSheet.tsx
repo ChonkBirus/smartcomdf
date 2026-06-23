@@ -286,7 +286,9 @@ export function CustomerFormSheet({
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <Label>{isCompany ? "Nome (referência) *" : "Nome completo *"}</Label>
-                  <Input value={form.name} onChange={(e) => set("name", e.target.value)} required />
+                  <Input value={form.name} onChange={(e) => set("name", e.target.value)} aria-invalid={!!errors.name}
+                    className={errors.name ? "border-destructive" : ""} />
+                  {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name}</p>}
                 </div>
                 {isCompany && (
                   <>
