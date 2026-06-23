@@ -243,6 +243,9 @@ export const getQuote = createServerFn({ method: "GET" })
         discount: Number(q.discount || 0),
         items_subtotal: Number(q.items_subtotal || 0),
         total_amount: Number(q.total_amount || 0),
+        down_payment_percent: Number(q.down_payment_percent || 0),
+        down_payment_amount: Number(q.down_payment_amount || 0),
+        remaining_amount: Number(q.remaining_amount || 0),
         customer_name:
           q.customers?.trade_name || q.customers?.name || q.customers?.corporate_name || "—",
       } as Quote,
