@@ -53,7 +53,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      // Ignore TOKEN_REFRESHED / INITIAL_SESSION — avoids refetching profile
+      // on every token refresh (~hourly + tab focus) and on every mount.
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") {
+        // Still sync the session reference so consumers have fresh tokens.
+        setSession(s);
+        return;
+      }
       void loadSession(s);
     });
     supabase.auth.getSession().then(({ data }) => {
