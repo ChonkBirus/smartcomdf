@@ -94,12 +94,13 @@ function QuotesPage() {
   });
 
   const { data: rows, isLoading } = useQuery({
-    queryKey: ["quotes", { search, statusFilter }],
+    queryKey: ["quotes", { search, statusFilter, payFilter }],
     queryFn: () =>
       fetchList({
         data: {
           search: search.trim() || undefined,
           status: statusFilter === "ALL" ? undefined : statusFilter,
+          payment_status: payFilter === "ALL" ? undefined : payFilter,
         },
       }),
   });
