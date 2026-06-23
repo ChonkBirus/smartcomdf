@@ -40,6 +40,10 @@ type PublicQuote = {
     total_amount: number;
     accepted_at: string | null;
     accepted_by_name: string | null;
+    payment_status?: string;
+    down_payment_amount?: number;
+    remaining_amount?: number;
+    down_payment_percent?: number;
   };
   customer: { name: string; document: string | null };
   company: {
@@ -51,6 +55,15 @@ type PublicQuote = {
     kind: string; quantity: number; position: number;
     unit?: string | null; image_url?: string | null;
   }>;
+  pix?: {
+    pix_key: string; pix_key_type: string | null;
+    receiver_name: string | null; receiver_city: string | null;
+  } | null;
+  payment?: {
+    id: string; amount: number; payment_status: string;
+    pix_key: string | null; pix_copy_paste: string | null;
+    pix_qr_code_url: string | null; paid_at: string | null;
+  } | null;
 };
 
 function ErrorView({ message }: { message: string }) {
