@@ -528,9 +528,13 @@ export function CustomerFormSheet({
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <Label>Nome *</Label>
-                      <Input value={c.name} onChange={(e) => {
-                        const next = [...form.contacts]; next[i] = { ...c, name: e.target.value }; set("contacts", next);
-                      }} />
+                      <Input value={c.name}
+                        aria-invalid={!!errors[`contact_${i}_name`]}
+                        className={errors[`contact_${i}_name`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.contacts]; next[i] = { ...c, name: e.target.value }; set("contacts", next);
+                        }} />
+                      {errors[`contact_${i}_name`] && <p className="mt-1 text-xs text-destructive">{errors[`contact_${i}_name`]}</p>}
                     </div>
                     <div className="ml-2 flex items-center gap-1">
                       <Button
@@ -552,15 +556,35 @@ export function CustomerFormSheet({
                     <div><Label>Cargo/Função</Label><Input value={c.role ?? ""} onChange={(e) => {
                       const next = [...form.contacts]; next[i] = { ...c, role: e.target.value }; set("contacts", next);
                     }} /></div>
-                    <div><Label>E-mail</Label><Input value={c.email ?? ""} onChange={(e) => {
-                      const next = [...form.contacts]; next[i] = { ...c, email: e.target.value }; set("contacts", next);
-                    }} /></div>
-                    <div><Label>Telefone</Label><Input value={maskPhone(c.phone ?? "")} onChange={(e) => {
-                      const next = [...form.contacts]; next[i] = { ...c, phone: e.target.value }; set("contacts", next);
-                    }} /></div>
-                    <div><Label>WhatsApp</Label><Input value={maskPhone(c.whatsapp ?? "")} onChange={(e) => {
-                      const next = [...form.contacts]; next[i] = { ...c, whatsapp: e.target.value }; set("contacts", next);
-                    }} /></div>
+                    <div>
+                      <Label>E-mail</Label>
+                      <Input value={c.email ?? ""}
+                        aria-invalid={!!errors[`contact_${i}_email`]}
+                        className={errors[`contact_${i}_email`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.contacts]; next[i] = { ...c, email: e.target.value }; set("contacts", next);
+                        }} />
+                      {errors[`contact_${i}_email`] && <p className="mt-1 text-xs text-destructive">{errors[`contact_${i}_email`]}</p>}
+                    </div>
+                    <div>
+                      <Label>Telefone *</Label>
+                      <Input value={maskPhone(c.phone ?? "")}
+                        aria-invalid={!!errors[`contact_${i}_phone`]}
+                        className={errors[`contact_${i}_phone`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.contacts]; next[i] = { ...c, phone: e.target.value }; set("contacts", next);
+                        }} />
+                      {errors[`contact_${i}_phone`] && <p className="mt-1 text-xs text-destructive">{errors[`contact_${i}_phone`]}</p>}
+                    </div>
+                    <div>
+                      <Label>WhatsApp *</Label>
+                      <Input value={maskPhone(c.whatsapp ?? "")}
+                        aria-invalid={!!errors[`contact_${i}_phone`]}
+                        className={errors[`contact_${i}_phone`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.contacts]; next[i] = { ...c, whatsapp: e.target.value }; set("contacts", next);
+                        }} />
+                    </div>
                   </div>
                 </div>
               ))}
