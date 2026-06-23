@@ -152,6 +152,7 @@ export const listQuotes = createServerFn({ method: "GET" })
   .inputValidator((d) =>
     z.object({
       status: z.string().optional(),
+      payment_status: z.string().optional(),
       customer_id: z.string().uuid().optional(),
       search: z.string().optional(),
     }).parse(d ?? {}),
@@ -164,6 +165,7 @@ export const listQuotes = createServerFn({ method: "GET" })
       .order("issue_date", { ascending: false })
       .order("created_at", { ascending: false });
     if (data.status) q = q.eq("status", data.status);
+    if (data.payment_status) q = q.eq("payment_status", data.payment_status);
     if (data.customer_id) q = q.eq("customer_id", data.customer_id);
     if (data.search?.trim()) {
       const s = data.search.trim();
@@ -177,6 +179,9 @@ export const listQuotes = createServerFn({ method: "GET" })
       discount: Number(r.discount || 0),
       items_subtotal: Number(r.items_subtotal || 0),
       total_amount: Number(r.total_amount || 0),
+      down_payment_percent: Number(r.down_payment_percent || 0),
+      down_payment_amount: Number(r.down_payment_amount || 0),
+      remaining_amount: Number(r.remaining_amount || 0),
       customer_name:
         r.customers?.trade_name || r.customers?.name || r.customers?.corporate_name || "—",
     })) as Quote[];
