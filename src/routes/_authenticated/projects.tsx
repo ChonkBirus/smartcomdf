@@ -70,7 +70,6 @@ function ProjectsPage() {
   return (
     <div className="space-y-4">
       <PageHeader
-        icon={Briefcase}
         title="Projetos"
         description="Projetos de execução gerados a partir de orçamentos aprovados e pagos."
       />
