@@ -307,11 +307,12 @@ export function CustomerFormSheet({
                   <Input
                     value={maskCpfCnpj(form.cpf_cnpj, form.customer_type)}
                     onChange={(e) => set("cpf_cnpj", e.target.value)}
-                    aria-invalid={docTouched && docComplete && !docValid}
-                    className={docTouched && docComplete && !docValid ? "border-destructive focus-visible:ring-destructive" : docTouched && docValid ? "border-emerald-500" : ""}
-                    required
+                    aria-invalid={!!errors.cpf_cnpj || (docTouched && docComplete && !docValid)}
+                    className={(errors.cpf_cnpj || (docTouched && docComplete && !docValid)) ? "border-destructive focus-visible:ring-destructive" : docTouched && docValid ? "border-emerald-500" : ""}
                   />
-                  {docTouched && (
+                  {errors.cpf_cnpj ? (
+                    <p className="mt-1 text-xs text-destructive">{errors.cpf_cnpj}</p>
+                  ) : docTouched && (
                     docValid ? (
                       <p className="mt-1 text-xs text-emerald-600">{isCompany ? "CNPJ válido" : "CPF válido"}</p>
                     ) : docComplete ? (
