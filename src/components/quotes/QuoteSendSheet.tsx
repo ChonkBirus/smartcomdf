@@ -374,6 +374,80 @@ export function QuoteSendSheet({
                   </div>
                 )}
 
+                {quote.payment_status !== "NOT_STARTED" && (
+                  <div className="rounded-lg border bg-card p-4">
+                    <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+                      <Banknote className="h-4 w-4" />Pagamento da entrada
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="text-muted-foreground">Total da proposta</div>
+                      <div className="text-right font-medium">{fmtBRL(quote.total_amount)}</div>
+                      <div className="text-muted-foreground">Entrada ({quote.down_payment_percent}%)</div>
+                      <div className="text-right font-semibold">{fmtBRL(quote.down_payment_amount)}</div>
+                      <div className="text-muted-foreground">Saldo restante</div>
+                      <div className="text-right">{fmtBRL(quote.remaining_amount)}</div>
+                      <div className="text-muted-foreground">Status</div>
+                      <div className="text-right">
+                        <Badge
+                          variant={
+                            quote.payment_status === "PAYMENT_APPROVED" ? "default"
+                            : quote.payment_status === "WAITING_PAYMENT" ? "secondary"
+                            : "destructive"
+                          }
+                        >
+                          {quote.payment_status === "WAITING_PAYMENT" && "Aguardando pagamento"}
+                          {quote.payment_status === "PAYMENT_APPROVED" && "Pagamento aprovado"}
+                          {quote.payment_status === "PAYMENT_REJECTED" && "Recusado"}
+                          {quote.payment_status === "PAYMENT_CANCELLED" && "Cancelado"}
+                        </Badge>
+                      </div>
+                      {quote.payment_approved_at && (
+                        <>
+                          <div className="text-muted-foreground">Aprovado em</div>
+                          <div className="text-right">{fmtDateTime(quote.payment_approved_at)}</div>
+                        </>
+                      )}
+                    </div>
+
+                    {!companyPix?.pix_key && quote.payment_status === "WAITING_PAYMENT" && (
+                      <div className="mt-3 rounded border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+                        Cadastre sua chave Pix em Configurações &gt; Empresa para enviar a cobrança de entrada.
+                      </div>
+                    )}
+
+                    {quote.payment_status === "WAITING_PAYMENT" && activePayment && (
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                        <Can module="quote_payments" action="send_pix">
+                          <Button onClick={handleSendPixWhatsApp} className="w-full">
+                            <MessageCircle className="mr-1 h-4 w-4" />Enviar Pix WhatsApp
+                          </Button>
+                        </Can>
+                        <Button variant="outline" onClick={handleCopyPix} className="w-full">
+                          <Copy className="mr-1 h-4 w-4" />Copiar Pix
+                        </Button>
+                        <Can module="quote_payments" action="approve">
+                          <Button
+                            variant="secondary"
+                            onClick={() => setApproveOpen(true)}
+                            className="w-full"
+                          >
+                            <CheckCircle2 className="mr-1 h-4 w-4" />Marcar como pago
+                          </Button>
+                        </Can>
+                        <Can module="quote_payments" action="cancel">
+                          <Button
+                            variant="outline"
+                            onClick={() => cancelPayMut.mutate(activePayment.id)}
+                            className="w-full"
+                          >
+                            <XCircle className="mr-1 h-4 w-4" />Cancelar cobrança
+                          </Button>
+                        </Can>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <Separator />
 
                 <div>
