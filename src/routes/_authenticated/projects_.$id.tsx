@@ -317,6 +317,16 @@ function ProjectDetailPage() {
           <p className="whitespace-pre-wrap text-sm text-muted-foreground">{project.notes}</p>
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="planning">
+          <ProjectPlanningPanel
+            project={project}
+            onChanged={() => qc.invalidateQueries({ queryKey: ["project", id] })}
+          />
+        </TabsContent>
+      </Tabs>
+
 
       <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <AlertDialogContent>
