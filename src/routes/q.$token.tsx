@@ -256,34 +256,65 @@ function PublicQuotePage() {
           </div>
         )}
 
-        {isAccepted && data.payment && data.payment.payment_status !== "APPROVED" && (
+        {/* Accept */}
+        {isAccepted ? (
+          <div className="rounded-lg border border-green-300 bg-green-50 p-5 text-center dark:border-green-900 dark:bg-green-950/30">
+            <CheckCircle2 className="mx-auto h-10 w-10 text-green-600" />
+            <h3 className="mt-2 font-semibold text-green-800 dark:text-green-300">
+              Proposta aceita
+            </h3>
+            {quote.accepted_by_name && (
+              <p className="text-sm text-muted-foreground">
+                Por <strong>{quote.accepted_by_name}</strong>
+                {quote.accepted_at ? ` em ${new Date(quote.accepted_at).toLocaleString("pt-BR")}` : ""}
+              </p>
+            )}
+            {data.payment && data.payment.payment_status === "APPROVED" && (
+              <p className="mt-2 inline-block rounded bg-green-600 px-2 py-0.5 text-xs font-semibold text-white">
+                Pagamento aprovado
+              </p>
+            )}
+          </div>
+        ) : isClosed || expired ? (
+          <div className="rounded-lg border bg-card p-5 text-center text-sm text-muted-foreground">
+            Esta proposta não está mais disponível para aceite ({expired ? "expirada" : quote.status.toLowerCase()}).
+            Entre em contato com {company.name}.
+          </div>
+        ) : (
+          <div className="rounded-lg border bg-card p-5 text-center shadow-sm">
+            <p className="mb-3 text-sm text-muted-foreground">
+              Ao aceitar, você concorda com os termos desta proposta.
+            </p>
+            <Button size="lg" onClick={() => setAcceptOpen(true)}>
+              <ShieldCheck className="mr-2 h-5 w-5" />Aceitar proposta
+            </Button>
+          </div>
+        )}
+
+        {/* Pix payment after acceptance */}
+        {isAccepted && data.payment && data.payment.payment_status !== "APPROVED" && data.payment.payment_status !== "CANCELLED" && (
           <div className="rounded-lg border bg-card p-5 shadow-sm">
             <h3 className="text-base font-semibold">Pagamento da entrada</h3>
             <p className="mt-1 text-sm text-muted-foreground">
               Para iniciarmos o serviço, realize o pagamento da entrada
               {quote.down_payment_percent ? ` (${quote.down_payment_percent}%)` : ""}.
             </p>
-
             <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
               <div className="text-muted-foreground">Valor da entrada</div>
               <div className="text-right font-bold">{fmtBRL(Number(data.payment.amount))}</div>
               <div className="text-muted-foreground">Saldo restante</div>
               <div className="text-right">{fmtBRL(Number(quote.remaining_amount ?? 0))}</div>
             </div>
-
-            {data.pix?.pix_key || data.payment.pix_key ? (
+            {(data.pix?.pix_key || data.payment.pix_key) ? (
               <div className="mt-3 space-y-2 rounded border bg-muted/40 p-3 text-sm">
                 <div>
                   <span className="text-muted-foreground">Chave Pix: </span>
                   <strong className="break-all">{data.payment.pix_key || data.pix?.pix_key}</strong>
                 </div>
                 {data.payment.pix_copy_paste && (
-                  <div>
-                    <span className="text-muted-foreground">Pix Copia e Cola:</span>
-                    <pre className="mt-1 whitespace-pre-wrap break-all rounded bg-background p-2 font-mono text-xs">
-                      {data.payment.pix_copy_paste}
-                    </pre>
-                  </div>
+                  <pre className="mt-1 whitespace-pre-wrap break-all rounded bg-background p-2 font-mono text-xs">
+                    {data.payment.pix_copy_paste}
+                  </pre>
                 )}
                 {data.payment.pix_qr_code_url && (
                   <img src={data.payment.pix_qr_code_url} alt="QR Pix" className="mx-auto h-48 w-48" />
@@ -294,7 +325,6 @@ function PublicQuotePage() {
                 A empresa ainda não cadastrou a chave Pix. Entre em contato para combinar o pagamento.
               </div>
             )}
-
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               <Button
                 variant="outline"
@@ -316,35 +346,10 @@ function PublicQuotePage() {
                     window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
                   }}
                 >
-                  <MessageCircle className="mr-1 h-4 w-4" />Falar no WhatsApp
-
-        {/* Accept */}
-        {isAccepted ? (
-          <div className="rounded-lg border border-green-300 bg-green-50 p-5 text-center dark:border-green-900 dark:bg-green-950/30">
-            <CheckCircle2 className="mx-auto h-10 w-10 text-green-600" />
-            <h3 className="mt-2 font-semibold text-green-800 dark:text-green-300">
-              Proposta aceita
-            </h3>
-            {quote.accepted_by_name && (
-              <p className="text-sm text-muted-foreground">
-                Por <strong>{quote.accepted_by_name}</strong>
-                {quote.accepted_at ? ` em ${new Date(quote.accepted_at).toLocaleString("pt-BR")}` : ""}
-              </p>
-            )}
-          </div>
-        ) : isClosed || expired ? (
-          <div className="rounded-lg border bg-card p-5 text-center text-sm text-muted-foreground">
-            Esta proposta não está mais disponível para aceite ({expired ? "expirada" : quote.status.toLowerCase()}).
-            Entre em contato com {company.name}.
-          </div>
-        ) : (
-          <div className="rounded-lg border bg-card p-5 text-center shadow-sm">
-            <p className="mb-3 text-sm text-muted-foreground">
-              Ao aceitar, você concorda com os termos desta proposta.
-            </p>
-            <Button size="lg" onClick={() => setAcceptOpen(true)}>
-              <ShieldCheck className="mr-2 h-5 w-5" />Aceitar proposta
-            </Button>
+                  <MessageCircle className="mr-1 h-4 w-4" />Enviar Pix WhatsApp
+                </Button>
+              )}
+            </div>
           </div>
         )}
 
