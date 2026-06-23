@@ -25,6 +25,7 @@ import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedQuotesRouteImport } from './routes/_authenticated/quotes'
 import { Route as AuthenticatedPurchasesAnalyticsRouteImport } from './routes/_authenticated/purchases-analytics'
 import { Route as AuthenticatedPurchasesRouteImport } from './routes/_authenticated/purchases'
+import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
@@ -39,6 +40,7 @@ import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authent
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
 import { Route as AuthenticatedSettingsCompanyRouteImport } from './routes/_authenticated/settings.company'
 import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
+import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects_.$id'
 import { Route as AuthenticatedClientsIdRouteImport } from './routes/_authenticated/clients_.$id'
 import { Route as AuthenticatedAdminSubscriptionsRouteImport } from './routes/_authenticated/admin.subscriptions'
 import { Route as AuthenticatedAdminPlansRouteImport } from './routes/_authenticated/admin.plans'
@@ -125,6 +127,11 @@ const AuthenticatedPurchasesRoute = AuthenticatedPurchasesRouteImport.update({
   path: '/purchases',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProjectsRoute = AuthenticatedProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -200,6 +207,11 @@ const AuthenticatedSettingsAuditRoute =
     path: '/audit',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedProjectsIdRoute = AuthenticatedProjectsIdRouteImport.update({
+  id: '/projects_/$id',
+  path: '/projects/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedClientsIdRoute = AuthenticatedClientsIdRouteImport.update({
   id: '/clients_/$id',
   path: '/clients/$id',
@@ -230,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/products': typeof AuthenticatedProductsRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/projects': typeof AuthenticatedProjectsRoute
   '/purchases': typeof AuthenticatedPurchasesRoute
   '/purchases-analytics': typeof AuthenticatedPurchasesAnalyticsRoute
   '/quotes': typeof AuthenticatedQuotesRoute
@@ -244,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
+  '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
@@ -263,6 +277,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/products': typeof AuthenticatedProductsRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/projects': typeof AuthenticatedProjectsRoute
   '/purchases': typeof AuthenticatedPurchasesRoute
   '/purchases-analytics': typeof AuthenticatedPurchasesAnalyticsRoute
   '/quotes': typeof AuthenticatedQuotesRoute
@@ -276,6 +291,7 @@ export interface FileRoutesByTo {
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
+  '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
@@ -298,6 +314,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/products': typeof AuthenticatedProductsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/projects': typeof AuthenticatedProjectsRoute
   '/_authenticated/purchases': typeof AuthenticatedPurchasesRoute
   '/_authenticated/purchases-analytics': typeof AuthenticatedPurchasesAnalyticsRoute
   '/_authenticated/quotes': typeof AuthenticatedQuotesRoute
@@ -312,6 +329,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/_authenticated/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
   '/_authenticated/clients_/$id': typeof AuthenticatedClientsIdRoute
+  '/_authenticated/projects_/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/_authenticated/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
@@ -334,6 +352,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/products'
     | '/profile'
+    | '/projects'
     | '/purchases'
     | '/purchases-analytics'
     | '/quotes'
@@ -348,6 +367,7 @@ export interface FileRouteTypes {
     | '/admin/plans'
     | '/admin/subscriptions'
     | '/clients/$id'
+    | '/projects/$id'
     | '/settings/audit'
     | '/settings/company'
     | '/settings/roles'
@@ -367,6 +387,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/products'
     | '/profile'
+    | '/projects'
     | '/purchases'
     | '/purchases-analytics'
     | '/quotes'
@@ -380,6 +401,7 @@ export interface FileRouteTypes {
     | '/admin/plans'
     | '/admin/subscriptions'
     | '/clients/$id'
+    | '/projects/$id'
     | '/settings/audit'
     | '/settings/company'
     | '/settings/roles'
@@ -401,6 +423,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/products'
     | '/_authenticated/profile'
+    | '/_authenticated/projects'
     | '/_authenticated/purchases'
     | '/_authenticated/purchases-analytics'
     | '/_authenticated/quotes'
@@ -415,6 +438,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/plans'
     | '/_authenticated/admin/subscriptions'
     | '/_authenticated/clients_/$id'
+    | '/_authenticated/projects_/$id'
     | '/_authenticated/settings/audit'
     | '/_authenticated/settings/company'
     | '/_authenticated/settings/roles'
@@ -547,6 +571,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPurchasesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects': {
+      id: '/_authenticated/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof AuthenticatedProjectsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
@@ -645,6 +676,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAuditRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/projects_/$id': {
+      id: '/_authenticated/projects_/$id'
+      path: '/projects/$id'
+      fullPath: '/projects/$id'
+      preLoaderRoute: typeof AuthenticatedProjectsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/clients_/$id': {
       id: '/_authenticated/clients_/$id'
       path: '/clients/$id'
@@ -714,6 +752,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRoute
   AuthenticatedPurchasesRoute: typeof AuthenticatedPurchasesRoute
   AuthenticatedPurchasesAnalyticsRoute: typeof AuthenticatedPurchasesAnalyticsRoute
   AuthenticatedQuotesRoute: typeof AuthenticatedQuotesRoute
@@ -724,6 +763,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedStockRoute: typeof AuthenticatedStockRoute
   AuthenticatedSuppliersRoute: typeof AuthenticatedSuppliersRoute
   AuthenticatedClientsIdRoute: typeof AuthenticatedClientsIdRoute
+  AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -735,6 +775,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedProjectsRoute: AuthenticatedProjectsRoute,
   AuthenticatedPurchasesRoute: AuthenticatedPurchasesRoute,
   AuthenticatedPurchasesAnalyticsRoute: AuthenticatedPurchasesAnalyticsRoute,
   AuthenticatedQuotesRoute: AuthenticatedQuotesRoute,
@@ -745,6 +786,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedStockRoute: AuthenticatedStockRoute,
   AuthenticatedSuppliersRoute: AuthenticatedSuppliersRoute,
   AuthenticatedClientsIdRoute: AuthenticatedClientsIdRoute,
+  AuthenticatedProjectsIdRoute: AuthenticatedProjectsIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -762,13 +804,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

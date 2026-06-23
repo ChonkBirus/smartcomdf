@@ -43,12 +43,12 @@ export const Route = createFileRoute("/_authenticated/quotes")({
 const STATUS_LABEL: Record<QuoteStatus, string> = {
   DRAFT: "Rascunho", SENT: "Enviado", VIEWED: "Visualizado",
   APPROVED: "Aprovado", REJECTED: "Rejeitado",
-  CANCELLED: "Cancelado", EXPIRED: "Expirado",
+  CANCELLED: "Cancelado", EXPIRED: "Expirado", CONVERTED: "Convertido",
 };
 const STATUS_VARIANT: Record<QuoteStatus, "default" | "secondary" | "destructive" | "outline"> = {
   DRAFT: "outline", SENT: "secondary", VIEWED: "secondary",
   APPROVED: "default", REJECTED: "destructive",
-  CANCELLED: "destructive", EXPIRED: "destructive",
+  CANCELLED: "destructive", EXPIRED: "destructive", CONVERTED: "default",
 };
 
 const PAY_STATUS_LABEL: Record<QuotePaymentStatus, string> = {

@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Copy, Download, MessageCircle, Send, Eye, CheckCircle2, Link2, History, Mail, Banknote, XCircle,
+  Copy, Download, MessageCircle, Send, Eye, CheckCircle2, Link2, History, Mail, Banknote, XCircle, Rocket,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -27,6 +27,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ConvertQuoteToProjectButton } from "./ConvertQuoteToProjectButton";
 
 const fmtBRL = (n: number) =>
   Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -445,6 +446,19 @@ export function QuoteSendSheet({
                         </Can>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {(quote.status === "APPROVED" || quote.status === "CONVERTED") && (
+                  <div className="rounded-lg border bg-card p-4">
+                    <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+                      <Rocket className="h-4 w-4" />Projeto de execução
+                    </div>
+                    <ConvertQuoteToProjectButton
+                      quoteId={quote.id}
+                      status={quote.status}
+                      paymentStatus={quote.payment_status}
+                    />
                   </div>
                 )}
 

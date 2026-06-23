@@ -3,7 +3,8 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type QuoteStatus =
-  | "DRAFT" | "SENT" | "VIEWED" | "APPROVED" | "REJECTED" | "CANCELLED" | "EXPIRED";
+  | "DRAFT" | "SENT" | "VIEWED" | "APPROVED" | "REJECTED"
+  | "CANCELLED" | "EXPIRED" | "CONVERTED";
 
 export type QuoteItemKind = "PRODUCT" | "SERVICE" | "LABOR" | "OTHER";
 

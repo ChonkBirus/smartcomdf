@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Package, Users, Boxes, FileText,
   DollarSign, HeartHandshake, Wrench, BarChart3, Settings, Shield, ShieldCheck, Lock,
-  Building2, ShoppingCart, Sparkles,
+  Building2, ShoppingCart, Sparkles, Briefcase,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -41,6 +41,7 @@ const groups: { label: string; items: Item[] }[] = [
     items: [
       { title: "Estoque", url: "/stock", icon: Boxes, module: "stock", feature: "inventory" },
       { title: "Orçamentos", url: "/quotes", icon: FileText, module: "quotes", feature: "quotes" },
+      { title: "Projetos", url: "/projects", icon: Briefcase, module: "projects" },
     ],
   },
   {
