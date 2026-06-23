@@ -75,6 +75,7 @@ function QuotesPage() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<QuoteStatus | "ALL">("ALL");
+  const [payFilter, setPayFilter] = useState<QuotePaymentStatus | "ALL">("ALL");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [confirmDel, setConfirmDel] = useState<{ id: string; number: string } | null>(null);
