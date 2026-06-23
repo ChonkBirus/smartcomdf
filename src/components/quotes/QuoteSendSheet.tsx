@@ -61,6 +61,10 @@ export function QuoteSendSheet({
   const fetchHistory = useServerFn(getQuoteHistory);
   const logEvent = useServerFn(logQuoteEvent);
   const sendIt = useServerFn(markQuoteSent);
+  const fetchPayments = useServerFn(listQuotePayments);
+  const fetchPix = useServerFn(getCompanyPix);
+  const approvePay = useServerFn(approveQuotePayment);
+  const cancelPay = useServerFn(cancelQuotePayment);
 
   const enabled = open && !!quoteId;
   const { data, isLoading } = useQuery({
@@ -72,6 +76,17 @@ export function QuoteSendSheet({
     queryKey: ["quote-history", quoteId],
     queryFn: () => fetchHistory({ data: { quote_id: quoteId! } }),
     enabled,
+  });
+  const { data: payments } = useQuery({
+    queryKey: ["quote-payments", quoteId],
+    queryFn: () => fetchPayments({ data: { quote_id: quoteId! } }),
+    enabled,
+  });
+  const { data: companyPix } = useQuery({
+    queryKey: ["company-pix"],
+    queryFn: () => fetchPix(),
+    enabled: open,
+    staleTime: 60_000,
   });
 
   const [customMsg, setCustomMsg] = useState<string>("");
