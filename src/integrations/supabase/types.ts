@@ -1479,6 +1479,93 @@ export type Database = {
           },
         ]
       }
+      project_material_checks: {
+        Row: {
+          available_quantity: number
+          checked_at: string
+          checked_by: string | null
+          company_id: string
+          created_at: string
+          id: string
+          item_id: string | null
+          missing_quantity: number
+          project_id: string
+          project_item_id: string
+          required_quantity: number
+          status: string
+          stock_location_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          available_quantity?: number
+          checked_at?: string
+          checked_by?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          missing_quantity?: number
+          project_id: string
+          project_item_id: string
+          required_quantity?: number
+          status: string
+          stock_location_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          available_quantity?: number
+          checked_at?: string
+          checked_by?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          missing_quantity?: number
+          project_id?: string
+          project_item_id?: string
+          required_quantity?: number
+          status?: string
+          stock_location_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_material_checks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_material_checks_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_material_checks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_material_checks_project_item_id_fkey"
+            columns: ["project_item_id"]
+            isOneToOne: true
+            referencedRelation: "project_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_material_checks_stock_location_id_fkey"
+            columns: ["stock_location_id"]
+            isOneToOne: false
+            referencedRelation: "stock_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_number_counters: {
         Row: {
           company_id: string
@@ -1505,8 +1592,51 @@ export type Database = {
           },
         ]
       }
+      project_team_members: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          project_id: string
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          project_id: string
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          project_id?: string
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_team_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_team_members_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
+          access_instructions: string | null
           cancelled_at: string | null
           company_id: string
           completed_at: string | null
@@ -1516,6 +1646,7 @@ export type Database = {
           customer_address_id: string | null
           customer_contact_id: string | null
           customer_id: string
+          customer_instructions: string | null
           deleted_at: string | null
           description: string | null
           down_payment_amount: number
@@ -1523,11 +1654,22 @@ export type Database = {
           expected_start_date: string | null
           id: string
           internal_notes: string | null
+          material_status: string
+          materials_checked_at: string | null
           notes: string | null
+          operational_notes: string | null
+          parking_instructions: string | null
+          planned_end_date: string | null
+          planned_end_time: string | null
+          planned_start_date: string | null
+          planned_start_time: string | null
+          planning_status: string
           priority: string
           project_number: string
           quote_id: string | null
+          ready_for_os_at: string | null
           remaining_amount: number
+          responsible_user_id: string | null
           started_at: string | null
           status: string
           title: string
@@ -1535,6 +1677,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          access_instructions?: string | null
           cancelled_at?: string | null
           company_id: string
           completed_at?: string | null
@@ -1544,6 +1687,7 @@ export type Database = {
           customer_address_id?: string | null
           customer_contact_id?: string | null
           customer_id: string
+          customer_instructions?: string | null
           deleted_at?: string | null
           description?: string | null
           down_payment_amount?: number
@@ -1551,11 +1695,22 @@ export type Database = {
           expected_start_date?: string | null
           id?: string
           internal_notes?: string | null
+          material_status?: string
+          materials_checked_at?: string | null
           notes?: string | null
+          operational_notes?: string | null
+          parking_instructions?: string | null
+          planned_end_date?: string | null
+          planned_end_time?: string | null
+          planned_start_date?: string | null
+          planned_start_time?: string | null
+          planning_status?: string
           priority?: string
           project_number: string
           quote_id?: string | null
+          ready_for_os_at?: string | null
           remaining_amount?: number
+          responsible_user_id?: string | null
           started_at?: string | null
           status?: string
           title: string
@@ -1563,6 +1718,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          access_instructions?: string | null
           cancelled_at?: string | null
           company_id?: string
           completed_at?: string | null
@@ -1572,6 +1728,7 @@ export type Database = {
           customer_address_id?: string | null
           customer_contact_id?: string | null
           customer_id?: string
+          customer_instructions?: string | null
           deleted_at?: string | null
           description?: string | null
           down_payment_amount?: number
@@ -1579,11 +1736,22 @@ export type Database = {
           expected_start_date?: string | null
           id?: string
           internal_notes?: string | null
+          material_status?: string
+          materials_checked_at?: string | null
           notes?: string | null
+          operational_notes?: string | null
+          parking_instructions?: string | null
+          planned_end_date?: string | null
+          planned_end_time?: string | null
+          planned_start_date?: string | null
+          planned_start_time?: string | null
+          planning_status?: string
           priority?: string
           project_number?: string
           quote_id?: string | null
+          ready_for_os_at?: string | null
           remaining_amount?: number
+          responsible_user_id?: string | null
           started_at?: string | null
           status?: string
           title?: string
@@ -2547,6 +2715,10 @@ export type Database = {
         Args: { _document?: string; _name: string; _token: string }
         Returns: Json
       }
+      add_project_team_member: {
+        Args: { _project_id: string; _role?: string; _user_id: string }
+        Returns: string
+      }
       admin_companies_overview: {
         Args: never
         Returns: {
@@ -2592,6 +2764,7 @@ export type Database = {
         Args: { _payment_id: string; _reason?: string }
         Returns: Json
       }
+      check_project_materials: { Args: { _project_id: string }; Returns: Json }
       confirm_nota_receiving: {
         Args: {
           _doc_id: string
@@ -2631,6 +2804,10 @@ export type Database = {
         }
         Returns: string
       }
+      mark_project_ready_for_os: {
+        Args: { _force?: boolean; _project_id: string }
+        Returns: undefined
+      }
       next_project_number: { Args: { _company_id: string }; Returns: string }
       next_quote_number: { Args: { _company_id: string }; Returns: string }
       notify_user: {
@@ -2657,6 +2834,7 @@ export type Database = {
         Args: { _token: string }
         Returns: undefined
       }
+      remove_project_team_member: { Args: { _id: string }; Returns: undefined }
       transfer_stock: {
         Args: {
           _from_location: string
@@ -2666,6 +2844,23 @@ export type Database = {
           _to_location: string
         }
         Returns: Json
+      }
+      update_project_planning: {
+        Args: {
+          _access_instructions?: string
+          _clear_responsible?: boolean
+          _customer_instructions?: string
+          _id: string
+          _operational_notes?: string
+          _parking_instructions?: string
+          _planned_end_date?: string
+          _planned_end_time?: string
+          _planned_start_date?: string
+          _planned_start_time?: string
+          _priority?: string
+          _responsible_user_id?: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
