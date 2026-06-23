@@ -337,9 +337,28 @@ export function CustomerFormSheet({
 
               <Separator />
               <div className="grid gap-3 sm:grid-cols-2">
-                <div><Label>E-mail</Label><Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} /></div>
-                <div><Label>Telefone</Label><Input value={maskPhone(form.phone)} onChange={(e) => set("phone", e.target.value)} /></div>
-                <div><Label>WhatsApp</Label><Input value={maskPhone(form.whatsapp)} onChange={(e) => set("whatsapp", e.target.value)} /></div>
+                <div>
+                  <Label>E-mail *</Label>
+                  <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)}
+                    aria-invalid={!!errors.email}
+                    className={errors.email ? "border-destructive" : ""} />
+                  {errors.email
+                    ? <p className="mt-1 text-xs text-destructive">{errors.email}</p>
+                    : <p className="mt-1 text-xs text-muted-foreground">Este campo é obrigatório.</p>}
+                </div>
+                <div>
+                  <Label>Telefone</Label>
+                  <Input value={maskPhone(form.phone)} onChange={(e) => set("phone", e.target.value)}
+                    aria-invalid={!!errors.whatsapp}
+                    className={errors.whatsapp ? "border-destructive" : ""} />
+                </div>
+                <div>
+                  <Label>WhatsApp *</Label>
+                  <Input value={maskPhone(form.whatsapp)} onChange={(e) => set("whatsapp", e.target.value)}
+                    aria-invalid={!!errors.whatsapp}
+                    className={errors.whatsapp ? "border-destructive" : ""} />
+                  {errors.whatsapp && <p className="mt-1 text-xs text-destructive">{errors.whatsapp}</p>}
+                </div>
                 <div><Label>Origem</Label><Input value={form.customer_origin} onChange={(e) => set("customer_origin", e.target.value)} placeholder="Indicação, site, Instagram..." /></div>
               </div>
 
