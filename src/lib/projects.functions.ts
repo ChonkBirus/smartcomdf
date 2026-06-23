@@ -34,6 +34,20 @@ export type Project = {
   updated_at: string;
   customer_name?: string;
   quote_number?: string | null;
+  responsible_user_id: string | null;
+  responsible_name?: string | null;
+  planned_start_date: string | null;
+  planned_end_date: string | null;
+  planned_start_time: string | null;
+  planned_end_time: string | null;
+  operational_notes: string | null;
+  customer_instructions: string | null;
+  access_instructions: string | null;
+  parking_instructions: string | null;
+  material_status: "NOT_CHECKED" | "AVAILABLE" | "PARTIALLY_AVAILABLE" | "UNAVAILABLE" | "RESERVED";
+  planning_status: "PENDING" | "IN_PROGRESS" | "READY_FOR_SERVICE_ORDER";
+  materials_checked_at: string | null;
+  ready_for_os_at: string | null;
 };
 
 export type ProjectItem = {
