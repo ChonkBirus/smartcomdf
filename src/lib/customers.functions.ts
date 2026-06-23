@@ -108,12 +108,31 @@ export type QuoteCustomerOption = {
   raw: QuoteCustomerRaw;
 };
 
+export type QuoteCustomerDebug = {
+  userId: string;
+  profile: {
+    id?: string;
+    company_id?: string | null;
+    email?: string | null;
+    full_name?: string | null;
+  } | null;
+  companyId: string | null;
+  profileLoaded: boolean;
+  companyIdExists: boolean;
+  customersTableRecordsInCompany: number;
+  activeTrueCount: number;
+  statusActiveCount: number;
+  queryReturnedEmpty: boolean;
+  componentExpectedShape?: string;
+  error: string | null;
+};
+
 export type QuoteCustomersResult = {
   companyId: string | null;
   customers: QuoteCustomerRaw[];
   items: QuoteCustomerRaw[];
   options: QuoteCustomerOption[];
-  debug?: Record<string, unknown>;
+  debug?: QuoteCustomerDebug;
 };
 
 const onlyDigits = (s: string) => s.replace(/\D/g, "");
