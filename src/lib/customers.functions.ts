@@ -170,35 +170,17 @@ const getActiveCustomersForQuoteFromDb = async ({
   dev: boolean;
 }): Promise<QuoteCustomersResult> => {
   if (!companyId) {
-    return {
-      companyId: null,
-      customers: [],
-      items: [],
-      options: [],
-      debug: dev
-        ? {
-            userId,
-            profile: profile ?? null,
-            companyId: null,
-            profileLoaded: !!profile,
-            companyIdExists: false,
-            customersTableRecordsInCompany: 0,
-            activeTrueCount: 0,
-            statusActiveCount: 0,
-            queryReturnedEmpty: true,
-            error: null,
-          }
-        : undefined,
-    };
+    console.log("[QuoteCustomers] companyId ainda não carregado. Query de clientes não executada.");
+    throw new Error("Empresa não identificada.");
   }
 
-  const { count: companyCount } = await sb
+  const { count: companyCount, error: countError } = await sb
     .from("customers")
     .select("id", { count: "exact", head: true })
     .eq("company_id", companyId)
     .is("deleted_at", null);
 
-  const queryUsed = `supabase.from("customers").select("id, customer_type, name, corporate_name, trade_name, cpf_cnpj, email, phone, whatsapp, active, customer_status, customer_addresses!left(*), customer_contacts!left(*)").eq("company_id", "${companyId}").is("deleted_at", null).order("name", { ascending: true })`;
+  const queryUsed = `supabase.from("customers").select("id, customer_type, name, corporate_name, trade_name, cpf_cnpj, email, phone, whatsapp, active, customer_status, customer_addresses!left(*), customer_contacts!left(*)").eq("company_id", "${companyId}").is("deleted_at", null).or("active.eq.true,customer_status.eq.ACTIVE").order("name", { ascending: true })`;
 
   const { data: rows, error } = await sb
     .from("customers")
@@ -219,21 +201,20 @@ const getActiveCustomersForQuoteFromDb = async ({
     )
     .eq("company_id", companyId)
     .is("deleted_at", null)
+    .or("active.eq.true,customer_status.eq.ACTIVE")
     .order("name", { ascending: true });
 
-  const allCustomers = (rows ?? []) as QuoteCustomerRaw[];
-  const customers = allCustomers.filter(
-    (customer) => customer.active === true || customer.customer_status === "ACTIVE",
-  );
+  const customers = (rows ?? []) as QuoteCustomerRaw[];
 
   console.log("[QuoteCustomers] profile.company_id:", profile?.company_id ?? null);
   console.log("[QuoteCustomers] customers.length:", customers.length);
-  console.log("[QuoteCustomers] supabase error:", error);
+  console.log("[QuoteCustomers] supabase error:", error ?? countError ?? null);
   console.log("[QuoteCustomers] query usada no customerService:", queryUsed);
 
   if (error) throw new Error(error.message);
 
   const options = customers.map(quoteCustomerOption);
+  console.log("[QuoteCustomers] options.length:", options.length);
 
   return {
     companyId,
@@ -247,9 +228,9 @@ const getActiveCustomersForQuoteFromDb = async ({
           companyId,
           profileLoaded: !!profile,
           companyIdExists: !!companyId,
-          customersTableRecordsInCompany: companyCount ?? allCustomers.length,
-          activeTrueCount: allCustomers.filter((customer) => customer.active === true).length,
-          statusActiveCount: allCustomers.filter((customer) => customer.customer_status === "ACTIVE").length,
+          customersTableRecordsInCompany: companyCount ?? customers.length,
+          activeTrueCount: customers.filter((customer) => customer.active === true).length,
+          statusActiveCount: customers.filter((customer) => customer.customer_status === "ACTIVE").length,
           queryReturnedEmpty: customers.length === 0,
           componentExpectedShape: "options: { value, label, description, raw }[]",
           error: null,
@@ -415,7 +396,10 @@ export const listCustomers = createServerFn({ method: "GET" })
 export const getActiveCustomersForQuote = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({ company_id: z.string().uuid().optional() }).parse(d ?? {}),
+    z.object({
+      companyId: z.string().uuid().optional(),
+      company_id: z.string().uuid().optional(),
+    }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -428,13 +412,14 @@ export const getActiveCustomersForQuote = createServerFn({ method: "GET" })
       .maybeSingle();
     if (profileError) throw new Error(profileError.message);
 
-    const companyId = data.company_id ?? profile?.company_id ?? null;
-    if (!companyId) return customerService.getActiveCustomersForQuote({ sb, companyId, userId: context.userId, profile, dev });
+    const companyId = data.companyId ?? data.company_id ?? null;
+    if (!companyId || !profile?.company_id) {
+      console.log("[QuoteCustomers] companyId ainda não carregado. Query de clientes não executada.");
+      throw new Error("Empresa não identificada.");
+    }
 
-    if (data.company_id && profile?.company_id && data.company_id !== profile.company_id) {
-      const { data: isSuperAdmin, error: roleError } = await sb.rpc("is_super_admin");
-      if (roleError) throw new Error(roleError.message);
-      if (!isSuperAdmin) throw new Error("Empresa inválida para o usuário autenticado.");
+    if (companyId !== profile.company_id) {
+      throw new Error("Empresa inválida para o usuário autenticado.");
     }
 
     return customerService.getActiveCustomersForQuote({ sb, companyId, userId: context.userId, profile, dev });
