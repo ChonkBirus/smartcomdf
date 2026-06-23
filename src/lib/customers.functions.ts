@@ -358,6 +358,7 @@ export const saveCustomer = createServerFn({ method: "POST" })
         company_id: cid,
         customer_id: customerId,
         address_type: a.address_type,
+        country: (a.country || "BR").toUpperCase(),
         zipcode: a.zipcode || null,
         street: a.street || null,
         number: a.number || null,
