@@ -29,6 +29,11 @@ function AuthenticatedLayout() {
   const { data, isLoading } = useQuery({
     queryKey: ["me"],
     queryFn: () => fetchCtx(),
+    // Profile/permissions/plan rarely change; avoid the nested join query
+    // (profiles → companies → plans) firing on every navigation/focus.
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   // Redirect to onboarding if no company

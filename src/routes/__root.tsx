@@ -85,9 +85,15 @@ function RootComponent() {
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      // Only react to identity transitions — TOKEN_REFRESHED/INITIAL_SESSION
+      // fire often and must not blow away all queries.
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT") return;
       router.invalidate();
-      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+      if (event === "SIGNED_IN") {
+        // Refresh only user-scoped data, not every cached query.
+        queryClient.invalidateQueries({ queryKey: ["me"] });
+        queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      }
     });
     return () => sub.subscription.unsubscribe();
   }, [router, queryClient]);
