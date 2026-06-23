@@ -449,6 +449,19 @@ export function QuoteSendSheet({
                   </div>
                 )}
 
+                {(quote.status === "APPROVED" || quote.status === "CONVERTED") && (
+                  <div className="rounded-lg border bg-card p-4">
+                    <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+                      <Rocket className="h-4 w-4" />Projeto de execução
+                    </div>
+                    <ConvertQuoteToProjectButton
+                      quoteId={quote.id}
+                      status={quote.status}
+                      paymentStatus={quote.payment_status}
+                    />
+                  </div>
+                )}
+
                 <Separator />
 
                 <div>
