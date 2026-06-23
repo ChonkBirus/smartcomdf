@@ -58,7 +58,7 @@ const EMPTY: FormState = {
 };
 
 const EMPTY_ADDR: AddrRow = {
-  address_type: "BILLING", zipcode: null, street: null, number: null,
+  address_type: "BILLING", country: "BR", zipcode: null, street: null, number: null,
   complement: null, district: null, city: null, state: null, reference: null,
   is_primary: false,
 };
