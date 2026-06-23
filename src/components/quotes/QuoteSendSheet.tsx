@@ -27,6 +27,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ConvertQuoteToProjectButton } from "./ConvertQuoteToProjectButton";
 
 const fmtBRL = (n: number) =>
   Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
