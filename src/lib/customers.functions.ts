@@ -83,7 +83,51 @@ export type CustomerTag = {
   created_at: string;
 };
 
+export type QuoteCustomerRaw = Pick<
+  Customer,
+  | "id"
+  | "customer_type"
+  | "name"
+  | "corporate_name"
+  | "trade_name"
+  | "cpf_cnpj"
+  | "email"
+  | "phone"
+  | "whatsapp"
+  | "active"
+  | "customer_status"
+> & {
+  customer_addresses?: CustomerAddress[];
+  customer_contacts?: CustomerContact[];
+};
+
+export type QuoteCustomerOption = {
+  value: string;
+  label: string;
+  description: string;
+  raw: QuoteCustomerRaw;
+};
+
 const onlyDigits = (s: string) => s.replace(/\D/g, "");
+
+const customerDisplayName = (customer: Pick<Customer, "customer_type" | "name" | "trade_name" | "corporate_name">) => {
+  if (customer.customer_type === "COMPANY") {
+    return customer.trade_name || customer.corporate_name || customer.name || "Cliente sem nome";
+  }
+  return customer.name || "Cliente sem nome";
+};
+
+const customerDescription = (customer: Pick<Customer, "cpf_cnpj" | "whatsapp" | "phone">) => {
+  const contact = customer.whatsapp || customer.phone || "";
+  return [customer.cpf_cnpj, contact].filter(Boolean).join(" • ");
+};
+
+const quoteCustomerOption = (customer: QuoteCustomerRaw): QuoteCustomerOption => ({
+  value: customer.id,
+  label: customerDisplayName(customer),
+  description: customerDescription(customer),
+  raw: customer,
+});
 
 const nstr = (max: number) =>
   z.preprocess((v) => (v === null || v === undefined ? "" : v), z.string().trim().max(max)).optional();
@@ -229,6 +273,114 @@ export const listCustomers = createServerFn({ method: "GET" })
           .map((t: any) => t.customer_tags)
           .filter(Boolean),
       })),
+    };
+  });
+
+// ============================================================
+// QUOTE CUSTOMER SELECTOR
+// ============================================================
+export const getActiveCustomersForQuote = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ company_id: z.string().uuid().optional() }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const dev = process.env.NODE_ENV !== "production";
+
+    const { data: profile, error: profileError } = await sb
+      .from("profiles")
+      .select("id, company_id, email, full_name")
+      .eq("id", context.userId)
+      .maybeSingle();
+    if (profileError) throw new Error(profileError.message);
+
+    const companyId = data.company_id ?? profile?.company_id ?? null;
+    if (!companyId) {
+      return {
+        companyId: null,
+        customers: [] as QuoteCustomerRaw[],
+        items: [] as QuoteCustomerRaw[],
+        options: [] as QuoteCustomerOption[],
+        debug: dev
+          ? {
+              userId: context.userId,
+              profile: profile ?? null,
+              companyId: null,
+              profileLoaded: !!profile,
+              companyIdExists: false,
+              customersTableRecordsInCompany: 0,
+              activeTrueCount: 0,
+              statusActiveCount: 0,
+              queryReturnedEmpty: true,
+              error: null,
+            }
+          : undefined,
+      };
+    }
+
+    if (data.company_id && profile?.company_id && data.company_id !== profile.company_id) {
+      const { data: isSuperAdmin, error: roleError } = await sb.rpc("is_super_admin");
+      if (roleError) throw new Error(roleError.message);
+      if (!isSuperAdmin) throw new Error("Empresa inválida para o usuário autenticado.");
+    }
+
+    const { count: companyCount } = await sb
+      .from("customers")
+      .select("id", { count: "exact", head: true })
+      .eq("company_id", companyId)
+      .is("deleted_at", null);
+
+    const { data: rows, error } = await sb
+      .from("customers")
+      .select(
+        `id,
+         customer_type,
+         name,
+         corporate_name,
+         trade_name,
+         cpf_cnpj,
+         email,
+         phone,
+         whatsapp,
+         active,
+         customer_status,
+         customer_addresses!left(*),
+         customer_contacts!left(*)`,
+      )
+      .eq("company_id", companyId)
+      .is("deleted_at", null)
+      .order("name", { ascending: true });
+
+    if (error) throw new Error(error.message);
+
+    const allCustomers = (rows ?? []) as QuoteCustomerRaw[];
+    const customers = allCustomers.filter(
+      (customer) => customer.active === true || customer.customer_status === "ACTIVE",
+    );
+
+    const options = customers.map(quoteCustomerOption);
+
+    return {
+      companyId,
+      customers,
+      items: customers,
+      options,
+      debug: dev
+        ? {
+            userId: context.userId,
+            profile: profile ?? null,
+            companyId,
+            profileLoaded: !!profile,
+            companyIdExists: !!companyId,
+            customersTableRecordsInCompany: companyCount ?? allCustomers.length,
+            activeTrueCount: allCustomers.filter((customer) => customer.active === true).length,
+            statusActiveCount: allCustomers.filter((customer) => customer.customer_status === "ACTIVE").length,
+            queryReturnedEmpty: customers.length === 0,
+            componentExpectedShape: "options: { value, label, description, raw }[]",
+            error: null,
+          }
+        : undefined,
     };
   });
 
