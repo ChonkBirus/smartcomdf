@@ -1393,6 +1393,241 @@ export type Database = {
           },
         ]
       }
+      project_items: {
+        Row: {
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          item_id: string | null
+          item_type: string
+          name: string
+          position: number
+          project_id: string
+          quantity: number
+          quote_item_id: string | null
+          reserved_quantity: number
+          unit: string
+          updated_at: string
+          used_quantity: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          item_id?: string | null
+          item_type?: string
+          name: string
+          position?: number
+          project_id: string
+          quantity?: number
+          quote_item_id?: string | null
+          reserved_quantity?: number
+          unit?: string
+          updated_at?: string
+          used_quantity?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          item_id?: string | null
+          item_type?: string
+          name?: string
+          position?: number
+          project_id?: string
+          quantity?: number
+          quote_item_id?: string | null
+          reserved_quantity?: number
+          unit?: string
+          updated_at?: string
+          used_quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_items_quote_item_id_fkey"
+            columns: ["quote_item_id"]
+            isOneToOne: false
+            referencedRelation: "quote_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_number_counters: {
+        Row: {
+          company_id: string
+          current_number: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          current_number?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          current_number?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_number_counters_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          cancelled_at: string | null
+          company_id: string
+          completed_at: string | null
+          completion_estimate: string | null
+          created_at: string
+          created_by: string | null
+          customer_address_id: string | null
+          customer_contact_id: string | null
+          customer_id: string
+          deleted_at: string | null
+          description: string | null
+          down_payment_amount: number
+          expected_end_date: string | null
+          expected_start_date: string | null
+          id: string
+          internal_notes: string | null
+          notes: string | null
+          priority: string
+          project_number: string
+          quote_id: string | null
+          remaining_amount: number
+          started_at: string | null
+          status: string
+          title: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          company_id: string
+          completed_at?: string | null
+          completion_estimate?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_address_id?: string | null
+          customer_contact_id?: string | null
+          customer_id: string
+          deleted_at?: string | null
+          description?: string | null
+          down_payment_amount?: number
+          expected_end_date?: string | null
+          expected_start_date?: string | null
+          id?: string
+          internal_notes?: string | null
+          notes?: string | null
+          priority?: string
+          project_number: string
+          quote_id?: string | null
+          remaining_amount?: number
+          started_at?: string | null
+          status?: string
+          title: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          company_id?: string
+          completed_at?: string | null
+          completion_estimate?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_address_id?: string | null
+          customer_contact_id?: string | null
+          customer_id?: string
+          deleted_at?: string | null
+          description?: string | null
+          down_payment_amount?: number
+          expected_end_date?: string | null
+          expected_start_date?: string | null
+          id?: string
+          internal_notes?: string | null
+          notes?: string | null
+          priority?: string
+          project_number?: string
+          quote_id?: string | null
+          remaining_amount?: number
+          started_at?: string | null
+          status?: string
+          title?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_customer_address_id_fkey"
+            columns: ["customer_address_id"]
+            isOneToOne: false
+            referencedRelation: "customer_addresses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_customer_contact_id_fkey"
+            columns: ["customer_contact_id"]
+            isOneToOne: false
+            referencedRelation: "customer_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: true
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       purchase_order_items: {
         Row: {
           created_at: string
@@ -1743,6 +1978,7 @@ export type Database = {
           cancelled_at: string | null
           company_id: string
           completion_estimate: string | null
+          converted_at: string | null
           created_at: string
           created_by: string | null
           customer_id: string
@@ -1780,6 +2016,7 @@ export type Database = {
           cancelled_at?: string | null
           company_id: string
           completion_estimate?: string | null
+          converted_at?: string | null
           created_at?: string
           created_by?: string | null
           customer_id: string
@@ -1817,6 +2054,7 @@ export type Database = {
           cancelled_at?: string | null
           company_id?: string
           completion_estimate?: string | null
+          converted_at?: string | null
           created_at?: string
           created_by?: string | null
           customer_id?: string
@@ -2363,6 +2601,7 @@ export type Database = {
         }
         Returns: Json
       }
+      convert_quote_to_project: { Args: { _quote_id: string }; Returns: string }
       current_company_id: { Args: never; Returns: string }
       get_my_features: { Args: never; Returns: string[] }
       get_my_permissions: { Args: never; Returns: string[] }
@@ -2392,6 +2631,7 @@ export type Database = {
         }
         Returns: string
       }
+      next_project_number: { Args: { _company_id: string }; Returns: string }
       next_quote_number: { Args: { _company_id: string }; Returns: string }
       notify_user: {
         Args: {
