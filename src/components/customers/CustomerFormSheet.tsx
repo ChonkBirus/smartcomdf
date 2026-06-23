@@ -415,27 +415,97 @@ export function CustomerFormSheet({
                     </div>
                   </div>
                   <div className="grid gap-2 sm:grid-cols-3">
-                    <div><Label>CEP</Label><Input value={maskZip(a.zipcode ?? "")} onChange={(e) => {
-                      const next = [...form.addresses]; next[i] = { ...a, zipcode: e.target.value }; set("addresses", next);
-                    }} /></div>
-                    <div className="sm:col-span-2"><Label>Rua</Label><Input value={a.street ?? ""} onChange={(e) => {
-                      const next = [...form.addresses]; next[i] = { ...a, street: e.target.value }; set("addresses", next);
-                    }} /></div>
-                    <div><Label>Número</Label><Input value={a.number ?? ""} onChange={(e) => {
-                      const next = [...form.addresses]; next[i] = { ...a, number: e.target.value }; set("addresses", next);
-                    }} /></div>
+                    <div>
+                      <Label>País *</Label>
+                      <Select
+                        value={a.country || "BR"}
+                        onValueChange={(v) => {
+                          const next = [...form.addresses];
+                          next[i] = { ...a, country: v, state: null };
+                          set("addresses", next);
+                        }}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {COUNTRIES.map((c) => (
+                            <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>CEP *</Label>
+                      <Input value={a.country === "US" ? (a.zipcode ?? "") : maskZip(a.zipcode ?? "")}
+                        aria-invalid={!!errors[`addr_${i}_zipcode`]}
+                        className={errors[`addr_${i}_zipcode`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.addresses]; next[i] = { ...a, zipcode: e.target.value }; set("addresses", next);
+                        }} />
+                      {errors[`addr_${i}_zipcode`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_zipcode`]}</p>}
+                    </div>
+                    <div>
+                      <Label>UF *</Label>
+                      <Select
+                        value={a.state ?? ""}
+                        onValueChange={(v) => {
+                          const next = [...form.addresses]; next[i] = { ...a, state: v }; set("addresses", next);
+                        }}
+                      >
+                        <SelectTrigger aria-invalid={!!errors[`addr_${i}_state`]}
+                          className={errors[`addr_${i}_state`] ? "border-destructive" : ""}>
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {statesFor(a.country || "BR").map((s) => (
+                            <SelectItem key={s.code} value={s.code}>{s.code} — {s.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors[`addr_${i}_state`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_state`]}</p>}
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Label>Rua *</Label>
+                      <Input value={a.street ?? ""}
+                        aria-invalid={!!errors[`addr_${i}_street`]}
+                        className={errors[`addr_${i}_street`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.addresses]; next[i] = { ...a, street: e.target.value }; set("addresses", next);
+                        }} />
+                      {errors[`addr_${i}_street`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_street`]}</p>}
+                    </div>
+                    <div>
+                      <Label>Número *</Label>
+                      <Input value={a.number ?? ""}
+                        aria-invalid={!!errors[`addr_${i}_number`]}
+                        className={errors[`addr_${i}_number`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.addresses]; next[i] = { ...a, number: e.target.value }; set("addresses", next);
+                        }} />
+                      {errors[`addr_${i}_number`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_number`]}</p>}
+                    </div>
                     <div><Label>Complemento</Label><Input value={a.complement ?? ""} onChange={(e) => {
                       const next = [...form.addresses]; next[i] = { ...a, complement: e.target.value }; set("addresses", next);
                     }} /></div>
-                    <div><Label>Bairro</Label><Input value={a.district ?? ""} onChange={(e) => {
-                      const next = [...form.addresses]; next[i] = { ...a, district: e.target.value }; set("addresses", next);
-                    }} /></div>
-                    <div><Label>Cidade</Label><Input value={a.city ?? ""} onChange={(e) => {
-                      const next = [...form.addresses]; next[i] = { ...a, city: e.target.value }; set("addresses", next);
-                    }} /></div>
-                    <div><Label>UF</Label><Input maxLength={2} value={a.state ?? ""} onChange={(e) => {
-                      const next = [...form.addresses]; next[i] = { ...a, state: e.target.value.toUpperCase() }; set("addresses", next);
-                    }} /></div>
+                    <div>
+                      <Label>Bairro *</Label>
+                      <Input value={a.district ?? ""}
+                        aria-invalid={!!errors[`addr_${i}_district`]}
+                        className={errors[`addr_${i}_district`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.addresses]; next[i] = { ...a, district: e.target.value }; set("addresses", next);
+                        }} />
+                      {errors[`addr_${i}_district`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_district`]}</p>}
+                    </div>
+                    <div>
+                      <Label>Cidade *</Label>
+                      <Input value={a.city ?? ""}
+                        aria-invalid={!!errors[`addr_${i}_city`]}
+                        className={errors[`addr_${i}_city`] ? "border-destructive" : ""}
+                        onChange={(e) => {
+                          const next = [...form.addresses]; next[i] = { ...a, city: e.target.value }; set("addresses", next);
+                        }} />
+                      {errors[`addr_${i}_city`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_city`]}</p>}
+                    </div>
                     <div className="sm:col-span-3"><Label>Referência</Label><Input value={a.reference ?? ""} onChange={(e) => {
                       const next = [...form.addresses]; next[i] = { ...a, reference: e.target.value }; set("addresses", next);
                     }} /></div>
