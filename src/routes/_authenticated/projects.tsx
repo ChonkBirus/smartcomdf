@@ -110,7 +110,7 @@ function ProjectsPage() {
         </div>
       ) : rows.length === 0 ? (
         <EmptyState
-          icon={Briefcase}
+          icon={<Briefcase className="h-6 w-6" />}
           title="Nenhum projeto"
           description="Converta um orçamento aprovado e pago para gerar um projeto."
         />
