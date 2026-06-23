@@ -97,7 +97,7 @@ export function QuoteFormSheet({
     isLoading: customersLoading,
   } = useQuery({
     queryKey: ["customers", "quote-form", companyId],
-    queryFn: () => fetchQuoteCustomers({ data: { companyId } }),
+    queryFn: () => fetchQuoteCustomers({ data: { companyId: companyId! } }),
     enabled: open && !authLoading && !!user && !!companyId,
     staleTime: 30_000,
     refetchOnMount: true,
