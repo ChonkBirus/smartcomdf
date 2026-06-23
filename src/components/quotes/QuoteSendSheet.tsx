@@ -194,6 +194,90 @@ export function QuoteSendSheet({
     if (quote.status === "DRAFT") sendMut.mutate();
   }
 
+  // Active down payment (most recent non-cancelled, or fallback to latest)
+  const activePayment = (payments ?? []).find(
+    (p) => p.payment_type === "DOWN_PAYMENT" && p.payment_status !== "CANCELLED",
+  ) ?? (payments ?? [])[0] ?? null;
+
+  const [approveOpen, setApproveOpen] = useState(false);
+  const [approveNote, setApproveNote] = useState("");
+
+  const approveMut = useMutation({
+    mutationFn: (id: string) => approvePay({ data: { id, note: approveNote || undefined } }),
+    onSuccess: () => {
+      toast.success("Pagamento aprovado.");
+      setApproveOpen(false);
+      setApproveNote("");
+      qc.invalidateQueries({ queryKey: ["quote", quoteId, "for-send"] });
+      qc.invalidateQueries({ queryKey: ["quote-payments", quoteId] });
+      qc.invalidateQueries({ queryKey: ["quote-history", quoteId] });
+      qc.invalidateQueries({ queryKey: ["quotes"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha."),
+  });
+  const cancelPayMut = useMutation({
+    mutationFn: (id: string) => cancelPay({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Cobrança cancelada.");
+      qc.invalidateQueries({ queryKey: ["quote", quoteId, "for-send"] });
+      qc.invalidateQueries({ queryKey: ["quote-payments", quoteId] });
+      qc.invalidateQueries({ queryKey: ["quote-history", quoteId] });
+      qc.invalidateQueries({ queryKey: ["quotes"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha."),
+  });
+
+  function pixWhatsAppMessage(): string {
+    if (!quote || !activePayment) return "";
+    const lines = [
+      `Olá, ${customer?.trade_name || customer?.name || "cliente"}! Tudo bem?`,
+      "",
+      `Seu orçamento *${quote.quote_number}* foi aprovado.`,
+      "",
+      `Para iniciarmos o serviço, segue o Pix referente à entrada de ${quote.down_payment_percent}%:`,
+      `*Valor da entrada: ${fmtBRL(Number(activePayment.amount))}*`,
+      "",
+      activePayment.pix_key ? `Chave Pix: ${activePayment.pix_key}` : (companyPix?.pix_key ? `Chave Pix: ${companyPix.pix_key}` : ""),
+      activePayment.pix_copy_paste ? `Pix Copia e Cola:\n${activePayment.pix_copy_paste}` : "",
+      "",
+      "Após o pagamento, envie o comprovante por aqui.",
+      "",
+      `Valor total da proposta: ${fmtBRL(quote.total_amount)}`,
+      `Saldo restante: ${fmtBRL(quote.remaining_amount)}`,
+      "",
+      "Obrigado!",
+    ].filter(Boolean);
+    return lines.join("\n");
+  }
+
+  function handleSendPixWhatsApp() {
+    if (!quote || !activePayment) return;
+    const phone = (customer as any)?.whatsapp || (customer as any)?.phone || "";
+    const digits = phone.replace(/\D/g, "");
+    const base = digits
+      ? `https://wa.me/${digits.startsWith("55") ? digits : `55${digits}`}`
+      : `https://wa.me/`;
+    const url = `${base}?text=${encodeURIComponent(pixWhatsAppMessage())}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+    logMut.mutate({ quote_id: quoteId!, event_type: "pix_sent_whatsapp" });
+  }
+
+  async function handleCopyPix() {
+    const text = activePayment?.pix_copy_paste || activePayment?.pix_key || companyPix?.pix_key || "";
+    if (!text) {
+      toast.error("Nenhuma chave Pix disponível.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Pix copiado.");
+      logMut.mutate({ quote_id: quoteId!, event_type: "pix_copied" });
+    } catch {
+      toast.error("Não foi possível copiar.");
+    }
+  }
+
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-xl overflow-hidden p-0">
