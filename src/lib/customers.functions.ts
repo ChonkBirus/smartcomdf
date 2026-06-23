@@ -198,6 +198,8 @@ const getActiveCustomersForQuoteFromDb = async ({
     .eq("company_id", companyId)
     .is("deleted_at", null);
 
+  const queryUsed = `supabase.from("customers").select("id, customer_type, name, corporate_name, trade_name, cpf_cnpj, email, phone, whatsapp, active, customer_status, customer_addresses!left(*), customer_contacts!left(*)").eq("company_id", "${companyId}").is("deleted_at", null).order("name", { ascending: true })`;
+
   const { data: rows, error } = await sb
     .from("customers")
     .select(
@@ -219,12 +221,18 @@ const getActiveCustomersForQuoteFromDb = async ({
     .is("deleted_at", null)
     .order("name", { ascending: true });
 
-  if (error) throw new Error(error.message);
-
   const allCustomers = (rows ?? []) as QuoteCustomerRaw[];
   const customers = allCustomers.filter(
     (customer) => customer.active === true || customer.customer_status === "ACTIVE",
   );
+
+  console.log("[QuoteCustomers] profile.company_id:", profile?.company_id ?? null);
+  console.log("[QuoteCustomers] customers.length:", customers.length);
+  console.log("[QuoteCustomers] supabase error:", error);
+  console.log("[QuoteCustomers] query usada no customerService:", queryUsed);
+
+  if (error) throw new Error(error.message);
+
   const options = customers.map(quoteCustomerOption);
 
   return {

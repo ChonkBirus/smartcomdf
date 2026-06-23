@@ -115,19 +115,16 @@ export function QuoteFormSheet({
   }, [open, customersError]);
 
   useEffect(() => {
-    if (!open || !import.meta.env.DEV) return;
-    console.log("Quote customer debug", {
-      userId: user?.id ?? null,
-      profile: (customersData as any)?.debug?.profile ?? null,
-      companyId: (customersData as any)?.companyId ?? (customersData as any)?.debug?.companyId ?? null,
-      customers: (customersData as any)?.customers ?? [],
-      error: customersError ? { message: customersError.message } : null,
-      authReady: !authLoading,
-      customerCount: customerOptions.length,
-      queryReturnedEmpty: (customersData as any)?.debug?.queryReturnedEmpty ?? false,
-      comboBoxOptions: customerOptions,
-    });
-  }, [open, user?.id, customersData, customersError, authLoading, customerOptions]);
+    if (!open) return;
+    const d: any = customersData;
+    console.log("[QuoteCustomers] profile.company_id:", d?.debug?.profile?.company_id ?? d?.companyId ?? null);
+    console.log("[QuoteCustomers] customers.length:", (d?.customers ?? []).length);
+    console.log("[QuoteCustomers] supabase error:", customersError ? { message: customersError.message } : null);
+    console.log(
+      "[QuoteCustomers] query usada no customerService:",
+      `supabase.from("customers").select("id, customer_type, name, corporate_name, trade_name, cpf_cnpj, email, phone, whatsapp, active, customer_status, customer_addresses!left(*), customer_contacts!left(*)").eq("company_id", "${d?.companyId ?? d?.debug?.companyId ?? "<null>"}").is("deleted_at", null).order("name", { ascending: true })`,
+    );
+  }, [open, customersData, customersError]);
 
   const { data: catalog } = useQuery({
     queryKey: ["quote-catalog"],
