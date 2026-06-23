@@ -3,7 +3,8 @@ import { createContext, useContext, useMemo, type ReactNode } from "react";
 export type PermissionAction =
   | "view" | "create" | "edit" | "delete"
   | "approve" | "cancel" | "receive" | "manage" | "adjust" | "transfer"
-  | "upload" | "process" | "confirm" | "disable" | "send_pix";
+  | "upload" | "process" | "confirm" | "disable" | "send_pix"
+  | "convert_from_quote";
 export type ModuleSlug =
   | "dashboard"
   | "products"
