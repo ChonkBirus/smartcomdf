@@ -353,6 +353,7 @@ export function QuoteFormSheet({
                                     c.email,
                                     c.whatsapp,
                                     c.phone,
+                                    option.value,
                                   ].filter(Boolean).join(" ");
                                   return (
                                     <CommandItem
