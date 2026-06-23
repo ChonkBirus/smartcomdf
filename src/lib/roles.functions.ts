@@ -25,13 +25,13 @@ export const toggleRolePermission = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    // Only owner can change role permissions
+    // role_permissions is a global (cross-tenant) mapping — only super_admin can edit.
     const { data: rows } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", userId);
-    const allowed = (rows ?? []).some((r: any) => r.role === "owner" || r.role === "super_admin");
-    if (!allowed) throw new Error("Apenas proprietários podem editar permissões.");
+    const allowed = (rows ?? []).some((r: any) => r.role === "super_admin");
+    if (!allowed) throw new Error("Apenas super administradores podem editar permissões de papéis.");
 
     if (data.enabled) {
       const { error } = await supabase
