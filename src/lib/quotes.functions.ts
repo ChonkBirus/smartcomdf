@@ -506,7 +506,7 @@ export const logQuoteEvent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
     quote_id: z.string().uuid(),
-    event_type: z.enum(["sent", "link_copied", "whatsapp_sent", "pdf_downloaded", "email_sent"]),
+    event_type: z.enum(["sent", "link_copied", "whatsapp_sent", "pdf_downloaded", "email_sent", "pix_sent_whatsapp", "pix_copied"]),
     actor_label: z.string().trim().max(120).optional(),
     meta: z.record(z.string(), z.any()).optional(),
   }).parse(d))
