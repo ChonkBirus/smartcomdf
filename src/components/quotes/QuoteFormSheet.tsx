@@ -87,11 +87,14 @@ export function QuoteFormSheet({
   const [discount, setDiscount] = useState(0);
   const [lines, setLines] = useState<Line[]>([]);
 
-  const { data: customersData } = useQuery({
+  const { data: customersData, error: customersError } = useQuery({
     queryKey: ["customers", "quote-form"],
-    queryFn: () => fetchCustomers({ data: { customer_status: "ACTIVE", page: 1, page_size: 500 } as any }),
+    queryFn: () => fetchCustomers({ data: { active: true, sort: "name", page: 1, page_size: 100 } as any }),
     enabled: open,
   });
+  useEffect(() => {
+    if (customersError) toast.error("Falha ao carregar clientes.");
+  }, [customersError]);
   const customers: any[] = (customersData as any)?.rows ?? [];
 
   const { data: catalog } = useQuery({
