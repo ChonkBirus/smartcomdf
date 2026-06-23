@@ -106,7 +106,7 @@ export function QuoteSendSheet({
   }, [quote, customer, publicUrl, customMsg]);
 
   const logMut = useMutation({
-    mutationFn: (vars: { quote_id: string; event_type: "sent" | "link_copied" | "whatsapp_sent" | "pdf_downloaded" | "email_sent"; meta?: Record<string, any> }) =>
+    mutationFn: (vars: { quote_id: string; event_type: "sent" | "link_copied" | "whatsapp_sent" | "pdf_downloaded" | "email_sent" | "pix_sent_whatsapp" | "pix_copied"; meta?: Record<string, any> }) =>
       logEvent({ data: vars }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["quote-history", quoteId] }),
   });
