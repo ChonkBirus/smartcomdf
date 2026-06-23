@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Copy, Download, MessageCircle, Send, Eye, CheckCircle2, Link2, History,
+  Copy, Download, MessageCircle, Send, Eye, CheckCircle2, Link2, History, Mail,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -139,6 +139,31 @@ export function QuoteSendSheet({
     const url = `${base}?text=${encodeURIComponent(waMessage)}`;
     window.open(url, "_blank", "noopener,noreferrer");
     logMut.mutate({ quote_id: quoteId!, event_type: "whatsapp_sent" });
+    if (quote.status === "DRAFT") sendMut.mutate();
+  }
+
+  function handleEmail() {
+    if (!quote) return;
+    const to = (customer as any)?.email || "";
+    const subject = `Orçamento ${quote.quote_number}`;
+    const body = [
+      `Olá${customer?.name ? `, ${customer.trade_name || customer.name}` : ""}!`,
+      "",
+      "Segue o link da sua proposta:",
+      publicUrl,
+      "",
+      `Valor total da proposta: ${fmtBRL(quote.total_amount)}`,
+      quote.valid_until ? `Validade: ${new Date(quote.valid_until).toLocaleDateString("pt-BR")}` : "",
+      quote.completion_estimate ? `Estimativa de conclusão: ${quote.completion_estimate}` : "",
+      "",
+      "O valor total já inclui materiais, serviços e mão de obra.",
+      "",
+      "Qualquer dúvida estamos à disposição.",
+    ].filter(Boolean).join("\n");
+    const url = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = url;
+    logMut.mutate({ quote_id: quoteId!, event_type: "email_sent" });
+    if (quote.status === "DRAFT") sendMut.mutate();
   }
 
   return (
@@ -206,9 +231,12 @@ export function QuoteSendSheet({
                   />
                 </div>
 
-                <div className="grid gap-2 sm:grid-cols-3">
+                <div className="grid gap-2 sm:grid-cols-2">
                   <Button onClick={handleWhatsApp} className="w-full">
                     <MessageCircle className="mr-1 h-4 w-4" />WhatsApp
+                  </Button>
+                  <Button variant="outline" onClick={handleEmail} className="w-full">
+                    <Mail className="mr-1 h-4 w-4" />E-mail
                   </Button>
                   <Button variant="outline" onClick={handleDownloadPDF} className="w-full">
                     <Download className="mr-1 h-4 w-4" />PDF

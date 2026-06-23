@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { CheckCircle2, ShieldCheck, FileText, AlertTriangle } from "lucide-react";
+import { CheckCircle2, ShieldCheck, FileText, AlertTriangle, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/q/$token")({
@@ -264,6 +264,22 @@ function PublicQuotePage() {
             </p>
             <Button size="lg" onClick={() => setAcceptOpen(true)}>
               <ShieldCheck className="mr-2 h-5 w-5" />Aceitar proposta
+            </Button>
+          </div>
+        )}
+
+        {company.whatsapp && (
+          <div className="text-center">
+            <Button
+              variant="outline"
+              onClick={() => {
+                const digits = String(company.whatsapp).replace(/\D/g, "");
+                const num = digits.startsWith("55") ? digits : `55${digits}`;
+                const msg = `Olá! Estou vendo o orçamento ${quote.quote_number} e gostaria de tirar uma dúvida.`;
+                window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
+              }}
+            >
+              <MessageCircle className="mr-2 h-4 w-4" />Falar no WhatsApp
             </Button>
           </div>
         )}
