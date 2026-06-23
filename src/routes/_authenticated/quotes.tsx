@@ -189,6 +189,15 @@ function QuotesPage() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={payFilter} onValueChange={(v) => setPayFilter(v as any)}>
+          <SelectTrigger className="sm:w-56"><SelectValue placeholder="Pagamento" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">Todos pagamentos</SelectItem>
+            {(Object.keys(PAY_STATUS_LABEL) as QuotePaymentStatus[]).map((s) => (
+              <SelectItem key={s} value={s}>{PAY_STATUS_LABEL[s]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoading ? (
