@@ -26,7 +26,7 @@ import { QuoteSendSheet } from "@/components/quotes/QuoteSendSheet";
 import {
   listQuotes, quoteMetrics, deleteQuote, duplicateQuote,
   markQuoteSent, cancelQuote,
-  type QuoteStatus,
+  type QuoteStatus, type QuotePaymentStatus,
 } from "@/lib/quotes.functions";
 
 export const Route = createFileRoute("/_authenticated/quotes")({
@@ -51,6 +51,21 @@ const STATUS_VARIANT: Record<QuoteStatus, "default" | "secondary" | "destructive
   CANCELLED: "destructive", EXPIRED: "destructive",
 };
 
+const PAY_STATUS_LABEL: Record<QuotePaymentStatus, string> = {
+  NOT_STARTED: "Não iniciado",
+  WAITING_PAYMENT: "Aguardando pagamento",
+  PAYMENT_APPROVED: "Pagamento aprovado",
+  PAYMENT_REJECTED: "Pagamento recusado",
+  PAYMENT_CANCELLED: "Pagamento cancelado",
+};
+const PAY_STATUS_VARIANT: Record<QuotePaymentStatus, "default" | "secondary" | "destructive" | "outline"> = {
+  NOT_STARTED: "outline",
+  WAITING_PAYMENT: "secondary",
+  PAYMENT_APPROVED: "default",
+  PAYMENT_REJECTED: "destructive",
+  PAYMENT_CANCELLED: "destructive",
+};
+
 const fmtBRL = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const fmtDate = (s: string | null) =>
@@ -60,6 +75,7 @@ function QuotesPage() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<QuoteStatus | "ALL">("ALL");
+  const [payFilter, setPayFilter] = useState<QuotePaymentStatus | "ALL">("ALL");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [confirmDel, setConfirmDel] = useState<{ id: string; number: string } | null>(null);
@@ -78,12 +94,13 @@ function QuotesPage() {
   });
 
   const { data: rows, isLoading } = useQuery({
-    queryKey: ["quotes", { search, statusFilter }],
+    queryKey: ["quotes", { search, statusFilter, payFilter }],
     queryFn: () =>
       fetchList({
         data: {
           search: search.trim() || undefined,
           status: statusFilter === "ALL" ? undefined : statusFilter,
+          payment_status: payFilter === "ALL" ? undefined : payFilter,
         },
       }),
   });
@@ -172,6 +189,15 @@ function QuotesPage() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={payFilter} onValueChange={(v) => setPayFilter(v as any)}>
+          <SelectTrigger className="sm:w-56"><SelectValue placeholder="Pagamento" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">Todos pagamentos</SelectItem>
+            {(Object.keys(PAY_STATUS_LABEL) as QuotePaymentStatus[]).map((s) => (
+              <SelectItem key={s} value={s}>{PAY_STATUS_LABEL[s]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoading ? (
@@ -194,6 +220,7 @@ function QuotesPage() {
                 <th className="px-3 py-2 hidden md:table-cell">Emissão</th>
                 <th className="px-3 py-2 hidden md:table-cell">Validade</th>
                 <th className="px-3 py-2">Status</th>
+                <th className="px-3 py-2 hidden lg:table-cell">Pagamento</th>
                 <th className="px-3 py-2 text-right">Total</th>
                 <th className="px-3 py-2 text-right">Ações</th>
               </tr>
@@ -212,6 +239,11 @@ function QuotesPage() {
                   <td className="px-3 py-2 hidden md:table-cell">{fmtDate(q.valid_until)}</td>
                   <td className="px-3 py-2">
                     <Badge variant={STATUS_VARIANT[q.status]}>{STATUS_LABEL[q.status]}</Badge>
+                  </td>
+                  <td className="px-3 py-2 hidden lg:table-cell">
+                    <Badge variant={PAY_STATUS_VARIANT[q.payment_status]}>
+                      {PAY_STATUS_LABEL[q.payment_status]}
+                    </Badge>
                   </td>
                   <td className="px-3 py-2 text-right font-medium">{fmtBRL(q.total_amount)}</td>
                   <td className="px-3 py-2">

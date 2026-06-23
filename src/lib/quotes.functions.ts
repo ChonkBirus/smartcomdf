@@ -38,7 +38,16 @@ export type Quote = {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  payment_status: QuotePaymentStatus;
+  down_payment_percent: number;
+  down_payment_amount: number;
+  remaining_amount: number;
+  payment_approved_at: string | null;
 };
+
+export type QuotePaymentStatus =
+  | "NOT_STARTED" | "WAITING_PAYMENT" | "PAYMENT_APPROVED"
+  | "PAYMENT_REJECTED" | "PAYMENT_CANCELLED";
 
 export type QuoteHistoryEvent = {
   id: string;
@@ -143,6 +152,7 @@ export const listQuotes = createServerFn({ method: "GET" })
   .inputValidator((d) =>
     z.object({
       status: z.string().optional(),
+      payment_status: z.string().optional(),
       customer_id: z.string().uuid().optional(),
       search: z.string().optional(),
     }).parse(d ?? {}),
@@ -155,6 +165,7 @@ export const listQuotes = createServerFn({ method: "GET" })
       .order("issue_date", { ascending: false })
       .order("created_at", { ascending: false });
     if (data.status) q = q.eq("status", data.status);
+    if (data.payment_status) q = q.eq("payment_status", data.payment_status);
     if (data.customer_id) q = q.eq("customer_id", data.customer_id);
     if (data.search?.trim()) {
       const s = data.search.trim();
@@ -168,6 +179,9 @@ export const listQuotes = createServerFn({ method: "GET" })
       discount: Number(r.discount || 0),
       items_subtotal: Number(r.items_subtotal || 0),
       total_amount: Number(r.total_amount || 0),
+      down_payment_percent: Number(r.down_payment_percent || 0),
+      down_payment_amount: Number(r.down_payment_amount || 0),
+      remaining_amount: Number(r.remaining_amount || 0),
       customer_name:
         r.customers?.trade_name || r.customers?.name || r.customers?.corporate_name || "—",
     })) as Quote[];
@@ -229,6 +243,9 @@ export const getQuote = createServerFn({ method: "GET" })
         discount: Number(q.discount || 0),
         items_subtotal: Number(q.items_subtotal || 0),
         total_amount: Number(q.total_amount || 0),
+        down_payment_percent: Number(q.down_payment_percent || 0),
+        down_payment_amount: Number(q.down_payment_amount || 0),
+        remaining_amount: Number(q.remaining_amount || 0),
         customer_name:
           q.customers?.trade_name || q.customers?.name || q.customers?.corporate_name || "—",
       } as Quote,
@@ -489,7 +506,7 @@ export const logQuoteEvent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
     quote_id: z.string().uuid(),
-    event_type: z.enum(["sent", "link_copied", "whatsapp_sent", "pdf_downloaded", "email_sent"]),
+    event_type: z.enum(["sent", "link_copied", "whatsapp_sent", "pdf_downloaded", "email_sent", "pix_sent_whatsapp", "pix_copied"]),
     actor_label: z.string().trim().max(120).optional(),
     meta: z.record(z.string(), z.any()).optional(),
   }).parse(d))

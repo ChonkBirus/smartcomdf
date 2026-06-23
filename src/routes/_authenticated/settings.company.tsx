@@ -7,10 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 import { supabase } from "@/integrations/supabase/client";
 import { getMyContext } from "@/lib/account.functions";
 import { updateMyCompany, getSignedImageUrl } from "@/lib/profile.functions";
+import { getCompanyPix, saveCompanyPix } from "@/lib/quote-payments.functions";
 
 export const Route = createFileRoute("/_authenticated/settings/company")({
   component: CompanyPage,
@@ -143,7 +147,107 @@ function CompanyPage() {
           </div>
         </form>
       </CardContent>
+      <PixSettingsCard />
     </Card>
+  );
+}
+
+function PixSettingsCard() {
+  const qc = useQueryClient();
+  const fetchPix = useServerFn(getCompanyPix);
+  const savePix = useServerFn(saveCompanyPix);
+
+  const { data } = useQuery({ queryKey: ["company-pix"], queryFn: () => fetchPix() });
+
+  const [pix, setPix] = useState({
+    pix_key: "",
+    pix_key_type: "" as "" | "CPF" | "CNPJ" | "EMAIL" | "PHONE" | "EVP",
+    pix_receiver_name: "",
+    pix_receiver_city: "",
+  });
+
+  useEffect(() => {
+    if (data) {
+      setPix({
+        pix_key: data.pix_key ?? "",
+        pix_key_type: (data.pix_key_type as any) ?? "",
+        pix_receiver_name: data.pix_receiver_name ?? "",
+        pix_receiver_city: data.pix_receiver_city ?? "",
+      });
+    }
+  }, [data]);
+
+  const mut = useMutation({
+    mutationFn: () =>
+      savePix({
+        data: {
+          pix_key: pix.pix_key,
+          pix_key_type: pix.pix_key_type ? (pix.pix_key_type as any) : null,
+          pix_receiver_name: pix.pix_receiver_name,
+          pix_receiver_city: pix.pix_receiver_city,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Chave Pix salva.");
+      qc.invalidateQueries({ queryKey: ["company-pix"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha."),
+  });
+
+  return (
+    <CardContent className="border-t pt-6">
+      <h3 className="mb-3 text-base font-semibold">Chave Pix da empresa</h3>
+      <p className="mb-4 text-xs text-muted-foreground">
+        Usada para gerar a cobrança de entrada (50%) quando o cliente aceitar o orçamento.
+      </p>
+      <form
+        className="grid gap-4 md:grid-cols-2"
+        onSubmit={(e) => { e.preventDefault(); mut.mutate(); }}
+      >
+        <div className="space-y-1.5">
+          <Label>Tipo da chave</Label>
+          <Select
+            value={pix.pix_key_type || "none"}
+            onValueChange={(v) => setPix({ ...pix, pix_key_type: v === "none" ? "" : (v as any) })}
+          >
+            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">—</SelectItem>
+              <SelectItem value="CPF">CPF</SelectItem>
+              <SelectItem value="CNPJ">CNPJ</SelectItem>
+              <SelectItem value="EMAIL">E-mail</SelectItem>
+              <SelectItem value="PHONE">Telefone</SelectItem>
+              <SelectItem value="EVP">Aleatória (EVP)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Chave Pix</Label>
+          <Input
+            value={pix.pix_key}
+            onChange={(e) => setPix({ ...pix, pix_key: e.target.value })}
+            placeholder="ex: 00.000.000/0000-00 ou e-mail@empresa.com"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Nome do recebedor</Label>
+          <Input
+            value={pix.pix_receiver_name}
+            onChange={(e) => setPix({ ...pix, pix_receiver_name: e.target.value })}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Cidade do recebedor</Label>
+          <Input
+            value={pix.pix_receiver_city}
+            onChange={(e) => setPix({ ...pix, pix_receiver_city: e.target.value })}
+          />
+        </div>
+        <div className="md:col-span-2 flex justify-end">
+          <Button type="submit" disabled={mut.isPending}>Salvar Pix</Button>
+        </div>
+      </form>
+    </CardContent>
   );
 }
 

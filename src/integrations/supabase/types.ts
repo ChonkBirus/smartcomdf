@@ -327,6 +327,10 @@ export type Database = {
           dark_mode: boolean
           id: string
           language: string
+          pix_key: string | null
+          pix_key_type: string | null
+          pix_receiver_city: string | null
+          pix_receiver_name: string | null
           timezone: string
           updated_at: string
         }
@@ -337,6 +341,10 @@ export type Database = {
           dark_mode?: boolean
           id?: string
           language?: string
+          pix_key?: string | null
+          pix_key_type?: string | null
+          pix_receiver_city?: string | null
+          pix_receiver_name?: string | null
           timezone?: string
           updated_at?: string
         }
@@ -347,6 +355,10 @@ export type Database = {
           dark_mode?: boolean
           id?: string
           language?: string
+          pix_key?: string | null
+          pix_key_type?: string | null
+          pix_receiver_city?: string | null
+          pix_receiver_name?: string | null
           timezone?: string
           updated_at?: string
         }
@@ -1628,6 +1640,99 @@ export type Database = {
           },
         ]
       }
+      quote_payments: {
+        Row: {
+          amount: number
+          approved_by: string | null
+          cancelled_at: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          paid_at: string | null
+          payment_method: string
+          payment_status: string
+          payment_type: string
+          pix_copy_paste: string | null
+          pix_key: string | null
+          pix_qr_code_url: string | null
+          pix_txid: string | null
+          provider: string | null
+          provider_charge_id: string | null
+          provider_payload: Json | null
+          quote_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          approved_by?: string | null
+          cancelled_at?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_method?: string
+          payment_status?: string
+          payment_type?: string
+          pix_copy_paste?: string | null
+          pix_key?: string | null
+          pix_qr_code_url?: string | null
+          pix_txid?: string | null
+          provider?: string | null
+          provider_charge_id?: string | null
+          provider_payload?: Json | null
+          quote_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          approved_by?: string | null
+          cancelled_at?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_method?: string
+          payment_status?: string
+          payment_type?: string
+          pix_copy_paste?: string | null
+          pix_key?: string | null
+          pix_qr_code_url?: string | null
+          pix_txid?: string | null
+          provider?: string | null
+          provider_charge_id?: string | null
+          provider_payload?: Json | null
+          quote_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_payments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_payments_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotes: {
         Row: {
           accepted_at: string | null
@@ -1644,15 +1749,20 @@ export type Database = {
           customer_notes: string | null
           delivery_terms: string | null
           discount: number
+          down_payment_amount: number
+          down_payment_percent: number
           first_sent_at: string | null
           id: string
           internal_notes: string | null
           issue_date: string
           items_subtotal: number
           labor_cost: number
+          payment_approved_at: string | null
+          payment_status: string
           payment_terms: string | null
           public_token: string
           quote_number: string
+          remaining_amount: number
           status: Database["public"]["Enums"]["quote_status"]
           title: string | null
           total_amount: number
@@ -1676,15 +1786,20 @@ export type Database = {
           customer_notes?: string | null
           delivery_terms?: string | null
           discount?: number
+          down_payment_amount?: number
+          down_payment_percent?: number
           first_sent_at?: string | null
           id?: string
           internal_notes?: string | null
           issue_date?: string
           items_subtotal?: number
           labor_cost?: number
+          payment_approved_at?: string | null
+          payment_status?: string
           payment_terms?: string | null
           public_token?: string
           quote_number: string
+          remaining_amount?: number
           status?: Database["public"]["Enums"]["quote_status"]
           title?: string | null
           total_amount?: number
@@ -1708,15 +1823,20 @@ export type Database = {
           customer_notes?: string | null
           delivery_terms?: string | null
           discount?: number
+          down_payment_amount?: number
+          down_payment_percent?: number
           first_sent_at?: string | null
           id?: string
           internal_notes?: string | null
           issue_date?: string
           items_subtotal?: number
           labor_cost?: number
+          payment_approved_at?: string | null
+          payment_status?: string
           payment_terms?: string | null
           public_token?: string
           quote_number?: string
+          remaining_amount?: number
           status?: Database["public"]["Enums"]["quote_status"]
           title?: string | null
           total_amount?: number
@@ -2225,6 +2345,14 @@ export type Database = {
           _related_movement_id?: string
         }
         Returns: string
+      }
+      approve_quote_payment: {
+        Args: { _note?: string; _payment_id: string }
+        Returns: Json
+      }
+      cancel_quote_payment: {
+        Args: { _payment_id: string; _reason?: string }
+        Returns: Json
       }
       confirm_nota_receiving: {
         Args: {

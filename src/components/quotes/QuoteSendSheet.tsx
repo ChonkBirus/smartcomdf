@@ -12,13 +12,21 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Copy, Download, MessageCircle, Send, Eye, CheckCircle2, Link2, History, Mail,
+  Copy, Download, MessageCircle, Send, Eye, CheckCircle2, Link2, History, Mail, Banknote, XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   getQuote, getQuoteHistory, logQuoteEvent, markQuoteSent,
 } from "@/lib/quotes.functions";
+import {
+  listQuotePayments, approveQuotePayment, cancelQuotePayment, getCompanyPix,
+} from "@/lib/quote-payments.functions";
 import { generateQuotePDF } from "@/lib/quote-pdf";
+import { Can } from "@/components/app/PermissionRoute";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const fmtBRL = (n: number) =>
   Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -33,6 +41,11 @@ const EVENT_LABEL: Record<string, string> = {
   email_sent: "Enviado por e-mail",
   viewed: "Visualizado pelo cliente",
   accepted: "Aceito pelo cliente",
+  payment_created: "Cobrança Pix criada",
+  payment_approved: "Pagamento aprovado",
+  payment_cancelled: "Cobrança cancelada",
+  pix_sent_whatsapp: "Pix enviado via WhatsApp",
+  pix_copied: "Pix copiado",
 };
 
 function publicUrlFor(token: string) {
@@ -48,6 +61,10 @@ export function QuoteSendSheet({
   const fetchHistory = useServerFn(getQuoteHistory);
   const logEvent = useServerFn(logQuoteEvent);
   const sendIt = useServerFn(markQuoteSent);
+  const fetchPayments = useServerFn(listQuotePayments);
+  const fetchPix = useServerFn(getCompanyPix);
+  const approvePay = useServerFn(approveQuotePayment);
+  const cancelPay = useServerFn(cancelQuotePayment);
 
   const enabled = open && !!quoteId;
   const { data, isLoading } = useQuery({
@@ -59,6 +76,17 @@ export function QuoteSendSheet({
     queryKey: ["quote-history", quoteId],
     queryFn: () => fetchHistory({ data: { quote_id: quoteId! } }),
     enabled,
+  });
+  const { data: payments } = useQuery({
+    queryKey: ["quote-payments", quoteId],
+    queryFn: () => fetchPayments({ data: { quote_id: quoteId! } }),
+    enabled,
+  });
+  const { data: companyPix } = useQuery({
+    queryKey: ["company-pix"],
+    queryFn: () => fetchPix(),
+    enabled: open,
+    staleTime: 60_000,
   });
 
   const [customMsg, setCustomMsg] = useState<string>("");
@@ -93,7 +121,7 @@ export function QuoteSendSheet({
   }, [quote, customer, publicUrl, customMsg]);
 
   const logMut = useMutation({
-    mutationFn: (vars: { quote_id: string; event_type: "sent" | "link_copied" | "whatsapp_sent" | "pdf_downloaded" | "email_sent"; meta?: Record<string, any> }) =>
+    mutationFn: (vars: { quote_id: string; event_type: "sent" | "link_copied" | "whatsapp_sent" | "pdf_downloaded" | "email_sent" | "pix_sent_whatsapp" | "pix_copied"; meta?: Record<string, any> }) =>
       logEvent({ data: vars }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["quote-history", quoteId] }),
   });
@@ -165,6 +193,90 @@ export function QuoteSendSheet({
     logMut.mutate({ quote_id: quoteId!, event_type: "email_sent" });
     if (quote.status === "DRAFT") sendMut.mutate();
   }
+
+  // Active down payment (most recent non-cancelled, or fallback to latest)
+  const activePayment = (payments ?? []).find(
+    (p) => p.payment_type === "DOWN_PAYMENT" && p.payment_status !== "CANCELLED",
+  ) ?? (payments ?? [])[0] ?? null;
+
+  const [approveOpen, setApproveOpen] = useState(false);
+  const [approveNote, setApproveNote] = useState("");
+
+  const approveMut = useMutation({
+    mutationFn: (id: string) => approvePay({ data: { id, note: approveNote || undefined } }),
+    onSuccess: () => {
+      toast.success("Pagamento aprovado.");
+      setApproveOpen(false);
+      setApproveNote("");
+      qc.invalidateQueries({ queryKey: ["quote", quoteId, "for-send"] });
+      qc.invalidateQueries({ queryKey: ["quote-payments", quoteId] });
+      qc.invalidateQueries({ queryKey: ["quote-history", quoteId] });
+      qc.invalidateQueries({ queryKey: ["quotes"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha."),
+  });
+  const cancelPayMut = useMutation({
+    mutationFn: (id: string) => cancelPay({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Cobrança cancelada.");
+      qc.invalidateQueries({ queryKey: ["quote", quoteId, "for-send"] });
+      qc.invalidateQueries({ queryKey: ["quote-payments", quoteId] });
+      qc.invalidateQueries({ queryKey: ["quote-history", quoteId] });
+      qc.invalidateQueries({ queryKey: ["quotes"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha."),
+  });
+
+  function pixWhatsAppMessage(): string {
+    if (!quote || !activePayment) return "";
+    const lines = [
+      `Olá, ${customer?.trade_name || customer?.name || "cliente"}! Tudo bem?`,
+      "",
+      `Seu orçamento *${quote.quote_number}* foi aprovado.`,
+      "",
+      `Para iniciarmos o serviço, segue o Pix referente à entrada de ${quote.down_payment_percent}%:`,
+      `*Valor da entrada: ${fmtBRL(Number(activePayment.amount))}*`,
+      "",
+      activePayment.pix_key ? `Chave Pix: ${activePayment.pix_key}` : (companyPix?.pix_key ? `Chave Pix: ${companyPix.pix_key}` : ""),
+      activePayment.pix_copy_paste ? `Pix Copia e Cola:\n${activePayment.pix_copy_paste}` : "",
+      "",
+      "Após o pagamento, envie o comprovante por aqui.",
+      "",
+      `Valor total da proposta: ${fmtBRL(quote.total_amount)}`,
+      `Saldo restante: ${fmtBRL(quote.remaining_amount)}`,
+      "",
+      "Obrigado!",
+    ].filter(Boolean);
+    return lines.join("\n");
+  }
+
+  function handleSendPixWhatsApp() {
+    if (!quote || !activePayment) return;
+    const phone = (customer as any)?.whatsapp || (customer as any)?.phone || "";
+    const digits = phone.replace(/\D/g, "");
+    const base = digits
+      ? `https://wa.me/${digits.startsWith("55") ? digits : `55${digits}`}`
+      : `https://wa.me/`;
+    const url = `${base}?text=${encodeURIComponent(pixWhatsAppMessage())}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+    logMut.mutate({ quote_id: quoteId!, event_type: "pix_sent_whatsapp" });
+  }
+
+  async function handleCopyPix() {
+    const text = activePayment?.pix_copy_paste || activePayment?.pix_key || companyPix?.pix_key || "";
+    if (!text) {
+      toast.error("Nenhuma chave Pix disponível.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Pix copiado.");
+      logMut.mutate({ quote_id: quoteId!, event_type: "pix_copied" });
+    } catch {
+      toast.error("Não foi possível copiar.");
+    }
+  }
+
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -262,6 +374,80 @@ export function QuoteSendSheet({
                   </div>
                 )}
 
+                {quote.payment_status !== "NOT_STARTED" && (
+                  <div className="rounded-lg border bg-card p-4">
+                    <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+                      <Banknote className="h-4 w-4" />Pagamento da entrada
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="text-muted-foreground">Total da proposta</div>
+                      <div className="text-right font-medium">{fmtBRL(quote.total_amount)}</div>
+                      <div className="text-muted-foreground">Entrada ({quote.down_payment_percent}%)</div>
+                      <div className="text-right font-semibold">{fmtBRL(quote.down_payment_amount)}</div>
+                      <div className="text-muted-foreground">Saldo restante</div>
+                      <div className="text-right">{fmtBRL(quote.remaining_amount)}</div>
+                      <div className="text-muted-foreground">Status</div>
+                      <div className="text-right">
+                        <Badge
+                          variant={
+                            quote.payment_status === "PAYMENT_APPROVED" ? "default"
+                            : quote.payment_status === "WAITING_PAYMENT" ? "secondary"
+                            : "destructive"
+                          }
+                        >
+                          {quote.payment_status === "WAITING_PAYMENT" && "Aguardando pagamento"}
+                          {quote.payment_status === "PAYMENT_APPROVED" && "Pagamento aprovado"}
+                          {quote.payment_status === "PAYMENT_REJECTED" && "Recusado"}
+                          {quote.payment_status === "PAYMENT_CANCELLED" && "Cancelado"}
+                        </Badge>
+                      </div>
+                      {quote.payment_approved_at && (
+                        <>
+                          <div className="text-muted-foreground">Aprovado em</div>
+                          <div className="text-right">{fmtDateTime(quote.payment_approved_at)}</div>
+                        </>
+                      )}
+                    </div>
+
+                    {!companyPix?.pix_key && quote.payment_status === "WAITING_PAYMENT" && (
+                      <div className="mt-3 rounded border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+                        Cadastre sua chave Pix em Configurações &gt; Empresa para enviar a cobrança de entrada.
+                      </div>
+                    )}
+
+                    {quote.payment_status === "WAITING_PAYMENT" && activePayment && (
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                        <Can module="quote_payments" action="send_pix">
+                          <Button onClick={handleSendPixWhatsApp} className="w-full">
+                            <MessageCircle className="mr-1 h-4 w-4" />Enviar Pix WhatsApp
+                          </Button>
+                        </Can>
+                        <Button variant="outline" onClick={handleCopyPix} className="w-full">
+                          <Copy className="mr-1 h-4 w-4" />Copiar Pix
+                        </Button>
+                        <Can module="quote_payments" action="approve">
+                          <Button
+                            variant="secondary"
+                            onClick={() => setApproveOpen(true)}
+                            className="w-full"
+                          >
+                            <CheckCircle2 className="mr-1 h-4 w-4" />Marcar como pago
+                          </Button>
+                        </Can>
+                        <Can module="quote_payments" action="cancel">
+                          <Button
+                            variant="outline"
+                            onClick={() => cancelPayMut.mutate(activePayment.id)}
+                            className="w-full"
+                          >
+                            <XCircle className="mr-1 h-4 w-4" />Cancelar cobrança
+                          </Button>
+                        </Can>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <Separator />
 
                 <div>
@@ -293,6 +479,36 @@ export function QuoteSendSheet({
           </div>
         </ScrollArea>
       </SheetContent>
+
+      <AlertDialog open={approveOpen} onOpenChange={setApproveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar pagamento aprovado?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação indicará que a entrada do orçamento foi recebida.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="approve-note">Observação (opcional)</Label>
+            <Textarea
+              id="approve-note"
+              value={approveNote}
+              onChange={(e) => setApproveNote(e.target.value)}
+              placeholder="Ex: pago via Pix em 12/06."
+              className="min-h-[80px]"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => activePayment && approveMut.mutate(activePayment.id)}
+              disabled={!activePayment || approveMut.isPending}
+            >
+              Aprovar pagamento
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   );
 }
