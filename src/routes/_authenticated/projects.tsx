@@ -46,8 +46,6 @@ const PRIORITY_VARIANT: Record<ProjectPriority, "default" | "secondary" | "destr
   LOW: "outline", NORMAL: "secondary", HIGH: "default", URGENT: "destructive",
 };
 
-const fmtBRL = (n: number) =>
-  Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const fmtDate = (s: string | null) => s ? new Date(s).toLocaleDateString("pt-BR") : "—";
 
 const PLANNING_LABEL: Record<string, { label: string; cls: string }> = {
