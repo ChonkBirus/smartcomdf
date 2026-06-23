@@ -115,7 +115,7 @@ export function QuoteFormSheet({
   }, [open, customersError]);
 
   useEffect(() => {
-    if (!open || process.env.NODE_ENV === "production") return;
+    if (!open || !import.meta.env.DEV) return;
     console.log("Quote customer debug", {
       userId: user?.id ?? null,
       profile: (customersData as any)?.debug?.profile ?? null,
