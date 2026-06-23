@@ -220,6 +220,7 @@ function QuotesPage() {
                 <th className="px-3 py-2 hidden md:table-cell">Emissão</th>
                 <th className="px-3 py-2 hidden md:table-cell">Validade</th>
                 <th className="px-3 py-2">Status</th>
+                <th className="px-3 py-2 hidden lg:table-cell">Pagamento</th>
                 <th className="px-3 py-2 text-right">Total</th>
                 <th className="px-3 py-2 text-right">Ações</th>
               </tr>
@@ -238,6 +239,11 @@ function QuotesPage() {
                   <td className="px-3 py-2 hidden md:table-cell">{fmtDate(q.valid_until)}</td>
                   <td className="px-3 py-2">
                     <Badge variant={STATUS_VARIANT[q.status]}>{STATUS_LABEL[q.status]}</Badge>
+                  </td>
+                  <td className="px-3 py-2 hidden lg:table-cell">
+                    <Badge variant={PAY_STATUS_VARIANT[q.payment_status]}>
+                      {PAY_STATUS_LABEL[q.payment_status]}
+                    </Badge>
                   </td>
                   <td className="px-3 py-2 text-right font-medium">{fmtBRL(q.total_amount)}</td>
                   <td className="px-3 py-2">
