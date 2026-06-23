@@ -1,20 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown, Check, ChevronsUpDown } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { listCustomers } from "@/lib/customers.functions";
-import { listStockItems } from "@/lib/stock.functions";
-import { getQuote, saveQuote, type QuoteItemKind } from "@/lib/quotes.functions";
+import { getQuote, saveQuote, listQuoteCatalog, type QuoteItemKind, type QuoteCatalogItem } from "@/lib/quotes.functions";
 import { usePermissions } from "@/lib/permissions";
 
 type Line = {
@@ -32,8 +35,31 @@ const KIND_LABEL: Record<QuoteItemKind, string> = {
   PRODUCT: "Produto", SERVICE: "Serviço", LABOR: "Mão de obra", OTHER: "Outro",
 };
 
+const DEFAULT_PAYMENT_TERMS = "50% de entrada e 50% na entrega do serviço.";
+
 const fmtBRL = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+// Currency input: stores number, displays masked R$ value
+function CurrencyInput({
+  value, onChange, id,
+}: { value: number; onChange: (n: number) => void; id?: string }) {
+  const [text, setText] = useState(() => fmtBRL(value || 0));
+  useEffect(() => { setText(fmtBRL(value || 0)); }, [value]);
+  return (
+    <Input
+      id={id}
+      inputMode="numeric"
+      value={text}
+      onChange={(e) => {
+        const digits = e.target.value.replace(/\D/g, "");
+        const n = digits ? Number(digits) / 100 : 0;
+        setText(fmtBRL(n));
+        onChange(n);
+      }}
+    />
+  );
+}
 
 export function QuoteFormSheet({
   open, onOpenChange, quoteId,
@@ -44,13 +70,14 @@ export function QuoteFormSheet({
   const fetchOne = useServerFn(getQuote);
   const save = useServerFn(saveQuote);
   const fetchCustomers = useServerFn(listCustomers);
-  const fetchItems = useServerFn(listStockItems);
+  const fetchCatalog = useServerFn(listQuoteCatalog);
 
   const [customerId, setCustomerId] = useState("");
+  const [customerOpen, setCustomerOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [issueDate, setIssueDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [validUntil, setValidUntil] = useState("");
-  const [payment, setPayment] = useState("");
+  const [payment, setPayment] = useState(DEFAULT_PAYMENT_TERMS);
   const [delivery, setDelivery] = useState("");
   const [warranty, setWarranty] = useState("");
   const [completion, setCompletion] = useState("");
@@ -62,16 +89,19 @@ export function QuoteFormSheet({
 
   const { data: customersData } = useQuery({
     queryKey: ["customers", "quote-form"],
-    queryFn: () => fetchCustomers({ data: { customer_status: "ACTIVE", page: 1, page_size: 200 } as any }),
+    queryFn: () => fetchCustomers({ data: { customer_status: "ACTIVE", page: 1, page_size: 500 } as any }),
     enabled: open,
   });
-  const customers = (customersData as any)?.rows ?? [];
+  const customers: any[] = (customersData as any)?.rows ?? [];
 
-  const { data: items } = useQuery({
-    queryKey: ["stock_items", "quote-form"],
-    queryFn: () => fetchItems(),
+  const { data: catalog } = useQuery({
+    queryKey: ["quote-catalog"],
+    queryFn: () => fetchCatalog(),
     enabled: open,
   });
+  const catalogItems = (catalog ?? []) as QuoteCatalogItem[];
+  const products = useMemo(() => catalogItems.filter((i) => i.item_type === "PRODUCT"), [catalogItems]);
+  const services = useMemo(() => catalogItems.filter((i) => i.item_type === "SERVICE"), [catalogItems]);
 
   const { data: existing } = useQuery({
     queryKey: ["quote", quoteId],
@@ -110,7 +140,7 @@ export function QuoteFormSheet({
     } else if (!quoteId) {
       setCustomerId(""); setTitle("");
       setIssueDate(new Date().toISOString().slice(0, 10)); setValidUntil("");
-      setPayment(""); setDelivery(""); setWarranty(""); setCompletion("");
+      setPayment(DEFAULT_PAYMENT_TERMS); setDelivery(""); setWarranty(""); setCompletion("");
       setCustomerNotes(""); setInternalNotes("");
       setLaborCost(0); setDiscount(0); setLines([]);
     }
@@ -186,13 +216,15 @@ export function QuoteFormSheet({
       return arr;
     });
   }
-  function pickItem(i: number, itemId: string) {
-    const it = (items ?? []).find((x: any) => x.id === itemId);
+  function pickCatalogItem(i: number, itemId: string) {
+    const it = catalogItems.find((x) => x.id === itemId);
     if (!it) return;
     setLine(i, {
       item_id: it.id,
       name: it.name,
-      kind: "PRODUCT",
+      kind: it.item_type === "SERVICE" ? "SERVICE" : "PRODUCT",
+      unit_price: it.sale_price,
+      cost_price: it.cost_price,
     });
   }
 
@@ -205,6 +237,8 @@ export function QuoteFormSheet({
     }
     mutation.mutate();
   }
+
+  const selectedCustomer = customers.find((c) => c.id === customerId);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -229,17 +263,48 @@ export function QuoteFormSheet({
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <Label>Cliente *</Label>
-                  <Select value={customerId} onValueChange={setCustomerId}>
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      {customers.map((c: any) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.trade_name || c.name}
-                          {c.corporate_name && c.corporate_name !== c.name ? ` — ${c.corporate_name}` : ""}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={customerOpen} onOpenChange={setCustomerOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        role="combobox"
+                        className={cn("w-full justify-between", !customerId && "text-muted-foreground")}
+                      >
+                        {selectedCustomer
+                          ? (selectedCustomer.trade_name || selectedCustomer.name)
+                          : "Pesquisar cliente..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Buscar por nome ou razão social..." />
+                        <CommandList>
+                          <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
+                          <CommandGroup>
+                            {customers.map((c: any) => {
+                              const label = c.trade_name || c.name;
+                              const sub = c.corporate_name && c.corporate_name !== c.name ? c.corporate_name : "";
+                              return (
+                                <CommandItem
+                                  key={c.id}
+                                  value={`${label} ${sub} ${c.cpf_cnpj ?? ""}`}
+                                  onSelect={() => { setCustomerId(c.id); setCustomerOpen(false); }}
+                                >
+                                  <Check className={cn("mr-2 h-4 w-4", customerId === c.id ? "opacity-100" : "opacity-0")} />
+                                  <div className="flex flex-col">
+                                    <span>{label}</span>
+                                    {sub && <span className="text-xs text-muted-foreground">{sub}</span>}
+                                  </div>
+                                </CommandItem>
+                              );
+                            })}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="sm:col-span-2">
                   <Label>Título / Assunto</Label>
@@ -259,16 +324,12 @@ export function QuoteFormSheet({
               <Separator />
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <Label>Mão de obra (R$)</Label>
-                  <Input type="number" step="0.01" min="0"
-                    value={laborCost}
-                    onChange={(e) => setLaborCost(Number(e.target.value) || 0)} />
+                  <Label>Mão de obra</Label>
+                  <CurrencyInput value={laborCost} onChange={setLaborCost} />
                 </div>
                 <div>
-                  <Label>Desconto (R$)</Label>
-                  <Input type="number" step="0.01" min="0"
-                    value={discount}
-                    onChange={(e) => setDiscount(Number(e.target.value) || 0)} />
+                  <Label>Desconto</Label>
+                  <CurrencyInput value={discount} onChange={setDiscount} />
                 </div>
               </div>
 
@@ -315,78 +376,19 @@ export function QuoteFormSheet({
               )}
 
               {lines.map((l, i) => (
-                <div key={i} className="space-y-2 rounded-md border p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <Badge variant="outline">{KIND_LABEL[l.kind]}</Badge>
-                    <div className="flex gap-1">
-                      <Button type="button" size="icon" variant="ghost" onClick={() => moveLine(i, -1)} disabled={i === 0}>
-                        <ArrowUp className="h-4 w-4" />
-                      </Button>
-                      <Button type="button" size="icon" variant="ghost" onClick={() => moveLine(i, 1)} disabled={i === lines.length - 1}>
-                        <ArrowDown className="h-4 w-4" />
-                      </Button>
-                      <Button type="button" size="icon" variant="ghost" onClick={() => removeLine(i)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {l.kind === "PRODUCT" && (
-                    <div>
-                      <Label className="text-xs">Vincular ao catálogo (opcional)</Label>
-                      <Select value={l.item_id ?? ""} onValueChange={(v) => pickItem(i, v)}>
-                        <SelectTrigger><SelectValue placeholder="Pesquisar item do catálogo" /></SelectTrigger>
-                        <SelectContent>
-                          {(items ?? []).map((it: any) => (
-                            <SelectItem key={it.id} value={it.id}>
-                              {it.name}{it.sku ? ` (${it.sku})` : ""}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <div className="col-span-12 sm:col-span-6">
-                      <Label className="text-xs">Nome *</Label>
-                      <Input value={l.name} onChange={(e) => setLine(i, { name: e.target.value })} />
-                    </div>
-                    <div className="col-span-4 sm:col-span-2">
-                      <Label className="text-xs">Qtd *</Label>
-                      <Input type="number" min="0" step="0.001" value={l.quantity}
-                        onChange={(e) => setLine(i, { quantity: Number(e.target.value) || 0 })} />
-                    </div>
-                    <div className="col-span-4 sm:col-span-2">
-                      <Label className="text-xs">Preço unit. *</Label>
-                      <Input type="number" min="0" step="0.01" value={l.unit_price}
-                        onChange={(e) => setLine(i, { unit_price: Number(e.target.value) || 0 })} />
-                    </div>
-                    {canSeeInternal && (
-                      <div className="col-span-4 sm:col-span-2">
-                        <Label className="text-xs">Custo (interno)</Label>
-                        <Input type="number" min="0" step="0.01" value={l.cost_price}
-                          onChange={(e) => setLine(i, { cost_price: Number(e.target.value) || 0 })} />
-                      </div>
-                    )}
-                    <div className="col-span-12">
-                      <Label className="text-xs">Descrição (aparece ao cliente)</Label>
-                      <Textarea rows={2} value={l.description}
-                        onChange={(e) => setLine(i, { description: e.target.value })} />
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    {canSeeInternal ? (
-                      <span>Margem: {l.cost_price > 0
-                        ? `${(((l.unit_price - l.cost_price) / l.cost_price) * 100).toFixed(1)}%`
-                        : "—"}
-                      </span>
-                    ) : <span />}
-                    <span className="font-medium text-foreground">
-                      Subtotal: {fmtBRL(l.quantity * l.unit_price)}
-                    </span>
-                  </div>
-                </div>
+                <LineRow
+                  key={i}
+                  line={l}
+                  index={i}
+                  last={i === lines.length - 1}
+                  products={products}
+                  services={services}
+                  canSeeInternal={canSeeInternal}
+                  onChange={(patch) => setLine(i, patch)}
+                  onPickCatalog={(id) => pickCatalogItem(i, id)}
+                  onRemove={() => removeLine(i)}
+                  onMove={(dir) => moveLine(i, dir)}
+                />
               ))}
 
               <div className="flex items-center justify-between rounded-md bg-muted p-3 text-sm font-semibold">
@@ -400,7 +402,7 @@ export function QuoteFormSheet({
               <div>
                 <Label>Condições de pagamento</Label>
                 <Textarea rows={2} value={payment} onChange={(e) => setPayment(e.target.value)}
-                  placeholder="Ex.: 50% na aprovação e 50% na entrega" />
+                  placeholder={DEFAULT_PAYMENT_TERMS} />
               </div>
               <div>
                 <Label>Prazo de entrega</Label>
@@ -433,5 +435,124 @@ export function QuoteFormSheet({
         </form>
       </SheetContent>
     </Sheet>
+  );
+}
+
+function LineRow({
+  line, index, last, products, services, canSeeInternal,
+  onChange, onPickCatalog, onRemove, onMove,
+}: {
+  line: Line;
+  index: number;
+  last: boolean;
+  products: QuoteCatalogItem[];
+  services: QuoteCatalogItem[];
+  canSeeInternal: boolean;
+  onChange: (patch: Partial<Line>) => void;
+  onPickCatalog: (id: string) => void;
+  onRemove: () => void;
+  onMove: (dir: -1 | 1) => void;
+}) {
+  const [pickOpen, setPickOpen] = useState(false);
+  const source = line.kind === "SERVICE" ? services : products;
+  const showCatalog = line.kind === "PRODUCT" || line.kind === "SERVICE";
+  const selected = source.find((s) => s.id === line.item_id);
+  const margin = line.cost_price > 0
+    ? (((line.unit_price - line.cost_price) / line.cost_price) * 100)
+    : null;
+
+  return (
+    <div className="space-y-2 rounded-md border p-3">
+      <div className="flex items-center justify-between gap-2">
+        <Badge variant="outline">{KIND_LABEL[line.kind]}</Badge>
+        <div className="flex gap-1">
+          <Button type="button" size="icon" variant="ghost" onClick={() => onMove(-1)} disabled={index === 0}>
+            <ArrowUp className="h-4 w-4" />
+          </Button>
+          <Button type="button" size="icon" variant="ghost" onClick={() => onMove(1)} disabled={last}>
+            <ArrowDown className="h-4 w-4" />
+          </Button>
+          <Button type="button" size="icon" variant="ghost" onClick={onRemove}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {showCatalog && (
+        <div>
+          <Label className="text-xs">
+            {line.kind === "SERVICE" ? "Serviço do catálogo" : "Produto do catálogo"}
+          </Label>
+          <Popover open={pickOpen} onOpenChange={setPickOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                role="combobox"
+                className={cn("w-full justify-between", !selected && "text-muted-foreground")}
+              >
+                {selected ? `${selected.name}${selected.sku ? ` (${selected.sku})` : ""}` : "Pesquisar no catálogo..."}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Buscar por nome ou SKU..." />
+                <CommandList>
+                  <CommandEmpty>Nenhum item encontrado.</CommandEmpty>
+                  <CommandGroup>
+                    {source.map((it) => (
+                      <CommandItem
+                        key={it.id}
+                        value={`${it.name} ${it.sku ?? ""}`}
+                        onSelect={() => { onPickCatalog(it.id); setPickOpen(false); }}
+                      >
+                        <Check className={cn("mr-2 h-4 w-4", line.item_id === it.id ? "opacity-100" : "opacity-0")} />
+                        <span>{it.name}{it.sku ? ` (${it.sku})` : ""}</span>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
+
+      <div className="grid grid-cols-12 gap-2">
+        <div className="col-span-12 sm:col-span-6">
+          <Label className="text-xs">Nome *</Label>
+          <Input value={line.name} onChange={(e) => onChange({ name: e.target.value })} />
+        </div>
+        <div className="col-span-4 sm:col-span-2">
+          <Label className="text-xs">Qtd *</Label>
+          <Input type="number" min="0" step="0.001" value={line.quantity}
+            onChange={(e) => onChange({ quantity: Number(e.target.value) || 0 })} />
+        </div>
+        <div className="col-span-8 sm:col-span-2">
+          <Label className="text-xs">Preço unit. *</Label>
+          <CurrencyInput value={line.unit_price} onChange={(n) => onChange({ unit_price: n })} />
+        </div>
+        {canSeeInternal && (
+          <div className="col-span-12 sm:col-span-2">
+            <Label className="text-xs">Custo (interno)</Label>
+            <CurrencyInput value={line.cost_price} onChange={(n) => onChange({ cost_price: n })} />
+          </div>
+        )}
+        <div className="col-span-12">
+          <Label className="text-xs">Descrição (aparece ao cliente)</Label>
+          <Textarea rows={2} value={line.description}
+            onChange={(e) => onChange({ description: e.target.value })} />
+        </div>
+      </div>
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        {canSeeInternal ? (
+          <span>Margem: {margin !== null ? `${margin.toFixed(1)}%` : "—"}</span>
+        ) : <span />}
+        <span className="font-medium text-foreground">
+          Subtotal: {fmtBRL(line.quantity * line.unit_price)}
+        </span>
+      </div>
+    </div>
   );
 }
