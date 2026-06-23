@@ -41,6 +41,11 @@ const EVENT_LABEL: Record<string, string> = {
   email_sent: "Enviado por e-mail",
   viewed: "Visualizado pelo cliente",
   accepted: "Aceito pelo cliente",
+  payment_created: "Cobrança Pix criada",
+  payment_approved: "Pagamento aprovado",
+  payment_cancelled: "Cobrança cancelada",
+  pix_sent_whatsapp: "Pix enviado via WhatsApp",
+  pix_copied: "Pix copiado",
 };
 
 function publicUrlFor(token: string) {
