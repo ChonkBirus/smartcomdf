@@ -197,6 +197,7 @@ export const getProject = createServerFn({ method: "GET" })
         customer_name:
           p.customers?.trade_name || p.customers?.name || p.customers?.corporate_name || "—",
         quote_number: p.quotes?.quote_number ?? null,
+        responsible_name: p.responsible?.full_name ?? p.responsible?.email ?? null,
       } as Project,
       customer: p.customers,
       address: p.address,
