@@ -147,7 +147,14 @@ function ProjectDetailPage() {
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Visão geral</TabsTrigger>
+          <TabsTrigger value="planning">Planejamento</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-3">
         <div className="rounded-lg border bg-card p-4">
           <div className="mb-2 flex items-center gap-2 text-sm font-medium">
             <User2 className="h-4 w-4" />Cliente
