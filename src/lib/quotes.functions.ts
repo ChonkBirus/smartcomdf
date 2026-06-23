@@ -100,6 +100,42 @@ const nz = (v: unknown): string | null => {
 };
 
 // ============================================================
+// CATALOG (products + services with prices) for quote form
+// ============================================================
+export type QuoteCatalogItem = {
+  id: string;
+  name: string;
+  sku: string | null;
+  unit: string;
+  item_type: "PRODUCT" | "SERVICE";
+  sale_price: number;
+  cost_price: number;
+};
+
+export const listQuoteCatalog = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const sb = context.supabase as any;
+    const { data, error } = await sb
+      .from("items")
+      .select("id, name, sku, unit, item_type, sale_price, cost_price")
+      .is("deleted_at", null)
+      .eq("active", true)
+      .in("item_type", ["PRODUCT", "SERVICE"])
+      .order("name");
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r: any) => ({
+      id: r.id,
+      name: r.name,
+      sku: r.sku,
+      unit: r.unit,
+      item_type: r.item_type,
+      sale_price: Number(r.sale_price || 0),
+      cost_price: Number(r.cost_price || 0),
+    })) as QuoteCatalogItem[];
+  });
+
+// ============================================================
 // LIST
 // ============================================================
 export const listQuotes = createServerFn({ method: "GET" })
