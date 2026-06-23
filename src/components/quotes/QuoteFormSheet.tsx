@@ -16,9 +16,10 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { listCustomers } from "@/lib/customers.functions";
+import { getActiveCustomersForQuote, type QuoteCustomerOption } from "@/lib/customers.functions";
 import { getQuote, saveQuote, listQuoteCatalog, type QuoteItemKind, type QuoteCatalogItem } from "@/lib/quotes.functions";
 import { usePermissions } from "@/lib/permissions";
+import { useAuth } from "@/lib/auth-context";
 
 type Line = {
   id?: string;
@@ -65,11 +66,12 @@ export function QuoteFormSheet({
   open, onOpenChange, quoteId,
 }: { open: boolean; onOpenChange: (o: boolean) => void; quoteId: string | null }) {
   const qc = useQueryClient();
+  const { user, loading: authLoading } = useAuth();
   const { has } = usePermissions();
   const canSeeInternal = has("quotes.view_internal_values");
   const fetchOne = useServerFn(getQuote);
   const save = useServerFn(saveQuote);
-  const fetchCustomers = useServerFn(listCustomers);
+  const fetchQuoteCustomers = useServerFn(getActiveCustomersForQuote);
   const fetchCatalog = useServerFn(listQuoteCatalog);
 
   const [customerId, setCustomerId] = useState("");
@@ -87,13 +89,45 @@ export function QuoteFormSheet({
   const [discount, setDiscount] = useState(0);
   const [lines, setLines] = useState<Line[]>([]);
 
-  const { data: customersData, error: customersError, isLoading: customersLoading } = useQuery({
+  const {
+    data: customersData,
+    error: customersError,
+    isFetching: customersFetching,
+    isLoading: customersLoading,
+  } = useQuery({
     queryKey: ["customers", "quote-form"],
-    queryFn: () => fetchCustomers({ data: { active: true, sort: "name", page: 1, page_size: 100 } as any }),
-    enabled: open,
+    queryFn: () => fetchQuoteCustomers({ data: {} }),
+    enabled: open && !authLoading && !!user,
+    staleTime: 30_000,
   });
-  const customers: any[] = (customersData as any)?.rows ?? [];
+  const customerOptions = useMemo(
+    () => ((customersData as any)?.options ?? []) as QuoteCustomerOption[],
+    [customersData],
+  );
   const [customerTouched, setCustomerTouched] = useState(false);
+  const selectedCustomer = customerOptions.find((option) => option.value === customerId) ?? null;
+  const selectedCustomerContacts = selectedCustomer?.raw.customer_contacts ?? [];
+  const selectedCustomerAddresses = selectedCustomer?.raw.customer_addresses ?? [];
+
+  useEffect(() => {
+    if (!open || !customersError) return;
+    toast.error("Não foi possível carregar os clientes. Verifique as permissões ou tente novamente.");
+  }, [open, customersError]);
+
+  useEffect(() => {
+    if (!open || !import.meta.env.DEV) return;
+    console.log("Quote customer debug", {
+      userId: user?.id ?? null,
+      profile: (customersData as any)?.debug?.profile ?? null,
+      companyId: (customersData as any)?.companyId ?? (customersData as any)?.debug?.companyId ?? null,
+      customers: (customersData as any)?.customers ?? [],
+      error: customersError ? { message: customersError.message } : null,
+      authReady: !authLoading,
+      customerCount: customerOptions.length,
+      queryReturnedEmpty: (customersData as any)?.debug?.queryReturnedEmpty ?? false,
+      comboBoxOptions: customerOptions,
+    });
+  }, [open, user?.id, customersData, customersError, authLoading, customerOptions]);
 
   const { data: catalog } = useQuery({
     queryKey: ["quote-catalog"],
@@ -231,15 +265,16 @@ export function QuoteFormSheet({
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!customerId) return toast.error("Selecione um cliente.");
+    if (!customerId) {
+      setCustomerTouched(true);
+      return toast.error("Selecione um cliente para criar o orçamento.");
+    }
     if (!lines.length) return toast.error("Adicione pelo menos um item.");
     if (lines.some((l) => !l.name.trim() || l.quantity <= 0 || l.unit_price < 0)) {
       return toast.error("Verifique os itens (nome, quantidade e preço).");
     }
     mutation.mutate();
   }
-
-  const selectedCustomer = customers.find((c) => c.id === customerId);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -271,10 +306,11 @@ export function QuoteFormSheet({
                         variant="outline"
                         role="combobox"
                         className={cn("w-full justify-between", !customerId && "text-muted-foreground")}
+                        aria-invalid={customerTouched && !customerId}
                       >
                         {selectedCustomer
-                          ? (selectedCustomer.trade_name || selectedCustomer.name)
-                          : "Pesquisar cliente..."}
+                          ? selectedCustomer.label
+                          : "Selecione ou pesquise um cliente..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
@@ -288,42 +324,51 @@ export function QuoteFormSheet({
                       >
                         <CommandInput placeholder="Selecione ou pesquise um cliente..." />
                         <CommandList>
-                          {customersLoading ? (
+                          {(authLoading || customersLoading || customersFetching) ? (
                             <div className="py-6 text-center text-sm text-muted-foreground">Carregando clientes...</div>
                           ) : customersError ? (
                             <div className="py-6 text-center text-sm text-destructive">
-                              Não foi possível carregar os clientes. Tente novamente.
+                              Não foi possível carregar os clientes. Verifique as permissões ou tente novamente.
                             </div>
-                          ) : customers.length === 0 ? (
-                            <div className="py-6 text-center text-sm text-muted-foreground">
-                              Nenhum cliente cadastrado.
+                          ) : customerOptions.length === 0 ? (
+                            <div className="space-y-3 px-3 py-6 text-center text-sm text-muted-foreground">
+                              <p>Nenhum cliente cadastrado encontrado.</p>
+                              <Button type="button" variant="outline" size="sm" asChild>
+                                <a href="/clients">Cadastrar novo cliente</a>
+                              </Button>
                             </div>
                           ) : (
                             <>
                               <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
                               <CommandGroup>
-                                {customers.map((c: any) => {
-                                  const isPJ = c.customer_type === "COMPANY";
-                                  const label = isPJ
-                                    ? (c.trade_name || c.corporate_name || c.name)
-                                    : c.name;
-                                  const doc = c.cpf_cnpj ?? "";
-                                  const wa = c.whatsapp ?? c.phone ?? "";
-                                  const sub = [doc, wa].filter(Boolean).join(" • ");
+                                {customerOptions.map((option) => {
+                                  const c = option.raw;
+                                  const searchValue = [
+                                    option.label,
+                                    option.description,
+                                    c.corporate_name,
+                                    c.trade_name,
+                                    c.name,
+                                    c.cpf_cnpj,
+                                    c.email,
+                                    c.whatsapp,
+                                    c.phone,
+                                    option.value,
+                                  ].filter(Boolean).join(" ");
                                   return (
                                     <CommandItem
-                                      key={c.id}
-                                      value={`${label} ${c.corporate_name ?? ""} ${c.trade_name ?? ""} ${c.name ?? ""} ${doc} ${wa} ${c.email ?? ""}`}
+                                      key={option.value}
+                                      value={searchValue}
                                       onSelect={() => {
-                                        setCustomerId(c.id);
+                                        setCustomerId(option.value);
                                         setCustomerTouched(true);
                                         setCustomerOpen(false);
                                       }}
                                     >
-                                      <Check className={cn("mr-2 h-4 w-4", customerId === c.id ? "opacity-100" : "opacity-0")} />
+                                      <Check className={cn("mr-2 h-4 w-4", customerId === option.value ? "opacity-100" : "opacity-0")} />
                                       <div className="flex flex-col">
-                                        <span>{label}</span>
-                                        {sub && <span className="text-xs text-muted-foreground">{sub}</span>}
+                                        <span>{option.label}</span>
+                                        {option.description && <span className="text-xs text-muted-foreground">{option.description}</span>}
                                       </div>
                                     </CommandItem>
                                   );
@@ -337,6 +382,18 @@ export function QuoteFormSheet({
                   </Popover>
                   {customerTouched && !customerId && (
                     <p className="mt-1 text-xs text-destructive">Selecione um cliente para criar o orçamento.</p>
+                  )}
+                  {selectedCustomer && (selectedCustomerContacts.length > 0 || selectedCustomerAddresses.length > 0) && (
+                    <div className="mt-2 grid gap-2 rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground sm:grid-cols-2">
+                      <div>
+                        <span className="font-medium text-foreground">Contatos carregados:</span>{" "}
+                        {selectedCustomerContacts.length || 0}
+                      </div>
+                      <div>
+                        <span className="font-medium text-foreground">Endereços carregados:</span>{" "}
+                        {selectedCustomerAddresses.length || 0}
+                      </div>
+                    </div>
                   )}
                 </div>
                 <div className="sm:col-span-2">
