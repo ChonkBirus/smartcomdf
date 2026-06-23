@@ -66,7 +66,8 @@ export function QuoteFormSheet({
   open, onOpenChange, quoteId,
 }: { open: boolean; onOpenChange: (o: boolean) => void; quoteId: string | null }) {
   const qc = useQueryClient();
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
+  const companyId = profile?.company_id;
   const { has } = usePermissions();
   const canSeeInternal = has("quotes.view_internal_values");
   const fetchOne = useServerFn(getQuote);
@@ -95,10 +96,11 @@ export function QuoteFormSheet({
     isFetching: customersFetching,
     isLoading: customersLoading,
   } = useQuery({
-    queryKey: ["customers", "quote-form"],
-    queryFn: () => fetchQuoteCustomers({ data: {} }),
-    enabled: open && !authLoading && !!user,
+    queryKey: ["customers", "quote-form", companyId],
+    queryFn: () => fetchQuoteCustomers({ data: { companyId } }),
+    enabled: open && !authLoading && !!user && !!companyId,
     staleTime: 30_000,
+    refetchOnMount: true,
   });
   const customerOptions = useMemo(
     () => ((customersData as any)?.options ?? []) as QuoteCustomerOption[],
@@ -116,15 +118,24 @@ export function QuoteFormSheet({
 
   useEffect(() => {
     if (!open) return;
+    if (!companyId) {
+      console.log("[QuoteCustomers] companyId ainda não carregado. Query de clientes não executada.", {
+        authLoading,
+        hasUser: !!user,
+      });
+      return;
+    }
     const d: any = customersData;
-    console.log("[QuoteCustomers] profile.company_id:", d?.debug?.profile?.company_id ?? d?.companyId ?? null);
+    console.log("[QuoteCustomers] companyId usado na query:", companyId);
+    console.log("[QuoteCustomers] profile.company_id:", profile?.company_id ?? d?.debug?.profile?.company_id ?? null);
     console.log("[QuoteCustomers] customers.length:", (d?.customers ?? []).length);
     console.log("[QuoteCustomers] supabase error:", customersError ? { message: customersError.message } : null);
+    console.log("[QuoteCustomers] options.length:", customerOptions.length);
     console.log(
       "[QuoteCustomers] query usada no customerService:",
-      `supabase.from("customers").select("id, customer_type, name, corporate_name, trade_name, cpf_cnpj, email, phone, whatsapp, active, customer_status, customer_addresses!left(*), customer_contacts!left(*)").eq("company_id", "${d?.companyId ?? d?.debug?.companyId ?? "<null>"}").is("deleted_at", null).order("name", { ascending: true })`,
+      `supabase.from("customers").select("id, customer_type, name, corporate_name, trade_name, cpf_cnpj, email, phone, whatsapp, active, customer_status, customer_addresses!left(*), customer_contacts!left(*)").eq("company_id", "${companyId}").is("deleted_at", null).or("active.eq.true,customer_status.eq.ACTIVE").order("name", { ascending: true })`,
     );
-  }, [open, customersData, customersError]);
+  }, [open, companyId, authLoading, user, profile?.company_id, customersData, customersError, customerOptions.length]);
 
   const { data: catalog } = useQuery({
     queryKey: ["quote-catalog"],
@@ -321,8 +332,10 @@ export function QuoteFormSheet({
                       >
                         <CommandInput placeholder="Selecione ou pesquise um cliente..." />
                         <CommandList>
-                          {(authLoading || customersLoading || customersFetching) ? (
+                          {(authLoading || (!!companyId && (customersLoading || customersFetching))) ? (
                             <div className="py-6 text-center text-sm text-muted-foreground">Carregando clientes...</div>
+                          ) : !companyId ? (
+                            <div className="py-6 text-center text-sm text-destructive">Empresa não identificada.</div>
                           ) : customersError ? (
                             <div className="py-6 text-center text-sm text-destructive">
                               Não foi possível carregar os clientes. Verifique as permissões ou tente novamente.
