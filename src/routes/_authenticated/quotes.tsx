@@ -51,6 +51,21 @@ const STATUS_VARIANT: Record<QuoteStatus, "default" | "secondary" | "destructive
   CANCELLED: "destructive", EXPIRED: "destructive",
 };
 
+const PAY_STATUS_LABEL: Record<QuotePaymentStatus, string> = {
+  NOT_STARTED: "Não iniciado",
+  WAITING_PAYMENT: "Aguardando pagamento",
+  PAYMENT_APPROVED: "Pagamento aprovado",
+  PAYMENT_REJECTED: "Pagamento recusado",
+  PAYMENT_CANCELLED: "Pagamento cancelado",
+};
+const PAY_STATUS_VARIANT: Record<QuotePaymentStatus, "default" | "secondary" | "destructive" | "outline"> = {
+  NOT_STARTED: "outline",
+  WAITING_PAYMENT: "secondary",
+  PAYMENT_APPROVED: "default",
+  PAYMENT_REJECTED: "destructive",
+  PAYMENT_CANCELLED: "destructive",
+};
+
 const fmtBRL = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const fmtDate = (s: string | null) =>
