@@ -366,6 +366,7 @@ export type Database = {
           city: string | null
           company_id: string
           complement: string | null
+          country: string
           created_at: string
           customer_id: string
           district: string | null
@@ -383,6 +384,7 @@ export type Database = {
           city?: string | null
           company_id: string
           complement?: string | null
+          country?: string
           created_at?: string
           customer_id: string
           district?: string | null
@@ -400,6 +402,7 @@ export type Database = {
           city?: string | null
           company_id?: string
           complement?: string | null
+          country?: string
           created_at?: string
           customer_id?: string
           district?: string | null
