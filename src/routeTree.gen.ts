@@ -46,6 +46,7 @@ import { Route as AuthenticatedServiceOrdersMyRouteImport } from './routes/_auth
 import { Route as AuthenticatedServiceOrdersIdRouteImport } from './routes/_authenticated/service-orders_.$id'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects_.$id'
 import { Route as AuthenticatedClientsIdRouteImport } from './routes/_authenticated/clients_.$id'
+import { Route as AuthenticatedBillingPlansRouteImport } from './routes/_authenticated/billing.plans'
 import { Route as AuthenticatedAdminSubscriptionsRouteImport } from './routes/_authenticated/admin.subscriptions'
 import { Route as AuthenticatedAdminPlansRouteImport } from './routes/_authenticated/admin.plans'
 import { Route as AuthenticatedServiceOrdersIdMobileRouteImport } from './routes/_authenticated/service-orders_.$id.mobile'
@@ -245,6 +246,12 @@ const AuthenticatedClientsIdRoute = AuthenticatedClientsIdRouteImport.update({
   path: '/clients/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBillingPlansRoute =
+  AuthenticatedBillingPlansRouteImport.update({
+    id: '/billing/plans',
+    path: '/billing/plans',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminSubscriptionsRoute =
   AuthenticatedAdminSubscriptionsRouteImport.update({
     id: '/subscriptions',
@@ -291,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/r/$token': typeof RTokenRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
+  '/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/service-orders/$id': typeof AuthenticatedServiceOrdersIdRouteWithChildren
@@ -330,6 +338,7 @@ export interface FileRoutesByTo {
   '/r/$token': typeof RTokenRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
+  '/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/service-orders/$id': typeof AuthenticatedServiceOrdersIdRouteWithChildren
@@ -373,6 +382,7 @@ export interface FileRoutesById {
   '/r/$token': typeof RTokenRoute
   '/_authenticated/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/_authenticated/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
+  '/_authenticated/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/_authenticated/clients_/$id': typeof AuthenticatedClientsIdRoute
   '/_authenticated/projects_/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/service-orders_/$id': typeof AuthenticatedServiceOrdersIdRouteWithChildren
@@ -416,6 +426,7 @@ export interface FileRouteTypes {
     | '/r/$token'
     | '/admin/plans'
     | '/admin/subscriptions'
+    | '/billing/plans'
     | '/clients/$id'
     | '/projects/$id'
     | '/service-orders/$id'
@@ -455,6 +466,7 @@ export interface FileRouteTypes {
     | '/r/$token'
     | '/admin/plans'
     | '/admin/subscriptions'
+    | '/billing/plans'
     | '/clients/$id'
     | '/projects/$id'
     | '/service-orders/$id'
@@ -497,6 +509,7 @@ export interface FileRouteTypes {
     | '/r/$token'
     | '/_authenticated/admin/plans'
     | '/_authenticated/admin/subscriptions'
+    | '/_authenticated/billing/plans'
     | '/_authenticated/clients_/$id'
     | '/_authenticated/projects_/$id'
     | '/_authenticated/service-orders_/$id'
@@ -783,6 +796,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/billing/plans': {
+      id: '/_authenticated/billing/plans'
+      path: '/billing/plans'
+      fullPath: '/billing/plans'
+      preLoaderRoute: typeof AuthenticatedBillingPlansRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/subscriptions': {
       id: '/_authenticated/admin/subscriptions'
       path: '/subscriptions'
@@ -880,6 +900,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSmartReceivingRoute: typeof AuthenticatedSmartReceivingRoute
   AuthenticatedStockRoute: typeof AuthenticatedStockRoute
   AuthenticatedSuppliersRoute: typeof AuthenticatedSuppliersRoute
+  AuthenticatedBillingPlansRoute: typeof AuthenticatedBillingPlansRoute
   AuthenticatedClientsIdRoute: typeof AuthenticatedClientsIdRoute
   AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
   AuthenticatedServiceOrdersIdRoute: typeof AuthenticatedServiceOrdersIdRouteWithChildren
@@ -905,6 +926,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSmartReceivingRoute: AuthenticatedSmartReceivingRoute,
   AuthenticatedStockRoute: AuthenticatedStockRoute,
   AuthenticatedSuppliersRoute: AuthenticatedSuppliersRoute,
+  AuthenticatedBillingPlansRoute: AuthenticatedBillingPlansRoute,
   AuthenticatedClientsIdRoute: AuthenticatedClientsIdRoute,
   AuthenticatedProjectsIdRoute: AuthenticatedProjectsIdRoute,
   AuthenticatedServiceOrdersIdRoute:
