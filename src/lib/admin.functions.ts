@@ -81,12 +81,12 @@ export const updateSubscription = createServerFn({ method: "POST" })
     await assertSuperAdmin(context.supabase, context.userId);
     const { error } = await context.supabase.rpc("admin_update_subscription", {
       _subscription_id: data.subscription_id,
-      _new_plan_id: data.new_plan_id ?? null,
-      _new_status: data.new_status ?? null,
-      _new_billing_cycle: data.new_billing_cycle ?? null,
-      _extend_trial_days: data.extend_trial_days ?? null,
-      _extend_grace_days: data.extend_grace_days ?? null,
-      _description: data.description ?? null,
+      _new_plan_id: data.new_plan_id ?? undefined,
+      _new_status: data.new_status ?? undefined,
+      _new_billing_cycle: data.new_billing_cycle ?? undefined,
+      _extend_trial_days: data.extend_trial_days ?? undefined,
+      _extend_grace_days: data.extend_grace_days ?? undefined,
+      _description: data.description ?? undefined,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
