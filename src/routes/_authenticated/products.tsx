@@ -16,6 +16,7 @@ import {
   ArrowDown,
   Wrench,
   ChevronDown,
+  Upload,
 } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/EmptyState";
@@ -61,6 +62,7 @@ import { getMyContext } from "@/lib/account.functions";
 import { TaxonomyDialog } from "@/components/products/TaxonomyDialog";
 import { ItemFormSheet } from "@/components/products/ItemFormSheet";
 import { ItemBadge } from "@/components/products/ItemBadge";
+import { ProductImportDialog } from "@/components/products/ProductImportDialog";
 
 export const Route = createFileRoute("/_authenticated/products")({
   head: () => ({ meta: [{ title: "Catálogo — SecureERP" }] }),
@@ -100,6 +102,7 @@ function ItemsPage() {
   const pageSize = 20;
 
   const [taxonomyOpen, setTaxonomyOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newType, setNewType] = useState<ItemType>("PRODUCT");
@@ -181,6 +184,12 @@ function ItemsPage() {
               <Settings2 className="mr-1.5 h-4 w-4" />
               Cadastros auxiliares
             </Button>
+            <Can module="products" action="create">
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="mr-1.5 h-4 w-4" />
+                Importar
+              </Button>
+            </Can>
             <Can module="products" action="create">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -457,6 +466,7 @@ function ItemsPage() {
       </div>
 
       <TaxonomyDialog open={taxonomyOpen} onOpenChange={setTaxonomyOpen} />
+      <ProductImportDialog open={importOpen} onOpenChange={setImportOpen} />
       <ItemFormSheet
         open={formOpen}
         onOpenChange={(o) => {
