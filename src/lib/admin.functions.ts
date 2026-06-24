@@ -57,8 +57,8 @@ export const listSubscriptions = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
     const { data: rows, error } = await context.supabase.rpc("admin_list_subscriptions", {
-      _status: data.status || null,
-      _search: data.search || null,
+      _status: data.status || undefined,
+      _search: data.search || undefined,
     });
     if (error) throw new Error(error.message);
     return rows ?? [];
