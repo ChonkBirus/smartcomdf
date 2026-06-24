@@ -102,6 +102,7 @@ function ItemsPage() {
   const pageSize = 20;
 
   const [taxonomyOpen, setTaxonomyOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newType, setNewType] = useState<ItemType>("PRODUCT");
