@@ -7,7 +7,10 @@ export type PermissionAction =
   | "convert_from_quote"
   | "import" | "import.confirm" | "import.view_history"
   | "plan" | "assign_responsible" | "manage_team" | "check_materials" | "mark_ready_for_os"
-  | "assign_technician";
+  | "assign_technician"
+  | "view_assigned_only" | "execute" | "start" | "pause" | "finish_execution"
+  | "manage_checklist" | "upload_photos" | "delete_photos"
+  | "manage_material_usage" | "override_required_checklist";
 export type ModuleSlug =
   | "dashboard"
   | "products"
