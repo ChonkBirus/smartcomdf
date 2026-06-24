@@ -228,6 +228,28 @@ export function ExecutionActions({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
+            {pendingRequired.length > 0 && (
+              <div className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs text-amber-700 dark:text-amber-300 space-y-1">
+                <div className="flex items-center gap-1 font-semibold">
+                  <AlertTriangle className="h-4 w-4" /> Itens obrigatórios não concluídos
+                </div>
+                <ul className="list-disc list-inside">
+                  {pendingRequired.map((i: any) => <li key={i.id}>{i.title}</li>)}
+                </ul>
+                {canOverride ? (
+                  <div className="pt-2">
+                    <Label className="text-xs">Justificativa para finalizar mesmo assim *</Label>
+                    <Textarea
+                      value={overrideJustification}
+                      onChange={(e) => setOverrideJustification(e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                ) : (
+                  <p className="pt-1">Conclua os itens obrigatórios antes de finalizar.</p>
+                )}
+              </div>
+            )}
             <div>
               <Label>Relatório técnico resumido *</Label>
               <Textarea value={report} onChange={(e) => setReport(e.target.value)} rows={4} />
@@ -241,6 +263,7 @@ export function ExecutionActions({
               <Textarea value={solution} onChange={(e) => setSolution(e.target.value)} rows={2} />
             </div>
           </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(null)}>Cancelar</Button>
             <Button onClick={() => submit("FINISHED_EXECUTION")} disabled={mutation.isPending}>Finalizar</Button>
