@@ -216,14 +216,14 @@ export function ServiceOrderFinalReport({
 
       // 2) Build PDF on the client using current OS payload
       const { getMobileServiceOrderDetails } = await import("@/lib/technician-service-orders.functions");
-      const { listServiceOrderChecklist } = await import("@/lib/service-order-checklist.functions");
-      const { listServiceOrderMaterials } = await import("@/lib/service-order-materials.functions");
+      const { listChecklistItems } = await import("@/lib/service-order-checklist.functions");
+      const { listMaterialUsage } = await import("@/lib/service-order-materials.functions");
       const { listServiceOrderSignatures } = await import("@/lib/service-order-signatures.functions");
 
       const [details, checklist, materials, signatures] = await Promise.all([
         (getMobileServiceOrderDetails as any)({ data: { id: serviceOrderId } }),
-        (listServiceOrderChecklist as any)({ data: { id: serviceOrderId } }),
-        (listServiceOrderMaterials as any)({ data: { id: serviceOrderId } }),
+        (listChecklistItems as any)({ data: { id: serviceOrderId } }),
+        (listMaterialUsage as any)({ data: { id: serviceOrderId } }),
         (listServiceOrderSignatures as any)({ data: { id: serviceOrderId } }),
       ]);
 
