@@ -159,6 +159,7 @@ function SuppliersPage() {
       )}
 
       <SupplierFormSheet open={open} onOpenChange={setOpen} supplierId={editing} />
+      <SupplierImportDialog open={importOpen} onOpenChange={setImportOpen} />
 
       <AlertDialog open={!!confirmDel} onOpenChange={(o) => !o && setConfirmDel(null)}>
         <AlertDialogContent>
