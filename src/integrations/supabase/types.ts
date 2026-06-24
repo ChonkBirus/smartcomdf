@@ -4465,12 +4465,68 @@ export type Database = {
           users_count: number
         }[]
       }
+      admin_list_subscription_events: {
+        Args: { _subscription_id: string }
+        Returns: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          event_type: string
+          id: string
+          metadata: Json
+          new_plan_id: string | null
+          new_status: string | null
+          previous_plan_id: string | null
+          previous_status: string | null
+          subscription_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "subscription_events"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_list_subscriptions: {
+        Args: { _search?: string; _status?: string }
+        Returns: {
+          billing_cycle: string
+          canceled_at: string
+          company_id: string
+          company_name: string
+          created_at: string
+          current_period_end: string
+          grace_period_ends_at: string
+          id: string
+          monthly_price: number
+          next_billing_date: string
+          plan_id: string
+          plan_name: string
+          plan_slug: string
+          status: string
+          trial_ends_at: string
+          yearly_price: number
+        }[]
+      }
       admin_set_company_status: {
         Args: {
           _company_id: string
           _status: Database["public"]["Enums"]["company_status"]
         }
         Returns: undefined
+      }
+      admin_update_subscription: {
+        Args: {
+          _description?: string
+          _extend_grace_days?: number
+          _extend_trial_days?: number
+          _new_billing_cycle?: string
+          _new_plan_id?: string
+          _new_status?: string
+          _subscription_id: string
+        }
+        Returns: string
       }
       apply_stock_movement: {
         Args: {
