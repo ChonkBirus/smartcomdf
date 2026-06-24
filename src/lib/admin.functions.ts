@@ -46,14 +46,60 @@ export const listPlans = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+const listSubsSchema = z.object({
+  status: z.string().optional().nullable(),
+  search: z.string().optional().nullable(),
+});
+
 export const listSubscriptions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d) => listSubsSchema.parse(d ?? {}))
+  .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { data, error } = await context.supabase
-      .from("subscriptions")
-      .select("id, trial, active, start_date, expiration_date, plan_id, company_id, companies(corporate_name), plans(name, slug)")
-      .order("created_at", { ascending: false });
+    const { data: rows, error } = await context.supabase.rpc("admin_list_subscriptions", {
+      _status: data.status || undefined,
+      _search: data.search || undefined,
+    });
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return rows ?? [];
+  });
+
+const updateSubSchema = z.object({
+  subscription_id: z.string().uuid(),
+  new_plan_id: z.string().uuid().optional().nullable(),
+  new_status: z.enum(["TRIALING","ACTIVE","PAST_DUE","SUSPENDED","CANCELED","EXPIRED","MANUAL_REVIEW"]).optional().nullable(),
+  new_billing_cycle: z.enum(["MONTHLY","YEARLY"]).optional().nullable(),
+  extend_trial_days: z.number().int().optional().nullable(),
+  extend_grace_days: z.number().int().optional().nullable(),
+  description: z.string().optional().nullable(),
+});
+
+export const updateSubscription = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => updateSubSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.rpc("admin_update_subscription", {
+      _subscription_id: data.subscription_id,
+      _new_plan_id: data.new_plan_id ?? undefined,
+      _new_status: data.new_status ?? undefined,
+      _new_billing_cycle: data.new_billing_cycle ?? undefined,
+      _extend_trial_days: data.extend_trial_days ?? undefined,
+      _extend_grace_days: data.extend_grace_days ?? undefined,
+      _description: data.description ?? undefined,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const listSubscriptionEvents = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ subscription_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { data: rows, error } = await context.supabase.rpc("admin_list_subscription_events", {
+      _subscription_id: data.subscription_id,
+    });
+    if (error) throw new Error(error.message);
+    return rows ?? [];
   });
