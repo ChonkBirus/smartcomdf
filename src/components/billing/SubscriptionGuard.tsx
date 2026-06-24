@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { type ReactNode } from "react";
 import { getCurrentCompanySubscription } from "@/lib/billing.functions";
-import { useFeatures } from "@/lib/features";
 import { SubscriptionBanner } from "./SubscriptionBanner";
 import { SubscriptionBlockedScreen } from "./SubscriptionBlockedScreen";
 
@@ -12,11 +11,15 @@ const BLOCKING_STATUSES = new Set(["SUSPENDED", "CANCELED", "EXPIRED"]);
 // Routes that remain accessible even when blocked (so users can recover).
 const ALLOW_PATHS = ["/billing/plans", "/settings/subscription", "/settings", "/profile"];
 
-export function SubscriptionGuard({ children }: { children: ReactNode }) {
+export function SubscriptionGuard({
+  children,
+  isSuperAdmin = false,
+}: {
+  children: ReactNode;
+  isSuperAdmin?: boolean;
+}) {
   const fetchSub = useServerFn(getCurrentCompanySubscription);
   const location = useLocation();
-  const { hasFeature } = useFeatures();
-  const isSuperAdmin = hasFeature("__superadmin__"); // never true; superadmin handled below
 
   const { data: sub } = useQuery({
     queryKey: ["billing", "current-subscription"],
