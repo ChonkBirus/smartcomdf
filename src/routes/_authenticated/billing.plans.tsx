@@ -1,15 +1,14 @@
 import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { toast } from "sonner";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PlanCard } from "@/components/billing/PlanCard";
 import { BillingCycleToggle } from "@/components/billing/BillingCycleToggle";
+import { CheckoutDialog } from "@/components/billing/CheckoutDialog";
 import {
   listPlansWithFeatures,
   getCurrentCompanySubscription,
-  requestPlanChange,
   type PlanWithFeatures,
 } from "@/lib/billing.functions";
 
@@ -19,13 +18,11 @@ export const Route = createFileRoute("/_authenticated/billing/plans")({
 });
 
 function PlansPage() {
-  const navigate = useNavigate();
-  const qc = useQueryClient();
   const [cycle, setCycle] = useState<"MONTHLY" | "YEARLY">("MONTHLY");
+  const [selected, setSelected] = useState<PlanWithFeatures | null>(null);
 
   const plansFn = useServerFn(listPlansWithFeatures);
   const subFn = useServerFn(getCurrentCompanySubscription);
-  const requestFn = useServerFn(requestPlanChange);
 
   const { data: plans } = useQuery({
     queryKey: ["billing", "plans"],
@@ -36,24 +33,11 @@ function PlansPage() {
     queryFn: () => subFn(),
   });
 
-  const m = useMutation({
-    mutationFn: (plan: PlanWithFeatures) =>
-      requestFn({ data: { plan_slug: plan.slug as "starter" | "pro" | "business", billing_cycle: cycle } }),
-    onSuccess: () => {
-      toast.success("Solicitação registrada", {
-        description: "A alteração de plano será concluída na etapa de pagamento (Fase 2.7B).",
-      });
-      qc.invalidateQueries({ queryKey: ["billing"] });
-      navigate({ to: "/settings/subscription" });
-    },
-    onError: (e: any) => toast.error(e?.message ?? "Falha ao solicitar alteração"),
-  });
-
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
         title="Planos"
-        description="Escolha o plano ideal para sua operação. A cobrança real será integrada na próxima fase."
+        description="Escolha o plano ideal para sua operação. A ativação ocorre após a confirmação do pagamento."
       />
 
       <div className="flex justify-center">
@@ -68,11 +52,21 @@ function PlansPage() {
             cycle={cycle}
             recommended={p.slug === "pro"}
             current={sub?.plan_id === p.id}
-            disabled={m.isPending}
-            onSelect={(plan) => m.mutate(plan)}
+            disabled={false}
+            onSelect={(plan) => setSelected(plan)}
           />
         ))}
       </div>
+
+      {selected && (
+        <CheckoutDialog
+          open={!!selected}
+          onOpenChange={(v) => !v && setSelected(null)}
+          planSlug={selected.slug as "starter" | "pro" | "business"}
+          planName={selected.name}
+          cycle={cycle}
+        />
+      )}
     </div>
   );
 }
