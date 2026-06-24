@@ -41,6 +41,10 @@ export type ServiceOrder = {
   issue_found?: string | null;
   solution_applied?: string | null;
   pending_reason?: string | null;
+  stock_deduction_status?: "PENDING" | "DEDUCTED" | "BLOCKED" | "NOT_APPLICABLE";
+  stock_deducted_at?: string | null;
+  stock_deducted_by?: string | null;
+  report_status?: string;
   created_at: string;
   updated_at: string;
   customer_name?: string;
