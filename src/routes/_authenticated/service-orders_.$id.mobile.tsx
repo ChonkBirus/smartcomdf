@@ -52,6 +52,10 @@ function MobileSODetailPage() {
   // Internal data (notas internas, origem projeto/orçamento) é restrito a gestores,
   // identificados pela permissão de atribuir técnico — técnicos não possuem.
   const canSeeInternal = can("service_orders", "assign_technician");
+  const canManageChecklist = can("service_orders", "manage_checklist") || canSeeInternal;
+  const canUploadPhotos = can("service_orders", "upload_photos") || canSeeInternal;
+  const canDeletePhotos = can("service_orders", "delete_photos") || canSeeInternal;
+  const canManageMaterials = can("service_orders", "manage_material_usage") || canSeeInternal;
 
   const { data, isLoading } = useQuery({
     queryKey: ["so-mobile", id],
