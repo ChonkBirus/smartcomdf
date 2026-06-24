@@ -241,7 +241,7 @@ export function ServiceOrderFinalReport({
         solution: so.solution_applied,
         technicianReport: so.technician_report,
         materials: (materials ?? []).map((m: any) => ({
-          name: m.name, quantity: Number(m.quantity ?? 0), unit: m.unit ?? "",
+          name: m.item_name ?? "Material", quantity: Number(m.used_quantity ?? 0), unit: m.unit ?? "",
         })),
         checklist: (checklist ?? []).map((c: any) => ({
           title: c.title, is_completed: !!c.is_completed, is_required: !!c.is_required,
