@@ -30,6 +30,7 @@ import {
   type ProjectStatus, type ProjectPriority,
 } from "@/lib/projects.functions";
 import { ProjectPlanningPanel } from "@/components/projects/ProjectPlanningPanel";
+import { CreateServiceOrderFromProjectButton } from "@/components/service-orders/CreateServiceOrderFromProjectButton";
 
 export const Route = createFileRoute("/_authenticated/projects_/$id")({
   head: () => ({ meta: [{ title: "Detalhe do Projeto — SecureERP" }] }),
@@ -127,9 +128,15 @@ function ProjectDetailPage() {
           title={`${project.project_number} — ${project.title}`}
           description={`Origem: orçamento ${project.quote_number ?? "—"}`}
           actions={
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Badge variant={STATUS_VARIANT[project.status]}>{STATUS_LABEL[project.status]}</Badge>
               <Badge variant="outline">{PRIORITY_LABEL[project.priority]}</Badge>
+              {project.status !== "CANCELLED" && project.status !== "COMPLETED" && (
+                <CreateServiceOrderFromProjectButton
+                  projectId={project.id}
+                  planningReady={project.planning_status === "READY_FOR_SERVICE_ORDER"}
+                />
+              )}
               {!editing && project.status !== "CANCELLED" && (
                 <Can module="projects" action="edit">
                   <Button variant="outline" size="sm" onClick={startEdit}>Editar</Button>

@@ -49,7 +49,7 @@ const groups: { label: string; items: Item[] }[] = [
     items: [
       { title: "Financeiro", url: "/financial", icon: DollarSign, module: "financial", feature: "financial" },
       { title: "CRM", url: "/crm", icon: HeartHandshake, module: "crm", feature: "crm" },
-      { title: "Ordens de Serviço", url: "/service-orders", icon: Wrench, module: "orders", feature: "service_orders" },
+      { title: "Ordens de Serviço", url: "/service-orders", icon: Wrench, module: "service_orders", feature: "service_orders" },
     ],
   },
   {

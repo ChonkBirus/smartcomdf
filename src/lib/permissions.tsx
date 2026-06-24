@@ -6,7 +6,8 @@ export type PermissionAction =
   | "upload" | "process" | "confirm" | "disable" | "send_pix"
   | "convert_from_quote"
   | "import" | "import.confirm" | "import.view_history"
-  | "plan" | "assign_responsible" | "manage_team" | "check_materials" | "mark_ready_for_os";
+  | "plan" | "assign_responsible" | "manage_team" | "check_materials" | "mark_ready_for_os"
+  | "assign_technician";
 export type ModuleSlug =
   | "dashboard"
   | "products"
@@ -22,7 +23,8 @@ export type ModuleSlug =
   | "suppliers"
   | "purchases"
   | "smart_receiving"
-  | "projects";
+  | "projects"
+  | "service_orders";
 
 type Ctx = {
   permissions: Set<string>;
