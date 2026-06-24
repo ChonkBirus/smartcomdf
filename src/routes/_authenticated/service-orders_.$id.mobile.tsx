@@ -240,6 +240,32 @@ function MobileSODetailPage() {
         )}
       </Section>
 
+      <Section title="Checklist de Execução">
+        <ServiceOrderChecklist
+          serviceOrderId={so.id}
+          status={so.status as any}
+          canManage={canManageChecklist}
+        />
+      </Section>
+
+      <Section title="Fotos da Execução">
+        <ServiceOrderPhotos
+          serviceOrderId={so.id}
+          companyId={so.company_id}
+          status={so.status as any}
+          canUpload={canUploadPhotos}
+          canDelete={canDeletePhotos}
+        />
+      </Section>
+
+      <Section title="Materiais Utilizados">
+        <ServiceOrderMaterials
+          serviceOrderId={so.id}
+          status={so.status as any}
+          canManage={canManageMaterials}
+        />
+      </Section>
+
       <Section title="Técnico responsável">
         <div className="flex items-center gap-2 text-sm">
           <User className="h-4 w-4 text-muted-foreground" />
