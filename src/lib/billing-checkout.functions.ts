@@ -53,10 +53,9 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     if (!companyId) throw new Error("Empresa não encontrada.");
 
     const { data: canCheckout } = await supabase.rpc("has_permission", {
-      _user_id: userId,
-      _permission: "billing.checkout",
+      _slug: "billing.checkout",
     });
-    if (!canCheckout) throw new Error("Sem permissão para iniciar checkout.");
+    if (canCheckout === false) throw new Error("Sem permissão para iniciar checkout.");
 
     // Plan
     const { data: plan } = await supabase
