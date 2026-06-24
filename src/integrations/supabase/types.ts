@@ -3107,6 +3107,32 @@ export type Database = {
           },
         ]
       }
+      service_order_report_counters: {
+        Row: {
+          company_id: string
+          current_number: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          current_number?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          current_number?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_order_report_counters_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_order_report_send_events: {
         Row: {
           channel: string
@@ -4253,6 +4279,7 @@ export type Database = {
       get_my_features: { Args: never; Returns: string[] }
       get_my_permissions: { Args: never; Returns: string[] }
       get_public_quote_by_token: { Args: { _token: string }; Returns: Json }
+      get_public_so_report: { Args: { _token: string }; Returns: Json }
       has_company_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
@@ -4288,6 +4315,7 @@ export type Database = {
         Args: { _company_id: string }
         Returns: string
       }
+      next_so_report_number: { Args: { _company_id: string }; Returns: string }
       notify_user: {
         Args: {
           _company_id: string
@@ -4371,6 +4399,31 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "service_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      so_attach_report_pdf: {
+        Args: { _pdf_name: string; _pdf_path: string; _report_id: string }
+        Returns: {
+          company_id: string
+          created_at: string
+          generated_at: string | null
+          generated_by: string | null
+          id: string
+          pdf_file_name: string | null
+          pdf_file_url: string | null
+          public_token: string | null
+          report_number: string
+          sent_at: string | null
+          sent_by: string | null
+          service_order_id: string
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "service_order_reports"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -4469,6 +4522,61 @@ export type Database = {
         }
       }
       so_deduct_stock: { Args: { _so_id: string }; Returns: Json }
+      so_generate_final_report: {
+        Args: { _service_order_id: string }
+        Returns: {
+          company_id: string
+          created_at: string
+          generated_at: string | null
+          generated_by: string | null
+          id: string
+          pdf_file_name: string | null
+          pdf_file_url: string | null
+          public_token: string | null
+          report_number: string
+          sent_at: string | null
+          sent_by: string | null
+          service_order_id: string
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "service_order_reports"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      so_log_report_send: {
+        Args: {
+          _channel: string
+          _message?: string
+          _recipient_contact?: string
+          _recipient_name?: string
+          _report_id: string
+          _status: string
+        }
+        Returns: {
+          channel: string
+          company_id: string
+          created_at: string
+          id: string
+          message: string | null
+          recipient_contact: string | null
+          recipient_name: string | null
+          report_id: string
+          sent_at: string
+          sent_by: string | null
+          service_order_id: string
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "service_order_report_send_events"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       so_material_add: {
         Args: {
           _item_id: string

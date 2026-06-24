@@ -22,6 +22,7 @@ import { ServiceOrderPhotos } from "@/components/service-orders/ServiceOrderPhot
 import { ServiceOrderMaterials } from "@/components/service-orders/ServiceOrderMaterials";
 import { ServiceOrderSignature } from "@/components/service-orders/ServiceOrderSignature";
 import { ServiceOrderStockDeduction } from "@/components/service-orders/ServiceOrderStockDeduction";
+import { ServiceOrderFinalReport } from "@/components/service-orders/ServiceOrderFinalReport";
 
 export const Route = createFileRoute("/_authenticated/service-orders_/$id/mobile")({
   head: () => ({ meta: [{ title: "OS — SecureERP" }] }),
@@ -60,6 +61,10 @@ function MobileSODetailPage() {
   const canManageMaterials = can("service_orders", "manage_material_usage") || canSeeInternal;
   const canCollectSignature = can("service_orders", "collect_signature") || canSeeInternal;
   const canDeductStock = can("service_orders", "deduct_stock") || canSeeInternal;
+  const canGenerateReport = can("service_orders", "generate_final_report") || canSeeInternal;
+  const canSendReport = can("service_orders", "send_final_report") || canSeeInternal;
+  const canDownloadReport = can("service_orders", "download_final_report") || canSeeInternal;
+  const canSeePublicLink = can("service_orders", "view_public_report_link") || canSeeInternal;
 
   const { data, isLoading } = useQuery({
     queryKey: ["so-mobile", id],
@@ -286,6 +291,21 @@ function MobileSODetailPage() {
           status={so.status}
           stockDeductionStatus={(so.stock_deduction_status as any) ?? "PENDING"}
           canDeduct={canDeductStock}
+        />
+      </Section>
+
+      <Section title="Relatório Final">
+        <ServiceOrderFinalReport
+          serviceOrderId={so.id}
+          companyId={so.company_id}
+          status={so.status}
+          canGenerate={canGenerateReport}
+          canSend={canSendReport}
+          canDownload={canDownloadReport}
+          canSeePublicLink={canSeePublicLink}
+          customerName={so.customer_name}
+          customerEmail={email ?? null}
+          customerWhatsapp={whatsapp ?? null}
         />
       </Section>
 

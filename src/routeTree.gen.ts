@@ -14,6 +14,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RTokenRouteImport } from './routes/r.$token'
 import { Route as QTokenRouteImport } from './routes/q.$token'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as AuthenticatedSuppliersRouteImport } from './routes/_authenticated/suppliers'
@@ -70,6 +71,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RTokenRoute = RTokenRouteImport.update({
+  id: '/r/$token',
+  path: '/r/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QTokenRoute = QTokenRouteImport.update({
@@ -275,6 +281,7 @@ export interface FileRoutesByFullPath {
   '/suppliers': typeof AuthenticatedSuppliersRoute
   '/invite/$token': typeof InviteTokenRoute
   '/q/$token': typeof QTokenRoute
+  '/r/$token': typeof RTokenRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
@@ -312,6 +319,7 @@ export interface FileRoutesByTo {
   '/suppliers': typeof AuthenticatedSuppliersRoute
   '/invite/$token': typeof InviteTokenRoute
   '/q/$token': typeof QTokenRoute
+  '/r/$token': typeof RTokenRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
@@ -353,6 +361,7 @@ export interface FileRoutesById {
   '/_authenticated/suppliers': typeof AuthenticatedSuppliersRoute
   '/invite/$token': typeof InviteTokenRoute
   '/q/$token': typeof QTokenRoute
+  '/r/$token': typeof RTokenRoute
   '/_authenticated/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/_authenticated/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
   '/_authenticated/clients_/$id': typeof AuthenticatedClientsIdRoute
@@ -394,6 +403,7 @@ export interface FileRouteTypes {
     | '/suppliers'
     | '/invite/$token'
     | '/q/$token'
+    | '/r/$token'
     | '/admin/plans'
     | '/admin/subscriptions'
     | '/clients/$id'
@@ -431,6 +441,7 @@ export interface FileRouteTypes {
     | '/suppliers'
     | '/invite/$token'
     | '/q/$token'
+    | '/r/$token'
     | '/admin/plans'
     | '/admin/subscriptions'
     | '/clients/$id'
@@ -471,6 +482,7 @@ export interface FileRouteTypes {
     | '/_authenticated/suppliers'
     | '/invite/$token'
     | '/q/$token'
+    | '/r/$token'
     | '/_authenticated/admin/plans'
     | '/_authenticated/admin/subscriptions'
     | '/_authenticated/clients_/$id'
@@ -494,6 +506,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   InviteTokenRoute: typeof InviteTokenRoute
   QTokenRoute: typeof QTokenRoute
+  RTokenRoute: typeof RTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -531,6 +544,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/r/$token': {
+      id: '/r/$token'
+      path: '/r/$token'
+      fullPath: '/r/$token'
+      preLoaderRoute: typeof RTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/q/$token': {
@@ -880,6 +900,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   InviteTokenRoute: InviteTokenRoute,
   QTokenRoute: QTokenRoute,
+  RTokenRoute: RTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
