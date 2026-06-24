@@ -4,8 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Users, Plus, Pencil, Trash2, Search, MessageCircle, Eye, History,
-  Building2, User as UserIcon, ArrowLeft, ArrowRight,
+  Building2, User as UserIcon, ArrowLeft, ArrowRight, Upload,
 } from "lucide-react";
+import { CustomerImportDialog } from "@/components/customers/CustomerImportDialog";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/EmptyState";
 import { PermissionRoute, Can } from "@/components/app/PermissionRoute";
@@ -66,6 +67,7 @@ function ClientsPage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [historyFor, setHistoryFor] = useState<{ id: string; name: string } | null>(null);
   const [confirmDel, setConfirmDel] = useState<{ id: string; name: string } | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const fetchList = useServerFn(listCustomers);
   const fetchTags = useServerFn(listCustomerTags);
@@ -128,11 +130,18 @@ function ClientsPage() {
         title="Clientes"
         description="Gestão completa de pessoas físicas e jurídicas."
         actions={
-          <Can module="clients" action="create">
-            <Button onClick={() => { setEditing(null); setOpen(true); }}>
-              <Plus className="mr-1 h-4 w-4" />Novo cliente
-            </Button>
-          </Can>
+          <div className="flex items-center gap-2">
+            <Can module="clients" action="import">
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="mr-1 h-4 w-4" />Importar
+              </Button>
+            </Can>
+            <Can module="clients" action="create">
+              <Button onClick={() => { setEditing(null); setOpen(true); }}>
+                <Plus className="mr-1 h-4 w-4" />Novo cliente
+              </Button>
+            </Can>
+          </div>
         }
       />
 
