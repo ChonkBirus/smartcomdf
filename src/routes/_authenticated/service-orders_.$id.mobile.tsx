@@ -294,6 +294,21 @@ function MobileSODetailPage() {
         />
       </Section>
 
+      <Section title="Relatório Final">
+        <ServiceOrderFinalReport
+          serviceOrderId={so.id}
+          companyId={so.company_id}
+          status={so.status}
+          canGenerate={canGenerateReport}
+          canSend={canSendReport}
+          canDownload={canDownloadReport}
+          canSeePublicLink={canSeePublicLink}
+          customerName={so.customer_name}
+          customerEmail={email ?? null}
+          customerWhatsapp={whatsapp ?? null}
+        />
+      </Section>
+
       <Section title="Técnico responsável">
         <div className="flex items-center gap-2 text-sm">
           <User className="h-4 w-4 text-muted-foreground" />
