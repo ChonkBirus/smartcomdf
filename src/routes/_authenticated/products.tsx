@@ -16,6 +16,7 @@ import {
   ArrowDown,
   Wrench,
   ChevronDown,
+  Upload,
 } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/EmptyState";
