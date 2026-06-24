@@ -466,6 +466,7 @@ function ItemsPage() {
       </div>
 
       <TaxonomyDialog open={taxonomyOpen} onOpenChange={setTaxonomyOpen} />
+      <ProductImportDialog open={importOpen} onOpenChange={setImportOpen} />
       <ItemFormSheet
         open={formOpen}
         onOpenChange={(o) => {
