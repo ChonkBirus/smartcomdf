@@ -552,6 +552,141 @@ export type Database = {
           },
         ]
       }
+      customer_import_jobs: {
+        Row: {
+          column_mapping: Json | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          created_rows: number
+          error_message: string | null
+          file_name: string
+          file_url: string | null
+          id: string
+          invalid_rows: number
+          skipped_rows: number
+          status: string
+          total_rows: number
+          updated_at: string
+          updated_rows: number
+          valid_rows: number
+        }
+        Insert: {
+          column_mapping?: Json | null
+          company_id: string
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          created_rows?: number
+          error_message?: string | null
+          file_name: string
+          file_url?: string | null
+          id?: string
+          invalid_rows?: number
+          skipped_rows?: number
+          status?: string
+          total_rows?: number
+          updated_at?: string
+          updated_rows?: number
+          valid_rows?: number
+        }
+        Update: {
+          column_mapping?: Json | null
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          created_rows?: number
+          error_message?: string | null
+          file_name?: string
+          file_url?: string | null
+          id?: string
+          invalid_rows?: number
+          skipped_rows?: number
+          status?: string
+          total_rows?: number
+          updated_at?: string
+          updated_rows?: number
+          valid_rows?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_import_jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_import_rows: {
+        Row: {
+          action: string
+          company_id: string
+          created_at: string
+          id: string
+          import_job_id: string
+          mapped_data: Json
+          matched_customer_id: string | null
+          raw_data: Json
+          row_number: number
+          status: string
+          updated_at: string
+          validation_errors: Json | null
+        }
+        Insert: {
+          action?: string
+          company_id: string
+          created_at?: string
+          id?: string
+          import_job_id: string
+          mapped_data?: Json
+          matched_customer_id?: string | null
+          raw_data?: Json
+          row_number: number
+          status?: string
+          updated_at?: string
+          validation_errors?: Json | null
+        }
+        Update: {
+          action?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          import_job_id?: string
+          mapped_data?: Json
+          matched_customer_id?: string | null
+          raw_data?: Json
+          row_number?: number
+          status?: string
+          updated_at?: string
+          validation_errors?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_import_rows_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_import_rows_import_job_id_fkey"
+            columns: ["import_job_id"]
+            isOneToOne: false
+            referencedRelation: "customer_import_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_import_rows_matched_customer_id_fkey"
+            columns: ["matched_customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_tag_relations: {
         Row: {
           company_id: string
