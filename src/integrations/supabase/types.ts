@@ -187,6 +187,298 @@ export type Database = {
           },
         ]
       }
+      billing_charges: {
+        Row: {
+          amount: number
+          bank_slip_url: string | null
+          billing_cycle: string
+          checkout_url: string | null
+          company_id: string
+          created_at: string
+          due_date: string | null
+          id: string
+          invoice_url: string | null
+          paid_at: string | null
+          payment_method: string | null
+          pix_copy_paste: string | null
+          pix_qr_code: string | null
+          plan_id: string | null
+          provider: string
+          provider_charge_id: string | null
+          provider_subscription_id: string | null
+          raw_payload: Json | null
+          status: string
+          subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          bank_slip_url?: string | null
+          billing_cycle: string
+          checkout_url?: string | null
+          company_id: string
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          invoice_url?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          pix_copy_paste?: string | null
+          pix_qr_code?: string | null
+          plan_id?: string | null
+          provider: string
+          provider_charge_id?: string | null
+          provider_subscription_id?: string | null
+          raw_payload?: Json | null
+          status?: string
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bank_slip_url?: string | null
+          billing_cycle?: string
+          checkout_url?: string | null
+          company_id?: string
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          invoice_url?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          pix_copy_paste?: string | null
+          pix_qr_code?: string | null
+          plan_id?: string | null
+          provider?: string
+          provider_charge_id?: string | null
+          provider_subscription_id?: string | null
+          raw_payload?: Json | null
+          status?: string
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_charges_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_charges_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_charges_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_checkout_sessions: {
+        Row: {
+          amount: number
+          billing_cycle: string
+          checkout_url: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          payment_method: string | null
+          plan_id: string
+          provider: string
+          provider_checkout_id: string | null
+          status: string
+          subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          billing_cycle: string
+          checkout_url?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          payment_method?: string | null
+          plan_id: string
+          provider: string
+          provider_checkout_id?: string | null
+          status?: string
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          billing_cycle?: string
+          checkout_url?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          payment_method?: string | null
+          plan_id?: string
+          provider?: string
+          provider_checkout_id?: string | null
+          status?: string
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_checkout_sessions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_checkout_sessions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_checkout_sessions_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_customers: {
+        Row: {
+          company_id: string
+          cpf_cnpj: string | null
+          created_at: string
+          email: string | null
+          id: string
+          mobile_phone: string | null
+          name: string | null
+          phone: string | null
+          provider: string
+          provider_customer_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          cpf_cnpj?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          mobile_phone?: string | null
+          name?: string | null
+          phone?: string | null
+          provider: string
+          provider_customer_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          cpf_cnpj?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          mobile_phone?: string | null
+          name?: string | null
+          phone?: string | null
+          provider?: string
+          provider_customer_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_customers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_provider_settings: {
+        Row: {
+          active: boolean
+          created_at: string
+          environment: string
+          id: string
+          provider: string
+          public_config: Json | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          environment: string
+          id?: string
+          provider: string
+          public_config?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          environment?: string
+          id?: string
+          provider?: string
+          public_config?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      billing_webhook_events: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_id: string | null
+          event_type: string
+          id: string
+          payload: Json
+          payload_hash: string | null
+          processed_at: string | null
+          provider: string
+          provider_object_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_id?: string | null
+          event_type: string
+          id?: string
+          payload: Json
+          payload_hash?: string | null
+          processed_at?: string | null
+          provider: string
+          provider_object_id?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_id?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          payload_hash?: string | null
+          processed_at?: string | null
+          provider?: string
+          provider_object_id?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       brands: {
         Row: {
           active: boolean
@@ -4596,6 +4888,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_company_member: { Args: { _company_id: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
       log_activity: { Args: { _description: string }; Returns: string }
       log_audit: {
