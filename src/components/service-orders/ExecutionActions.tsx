@@ -1,0 +1,225 @@
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Play, Pause, RefreshCw, CheckCircle2, AlertTriangle, Ban } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { toast } from "sonner";
+import { usePermissions } from "@/lib/permissions";
+import { executeServiceOrderTransition } from "@/lib/service-order-execution.functions";
+
+type Status = "DRAFT" | "SCHEDULED" | "IN_PROGRESS" | "PAUSED" | "COMPLETED" | "CANCELLED";
+
+const PAUSE_REASONS = [
+  "Cliente ausente",
+  "Falta de material",
+  "Aguardando autorização",
+  "Problema técnico",
+  "Retorno necessário",
+  "Outro",
+];
+
+export function ExecutionActions({
+  serviceOrderId,
+  status,
+  assignedTechnicianId,
+}: {
+  serviceOrderId: string;
+  status: Status;
+  assignedTechnicianId: string | null;
+}) {
+  const qc = useQueryClient();
+  const fn = useServerFn(executeServiceOrderTransition);
+  const { can, isOwner, isSuperAdmin } = usePermissions();
+  const isManager = isOwner || isSuperAdmin || can("service_orders", "edit") || can("service_orders", "assign_technician");
+
+  const [open, setOpen] = useState<null | "start" | "pause" | "resume" | "finish">(null);
+  const [reason, setReason] = useState("");
+  const [reasonOther, setReasonOther] = useState("");
+  const [report, setReport] = useState("");
+  const [issue, setIssue] = useState("");
+  const [solution, setSolution] = useState("");
+
+  const mutation = useMutation({
+    mutationFn: fn,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["so-mobile", serviceOrderId] });
+      qc.invalidateQueries({ queryKey: ["so-exec-logs", serviceOrderId] });
+      qc.invalidateQueries({ queryKey: ["so-list-mine"] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+      setOpen(null);
+      setReason(""); setReasonOther(""); setReport(""); setIssue(""); setSolution("");
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao executar ação"),
+  });
+
+  const submit = (action: "STARTED" | "PAUSED" | "RESUMED" | "FINISHED_EXECUTION") => {
+    if (action === "PAUSED") {
+      const r = reason === "Outro" ? reasonOther.trim() : reason;
+      if (!r) { toast.error("Informe o motivo da pausa."); return; }
+      mutation.mutate({ data: { id: serviceOrderId, action, reason: r } });
+      return;
+    }
+    if (action === "FINISHED_EXECUTION") {
+      if (!report.trim()) { toast.error("Informe o relatório técnico antes de finalizar."); return; }
+      mutation.mutate({
+        data: {
+          id: serviceOrderId, action,
+          technicianReport: report.trim(),
+          issueFound: issue.trim() || undefined,
+          solutionApplied: solution.trim() || undefined,
+        },
+      });
+      return;
+    }
+    mutation.mutate({ data: { id: serviceOrderId, action } });
+  };
+
+  if (status === "COMPLETED") {
+    return (
+      <div className="flex items-center gap-2 rounded-md border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 p-3 text-sm text-emerald-700 dark:text-emerald-300">
+        <CheckCircle2 className="h-4 w-4" /> Execução técnica concluída.
+      </div>
+    );
+  }
+  if (status === "CANCELLED") {
+    return (
+      <div className="flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+        <Ban className="h-4 w-4" /> Ordem de Serviço cancelada.
+      </div>
+    );
+  }
+
+  const noTech = !assignedTechnicianId;
+  const blockStart = status === "SCHEDULED" && noTech && !isManager;
+
+  return (
+    <div className="space-y-2">
+      {blockStart && (
+        <div className="flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-2 text-xs text-amber-700 dark:text-amber-300">
+          <AlertTriangle className="h-4 w-4" /> OS sem técnico atribuído. Solicite a um gestor.
+        </div>
+      )}
+
+      {status === "SCHEDULED" && (
+        <Button size="lg" className="w-full h-12" disabled={blockStart} onClick={() => setOpen("start")}>
+          <Play className="h-5 w-5 mr-2" /> Iniciar Atendimento
+        </Button>
+      )}
+
+      {status === "IN_PROGRESS" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <Button size="lg" variant="outline" className="h-12" onClick={() => setOpen("pause")}>
+            <Pause className="h-5 w-5 mr-2" /> Pausar Atendimento
+          </Button>
+          <Button size="lg" className="h-12" onClick={() => setOpen("finish")}>
+            <CheckCircle2 className="h-5 w-5 mr-2" /> Finalizar Execução Técnica
+          </Button>
+        </div>
+      )}
+
+      {status === "PAUSED" && (
+        <Button size="lg" className="w-full h-12" onClick={() => setOpen("resume")}>
+          <RefreshCw className="h-5 w-5 mr-2" /> Retomar Atendimento
+        </Button>
+      )}
+
+      {/* Start */}
+      <Dialog open={open === "start"} onOpenChange={(v) => !v && setOpen(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Iniciar atendimento?</DialogTitle>
+            <DialogDescription>A Ordem de Serviço será marcada como em andamento.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(null)}>Cancelar</Button>
+            <Button onClick={() => submit("STARTED")} disabled={mutation.isPending}>Iniciar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pause */}
+      <Dialog open={open === "pause"} onOpenChange={(v) => !v && setOpen(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Pausar atendimento?</DialogTitle>
+            <DialogDescription>Informe o motivo para registrar no histórico da OS.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Motivo da pausa *</Label>
+              <Select value={reason} onValueChange={setReason}>
+                <SelectTrigger><SelectValue placeholder="Selecione um motivo" /></SelectTrigger>
+                <SelectContent>
+                  {PAUSE_REASONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            {reason === "Outro" && (
+              <div>
+                <Label>Descreva o motivo *</Label>
+                <Textarea value={reasonOther} onChange={(e) => setReasonOther(e.target.value)} rows={3} />
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(null)}>Cancelar</Button>
+            <Button onClick={() => submit("PAUSED")} disabled={mutation.isPending}>Pausar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Resume */}
+      <Dialog open={open === "resume"} onOpenChange={(v) => !v && setOpen(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Retomar atendimento?</DialogTitle>
+            <DialogDescription>A Ordem de Serviço voltará para o status Em andamento.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(null)}>Cancelar</Button>
+            <Button onClick={() => submit("RESUMED")} disabled={mutation.isPending}>Retomar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Finish */}
+      <Dialog open={open === "finish"} onOpenChange={(v) => !v && setOpen(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Finalizar execução técnica?</DialogTitle>
+            <DialogDescription>
+              A OS será marcada como concluída tecnicamente. O relatório final, assinatura
+              do cliente e envio serão tratados na próxima fase.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Relatório técnico resumido *</Label>
+              <Textarea value={report} onChange={(e) => setReport(e.target.value)} rows={4} />
+            </div>
+            <div>
+              <Label>Problema encontrado (opcional)</Label>
+              <Textarea value={issue} onChange={(e) => setIssue(e.target.value)} rows={2} />
+            </div>
+            <div>
+              <Label>Solução aplicada (opcional)</Label>
+              <Textarea value={solution} onChange={(e) => setSolution(e.target.value)} rows={2} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(null)}>Cancelar</Button>
+            <Button onClick={() => submit("FINISHED_EXECUTION")} disabled={mutation.isPending}>Finalizar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

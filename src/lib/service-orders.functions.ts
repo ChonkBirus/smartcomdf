@@ -33,6 +33,14 @@ export type ServiceOrder = {
   started_at: string | null;
   completed_at: string | null;
   cancelled_at: string | null;
+  execution_started_by?: string | null;
+  execution_completed_by?: string | null;
+  execution_notes?: string | null;
+  technician_report?: string | null;
+  customer_absent?: boolean;
+  issue_found?: string | null;
+  solution_applied?: string | null;
+  pending_reason?: string | null;
   created_at: string;
   updated_at: string;
   customer_name?: string;
