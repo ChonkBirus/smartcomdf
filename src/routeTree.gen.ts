@@ -37,6 +37,7 @@ import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing-webhook'
 import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authenticated/settings.team'
 import { Route as AuthenticatedSettingsSubscriptionRouteImport } from './routes/_authenticated/settings.subscription'
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
@@ -194,6 +195,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const ApiPublicBillingWebhookRoute = ApiPublicBillingWebhookRouteImport.update({
+  id: '/api/public/billing-webhook',
+  path: '/api/public/billing-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSettingsTeamRoute =
   AuthenticatedSettingsTeamRouteImport.update({
     id: '/team',
@@ -308,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/service-orders/$id/mobile': typeof AuthenticatedServiceOrdersIdMobileRoute
@@ -348,6 +355,7 @@ export interface FileRoutesByTo {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/service-orders/$id/mobile': typeof AuthenticatedServiceOrdersIdMobileRoute
@@ -392,6 +400,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/_authenticated/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/service-orders_/$id/mobile': typeof AuthenticatedServiceOrdersIdMobileRoute
@@ -436,6 +445,7 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/subscription'
     | '/settings/team'
+    | '/api/public/billing-webhook'
     | '/admin/'
     | '/settings/'
     | '/service-orders/$id/mobile'
@@ -476,6 +486,7 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/subscription'
     | '/settings/team'
+    | '/api/public/billing-webhook'
     | '/admin'
     | '/settings'
     | '/service-orders/$id/mobile'
@@ -519,6 +530,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/subscription'
     | '/_authenticated/settings/team'
+    | '/api/public/billing-webhook'
     | '/_authenticated/admin/'
     | '/_authenticated/settings/'
     | '/_authenticated/service-orders_/$id/mobile'
@@ -533,6 +545,7 @@ export interface RootRouteChildren {
   InviteTokenRoute: typeof InviteTokenRoute
   QTokenRoute: typeof QTokenRoute
   RTokenRoute: typeof RTokenRoute
+  ApiPublicBillingWebhookRoute: typeof ApiPublicBillingWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -732,6 +745,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/api/public/billing-webhook': {
+      id: '/api/public/billing-webhook'
+      path: '/api/public/billing-webhook'
+      fullPath: '/api/public/billing-webhook'
+      preLoaderRoute: typeof ApiPublicBillingWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings/team': {
       id: '/_authenticated/settings/team'
@@ -946,17 +966,8 @@ const rootRouteChildren: RootRouteChildren = {
   InviteTokenRoute: InviteTokenRoute,
   QTokenRoute: QTokenRoute,
   RTokenRoute: RTokenRoute,
+  ApiPublicBillingWebhookRoute: ApiPublicBillingWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
