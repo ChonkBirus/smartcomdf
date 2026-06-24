@@ -5,6 +5,7 @@ export type PermissionAction =
   | "approve" | "cancel" | "receive" | "manage" | "adjust" | "transfer"
   | "upload" | "process" | "confirm" | "disable" | "send_pix"
   | "convert_from_quote"
+  | "import" | "import.confirm" | "import.view_history"
   | "plan" | "assign_responsible" | "manage_team" | "check_materials" | "mark_ready_for_os";
 export type ModuleSlug =
   | "dashboard"
