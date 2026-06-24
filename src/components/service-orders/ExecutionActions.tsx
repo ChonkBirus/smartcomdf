@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Play, Pause, RefreshCw, CheckCircle2, AlertTriangle, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import {
 import { toast } from "sonner";
 import { usePermissions } from "@/lib/permissions";
 import { executeServiceOrderTransition } from "@/lib/service-order-execution.functions";
+import { listPendingRequiredChecklist } from "@/lib/service-order-checklist.functions";
+
 
 type Status = "DRAFT" | "SCHEDULED" | "IN_PROGRESS" | "PAUSED" | "COMPLETED" | "CANCELLED";
 
