@@ -42,12 +42,23 @@ export function ExecutionActions({
   const { can, isOwner, isSuperAdmin } = usePermissions();
   const isManager = isOwner || isSuperAdmin || can("service_orders", "edit") || can("service_orders", "assign_technician");
 
+  const canOverride = isOwner || isSuperAdmin || can("service_orders", "override_required_checklist");
+
   const [open, setOpen] = useState<null | "start" | "pause" | "resume" | "finish">(null);
   const [reason, setReason] = useState("");
   const [reasonOther, setReasonOther] = useState("");
   const [report, setReport] = useState("");
   const [issue, setIssue] = useState("");
   const [solution, setSolution] = useState("");
+  const [overrideJustification, setOverrideJustification] = useState("");
+
+  const pendingFn = useServerFn(listPendingRequiredChecklist);
+  const { data: pendingRequired = [] } = useQuery({
+    queryKey: ["so-required-pending", serviceOrderId],
+    queryFn: () => pendingFn({ data: { id: serviceOrderId } }),
+    enabled: open === "finish",
+  });
+
 
   const mutation = useMutation({
     mutationFn: fn,
