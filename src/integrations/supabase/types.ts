@@ -331,6 +331,8 @@ export type Database = {
           pix_key_type: string | null
           pix_receiver_city: string | null
           pix_receiver_name: string | null
+          require_after_photo: boolean
+          require_before_photo: boolean
           timezone: string
           updated_at: string
         }
@@ -345,6 +347,8 @@ export type Database = {
           pix_key_type?: string | null
           pix_receiver_city?: string | null
           pix_receiver_name?: string | null
+          require_after_photo?: boolean
+          require_before_photo?: boolean
           timezone?: string
           updated_at?: string
         }
@@ -359,6 +363,8 @@ export type Database = {
           pix_key_type?: string | null
           pix_receiver_city?: string | null
           pix_receiver_name?: string | null
+          require_after_photo?: boolean
+          require_before_photo?: boolean
           timezone?: string
           updated_at?: string
         }
@@ -2932,6 +2938,7 @@ export type Database = {
           service_order_id: string
           service_order_item_id: string | null
           stock_location_id: string | null
+          stock_warning: boolean
           unit: string | null
           updated_at: string
           used_quantity: number
@@ -2947,6 +2954,7 @@ export type Database = {
           service_order_id: string
           service_order_item_id?: string | null
           stock_location_id?: string | null
+          stock_warning?: boolean
           unit?: string | null
           updated_at?: string
           used_quantity?: number
@@ -2962,6 +2970,7 @@ export type Database = {
           service_order_id?: string
           service_order_item_id?: string | null
           stock_location_id?: string | null
+          stock_warning?: boolean
           unit?: string | null
           updated_at?: string
           used_quantity?: number
@@ -3999,6 +4008,179 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "service_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      so_can_mutate_execution: { Args: { _so_id: string }; Returns: boolean }
+      so_check_stock: {
+        Args: { _item_id: string; _location_id: string }
+        Returns: number
+      }
+      so_checklist_add_item: {
+        Args: {
+          _description?: string
+          _required?: boolean
+          _so_id: string
+          _title: string
+        }
+        Returns: {
+          checked: boolean
+          checked_at: string | null
+          checked_by: string | null
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          notes: string | null
+          required: boolean
+          service_order_id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "service_order_checklist_items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      so_checklist_toggle: {
+        Args: { _checked: boolean; _item_id: string; _notes?: string }
+        Returns: {
+          checked: boolean
+          checked_at: string | null
+          checked_by: string | null
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          notes: string | null
+          required: boolean
+          service_order_id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "service_order_checklist_items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      so_material_add: {
+        Args: {
+          _item_id: string
+          _location_id: string
+          _notes?: string
+          _so_id: string
+          _so_item_id?: string
+          _used_quantity: number
+        }
+        Returns: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          item_id: string
+          notes: string | null
+          planned_quantity: number
+          service_order_id: string
+          service_order_item_id: string | null
+          stock_location_id: string | null
+          stock_warning: boolean
+          unit: string | null
+          updated_at: string
+          used_quantity: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "service_order_material_usage"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      so_material_update: {
+        Args: {
+          _id: string
+          _location_id?: string
+          _notes?: string
+          _used_quantity: number
+        }
+        Returns: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          item_id: string
+          notes: string | null
+          planned_quantity: number
+          service_order_id: string
+          service_order_item_id: string | null
+          stock_location_id: string | null
+          stock_warning: boolean
+          unit: string | null
+          updated_at: string
+          used_quantity: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "service_order_material_usage"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      so_pending_required_checklist: {
+        Args: { _so_id: string }
+        Returns: {
+          checked: boolean
+          checked_at: string | null
+          checked_by: string | null
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          notes: string | null
+          required: boolean
+          service_order_id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "service_order_checklist_items"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      so_photo_delete: { Args: { _photo_id: string }; Returns: string }
+      so_photo_register: {
+        Args: {
+          _description?: string
+          _file_name: string
+          _file_size?: number
+          _file_url: string
+          _photo_type: string
+          _so_id: string
+        }
+        Returns: {
+          company_id: string
+          created_at: string
+          description: string | null
+          file_name: string
+          file_size: number | null
+          file_url: string
+          id: string
+          photo_type: string
+          service_order_id: string
+          uploaded_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "service_order_photos"
           isOneToOne: true
           isSetofReturn: false
         }
