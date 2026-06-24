@@ -185,6 +185,12 @@ function ItemsPage() {
               Cadastros auxiliares
             </Button>
             <Can module="products" action="create">
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="mr-1.5 h-4 w-4" />
+                Importar
+              </Button>
+            </Can>
+            <Can module="products" action="create">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button>
