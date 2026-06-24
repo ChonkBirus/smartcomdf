@@ -61,6 +61,10 @@ function MobileSODetailPage() {
   const canManageMaterials = can("service_orders", "manage_material_usage") || canSeeInternal;
   const canCollectSignature = can("service_orders", "collect_signature") || canSeeInternal;
   const canDeductStock = can("service_orders", "deduct_stock") || canSeeInternal;
+  const canGenerateReport = can("service_orders", "generate_final_report") || canSeeInternal;
+  const canSendReport = can("service_orders", "send_final_report") || canSeeInternal;
+  const canDownloadReport = can("service_orders", "download_final_report") || canSeeInternal;
+  const canSeePublicLink = can("service_orders", "view_public_report_link") || canSeeInternal;
 
   const { data, isLoading } = useQuery({
     queryKey: ["so-mobile", id],
