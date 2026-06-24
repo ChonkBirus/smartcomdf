@@ -9,9 +9,9 @@ import { Topbar } from "@/components/app/Topbar";
 import { getMyContext } from "@/lib/account.functions";
 import { AuthLoadingScreen } from "@/components/app/AuthLoadingScreen";
 import { PermissionsProvider } from "@/lib/permissions";
-import { FeaturesProvider, useSubscription, type PlanInfo } from "@/lib/features";
+import { FeaturesProvider, type PlanInfo } from "@/lib/features";
 import { UpgradeModal } from "@/components/app/UpgradeModal";
-import { toast } from "sonner";
+import { SubscriptionGuard } from "@/components/billing/SubscriptionGuard";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -73,30 +73,15 @@ function AuthenticatedLayout() {
                 userId={data?.profile?.id}
               />
               <main className="flex-1 p-4 md:p-6 lg:p-8">
-                <Outlet />
+                <SubscriptionGuard isSuperAdmin={!!data?.isSuperAdmin}>
+                  <Outlet />
+                </SubscriptionGuard>
               </main>
             </SidebarInset>
           </div>
           <UpgradeModal />
-          <SubscriptionAlerts />
         </SidebarProvider>
       </FeaturesProvider>
     </PermissionsProvider>
   );
-}
-
-function SubscriptionAlerts() {
-  const { expired, expiringSoon, daysLeft } = useSubscription();
-  useEffect(() => {
-    if (expired) {
-      toast.error("Seu plano expirou. Faça upgrade para continuar usando o sistema.", {
-        id: "plan-expired",
-      });
-    } else if (expiringSoon) {
-      toast.warning(`Seu plano expira em ${daysLeft} ${daysLeft === 1 ? "dia" : "dias"}.`, {
-        id: "plan-expiring",
-      });
-    }
-  }, [expired, expiringSoon, daysLeft]);
-  return null;
 }
