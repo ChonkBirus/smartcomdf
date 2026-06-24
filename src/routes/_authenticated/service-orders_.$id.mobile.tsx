@@ -22,6 +22,7 @@ import { ServiceOrderPhotos } from "@/components/service-orders/ServiceOrderPhot
 import { ServiceOrderMaterials } from "@/components/service-orders/ServiceOrderMaterials";
 import { ServiceOrderSignature } from "@/components/service-orders/ServiceOrderSignature";
 import { ServiceOrderStockDeduction } from "@/components/service-orders/ServiceOrderStockDeduction";
+import { ServiceOrderFinalReport } from "@/components/service-orders/ServiceOrderFinalReport";
 
 export const Route = createFileRoute("/_authenticated/service-orders_/$id/mobile")({
   head: () => ({ meta: [{ title: "OS — SecureERP" }] }),
