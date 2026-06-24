@@ -2,7 +2,8 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Building2, Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Building2, Plus, Pencil, Trash2, Search, Upload } from "lucide-react";
+import { SupplierImportDialog } from "@/components/purchases/SupplierImportDialog";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/EmptyState";
 import { PermissionRoute, Can } from "@/components/app/PermissionRoute";
@@ -42,6 +43,7 @@ function SuppliersPage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [confirmDel, setConfirmDel] = useState<Supplier | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const fetchAll = useServerFn(listSuppliers);
   const remove = useServerFn(deleteSupplier);
@@ -73,11 +75,18 @@ function SuppliersPage() {
         title="Fornecedores"
         description="Cadastro de fornecedores para pedidos de compra."
         actions={
-          <Can module="suppliers" action="create">
-            <Button onClick={() => { setEditing(null); setOpen(true); }}>
-              <Plus className="mr-1 h-4 w-4" />Novo fornecedor
-            </Button>
-          </Can>
+          <div className="flex gap-2">
+            <Can module="suppliers" action="import">
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="mr-1 h-4 w-4" />Importar
+              </Button>
+            </Can>
+            <Can module="suppliers" action="create">
+              <Button onClick={() => { setEditing(null); setOpen(true); }}>
+                <Plus className="mr-1 h-4 w-4" />Novo fornecedor
+              </Button>
+            </Can>
+          </div>
         }
       />
 
@@ -150,6 +159,7 @@ function SuppliersPage() {
       )}
 
       <SupplierFormSheet open={open} onOpenChange={setOpen} supplierId={editing} />
+      <SupplierImportDialog open={importOpen} onOpenChange={setImportOpen} />
 
       <AlertDialog open={!!confirmDel} onOpenChange={(o) => !o && setConfirmDel(null)}>
         <AlertDialogContent>
