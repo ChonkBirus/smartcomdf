@@ -40,11 +40,13 @@ import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authent
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
 import { Route as AuthenticatedSettingsCompanyRouteImport } from './routes/_authenticated/settings.company'
 import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
+import { Route as AuthenticatedServiceOrdersMyRouteImport } from './routes/_authenticated/service-orders_.my'
 import { Route as AuthenticatedServiceOrdersIdRouteImport } from './routes/_authenticated/service-orders_.$id'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects_.$id'
 import { Route as AuthenticatedClientsIdRouteImport } from './routes/_authenticated/clients_.$id'
 import { Route as AuthenticatedAdminSubscriptionsRouteImport } from './routes/_authenticated/admin.subscriptions'
 import { Route as AuthenticatedAdminPlansRouteImport } from './routes/_authenticated/admin.plans'
+import { Route as AuthenticatedServiceOrdersIdMobileRouteImport } from './routes/_authenticated/service-orders_.$id.mobile'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -208,6 +210,12 @@ const AuthenticatedSettingsAuditRoute =
     path: '/audit',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedServiceOrdersMyRoute =
+  AuthenticatedServiceOrdersMyRouteImport.update({
+    id: '/service-orders_/my',
+    path: '/service-orders/my',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedServiceOrdersIdRoute =
   AuthenticatedServiceOrdersIdRouteImport.update({
     id: '/service-orders_/$id',
@@ -235,6 +243,12 @@ const AuthenticatedAdminPlansRoute = AuthenticatedAdminPlansRouteImport.update({
   path: '/plans',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedServiceOrdersIdMobileRoute =
+  AuthenticatedServiceOrdersIdMobileRouteImport.update({
+    id: '/mobile',
+    path: '/mobile',
+    getParentRoute: () => AuthenticatedServiceOrdersIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -265,13 +279,15 @@ export interface FileRoutesByFullPath {
   '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
-  '/service-orders/$id': typeof AuthenticatedServiceOrdersIdRoute
+  '/service-orders/$id': typeof AuthenticatedServiceOrdersIdRouteWithChildren
+  '/service-orders/my': typeof AuthenticatedServiceOrdersMyRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/service-orders/$id/mobile': typeof AuthenticatedServiceOrdersIdMobileRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -300,13 +316,15 @@ export interface FileRoutesByTo {
   '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
-  '/service-orders/$id': typeof AuthenticatedServiceOrdersIdRoute
+  '/service-orders/$id': typeof AuthenticatedServiceOrdersIdRouteWithChildren
+  '/service-orders/my': typeof AuthenticatedServiceOrdersMyRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
+  '/service-orders/$id/mobile': typeof AuthenticatedServiceOrdersIdMobileRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -339,13 +357,15 @@ export interface FileRoutesById {
   '/_authenticated/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
   '/_authenticated/clients_/$id': typeof AuthenticatedClientsIdRoute
   '/_authenticated/projects_/$id': typeof AuthenticatedProjectsIdRoute
-  '/_authenticated/service-orders_/$id': typeof AuthenticatedServiceOrdersIdRoute
+  '/_authenticated/service-orders_/$id': typeof AuthenticatedServiceOrdersIdRouteWithChildren
+  '/_authenticated/service-orders_/my': typeof AuthenticatedServiceOrdersMyRoute
   '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/_authenticated/settings/company': typeof AuthenticatedSettingsCompanyRoute
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/_authenticated/service-orders_/$id/mobile': typeof AuthenticatedServiceOrdersIdMobileRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -379,12 +399,14 @@ export interface FileRouteTypes {
     | '/clients/$id'
     | '/projects/$id'
     | '/service-orders/$id'
+    | '/service-orders/my'
     | '/settings/audit'
     | '/settings/company'
     | '/settings/roles'
     | '/settings/team'
     | '/admin/'
     | '/settings/'
+    | '/service-orders/$id/mobile'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -414,12 +436,14 @@ export interface FileRouteTypes {
     | '/clients/$id'
     | '/projects/$id'
     | '/service-orders/$id'
+    | '/service-orders/my'
     | '/settings/audit'
     | '/settings/company'
     | '/settings/roles'
     | '/settings/team'
     | '/admin'
     | '/settings'
+    | '/service-orders/$id/mobile'
   id:
     | '__root__'
     | '/'
@@ -452,12 +476,14 @@ export interface FileRouteTypes {
     | '/_authenticated/clients_/$id'
     | '/_authenticated/projects_/$id'
     | '/_authenticated/service-orders_/$id'
+    | '/_authenticated/service-orders_/my'
     | '/_authenticated/settings/audit'
     | '/_authenticated/settings/company'
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/team'
     | '/_authenticated/admin/'
     | '/_authenticated/settings/'
+    | '/_authenticated/service-orders_/$id/mobile'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -689,6 +715,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAuditRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/service-orders_/my': {
+      id: '/_authenticated/service-orders_/my'
+      path: '/service-orders/my'
+      fullPath: '/service-orders/my'
+      preLoaderRoute: typeof AuthenticatedServiceOrdersMyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/service-orders_/$id': {
       id: '/_authenticated/service-orders_/$id'
       path: '/service-orders/$id'
@@ -723,6 +756,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/plans'
       preLoaderRoute: typeof AuthenticatedAdminPlansRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/service-orders_/$id/mobile': {
+      id: '/_authenticated/service-orders_/$id/mobile'
+      path: '/mobile'
+      fullPath: '/service-orders/$id/mobile'
+      preLoaderRoute: typeof AuthenticatedServiceOrdersIdMobileRouteImport
+      parentRoute: typeof AuthenticatedServiceOrdersIdRoute
     }
   }
 }
@@ -763,6 +803,21 @@ const AuthenticatedSettingsRouteWithChildren =
     AuthenticatedSettingsRouteChildren,
   )
 
+interface AuthenticatedServiceOrdersIdRouteChildren {
+  AuthenticatedServiceOrdersIdMobileRoute: typeof AuthenticatedServiceOrdersIdMobileRoute
+}
+
+const AuthenticatedServiceOrdersIdRouteChildren: AuthenticatedServiceOrdersIdRouteChildren =
+  {
+    AuthenticatedServiceOrdersIdMobileRoute:
+      AuthenticatedServiceOrdersIdMobileRoute,
+  }
+
+const AuthenticatedServiceOrdersIdRouteWithChildren =
+  AuthenticatedServiceOrdersIdRoute._addFileChildren(
+    AuthenticatedServiceOrdersIdRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
@@ -784,7 +839,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSuppliersRoute: typeof AuthenticatedSuppliersRoute
   AuthenticatedClientsIdRoute: typeof AuthenticatedClientsIdRoute
   AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
-  AuthenticatedServiceOrdersIdRoute: typeof AuthenticatedServiceOrdersIdRoute
+  AuthenticatedServiceOrdersIdRoute: typeof AuthenticatedServiceOrdersIdRouteWithChildren
+  AuthenticatedServiceOrdersMyRoute: typeof AuthenticatedServiceOrdersMyRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -808,7 +864,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSuppliersRoute: AuthenticatedSuppliersRoute,
   AuthenticatedClientsIdRoute: AuthenticatedClientsIdRoute,
   AuthenticatedProjectsIdRoute: AuthenticatedProjectsIdRoute,
-  AuthenticatedServiceOrdersIdRoute: AuthenticatedServiceOrdersIdRoute,
+  AuthenticatedServiceOrdersIdRoute:
+    AuthenticatedServiceOrdersIdRouteWithChildren,
+  AuthenticatedServiceOrdersMyRoute: AuthenticatedServiceOrdersMyRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -826,13 +884,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
