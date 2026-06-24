@@ -1396,11 +1396,59 @@ export type Database = {
           },
         ]
       }
+      plan_limits: {
+        Row: {
+          created_at: string
+          id: string
+          max_companies: number | null
+          max_users: number | null
+          monthly_import_limit: number | null
+          monthly_ocr_limit: number | null
+          monthly_service_order_limit: number | null
+          plan_id: string
+          storage_gb: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_companies?: number | null
+          max_users?: number | null
+          monthly_import_limit?: number | null
+          monthly_ocr_limit?: number | null
+          monthly_service_order_limit?: number | null
+          plan_id: string
+          storage_gb?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_companies?: number | null
+          max_users?: number | null
+          monthly_import_limit?: number | null
+          monthly_ocr_limit?: number | null
+          monthly_service_order_limit?: number | null
+          plan_id?: string
+          storage_gb?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_limits_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: true
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plans: {
         Row: {
           active: boolean
           annual_price: number
           created_at: string
+          description: string | null
           id: string
           max_customers: number
           max_products: number
@@ -1410,12 +1458,14 @@ export type Database = {
           monthly_price: number
           name: string
           slug: string
+          sort_order: number
           updated_at: string
         }
         Insert: {
           active?: boolean
           annual_price?: number
           created_at?: string
+          description?: string | null
           id?: string
           max_customers?: number
           max_products?: number
@@ -1425,12 +1475,14 @@ export type Database = {
           monthly_price?: number
           name: string
           slug: string
+          sort_order?: number
           updated_at?: string
         }
         Update: {
           active?: boolean
           annual_price?: number
           created_at?: string
+          description?: string | null
           id?: string
           max_customers?: number
           max_products?: number
@@ -1440,6 +1492,7 @@ export type Database = {
           monthly_price?: number
           name?: string
           slug?: string
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []
@@ -3851,39 +3904,224 @@ export type Database = {
           },
         ]
       }
-      subscriptions: {
+      subscription_events: {
         Row: {
-          active: boolean
           company_id: string
           created_at: string
-          expiration_date: string | null
+          created_by: string | null
+          description: string | null
+          event_type: string
           id: string
-          plan_id: string
-          start_date: string
-          trial: boolean
-          updated_at: string
+          metadata: Json
+          new_plan_id: string | null
+          new_status: string | null
+          previous_plan_id: string | null
+          previous_status: string | null
+          subscription_id: string
         }
         Insert: {
-          active?: boolean
           company_id: string
           created_at?: string
-          expiration_date?: string | null
+          created_by?: string | null
+          description?: string | null
+          event_type: string
           id?: string
-          plan_id: string
-          start_date?: string
-          trial?: boolean
-          updated_at?: string
+          metadata?: Json
+          new_plan_id?: string | null
+          new_status?: string | null
+          previous_plan_id?: string | null
+          previous_status?: string | null
+          subscription_id: string
         }
         Update: {
-          active?: boolean
           company_id?: string
           created_at?: string
-          expiration_date?: string | null
+          created_by?: string | null
+          description?: string | null
+          event_type?: string
           id?: string
-          plan_id?: string
-          start_date?: string
-          trial?: boolean
+          metadata?: Json
+          new_plan_id?: string | null
+          new_status?: string | null
+          previous_plan_id?: string | null
+          previous_status?: string | null
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_events_new_plan_id_fkey"
+            columns: ["new_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_events_previous_plan_id_fkey"
+            columns: ["previous_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_events_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_usage: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          imports_used_count: number
+          ocr_used_count: number
+          period_end: string
+          period_start: string
+          service_orders_count: number
+          storage_used_mb: number
+          subscription_id: string
+          updated_at: string
+          users_count: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          imports_used_count?: number
+          ocr_used_count?: number
+          period_end: string
+          period_start: string
+          service_orders_count?: number
+          storage_used_mb?: number
+          subscription_id: string
           updated_at?: string
+          users_count?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          imports_used_count?: number
+          ocr_used_count?: number
+          period_end?: string
+          period_start?: string
+          service_orders_count?: number
+          storage_used_mb?: number
+          subscription_id?: string
+          updated_at?: string
+          users_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_usage_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_usage_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          activated_at: string | null
+          active: boolean
+          billing_cycle: string
+          canceled_at: string | null
+          company_id: string
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          expiration_date: string | null
+          grace_period_ends_at: string | null
+          id: string
+          metadata: Json
+          monthly_price: number | null
+          next_billing_date: string | null
+          payment_provider: string | null
+          plan_id: string
+          provider_customer_id: string | null
+          provider_subscription_id: string | null
+          start_date: string
+          status: string
+          suspended_at: string | null
+          trial: boolean
+          trial_ends_at: string | null
+          trial_starts_at: string | null
+          updated_at: string
+          yearly_price: number | null
+        }
+        Insert: {
+          activated_at?: string | null
+          active?: boolean
+          billing_cycle?: string
+          canceled_at?: string | null
+          company_id: string
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          expiration_date?: string | null
+          grace_period_ends_at?: string | null
+          id?: string
+          metadata?: Json
+          monthly_price?: number | null
+          next_billing_date?: string | null
+          payment_provider?: string | null
+          plan_id: string
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
+          start_date?: string
+          status?: string
+          suspended_at?: string | null
+          trial?: boolean
+          trial_ends_at?: string | null
+          trial_starts_at?: string | null
+          updated_at?: string
+          yearly_price?: number | null
+        }
+        Update: {
+          activated_at?: string | null
+          active?: boolean
+          billing_cycle?: string
+          canceled_at?: string | null
+          company_id?: string
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          expiration_date?: string | null
+          grace_period_ends_at?: string | null
+          id?: string
+          metadata?: Json
+          monthly_price?: number | null
+          next_billing_date?: string | null
+          payment_provider?: string | null
+          plan_id?: string
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
+          start_date?: string
+          status?: string
+          suspended_at?: string | null
+          trial?: boolean
+          trial_ends_at?: string | null
+          trial_starts_at?: string | null
+          updated_at?: string
+          yearly_price?: number | null
         }
         Relationships: [
           {
@@ -4276,6 +4514,15 @@ export type Database = {
         Returns: string
       }
       current_company_id: { Args: never; Returns: string }
+      expire_trials_and_subscriptions: {
+        Args: { p_grace_days?: number }
+        Returns: {
+          action: string
+          company_id: string
+          new_status: string
+          subscription_id: string
+        }[]
+      }
       get_my_features: { Args: never; Returns: string[] }
       get_my_permissions: { Args: never; Returns: string[] }
       get_public_quote_by_token: { Args: { _token: string }; Returns: Json }
