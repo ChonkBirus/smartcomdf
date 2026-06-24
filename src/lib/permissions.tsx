@@ -10,7 +10,9 @@ export type PermissionAction =
   | "assign_technician"
   | "view_assigned_only" | "execute" | "start" | "pause" | "finish_execution"
   | "manage_checklist" | "upload_photos" | "delete_photos"
-  | "manage_material_usage" | "override_required_checklist";
+  | "manage_material_usage" | "override_required_checklist"
+  | "collect_signature" | "generate_final_report" | "send_final_report"
+  | "download_final_report" | "deduct_stock" | "view_public_report_link";
 export type ModuleSlug =
   | "dashboard"
   | "products"

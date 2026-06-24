@@ -4433,6 +4433,41 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      so_collect_signature: {
+        Args: {
+          _ip_address?: string
+          _signature_file_url: string
+          _signature_type: string
+          _signer_document?: string
+          _signer_email?: string
+          _signer_name: string
+          _signer_phone?: string
+          _so_id: string
+          _user_agent?: string
+        }
+        Returns: {
+          company_id: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          report_id: string | null
+          service_order_id: string
+          signature_file_url: string
+          signature_type: string
+          signed_at: string
+          signer_document: string | null
+          signer_email: string | null
+          signer_name: string
+          signer_phone: string | null
+          user_agent: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "service_order_signatures"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       so_material_add: {
         Args: {
           _item_id: string
