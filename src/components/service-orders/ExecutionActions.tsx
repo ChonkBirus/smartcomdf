@@ -82,16 +82,30 @@ export function ExecutionActions({
     }
     if (action === "FINISHED_EXECUTION") {
       if (!report.trim()) { toast.error("Informe o relatório técnico antes de finalizar."); return; }
+      if (pendingRequired.length > 0) {
+        if (!canOverride) {
+          toast.error("Existem itens obrigatórios do checklist não concluídos.");
+          return;
+        }
+        if (!overrideJustification.trim()) {
+          toast.error("Informe a justificativa para finalizar com itens obrigatórios pendentes.");
+          return;
+        }
+      }
       mutation.mutate({
         data: {
           id: serviceOrderId, action,
           technicianReport: report.trim(),
           issueFound: issue.trim() || undefined,
           solutionApplied: solution.trim() || undefined,
+          ...(pendingRequired.length > 0
+            ? { reason: `Override checklist obrigatório: ${overrideJustification.trim()}` }
+            : {}),
         },
       });
       return;
     }
+
     mutation.mutate({ data: { id: serviceOrderId, action } });
   };
 
