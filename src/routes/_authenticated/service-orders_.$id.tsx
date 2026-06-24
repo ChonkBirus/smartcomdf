@@ -187,7 +187,7 @@ function ServiceOrderDetailPage() {
           <div className="space-y-1 text-sm">
             {project && (
               <Button asChild variant="link" size="sm" className="h-auto px-0">
-                <Link to="/projects/$id" params={{ id: project.id }} as any>
+                <Link to="/projects/$id" params={{ id: project.id }}>
                   Projeto {project.project_number}
                 </Link>
               </Button>
