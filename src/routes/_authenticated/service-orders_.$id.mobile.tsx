@@ -21,6 +21,7 @@ import { ServiceOrderChecklist } from "@/components/service-orders/ServiceOrderC
 import { ServiceOrderPhotos } from "@/components/service-orders/ServiceOrderPhotos";
 import { ServiceOrderMaterials } from "@/components/service-orders/ServiceOrderMaterials";
 import { ServiceOrderSignature } from "@/components/service-orders/ServiceOrderSignature";
+import { ServiceOrderStockDeduction } from "@/components/service-orders/ServiceOrderStockDeduction";
 
 export const Route = createFileRoute("/_authenticated/service-orders_/$id/mobile")({
   head: () => ({ meta: [{ title: "OS — SecureERP" }] }),
@@ -58,6 +59,7 @@ function MobileSODetailPage() {
   const canDeletePhotos = can("service_orders", "delete_photos") || canSeeInternal;
   const canManageMaterials = can("service_orders", "manage_material_usage") || canSeeInternal;
   const canCollectSignature = can("service_orders", "collect_signature") || canSeeInternal;
+  const canDeductStock = can("service_orders", "deduct_stock") || canSeeInternal;
 
   const { data, isLoading } = useQuery({
     queryKey: ["so-mobile", id],
@@ -275,6 +277,15 @@ function MobileSODetailPage() {
           status={so.status as any}
           canCollect={canCollectSignature}
           defaultSignerName={so.customer_name}
+        />
+      </Section>
+
+      <Section title="Baixa de Estoque">
+        <ServiceOrderStockDeduction
+          serviceOrderId={so.id}
+          status={so.status}
+          stockDeductionStatus={(so.stock_deduction_status as any) ?? "PENDING"}
+          canDeduct={canDeductStock}
         />
       </Section>
 
