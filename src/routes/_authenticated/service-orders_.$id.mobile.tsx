@@ -43,8 +43,8 @@ function MobileSODetailPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const fetchFn = useServerFn(getMobileServiceOrderDetails);
-  const { canManage } = usePermissions();
-  const canSeeInternal = canManage("service_orders");
+  const { canEdit } = usePermissions();
+  const canSeeInternal = canEdit("service_orders");
 
   const { data, isLoading } = useQuery({
     queryKey: ["so-mobile", id],
