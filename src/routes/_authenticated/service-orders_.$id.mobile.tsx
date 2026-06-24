@@ -15,6 +15,8 @@ import {
   ServiceOrderPriorityBadge,
 } from "@/components/service-orders/StatusBadges";
 import { ServiceOrderQuickActions } from "@/components/service-orders/ServiceOrderQuickActions";
+import { ExecutionActions } from "@/components/service-orders/ExecutionActions";
+import { ExecutionTimeline } from "@/components/service-orders/ExecutionTimeline";
 
 export const Route = createFileRoute("/_authenticated/service-orders_/$id/mobile")({
   head: () => ({ meta: [{ title: "OS — SecureERP" }] }),
@@ -102,7 +104,21 @@ function MobileSODetailPage() {
         </div>
       </Card>
 
+      <Section title="Execução">
+        <ExecutionActions
+          serviceOrderId={so.id}
+          status={so.status as any}
+          assignedTechnicianId={so.assigned_technician_id}
+        />
+        {so.status === "PAUSED" && so.pending_reason && (
+          <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
+            Pausa: {so.pending_reason}
+          </p>
+        )}
+      </Section>
+
       <Section title="Cliente">
+
         <div className="space-y-1">
           <div className="font-semibold">{so.customer_name}</div>
           {customer?.cpf_cnpj && (
