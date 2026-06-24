@@ -75,11 +75,18 @@ function SuppliersPage() {
         title="Fornecedores"
         description="Cadastro de fornecedores para pedidos de compra."
         actions={
-          <Can module="suppliers" action="create">
-            <Button onClick={() => { setEditing(null); setOpen(true); }}>
-              <Plus className="mr-1 h-4 w-4" />Novo fornecedor
-            </Button>
-          </Can>
+          <div className="flex gap-2">
+            <Can module="suppliers" action="import">
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="mr-1 h-4 w-4" />Importar
+              </Button>
+            </Can>
+            <Can module="suppliers" action="create">
+              <Button onClick={() => { setEditing(null); setOpen(true); }}>
+                <Plus className="mr-1 h-4 w-4" />Novo fornecedor
+              </Button>
+            </Can>
+          </div>
         }
       />
 
