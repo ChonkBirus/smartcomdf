@@ -2611,6 +2611,275 @@ export type Database = {
         }
         Relationships: []
       }
+      service_order_items: {
+        Row: {
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          item_id: string | null
+          item_type: string
+          name: string
+          planned_quantity: number
+          position: number
+          project_item_id: string | null
+          service_order_id: string
+          unit: string
+          updated_at: string
+          used_quantity: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          item_id?: string | null
+          item_type?: string
+          name: string
+          planned_quantity?: number
+          position?: number
+          project_item_id?: string | null
+          service_order_id: string
+          unit?: string
+          updated_at?: string
+          used_quantity?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          item_id?: string | null
+          item_type?: string
+          name?: string
+          planned_quantity?: number
+          position?: number
+          project_item_id?: string | null
+          service_order_id?: string
+          unit?: string
+          updated_at?: string
+          used_quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_order_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_order_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_order_items_project_item_id_fkey"
+            columns: ["project_item_id"]
+            isOneToOne: false
+            referencedRelation: "project_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_order_items_service_order_id_fkey"
+            columns: ["service_order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_order_number_counters: {
+        Row: {
+          company_id: string
+          current_number: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          current_number?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          current_number?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_order_number_counters_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_orders: {
+        Row: {
+          access_instructions: string | null
+          assigned_technician_id: string | null
+          cancelled_at: string | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          customer_address_id: string | null
+          customer_contact_id: string | null
+          customer_id: string
+          customer_instructions: string | null
+          deleted_at: string | null
+          description: string | null
+          id: string
+          internal_notes: string | null
+          parking_instructions: string | null
+          priority: string
+          project_id: string
+          quote_id: string | null
+          responsible_user_id: string | null
+          scheduled_date: string | null
+          scheduled_end_time: string | null
+          scheduled_start_time: string | null
+          service_order_number: string
+          started_at: string | null
+          status: string
+          technical_notes: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          access_instructions?: string | null
+          assigned_technician_id?: string | null
+          cancelled_at?: string | null
+          company_id: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_address_id?: string | null
+          customer_contact_id?: string | null
+          customer_id: string
+          customer_instructions?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          internal_notes?: string | null
+          parking_instructions?: string | null
+          priority?: string
+          project_id: string
+          quote_id?: string | null
+          responsible_user_id?: string | null
+          scheduled_date?: string | null
+          scheduled_end_time?: string | null
+          scheduled_start_time?: string | null
+          service_order_number: string
+          started_at?: string | null
+          status?: string
+          technical_notes?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          access_instructions?: string | null
+          assigned_technician_id?: string | null
+          cancelled_at?: string | null
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_address_id?: string | null
+          customer_contact_id?: string | null
+          customer_id?: string
+          customer_instructions?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          internal_notes?: string | null
+          parking_instructions?: string | null
+          priority?: string
+          project_id?: string
+          quote_id?: string | null
+          responsible_user_id?: string | null
+          scheduled_date?: string | null
+          scheduled_end_time?: string | null
+          scheduled_start_time?: string | null
+          service_order_number?: string
+          started_at?: string | null
+          status?: string
+          technical_notes?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_orders_assigned_technician_id_fkey"
+            columns: ["assigned_technician_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_customer_address_id_fkey"
+            columns: ["customer_address_id"]
+            isOneToOne: false
+            referencedRelation: "customer_addresses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_customer_contact_id_fkey"
+            columns: ["customer_contact_id"]
+            isOneToOne: false
+            referencedRelation: "customer_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_responsible_user_id_fkey"
+            columns: ["responsible_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_balances: {
         Row: {
           company_id: string
@@ -3179,6 +3448,10 @@ export type Database = {
         Args: { _payment_id: string; _reason?: string }
         Returns: Json
       }
+      cancel_service_order: {
+        Args: { _id: string; _reason?: string }
+        Returns: undefined
+      }
       check_project_materials: { Args: { _project_id: string }; Returns: Json }
       confirm_nota_receiving: {
         Args: {
@@ -3190,6 +3463,10 @@ export type Database = {
         Returns: Json
       }
       convert_quote_to_project: { Args: { _quote_id: string }; Returns: string }
+      create_service_order_from_project: {
+        Args: { _project_id: string }
+        Returns: string
+      }
       current_company_id: { Args: never; Returns: string }
       get_my_features: { Args: never; Returns: string[] }
       get_my_permissions: { Args: never; Returns: string[] }
@@ -3225,6 +3502,10 @@ export type Database = {
       }
       next_project_number: { Args: { _company_id: string }; Returns: string }
       next_quote_number: { Args: { _company_id: string }; Returns: string }
+      next_service_order_number: {
+        Args: { _company_id: string }
+        Returns: string
+      }
       notify_user: {
         Args: {
           _company_id: string
