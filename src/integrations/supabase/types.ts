@@ -2782,7 +2782,10 @@ export type Database = {
           company_id: string
           created_at: string
           id: string
+          metadata: Json | null
+          new_status: string | null
           notes: string | null
+          previous_status: string | null
           service_order_id: string
           user_id: string | null
         }
@@ -2791,7 +2794,10 @@ export type Database = {
           company_id: string
           created_at?: string
           id?: string
+          metadata?: Json | null
+          new_status?: string | null
           notes?: string | null
+          previous_status?: string | null
           service_order_id: string
           user_id?: string | null
         }
@@ -2800,7 +2806,10 @@ export type Database = {
           company_id?: string
           created_at?: string
           id?: string
+          metadata?: Json | null
+          new_status?: string | null
           notes?: string | null
+          previous_status?: string | null
           service_order_id?: string
           user_id?: string | null
         }
@@ -3939,6 +3948,61 @@ export type Database = {
         Returns: undefined
       }
       remove_project_team_member: { Args: { _id: string }; Returns: undefined }
+      service_order_execute_transition: {
+        Args: {
+          _action: string
+          _issue_found?: string
+          _reason?: string
+          _so_id: string
+          _solution_applied?: string
+          _technician_report?: string
+        }
+        Returns: {
+          access_instructions: string | null
+          assigned_technician_id: string | null
+          cancelled_at: string | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          customer_absent: boolean
+          customer_address_id: string | null
+          customer_contact_id: string | null
+          customer_id: string
+          customer_instructions: string | null
+          deleted_at: string | null
+          description: string | null
+          execution_completed_by: string | null
+          execution_notes: string | null
+          execution_started_by: string | null
+          id: string
+          internal_notes: string | null
+          issue_found: string | null
+          parking_instructions: string | null
+          pending_reason: string | null
+          priority: string
+          project_id: string
+          quote_id: string | null
+          responsible_user_id: string | null
+          scheduled_date: string | null
+          scheduled_end_time: string | null
+          scheduled_start_time: string | null
+          service_order_number: string
+          solution_applied: string | null
+          started_at: string | null
+          status: string
+          technical_notes: string | null
+          technician_report: string | null
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "service_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       transfer_stock: {
         Args: {
           _from_location: string
