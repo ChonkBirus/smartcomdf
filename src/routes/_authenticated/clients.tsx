@@ -4,8 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Users, Plus, Pencil, Trash2, Search, MessageCircle, Eye, History,
-  Building2, User as UserIcon, ArrowLeft, ArrowRight,
+  Building2, User as UserIcon, ArrowLeft, ArrowRight, Upload,
 } from "lucide-react";
+import { CustomerImportDialog } from "@/components/customers/CustomerImportDialog";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/EmptyState";
 import { PermissionRoute, Can } from "@/components/app/PermissionRoute";
