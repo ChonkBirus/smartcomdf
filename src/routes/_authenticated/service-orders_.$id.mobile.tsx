@@ -43,8 +43,10 @@ function MobileSODetailPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const fetchFn = useServerFn(getMobileServiceOrderDetails);
-  const { canEdit } = usePermissions();
-  const canSeeInternal = canEdit("service_orders");
+  const { can } = usePermissions();
+  // Internal data (notas internas, origem projeto/orçamento) é restrito a gestores,
+  // identificados pela permissão de atribuir técnico — técnicos não possuem.
+  const canSeeInternal = can("service_orders", "assign_technician");
 
   const { data, isLoading } = useQuery({
     queryKey: ["so-mobile", id],
