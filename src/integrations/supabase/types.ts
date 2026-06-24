@@ -2611,6 +2611,223 @@ export type Database = {
         }
         Relationships: []
       }
+      service_order_checklist_items: {
+        Row: {
+          checked: boolean
+          checked_at: string | null
+          checked_by: string | null
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          notes: string | null
+          required: boolean
+          service_order_id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          checked?: boolean
+          checked_at?: string | null
+          checked_by?: string | null
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          required?: boolean
+          service_order_id: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          checked?: boolean
+          checked_at?: string | null
+          checked_by?: string | null
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          required?: boolean
+          service_order_id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_order_checklist_items_checked_by_fkey"
+            columns: ["checked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_order_checklist_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_order_checklist_items_service_order_id_fkey"
+            columns: ["service_order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_order_checklist_template_items: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          required: boolean
+          sort_order: number
+          template_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          required?: boolean
+          sort_order?: number
+          template_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          required?: boolean
+          sort_order?: number
+          template_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_order_checklist_template_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_order_checklist_template_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "service_order_checklist_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_order_checklist_templates: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          service_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          service_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          service_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_order_checklist_templates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_order_execution_logs: {
+        Row: {
+          action: string
+          company_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          service_order_id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          company_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          service_order_id: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          service_order_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_order_execution_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_order_execution_logs_service_order_id_fkey"
+            columns: ["service_order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_order_execution_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_order_items: {
         Row: {
           company_id: string
@@ -2694,6 +2911,97 @@ export type Database = {
           },
         ]
       }
+      service_order_material_usage: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          item_id: string
+          notes: string | null
+          planned_quantity: number
+          service_order_id: string
+          service_order_item_id: string | null
+          stock_location_id: string | null
+          unit: string | null
+          updated_at: string
+          used_quantity: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          item_id: string
+          notes?: string | null
+          planned_quantity?: number
+          service_order_id: string
+          service_order_item_id?: string | null
+          stock_location_id?: string | null
+          unit?: string | null
+          updated_at?: string
+          used_quantity?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          item_id?: string
+          notes?: string | null
+          planned_quantity?: number
+          service_order_id?: string
+          service_order_item_id?: string | null
+          stock_location_id?: string | null
+          unit?: string | null
+          updated_at?: string
+          used_quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_order_material_usage_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_order_material_usage_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_order_material_usage_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_order_material_usage_service_order_id_fkey"
+            columns: ["service_order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_order_material_usage_service_order_item_id_fkey"
+            columns: ["service_order_item_id"]
+            isOneToOne: false
+            referencedRelation: "service_order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_order_material_usage_stock_location_id_fkey"
+            columns: ["stock_location_id"]
+            isOneToOne: false
+            referencedRelation: "stock_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_order_number_counters: {
         Row: {
           company_id: string
@@ -2720,6 +3028,67 @@ export type Database = {
           },
         ]
       }
+      service_order_photos: {
+        Row: {
+          company_id: string
+          created_at: string
+          description: string | null
+          file_name: string
+          file_size: number | null
+          file_url: string
+          id: string
+          photo_type: string
+          service_order_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          description?: string | null
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          photo_type: string
+          service_order_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          photo_type?: string
+          service_order_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_order_photos_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_order_photos_service_order_id_fkey"
+            columns: ["service_order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_order_photos_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_orders: {
         Row: {
           access_instructions: string | null
@@ -2729,15 +3098,21 @@ export type Database = {
           completed_at: string | null
           created_at: string
           created_by: string | null
+          customer_absent: boolean
           customer_address_id: string | null
           customer_contact_id: string | null
           customer_id: string
           customer_instructions: string | null
           deleted_at: string | null
           description: string | null
+          execution_completed_by: string | null
+          execution_notes: string | null
+          execution_started_by: string | null
           id: string
           internal_notes: string | null
+          issue_found: string | null
           parking_instructions: string | null
+          pending_reason: string | null
           priority: string
           project_id: string
           quote_id: string | null
@@ -2746,9 +3121,11 @@ export type Database = {
           scheduled_end_time: string | null
           scheduled_start_time: string | null
           service_order_number: string
+          solution_applied: string | null
           started_at: string | null
           status: string
           technical_notes: string | null
+          technician_report: string | null
           title: string
           updated_at: string
         }
@@ -2760,15 +3137,21 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          customer_absent?: boolean
           customer_address_id?: string | null
           customer_contact_id?: string | null
           customer_id: string
           customer_instructions?: string | null
           deleted_at?: string | null
           description?: string | null
+          execution_completed_by?: string | null
+          execution_notes?: string | null
+          execution_started_by?: string | null
           id?: string
           internal_notes?: string | null
+          issue_found?: string | null
           parking_instructions?: string | null
+          pending_reason?: string | null
           priority?: string
           project_id: string
           quote_id?: string | null
@@ -2777,9 +3160,11 @@ export type Database = {
           scheduled_end_time?: string | null
           scheduled_start_time?: string | null
           service_order_number: string
+          solution_applied?: string | null
           started_at?: string | null
           status?: string
           technical_notes?: string | null
+          technician_report?: string | null
           title: string
           updated_at?: string
         }
@@ -2791,15 +3176,21 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          customer_absent?: boolean
           customer_address_id?: string | null
           customer_contact_id?: string | null
           customer_id?: string
           customer_instructions?: string | null
           deleted_at?: string | null
           description?: string | null
+          execution_completed_by?: string | null
+          execution_notes?: string | null
+          execution_started_by?: string | null
           id?: string
           internal_notes?: string | null
+          issue_found?: string | null
           parking_instructions?: string | null
+          pending_reason?: string | null
           priority?: string
           project_id?: string
           quote_id?: string | null
@@ -2808,9 +3199,11 @@ export type Database = {
           scheduled_end_time?: string | null
           scheduled_start_time?: string | null
           service_order_number?: string
+          solution_applied?: string | null
           started_at?: string | null
           status?: string
           technical_notes?: string | null
+          technician_report?: string | null
           title?: string
           updated_at?: string
         }
@@ -2855,6 +3248,20 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_execution_completed_by_fkey"
+            columns: ["execution_completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_execution_started_by_fkey"
+            columns: ["execution_started_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -3444,6 +3851,7 @@ export type Database = {
         Args: { _note?: string; _payment_id: string }
         Returns: Json
       }
+      can_access_service_order: { Args: { _so_id: string }; Returns: boolean }
       cancel_quote_payment: {
         Args: { _payment_id: string; _reason?: string }
         Returns: Json
