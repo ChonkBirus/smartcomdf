@@ -62,6 +62,7 @@ import { getMyContext } from "@/lib/account.functions";
 import { TaxonomyDialog } from "@/components/products/TaxonomyDialog";
 import { ItemFormSheet } from "@/components/products/ItemFormSheet";
 import { ItemBadge } from "@/components/products/ItemBadge";
+import { ProductImportDialog } from "@/components/products/ProductImportDialog";
 
 export const Route = createFileRoute("/_authenticated/products")({
   head: () => ({ meta: [{ title: "Catálogo — SecureERP" }] }),
