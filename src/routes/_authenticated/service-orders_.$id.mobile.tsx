@@ -20,6 +20,7 @@ import { ExecutionTimeline } from "@/components/service-orders/ExecutionTimeline
 import { ServiceOrderChecklist } from "@/components/service-orders/ServiceOrderChecklist";
 import { ServiceOrderPhotos } from "@/components/service-orders/ServiceOrderPhotos";
 import { ServiceOrderMaterials } from "@/components/service-orders/ServiceOrderMaterials";
+import { ServiceOrderSignature } from "@/components/service-orders/ServiceOrderSignature";
 
 export const Route = createFileRoute("/_authenticated/service-orders_/$id/mobile")({
   head: () => ({ meta: [{ title: "OS — SecureERP" }] }),
@@ -56,6 +57,7 @@ function MobileSODetailPage() {
   const canUploadPhotos = can("service_orders", "upload_photos") || canSeeInternal;
   const canDeletePhotos = can("service_orders", "delete_photos") || canSeeInternal;
   const canManageMaterials = can("service_orders", "manage_material_usage") || canSeeInternal;
+  const canCollectSignature = can("service_orders", "collect_signature") || canSeeInternal;
 
   const { data, isLoading } = useQuery({
     queryKey: ["so-mobile", id],
@@ -263,6 +265,16 @@ function MobileSODetailPage() {
           serviceOrderId={so.id}
           status={so.status as any}
           canManage={canManageMaterials}
+        />
+      </Section>
+
+      <Section title="Assinatura do Cliente">
+        <ServiceOrderSignature
+          serviceOrderId={so.id}
+          companyId={so.company_id}
+          status={so.status as any}
+          canCollect={canCollectSignature}
+          defaultSignerName={so.customer_name}
         />
       </Section>
 
