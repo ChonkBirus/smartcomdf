@@ -17,6 +17,9 @@ import {
 import { ServiceOrderQuickActions } from "@/components/service-orders/ServiceOrderQuickActions";
 import { ExecutionActions } from "@/components/service-orders/ExecutionActions";
 import { ExecutionTimeline } from "@/components/service-orders/ExecutionTimeline";
+import { ServiceOrderChecklist } from "@/components/service-orders/ServiceOrderChecklist";
+import { ServiceOrderPhotos } from "@/components/service-orders/ServiceOrderPhotos";
+import { ServiceOrderMaterials } from "@/components/service-orders/ServiceOrderMaterials";
 
 export const Route = createFileRoute("/_authenticated/service-orders_/$id/mobile")({
   head: () => ({ meta: [{ title: "OS — SecureERP" }] }),
