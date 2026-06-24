@@ -11,10 +11,9 @@ export const syncBillingStatus = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
 
     const { data: canSync } = await supabase.rpc("has_permission", {
-      _user_id: userId,
-      _permission: "billing.sync_status",
+      _slug: "billing.sync_status",
     });
-    if (!canSync) throw new Error("Sem permissão para sincronizar cobranças.");
+    if (canSync === false) throw new Error("Sem permissão para sincronizar cobranças.");
 
     const { supabaseAdmin } = await import(
       "@/integrations/supabase/client.server"
