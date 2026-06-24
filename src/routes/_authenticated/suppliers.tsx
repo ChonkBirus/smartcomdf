@@ -43,6 +43,7 @@ function SuppliersPage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [confirmDel, setConfirmDel] = useState<Supplier | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const fetchAll = useServerFn(listSuppliers);
   const remove = useServerFn(deleteSupplier);
