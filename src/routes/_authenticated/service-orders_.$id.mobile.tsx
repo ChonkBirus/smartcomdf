@@ -17,6 +17,9 @@ import {
 import { ServiceOrderQuickActions } from "@/components/service-orders/ServiceOrderQuickActions";
 import { ExecutionActions } from "@/components/service-orders/ExecutionActions";
 import { ExecutionTimeline } from "@/components/service-orders/ExecutionTimeline";
+import { ServiceOrderChecklist } from "@/components/service-orders/ServiceOrderChecklist";
+import { ServiceOrderPhotos } from "@/components/service-orders/ServiceOrderPhotos";
+import { ServiceOrderMaterials } from "@/components/service-orders/ServiceOrderMaterials";
 
 export const Route = createFileRoute("/_authenticated/service-orders_/$id/mobile")({
   head: () => ({ meta: [{ title: "OS — SecureERP" }] }),
@@ -49,6 +52,10 @@ function MobileSODetailPage() {
   // Internal data (notas internas, origem projeto/orçamento) é restrito a gestores,
   // identificados pela permissão de atribuir técnico — técnicos não possuem.
   const canSeeInternal = can("service_orders", "assign_technician");
+  const canManageChecklist = can("service_orders", "manage_checklist") || canSeeInternal;
+  const canUploadPhotos = can("service_orders", "upload_photos") || canSeeInternal;
+  const canDeletePhotos = can("service_orders", "delete_photos") || canSeeInternal;
+  const canManageMaterials = can("service_orders", "manage_material_usage") || canSeeInternal;
 
   const { data, isLoading } = useQuery({
     queryKey: ["so-mobile", id],
@@ -231,6 +238,32 @@ function MobileSODetailPage() {
             ))}
           </ul>
         )}
+      </Section>
+
+      <Section title="Checklist de Execução">
+        <ServiceOrderChecklist
+          serviceOrderId={so.id}
+          status={so.status as any}
+          canManage={canManageChecklist}
+        />
+      </Section>
+
+      <Section title="Fotos da Execução">
+        <ServiceOrderPhotos
+          serviceOrderId={so.id}
+          companyId={so.company_id}
+          status={so.status as any}
+          canUpload={canUploadPhotos}
+          canDelete={canDeletePhotos}
+        />
+      </Section>
+
+      <Section title="Materiais Utilizados">
+        <ServiceOrderMaterials
+          serviceOrderId={so.id}
+          status={so.status as any}
+          canManage={canManageMaterials}
+        />
       </Section>
 
       <Section title="Técnico responsável">

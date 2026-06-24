@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Play, Pause, RefreshCw, CheckCircle2, AlertTriangle, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import {
 import { toast } from "sonner";
 import { usePermissions } from "@/lib/permissions";
 import { executeServiceOrderTransition } from "@/lib/service-order-execution.functions";
+import { listPendingRequiredChecklist } from "@/lib/service-order-checklist.functions";
+
 
 type Status = "DRAFT" | "SCHEDULED" | "IN_PROGRESS" | "PAUSED" | "COMPLETED" | "CANCELLED";
 
@@ -40,12 +42,23 @@ export function ExecutionActions({
   const { can, isOwner, isSuperAdmin } = usePermissions();
   const isManager = isOwner || isSuperAdmin || can("service_orders", "edit") || can("service_orders", "assign_technician");
 
+  const canOverride = isOwner || isSuperAdmin || can("service_orders", "override_required_checklist");
+
   const [open, setOpen] = useState<null | "start" | "pause" | "resume" | "finish">(null);
   const [reason, setReason] = useState("");
   const [reasonOther, setReasonOther] = useState("");
   const [report, setReport] = useState("");
   const [issue, setIssue] = useState("");
   const [solution, setSolution] = useState("");
+  const [overrideJustification, setOverrideJustification] = useState("");
+
+  const pendingFn = useServerFn(listPendingRequiredChecklist);
+  const { data: pendingRequired = [] } = useQuery({
+    queryKey: ["so-required-pending", serviceOrderId],
+    queryFn: () => pendingFn({ data: { id: serviceOrderId } }),
+    enabled: open === "finish",
+  });
+
 
   const mutation = useMutation({
     mutationFn: fn,
@@ -69,16 +82,30 @@ export function ExecutionActions({
     }
     if (action === "FINISHED_EXECUTION") {
       if (!report.trim()) { toast.error("Informe o relatório técnico antes de finalizar."); return; }
+      if (pendingRequired.length > 0) {
+        if (!canOverride) {
+          toast.error("Existem itens obrigatórios do checklist não concluídos.");
+          return;
+        }
+        if (!overrideJustification.trim()) {
+          toast.error("Informe a justificativa para finalizar com itens obrigatórios pendentes.");
+          return;
+        }
+      }
       mutation.mutate({
         data: {
           id: serviceOrderId, action,
           technicianReport: report.trim(),
           issueFound: issue.trim() || undefined,
           solutionApplied: solution.trim() || undefined,
+          ...(pendingRequired.length > 0
+            ? { reason: `Override checklist obrigatório: ${overrideJustification.trim()}` }
+            : {}),
         },
       });
       return;
     }
+
     mutation.mutate({ data: { id: serviceOrderId, action } });
   };
 
@@ -201,6 +228,28 @@ export function ExecutionActions({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
+            {pendingRequired.length > 0 && (
+              <div className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs text-amber-700 dark:text-amber-300 space-y-1">
+                <div className="flex items-center gap-1 font-semibold">
+                  <AlertTriangle className="h-4 w-4" /> Itens obrigatórios não concluídos
+                </div>
+                <ul className="list-disc list-inside">
+                  {pendingRequired.map((i: any) => <li key={i.id}>{i.title}</li>)}
+                </ul>
+                {canOverride ? (
+                  <div className="pt-2">
+                    <Label className="text-xs">Justificativa para finalizar mesmo assim *</Label>
+                    <Textarea
+                      value={overrideJustification}
+                      onChange={(e) => setOverrideJustification(e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                ) : (
+                  <p className="pt-1">Conclua os itens obrigatórios antes de finalizar.</p>
+                )}
+              </div>
+            )}
             <div>
               <Label>Relatório técnico resumido *</Label>
               <Textarea value={report} onChange={(e) => setReport(e.target.value)} rows={4} />
@@ -214,6 +263,7 @@ export function ExecutionActions({
               <Textarea value={solution} onChange={(e) => setSolution(e.target.value)} rows={2} />
             </div>
           </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(null)}>Cancelar</Button>
             <Button onClick={() => submit("FINISHED_EXECUTION")} disabled={mutation.isPending}>Finalizar</Button>
