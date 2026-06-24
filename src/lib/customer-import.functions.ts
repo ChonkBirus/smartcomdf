@@ -507,7 +507,7 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
     const company_id = await getCompanyId(sb, context.userId);
 
     // Check permission
-    const { data: canConfirm } = await sb.rpc("has_permission", { _slug: "customers.import.confirm" });
+    const { data: canConfirm } = await sb.rpc("has_permission", { _slug: "clients.import.confirm" });
     if (canConfirm === false) throw new Error("Sem permissão para confirmar importação.");
 
     const { data: job, error: jobErr } = await sb
