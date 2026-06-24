@@ -261,6 +261,12 @@ function MobileSODetailPage() {
         </Section>
       )}
 
+      <Section title="Histórico da Execução">
+        <ExecutionTimeline serviceOrderId={so.id} />
+      </Section>
+
+
+
       <Separator />
       <div className="flex justify-center">
         <Button asChild variant="ghost" size="sm">
