@@ -67,6 +67,7 @@ function ClientsPage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [historyFor, setHistoryFor] = useState<{ id: string; name: string } | null>(null);
   const [confirmDel, setConfirmDel] = useState<{ id: string; name: string } | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const fetchList = useServerFn(listCustomers);
   const fetchTags = useServerFn(listCustomerTags);
