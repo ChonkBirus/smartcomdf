@@ -2826,6 +2826,141 @@ export type Database = {
           },
         ]
       }
+      supplier_import_jobs: {
+        Row: {
+          column_mapping: Json | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          created_rows: number
+          error_message: string | null
+          file_name: string
+          file_url: string | null
+          id: string
+          invalid_rows: number
+          skipped_rows: number
+          status: string
+          total_rows: number
+          updated_at: string
+          updated_rows: number
+          valid_rows: number
+        }
+        Insert: {
+          column_mapping?: Json | null
+          company_id: string
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          created_rows?: number
+          error_message?: string | null
+          file_name: string
+          file_url?: string | null
+          id?: string
+          invalid_rows?: number
+          skipped_rows?: number
+          status?: string
+          total_rows?: number
+          updated_at?: string
+          updated_rows?: number
+          valid_rows?: number
+        }
+        Update: {
+          column_mapping?: Json | null
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          created_rows?: number
+          error_message?: string | null
+          file_name?: string
+          file_url?: string | null
+          id?: string
+          invalid_rows?: number
+          skipped_rows?: number
+          status?: string
+          total_rows?: number
+          updated_at?: string
+          updated_rows?: number
+          valid_rows?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_import_jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_import_rows: {
+        Row: {
+          action: string
+          company_id: string
+          created_at: string
+          id: string
+          import_job_id: string
+          mapped_data: Json | null
+          matched_supplier_id: string | null
+          raw_data: Json
+          row_number: number
+          status: string
+          updated_at: string
+          validation_errors: Json | null
+        }
+        Insert: {
+          action?: string
+          company_id: string
+          created_at?: string
+          id?: string
+          import_job_id: string
+          mapped_data?: Json | null
+          matched_supplier_id?: string | null
+          raw_data: Json
+          row_number: number
+          status?: string
+          updated_at?: string
+          validation_errors?: Json | null
+        }
+        Update: {
+          action?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          import_job_id?: string
+          mapped_data?: Json | null
+          matched_supplier_id?: string | null
+          raw_data?: Json
+          row_number?: number
+          status?: string
+          updated_at?: string
+          validation_errors?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_import_rows_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_import_rows_import_job_id_fkey"
+            columns: ["import_job_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_import_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_import_rows_matched_supplier_id_fkey"
+            columns: ["matched_supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           active: boolean
