@@ -4468,6 +4468,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      so_deduct_stock: { Args: { _so_id: string }; Returns: Json }
       so_material_add: {
         Args: {
           _item_id: string
