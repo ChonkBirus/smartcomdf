@@ -123,7 +123,7 @@ async function getCompanyId(sb: any, userId: string): Promise<string> {
   return data.company_id as string;
 }
 
-async function logAudit(sb: any, module: string, action: string, recordId?: string, newData?: any) {
+async function logAudit(sb: any, module: string, action: string, recordId?: string | null, newData?: any) {
   try {
     await sb.rpc("log_audit", {
       _module: module,
