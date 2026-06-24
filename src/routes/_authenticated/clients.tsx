@@ -130,11 +130,18 @@ function ClientsPage() {
         title="Clientes"
         description="Gestão completa de pessoas físicas e jurídicas."
         actions={
-          <Can module="clients" action="create">
-            <Button onClick={() => { setEditing(null); setOpen(true); }}>
-              <Plus className="mr-1 h-4 w-4" />Novo cliente
-            </Button>
-          </Can>
+          <div className="flex items-center gap-2">
+            <Can module="clients" action="import">
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="mr-1 h-4 w-4" />Importar
+              </Button>
+            </Can>
+            <Can module="clients" action="create">
+              <Button onClick={() => { setEditing(null); setOpen(true); }}>
+                <Plus className="mr-1 h-4 w-4" />Novo cliente
+              </Button>
+            </Can>
+          </div>
         }
       />
 
