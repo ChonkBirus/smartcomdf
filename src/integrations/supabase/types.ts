@@ -558,6 +558,78 @@ export type Database = {
           },
         ]
       }
+      cnpj_lookup_cache: {
+        Row: {
+          cnpj: string
+          created_at: string
+          expires_at: string | null
+          fetched_at: string
+          id: string
+          normalized_data: Json
+          provider: string
+          raw_payload: Json | null
+          updated_at: string
+        }
+        Insert: {
+          cnpj: string
+          created_at?: string
+          expires_at?: string | null
+          fetched_at?: string
+          id?: string
+          normalized_data: Json
+          provider: string
+          raw_payload?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          cnpj?: string
+          created_at?: string
+          expires_at?: string | null
+          fetched_at?: string
+          id?: string
+          normalized_data?: Json
+          provider?: string
+          raw_payload?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cnpj_lookup_logs: {
+        Row: {
+          cnpj: string
+          company_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          provider: string
+          requested_by: string | null
+          result_summary: Json | null
+          status: string
+        }
+        Insert: {
+          cnpj: string
+          company_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          provider: string
+          requested_by?: string | null
+          result_summary?: Json | null
+          status: string
+        }
+        Update: {
+          cnpj?: string
+          company_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          provider?: string
+          requested_by?: string | null
+          result_summary?: Json | null
+          status?: string
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           cnpj: string | null

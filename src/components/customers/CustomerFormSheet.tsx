@@ -20,6 +20,8 @@ import {
   type CustomerAddress, type CustomerContact, type CustomerType, type CustomerStatus, type CustomerAddressType,
 } from "@/lib/customers.functions";
 import { COUNTRIES, statesFor, isValidEmail } from "@/lib/locations";
+import { CustomerCnpjLookupButton } from "@/components/customers/CustomerCnpjLookupDialog";
+import type { CnpjLookupResultDTO } from "@/lib/cnpj-lookup.functions";
 
 type AddrRow = Omit<CustomerAddress, "id" | "company_id" | "customer_id" | "created_at" | "updated_at"> & { id?: string };
 type ContactRow = Omit<CustomerContact, "id" | "company_id" | "customer_id" | "created_at" | "updated_at"> & { id?: string };
@@ -233,6 +235,49 @@ export function CustomerFormSheet({
   const docTouched = docDigits.length > 0;
   const docComplete = docDigits.length === docExpectedLen;
 
+  function applyCnpjData(d: CnpjLookupResultDTO, replace: boolean) {
+    setForm((s) => {
+      const take = (cur: string, next: string | null | undefined) =>
+        next ? (replace || !cur?.trim() ? next : cur) : cur;
+      const nextAddrs = [...s.addresses];
+      const hasAddr = nextAddrs.length > 0;
+      const addrPatch = {
+        address_type: "INSTALLATION" as CustomerAddressType,
+        country: "BR",
+        zipcode: d.zipcode ?? null,
+        street: d.address ?? null,
+        number: d.number ?? null,
+        complement: d.complement ?? null,
+        district: d.district ?? null,
+        city: d.city ?? null,
+        state: d.state ?? null,
+        reference: null,
+        is_primary: true,
+      };
+      if (!hasAddr) {
+        nextAddrs.push(addrPatch as AddrRow);
+      } else if (replace) {
+        nextAddrs[0] = { ...nextAddrs[0], ...addrPatch };
+      }
+      return {
+        ...s,
+        corporate_name: take(s.corporate_name, d.corporate_name),
+        trade_name: take(s.trade_name, d.trade_name),
+        name: take(s.name, d.trade_name || d.corporate_name),
+        email: take(s.email, d.email),
+        phone: take(s.phone, d.phone),
+        whatsapp: take(s.whatsapp, d.phone),
+        state_registration: take(s.state_registration, d.state_registration),
+        municipal_registration: take(s.municipal_registration, d.municipal_registration),
+        notes: d.main_activity && !s.notes ? `CNAE: ${d.main_cnae ?? ""} - ${d.main_activity}` : s.notes,
+        addresses: nextAddrs,
+      };
+    });
+  }
+
+  const hasExistingPjData = !!(form.corporate_name || form.trade_name || form.email || form.addresses.length > 0);
+
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
@@ -321,7 +366,18 @@ export function CustomerFormSheet({
                       <p className="mt-1 text-xs text-muted-foreground">{docDigits.length}/{docExpectedLen} dígitos</p>
                     )
                   )}
+                  {isCompany && (
+                    <div className="mt-2">
+                      <CustomerCnpjLookupButton
+                        cnpj={form.cpf_cnpj}
+                        disabled={!docComplete || !docValid}
+                        hasExistingData={hasExistingPjData}
+                        onApply={applyCnpjData}
+                      />
+                    </div>
+                  )}
                 </div>
+
                 {isCompany && (
                   <>
                     <div>
