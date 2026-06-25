@@ -37,8 +37,11 @@ const daysUntil = (s: string | null | undefined) => {
 
 function SubscriptionPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const subFn = useServerFn(getCurrentCompanySubscription);
   const usageFn = useServerFn(getCompanySubscriptionUsage);
+  const pendingFn = useServerFn(getPendingPlanChange);
+  const cancelFn = useServerFn(cancelPendingPlanChange);
 
   const { data: sub, isLoading } = useQuery({
     queryKey: ["billing", "current-subscription"],
@@ -47,6 +50,19 @@ function SubscriptionPage() {
   const { data: usage } = useQuery({
     queryKey: ["billing", "current-usage"],
     queryFn: () => usageFn(),
+  });
+  const { data: pending } = useQuery({
+    queryKey: ["billing", "pending-plan-change"],
+    queryFn: () => pendingFn(),
+  });
+
+  const cancelMut = useMutation({
+    mutationFn: () => cancelFn(),
+    onSuccess: () => {
+      toast.success("Alteração pendente cancelada.");
+      qc.invalidateQueries({ queryKey: ["billing"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao cancelar"),
   });
 
   if (isLoading) {
