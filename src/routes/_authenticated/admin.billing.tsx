@@ -109,6 +109,7 @@ function ChargesTab() {
   const [status, setStatus] = useState("ALL");
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [viewingCharge, setViewingCharge] = useState<string | null>(null);
 
   const filters = useMemo(
     () => ({
