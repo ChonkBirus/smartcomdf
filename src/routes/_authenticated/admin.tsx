@@ -34,6 +34,7 @@ function AdminLayout() {
     { to: "/admin/plans", label: "Planos", icon: Package },
     { to: "/admin/subscriptions", label: "Assinaturas", icon: CreditCard },
     { to: "/admin/billing", label: "Cobranças", icon: Receipt },
+    { to: "/admin/events", label: "Eventos", icon: Activity },
   ];
 
   return (
