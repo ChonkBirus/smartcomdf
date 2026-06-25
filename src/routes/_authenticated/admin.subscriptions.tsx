@@ -25,6 +25,7 @@ import {
   listSubscriptionEvents,
   listPlans,
 } from "@/lib/admin.functions";
+import { SubscriptionHistoryTimeline } from "@/components/billing/SubscriptionHistoryTimeline";
 
 export const Route = createFileRoute("/_authenticated/admin/subscriptions")({
   component: AdminSubscriptionsPage,
