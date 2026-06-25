@@ -4598,6 +4598,12 @@ export type Database = {
           monthly_price: number | null
           next_billing_date: string | null
           payment_provider: string | null
+          pending_plan_billing_cycle: string | null
+          pending_plan_change_at: string | null
+          pending_plan_change_type: string | null
+          pending_plan_id: string | null
+          pending_plan_requested_at: string | null
+          pending_plan_requested_by: string | null
           plan_id: string
           provider_customer_id: string | null
           provider_subscription_id: string | null
@@ -4626,6 +4632,12 @@ export type Database = {
           monthly_price?: number | null
           next_billing_date?: string | null
           payment_provider?: string | null
+          pending_plan_billing_cycle?: string | null
+          pending_plan_change_at?: string | null
+          pending_plan_change_type?: string | null
+          pending_plan_id?: string | null
+          pending_plan_requested_at?: string | null
+          pending_plan_requested_by?: string | null
           plan_id: string
           provider_customer_id?: string | null
           provider_subscription_id?: string | null
@@ -4654,6 +4666,12 @@ export type Database = {
           monthly_price?: number | null
           next_billing_date?: string | null
           payment_provider?: string | null
+          pending_plan_billing_cycle?: string | null
+          pending_plan_change_at?: string | null
+          pending_plan_change_type?: string | null
+          pending_plan_id?: string | null
+          pending_plan_requested_at?: string | null
+          pending_plan_requested_by?: string | null
           plan_id?: string
           provider_customer_id?: string | null
           provider_subscription_id?: string | null
@@ -4672,6 +4690,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_pending_plan_id_fkey"
+            columns: ["pending_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
             referencedColumns: ["id"]
           },
           {
@@ -5178,6 +5203,7 @@ export type Database = {
         }
         Returns: string
       }
+      process_pending_plan_changes: { Args: never; Returns: number }
       quote_recalc_totals: { Args: { _quote_id: string }; Returns: undefined }
       quotes_mark_expired: { Args: never; Returns: number }
       receive_purchase_order: {
