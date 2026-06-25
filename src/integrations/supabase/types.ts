@@ -5019,7 +5019,22 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      subscription_commercial_history: {
+        Row: {
+          actor_name: string | null
+          actor_type: string | null
+          amount: number | null
+          company_id: string | null
+          description: string | null
+          event_date: string | null
+          event_type: string | null
+          id: string | null
+          source: string | null
+          subscription_id: string | null
+          title: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_invitation: { Args: { _token: string }; Returns: string }
