@@ -130,6 +130,21 @@ function ResultView({
     toast.success("Copiado");
   };
 
+  const syncFn = useServerFn(syncBillingStatus);
+  const sync = useMutation({
+    mutationFn: () => syncFn({ data: { charge_id: result.charge_id } }),
+    onSuccess: (r) => {
+      const s = (r as any)?.status as string | undefined;
+      if (s === "RECEIVED" || s === "CONFIRMED" || s === "RECEIVED_IN_CASH") {
+        toast.success("Pagamento confirmado. Sua assinatura está ativa.");
+      } else {
+        toast.message("Pagamento ainda não identificado. Aguarde alguns instantes e tente novamente.");
+      }
+    },
+    onError: () =>
+      toast.error("Não foi possível atualizar o status agora. Tente novamente em alguns instantes."),
+  });
+
   return (
     <div className="space-y-4">
       <div className="rounded-md border bg-muted/30 p-3 text-sm">
