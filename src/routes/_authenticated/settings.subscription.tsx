@@ -13,6 +13,12 @@ import {
   getCurrentCompanySubscription,
   getCompanySubscriptionUsage,
 } from "@/lib/billing.functions";
+import {
+  getPendingPlanChange,
+  cancelPendingPlanChange,
+} from "@/lib/billing-plan-changes.functions";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settings/subscription")({
   head: () => ({ meta: [{ title: "Assinatura — SecureERP" }] }),
@@ -31,8 +37,11 @@ const daysUntil = (s: string | null | undefined) => {
 
 function SubscriptionPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const subFn = useServerFn(getCurrentCompanySubscription);
   const usageFn = useServerFn(getCompanySubscriptionUsage);
+  const pendingFn = useServerFn(getPendingPlanChange);
+  const cancelFn = useServerFn(cancelPendingPlanChange);
 
   const { data: sub, isLoading } = useQuery({
     queryKey: ["billing", "current-subscription"],
@@ -41,6 +50,19 @@ function SubscriptionPage() {
   const { data: usage } = useQuery({
     queryKey: ["billing", "current-usage"],
     queryFn: () => usageFn(),
+  });
+  const { data: pending } = useQuery({
+    queryKey: ["billing", "pending-plan-change"],
+    queryFn: () => pendingFn(),
+  });
+
+  const cancelMut = useMutation({
+    mutationFn: () => cancelFn(),
+    onSuccess: () => {
+      toast.success("Alteração pendente cancelada.");
+      qc.invalidateQueries({ queryKey: ["billing"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao cancelar"),
   });
 
   if (isLoading) {
@@ -97,6 +119,32 @@ function SubscriptionPage() {
           <AlertDescription>
             Sua assinatura está suspensa por pendência de pagamento. Regularize para voltar a
             utilizar o sistema.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {pending ? (
+        <Alert>
+          <Clock className="h-4 w-4" />
+          <AlertTitle>
+            {pending.pending_plan_change_type === "UPGRADE"
+              ? "Upgrade pendente"
+              : "Downgrade agendado"}{" "}
+            — {pending.pending_plan_name}
+          </AlertTitle>
+          <AlertDescription className="flex flex-wrap items-center gap-3">
+            <span>
+              Efetivo em {fmtDate(pending.pending_plan_change_at)} (
+              {pending.pending_plan_billing_cycle === "YEARLY" ? "anual" : "mensal"}).
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={cancelMut.isPending}
+              onClick={() => cancelMut.mutate()}
+            >
+              Cancelar alteração
+            </Button>
           </AlertDescription>
         </Alert>
       ) : null}
