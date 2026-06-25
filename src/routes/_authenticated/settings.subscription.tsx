@@ -12,6 +12,8 @@ import { BillingChargesTable } from "@/components/billing/BillingChargesTable";
 import { RegularizeSubscriptionButton } from "@/components/billing/RegularizeSubscriptionButton";
 import { CancelSubscriptionDialog } from "@/components/billing/CancelSubscriptionDialog";
 import { ReactivateSubscriptionButton } from "@/components/billing/ReactivateSubscriptionButton";
+import { SubscriptionHistoryTimeline } from "@/components/billing/SubscriptionHistoryTimeline";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   getCurrentCompanySubscription,
   getCompanySubscriptionUsage,
@@ -273,12 +275,24 @@ function SubscriptionPage() {
         periodEnd={sub.current_period_end}
       />
 
-      <div id="billing-charges" className="space-y-3">
-        <h3 className="text-sm font-semibold text-muted-foreground">
-          Histórico de cobranças
-        </h3>
-        <BillingChargesTable />
-      </div>
+      <Tabs defaultValue="charges" className="space-y-3">
+        <TabsList>
+          <TabsTrigger value="charges">Cobranças</TabsTrigger>
+          <TabsTrigger value="history">Histórico</TabsTrigger>
+        </TabsList>
+        <TabsContent value="charges" id="billing-charges" className="space-y-3">
+          <h3 className="text-sm font-semibold text-muted-foreground">
+            Histórico de cobranças
+          </h3>
+          <BillingChargesTable />
+        </TabsContent>
+        <TabsContent value="history" className="space-y-3">
+          <h3 className="text-sm font-semibold text-muted-foreground">
+            Linha do tempo da assinatura
+          </h3>
+          <SubscriptionHistoryTimeline subscriptionId={sub.id} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
