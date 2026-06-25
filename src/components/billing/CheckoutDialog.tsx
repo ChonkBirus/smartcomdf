@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
@@ -19,6 +19,9 @@ import {
 } from "@/lib/billing-checkout.functions";
 import { syncBillingStatus } from "@/lib/billing-sync.functions";
 import { Copy, ExternalLink, Loader2, RefreshCw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { CouponInput } from "./CouponInput";
+import type { ValidatedCoupon } from "@/lib/billing-coupons.functions";
 
 type Method = "PIX" | "BOLETO" | "CREDIT_CARD";
 
@@ -39,12 +42,38 @@ export function CheckoutDialog({
 }: Props) {
   const [method, setMethod] = useState<Method>("PIX");
   const [result, setResult] = useState<CheckoutSessionResult | null>(null);
+  const [coupon, setCoupon] = useState<ValidatedCoupon | null>(null);
+
+  // Lookup plan id + price for coupon validation
+  const { data: plan } = useQuery({
+    enabled: open,
+    queryKey: ["plan-lookup", planSlug, cycle],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("plans")
+        .select("id, monthly_price, annual_price")
+        .eq("slug", planSlug)
+        .eq("active", true)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const baseAmount = plan
+    ? Number(cycle === "YEARLY" ? plan.annual_price : plan.monthly_price)
+    : 0;
 
   const checkoutFn = useServerFn(createCheckoutSession);
   const m = useMutation({
     mutationFn: (payment_method: Method) =>
       checkoutFn({
-        data: { plan_slug: planSlug, billing_cycle: cycle, payment_method },
+        data: {
+          plan_slug: planSlug,
+          billing_cycle: cycle,
+          payment_method,
+          coupon_code: coupon?.code ?? null,
+        },
       }),
     onSuccess: (r) => {
       setResult(r);
@@ -59,6 +88,7 @@ export function CheckoutDialog({
   const reset = () => {
     setResult(null);
     setMethod("PIX");
+    setCoupon(null);
   };
 
   return (
@@ -99,6 +129,37 @@ export function CheckoutDialog({
                 armazenamos dados de cartão.
               </TabsContent>
             </Tabs>
+
+            {plan && baseAmount > 0 && (
+              <CouponInput
+                planId={plan.id}
+                amount={baseAmount}
+                value={coupon}
+                onChange={setCoupon}
+              />
+            )}
+
+            {plan && baseAmount > 0 && (
+              <div className="rounded-md border bg-muted/30 p-3 text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>R$ {baseAmount.toFixed(2)}</span>
+                </div>
+                {coupon && (
+                  <div className="flex justify-between text-primary">
+                    <span>Desconto ({coupon.code})</span>
+                    <span>- R$ {coupon.discount_amount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between border-t pt-1 font-semibold">
+                  <span>Total</span>
+                  <span>
+                    R${" "}
+                    {(coupon ? coupon.final_amount : baseAmount).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
 
             <DialogFooter>
               <Button variant="outline" onClick={() => onOpenChange(false)}>
@@ -147,9 +208,26 @@ function ResultView({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border bg-muted/30 p-3 text-sm">
-        Valor: <strong>R$ {result.amount.toFixed(2)}</strong> · Vencimento:{" "}
-        {result.due_date}
+      <div className="rounded-md border bg-muted/30 p-3 text-sm space-y-1">
+        {result.discount_amount > 0 && (
+          <>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span>R$ {result.original_amount.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-primary">
+              <span>Desconto{result.coupon_code ? ` (${result.coupon_code})` : ""}</span>
+              <span>- R$ {result.discount_amount.toFixed(2)}</span>
+            </div>
+          </>
+        )}
+        <div className="flex justify-between font-semibold">
+          <span>Total</span>
+          <span>R$ {result.amount.toFixed(2)}</span>
+        </div>
+        <div className="text-xs text-muted-foreground">
+          Vencimento: {result.due_date}
+        </div>
       </div>
 
       {result.payment_method === "PIX" && result.pix_qr_code_base64 ? (
