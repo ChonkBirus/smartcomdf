@@ -344,7 +344,7 @@ function CouponFormDialog({
                 type="number"
                 min="0"
                 step="0.01"
-                value={form.discount_value}
+                value={form.discount_value ?? 0}
                 onChange={(e) =>
                   setForm({ ...form, discount_value: Number(e.target.value) })
                 }

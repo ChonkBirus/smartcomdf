@@ -53,6 +53,7 @@ import { Route as AuthenticatedAdminSubscriptionsRouteImport } from './routes/_a
 import { Route as AuthenticatedAdminPlansRouteImport } from './routes/_authenticated/admin.plans'
 import { Route as AuthenticatedAdminOverviewRouteImport } from './routes/_authenticated/admin.overview'
 import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated/admin.events'
+import { Route as AuthenticatedAdminCouponsRouteImport } from './routes/_authenticated/admin.coupons'
 import { Route as AuthenticatedAdminBillingRouteImport } from './routes/_authenticated/admin.billing'
 import { Route as AuthenticatedServiceOrdersIdMobileRouteImport } from './routes/_authenticated/service-orders_.$id.mobile'
 
@@ -291,6 +292,12 @@ const AuthenticatedAdminEventsRoute =
     path: '/events',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminCouponsRoute =
+  AuthenticatedAdminCouponsRouteImport.update({
+    id: '/coupons',
+    path: '/coupons',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminBillingRoute =
   AuthenticatedAdminBillingRouteImport.update({
     id: '/billing',
@@ -331,6 +338,7 @@ export interface FileRoutesByFullPath {
   '/q/$token': typeof QTokenRoute
   '/r/$token': typeof RTokenRoute
   '/admin/billing': typeof AuthenticatedAdminBillingRoute
+  '/admin/coupons': typeof AuthenticatedAdminCouponsRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/overview': typeof AuthenticatedAdminOverviewRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
@@ -376,6 +384,7 @@ export interface FileRoutesByTo {
   '/q/$token': typeof QTokenRoute
   '/r/$token': typeof RTokenRoute
   '/admin/billing': typeof AuthenticatedAdminBillingRoute
+  '/admin/coupons': typeof AuthenticatedAdminCouponsRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/overview': typeof AuthenticatedAdminOverviewRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
@@ -425,6 +434,7 @@ export interface FileRoutesById {
   '/q/$token': typeof QTokenRoute
   '/r/$token': typeof RTokenRoute
   '/_authenticated/admin/billing': typeof AuthenticatedAdminBillingRoute
+  '/_authenticated/admin/coupons': typeof AuthenticatedAdminCouponsRoute
   '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
   '/_authenticated/admin/overview': typeof AuthenticatedAdminOverviewRoute
   '/_authenticated/admin/plans': typeof AuthenticatedAdminPlansRoute
@@ -474,6 +484,7 @@ export interface FileRouteTypes {
     | '/q/$token'
     | '/r/$token'
     | '/admin/billing'
+    | '/admin/coupons'
     | '/admin/events'
     | '/admin/overview'
     | '/admin/plans'
@@ -519,6 +530,7 @@ export interface FileRouteTypes {
     | '/q/$token'
     | '/r/$token'
     | '/admin/billing'
+    | '/admin/coupons'
     | '/admin/events'
     | '/admin/overview'
     | '/admin/plans'
@@ -567,6 +579,7 @@ export interface FileRouteTypes {
     | '/q/$token'
     | '/r/$token'
     | '/_authenticated/admin/billing'
+    | '/_authenticated/admin/coupons'
     | '/_authenticated/admin/events'
     | '/_authenticated/admin/overview'
     | '/_authenticated/admin/plans'
@@ -910,6 +923,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminEventsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/coupons': {
+      id: '/_authenticated/admin/coupons'
+      path: '/coupons'
+      fullPath: '/admin/coupons'
+      preLoaderRoute: typeof AuthenticatedAdminCouponsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/billing': {
       id: '/_authenticated/admin/billing'
       path: '/billing'
@@ -929,6 +949,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminBillingRoute: typeof AuthenticatedAdminBillingRoute
+  AuthenticatedAdminCouponsRoute: typeof AuthenticatedAdminCouponsRoute
   AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRoute
   AuthenticatedAdminOverviewRoute: typeof AuthenticatedAdminOverviewRoute
   AuthenticatedAdminPlansRoute: typeof AuthenticatedAdminPlansRoute
@@ -938,6 +959,7 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminBillingRoute: AuthenticatedAdminBillingRoute,
+  AuthenticatedAdminCouponsRoute: AuthenticatedAdminCouponsRoute,
   AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRoute,
   AuthenticatedAdminOverviewRoute: AuthenticatedAdminOverviewRoute,
   AuthenticatedAdminPlansRoute: AuthenticatedAdminPlansRoute,
