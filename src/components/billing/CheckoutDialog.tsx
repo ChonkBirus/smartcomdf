@@ -210,11 +210,23 @@ function ResultView({
       ) : null}
 
       <p className="text-xs text-muted-foreground">
-        A assinatura é ativada automaticamente após confirmação do pagamento
-        pelo provedor. Você receberá uma notificação.
+        Após o pagamento, a confirmação será automática pelo Asaas. Isso pode
+        levar alguns instantes. A assinatura é ativada automaticamente.
       </p>
 
-      <DialogFooter>
+      <DialogFooter className="gap-2 sm:gap-2">
+        <Button
+          variant="outline"
+          onClick={() => sync.mutate()}
+          disabled={sync.isPending}
+        >
+          {sync.isPending ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCw className="mr-2 h-4 w-4" />
+          )}
+          Atualizar status
+        </Button>
         <Button variant="outline" onClick={onClose}>
           Fechar
         </Button>
