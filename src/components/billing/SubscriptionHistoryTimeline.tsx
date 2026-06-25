@@ -125,6 +125,7 @@ export function SubscriptionHistoryTimeline({
     queryKey: [
       "billing",
       "commercial-history",
+      mode,
       subscriptionId ?? null,
       source,
       fromDate,
@@ -132,17 +133,13 @@ export function SubscriptionHistoryTimeline({
       page,
     ],
     queryFn: () =>
-      fn({
-        data: {
-          subscriptionId,
-          source,
-          fromDate: fromDate ? new Date(fromDate).toISOString() : undefined,
-          toDate: toDate
-            ? new Date(toDate + "T23:59:59").toISOString()
-            : undefined,
-          page,
-          pageSize: PAGE_SIZE,
-        },
+      callFn({
+        subscriptionId,
+        source,
+        fromDate: fromDate ? new Date(fromDate).toISOString() : undefined,
+        toDate: toDate ? new Date(toDate + "T23:59:59").toISOString() : undefined,
+        page,
+        pageSize: PAGE_SIZE,
       }),
   });
 
