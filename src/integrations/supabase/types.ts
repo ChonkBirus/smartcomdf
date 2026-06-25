@@ -586,14 +586,149 @@ export type Database = {
           },
         ]
       }
+      billing_dunning_events: {
+        Row: {
+          billing_charge_id: string | null
+          channel: string | null
+          company_id: string
+          created_at: string
+          due_date: string | null
+          event_code: string
+          executed_at: string | null
+          handled_at: string | null
+          handled_by: string | null
+          id: string
+          message: string | null
+          notes: string | null
+          rule_id: string | null
+          scheduled_for: string | null
+          status: string
+          subscription_id: string
+          updated_at: string
+        }
+        Insert: {
+          billing_charge_id?: string | null
+          channel?: string | null
+          company_id: string
+          created_at?: string
+          due_date?: string | null
+          event_code: string
+          executed_at?: string | null
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          message?: string | null
+          notes?: string | null
+          rule_id?: string | null
+          scheduled_for?: string | null
+          status?: string
+          subscription_id: string
+          updated_at?: string
+        }
+        Update: {
+          billing_charge_id?: string | null
+          channel?: string | null
+          company_id?: string
+          created_at?: string
+          due_date?: string | null
+          event_code?: string
+          executed_at?: string | null
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          message?: string | null
+          notes?: string | null
+          rule_id?: string | null
+          scheduled_for?: string | null
+          status?: string
+          subscription_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_dunning_events_billing_charge_id_fkey"
+            columns: ["billing_charge_id"]
+            isOneToOne: false
+            referencedRelation: "billing_charges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_dunning_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_dunning_events_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "billing_dunning_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_dunning_events_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_dunning_rules: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          sort_order: number
+          subscription_status: string | null
+          trigger_offset_days: number
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          sort_order?: number
+          subscription_status?: string | null
+          trigger_offset_days?: number
+          trigger_type: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          sort_order?: number
+          subscription_status?: string | null
+          trigger_offset_days?: number
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       billing_provider_settings: {
         Row: {
           active: boolean
           created_at: string
           environment: string
           id: string
+          privacy_policy_url: string | null
           provider: string
           public_config: Json | null
+          support_email: string | null
+          support_whatsapp: string | null
+          terms_of_use_url: string | null
           updated_at: string
         }
         Insert: {
@@ -601,8 +736,12 @@ export type Database = {
           created_at?: string
           environment: string
           id?: string
+          privacy_policy_url?: string | null
           provider: string
           public_config?: Json | null
+          support_email?: string | null
+          support_whatsapp?: string | null
+          terms_of_use_url?: string | null
           updated_at?: string
         }
         Update: {
@@ -610,8 +749,12 @@ export type Database = {
           created_at?: string
           environment?: string
           id?: string
+          privacy_policy_url?: string | null
           provider?: string
           public_config?: Json | null
+          support_email?: string | null
+          support_whatsapp?: string | null
+          terms_of_use_url?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -808,6 +951,161 @@ export type Database = {
           status?: string
         }
         Relationships: []
+      }
+      commercial_contact_logs: {
+        Row: {
+          company_id: string
+          contact_channel: string
+          contact_type: string
+          contacted_at: string
+          contacted_by: string | null
+          created_at: string
+          id: string
+          message: string | null
+          next_follow_up_at: string | null
+          result: string | null
+          subject: string | null
+          subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          contact_channel: string
+          contact_type: string
+          contacted_at?: string
+          contacted_by?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          next_follow_up_at?: string | null
+          result?: string | null
+          subject?: string | null
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          contact_channel?: string
+          contact_type?: string
+          contacted_at?: string
+          contacted_by?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          next_follow_up_at?: string | null
+          result?: string | null
+          subject?: string | null
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_contact_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_contact_logs_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commercial_launch_checklist: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      commercial_pilots: {
+        Row: {
+          company_id: string
+          converted_at: string | null
+          created_at: string
+          expected_conversion_date: string | null
+          id: string
+          loss_reason: string | null
+          lost_at: string | null
+          notes: string | null
+          responsible_admin_id: string | null
+          source: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          converted_at?: string | null
+          created_at?: string
+          expected_conversion_date?: string | null
+          id?: string
+          loss_reason?: string | null
+          lost_at?: string | null
+          notes?: string | null
+          responsible_admin_id?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          converted_at?: string | null
+          created_at?: string
+          expected_conversion_date?: string | null
+          id?: string
+          loss_reason?: string | null
+          lost_at?: string | null
+          notes?: string | null
+          responsible_admin_id?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_pilots_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       companies: {
         Row: {
