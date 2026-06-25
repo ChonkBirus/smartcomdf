@@ -101,6 +101,48 @@ const actorLabel: Record<string, string> = {
 
 const PAGE_SIZE = 20;
 
+function csvEscape(v: unknown): string {
+  if (v === null || v === undefined) return "";
+  const s = String(v);
+  return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function downloadCsv(entries: CommercialHistoryEntry[]) {
+  const header = [
+    "data",
+    "tipo",
+    "origem",
+    "titulo",
+    "descricao",
+    "valor",
+    "responsavel",
+    "nome",
+  ];
+  const lines = entries.map((e) =>
+    [
+      new Date(e.event_date).toISOString(),
+      e.event_type,
+      e.source,
+      e.title,
+      e.description ?? "",
+      e.amount ?? "",
+      e.actor_type,
+      e.actor_name ?? "",
+    ]
+      .map(csvEscape)
+      .join(","),
+  );
+  const blob = new Blob(["\uFEFF" + [header.join(","), ...lines].join("\n")], {
+    type: "text/csv;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `historico-comercial-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function SubscriptionHistoryTimeline({
   subscriptionId,
   mode = "user",
