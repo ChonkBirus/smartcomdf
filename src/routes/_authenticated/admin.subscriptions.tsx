@@ -246,39 +246,14 @@ function EditDialog({ subscription, plans, onClose, onSaved }: { subscription: a
 }
 
 function HistoryDialog({ subscription, onClose }: { subscription: any; onClose: () => void; }) {
-  const fn = useServerFn(listSubscriptionEvents);
-  const { data, isLoading } = useQuery({
-    queryKey: ["admin", "subscription-events", subscription.id],
-    queryFn: () => fn({ data: { subscription_id: subscription.id } }),
-  });
-
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Histórico — {subscription.company_name}</DialogTitle>
+          <DialogTitle>Histórico comercial — {subscription.company_name}</DialogTitle>
         </DialogHeader>
-        <div className="max-h-[60vh] overflow-y-auto space-y-2">
-          {isLoading && <p className="text-sm text-muted-foreground">Carregando…</p>}
-          {!isLoading && (data ?? []).length === 0 && (
-            <p className="text-sm text-muted-foreground">Sem eventos registrados.</p>
-          )}
-          {(data ?? []).map((e: any) => (
-            <div key={e.id} className="rounded-md border border-border p-3 text-sm">
-              <div className="flex items-center justify-between gap-2">
-                <Badge variant="outline">{e.event_type}</Badge>
-                <span className="text-xs text-muted-foreground">
-                  {new Date(e.created_at).toLocaleString("pt-BR")}
-                </span>
-              </div>
-              {(e.previous_status || e.new_status) && (
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Status: <span className="font-mono">{e.previous_status ?? "—"}</span> → <span className="font-mono">{e.new_status ?? "—"}</span>
-                </p>
-              )}
-              {e.description && <p className="mt-1">{e.description}</p>}
-            </div>
-          ))}
+        <div className="max-h-[70vh] overflow-y-auto">
+          <SubscriptionHistoryTimeline subscriptionId={subscription.id} mode="admin" />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Fechar</Button>
