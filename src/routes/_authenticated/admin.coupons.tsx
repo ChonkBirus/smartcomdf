@@ -236,7 +236,7 @@ function CouponFormDialog({
         | "forever",
       duration_months: editing?.duration_months ?? null,
       max_redemptions: editing?.max_redemptions ?? null,
-      max_redemptions_per_company: editing?.max_redemptions_per_company ?? 1,
+      max_redemptions_per_company: (editing?.max_redemptions_per_company ?? 1) as number | null,
       valid_until: editing?.valid_until?.slice(0, 10) ?? "",
       is_active: editing?.is_active ?? true,
     }),
