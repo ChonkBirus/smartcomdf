@@ -70,11 +70,70 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!plan) throw new Error("Plano não encontrado.");
 
-    const amount =
+    const baseAmount =
       data.billing_cycle === "YEARLY"
         ? Number(plan.annual_price)
         : Number(plan.monthly_price);
-    if (!amount || amount <= 0) throw new Error("Valor de plano inválido.");
+    if (!baseAmount || baseAmount <= 0)
+      throw new Error("Valor de plano inválido.");
+
+    // Validate coupon (if provided)
+    let appliedCoupon: {
+      id: string;
+      code: string;
+      discount_amount: number;
+      final_amount: number;
+    } | null = null;
+    if (data.coupon_code) {
+      const code = data.coupon_code.trim().toUpperCase();
+      const { data: coupon } = await supabase
+        .from("billing_coupons")
+        .select("*")
+        .eq("code", code)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (!coupon) throw new Error("Cupom inválido ou inativo.");
+      const now = new Date();
+      if (coupon.valid_from && new Date(coupon.valid_from) > now)
+        throw new Error("Cupom ainda não está disponível.");
+      if (coupon.valid_until && new Date(coupon.valid_until) < now)
+        throw new Error("Cupom expirado.");
+      if (
+        Array.isArray(coupon.eligible_plan_ids) &&
+        coupon.eligible_plan_ids.length > 0 &&
+        !coupon.eligible_plan_ids.includes(plan.id)
+      )
+        throw new Error("Cupom não é válido para este plano.");
+      if (
+        coupon.max_redemptions != null &&
+        coupon.redemption_count >= coupon.max_redemptions
+      )
+        throw new Error("Cupom esgotado.");
+      if (coupon.max_redemptions_per_company != null) {
+        const { count } = await supabase
+          .from("billing_coupon_redemptions")
+          .select("id", { count: "exact", head: true })
+          .eq("coupon_id", coupon.id)
+          .eq("company_id", companyId);
+        if ((count ?? 0) >= coupon.max_redemptions_per_company)
+          throw new Error("Sua empresa já utilizou este cupom.");
+      }
+      const round2 = (v: number) => Math.round(v * 100) / 100;
+      const discount =
+        coupon.discount_type === "percent"
+          ? round2((baseAmount * Number(coupon.discount_value)) / 100)
+          : Math.min(round2(Number(coupon.discount_value)), baseAmount);
+      const finalAmt = Math.max(round2(baseAmount - discount), 0);
+      appliedCoupon = {
+        id: coupon.id,
+        code: coupon.code,
+        discount_amount: discount,
+        final_amount: finalAmt,
+      };
+    }
+
+    const amount = appliedCoupon ? appliedCoupon.final_amount : baseAmount;
+    const discountAmount = appliedCoupon?.discount_amount ?? 0;
 
     // Company + current subscription (optional link)
     const { data: company } = await supabase
