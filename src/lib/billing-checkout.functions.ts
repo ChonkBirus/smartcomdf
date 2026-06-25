@@ -248,6 +248,11 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         checkout_url: payment.invoiceUrl,
         created_by: userId,
         expires_at: null,
+        coupon_id: appliedCoupon?.id ?? null,
+        coupon_code: appliedCoupon?.code ?? null,
+        original_amount: baseAmount,
+        discount_amount: discountAmount,
+        final_amount: amount,
       })
       .select("id")
       .single();
@@ -272,10 +277,45 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         pix_qr_code: pixQr?.encodedImage ?? null,
         pix_copy_paste: pixQr?.payload ?? null,
         raw_payload: payment as any,
+        coupon_id: appliedCoupon?.id ?? null,
+        coupon_code: appliedCoupon?.code ?? null,
+        original_amount: baseAmount,
+        discount_amount: discountAmount,
+        final_amount: amount,
       })
       .select("id")
       .single();
     if (chargeErr) throw new Error(chargeErr.message);
+
+    if (appliedCoupon) {
+      const { error: redErr } = await supabaseAdmin
+        .from("billing_coupon_redemptions")
+        .insert({
+          coupon_id: appliedCoupon.id,
+          company_id: companyId,
+          subscription_id: currentSub?.id ?? null,
+          charge_id: charge.id,
+          checkout_session_id: session.id,
+          original_amount: baseAmount,
+          discount_amount: discountAmount,
+          final_amount: amount,
+        });
+      if (redErr) {
+        console.error("[checkout] coupon redemption insert failed", redErr);
+      } else {
+        await supabaseAdmin.rpc("increment" as any, {}).then(() => {}).catch(() => {});
+        // Increment redemption_count atomically via update
+        const { data: cur } = await supabaseAdmin
+          .from("billing_coupons")
+          .select("redemption_count")
+          .eq("id", appliedCoupon.id)
+          .single();
+        await supabaseAdmin
+          .from("billing_coupons")
+          .update({ redemption_count: (cur?.redemption_count ?? 0) + 1 })
+          .eq("id", appliedCoupon.id);
+      }
+    }
 
     return {
       session_id: session.id,
@@ -283,6 +323,9 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       provider: "ASAAS",
       payment_method: data.payment_method,
       amount,
+      original_amount: baseAmount,
+      discount_amount: discountAmount,
+      coupon_code: appliedCoupon?.code ?? null,
       due_date: payment.dueDate,
       status: payment.status,
       invoice_url: payment.invoiceUrl,
