@@ -192,10 +192,10 @@ export function SubscriptionHistoryTimeline({
             }}
           />
         </div>
-        <div className="flex items-end">
+        <div className="flex items-end gap-2">
           <Button
             variant="ghost"
-            className="w-full"
+            className="flex-1"
             onClick={() => {
               setSource("ALL");
               setFromDate("");
@@ -203,7 +203,39 @@ export function SubscriptionHistoryTimeline({
               setPage(1);
             }}
           >
-            Limpar filtros
+            Limpar
+          </Button>
+          <Button
+            variant="outline"
+            disabled={exporting}
+            onClick={async () => {
+              setExporting(true);
+              try {
+                const all: CommercialHistoryEntry[] = [];
+                let p = 1;
+                const size = 500;
+                // fetch up to 5000 rows respecting current filters
+                for (let i = 0; i < 10; i++) {
+                  const res = await callFn({
+                    subscriptionId,
+                    source,
+                    fromDate: fromDate ? new Date(fromDate).toISOString() : undefined,
+                    toDate: toDate ? new Date(toDate + "T23:59:59").toISOString() : undefined,
+                    page: p,
+                    pageSize: size,
+                  });
+                  all.push(...(res.entries ?? []));
+                  if ((res.entries ?? []).length < size) break;
+                  p += 1;
+                }
+                downloadCsv(all);
+              } finally {
+                setExporting(false);
+              }
+            }}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            CSV
           </Button>
         </div>
       </div>
