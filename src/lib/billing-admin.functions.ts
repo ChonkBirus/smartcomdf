@@ -186,3 +186,80 @@ export const adminSyncCharge = createServerFn({ method: "POST" })
     });
     return { ok: true, status: payment.status };
   });
+
+// Charge detail (with raw_payload) + related webhook events for this provider charge.
+export const adminGetCharge = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    const { data: charge, error } = await supabaseAdmin
+      .from("billing_charges")
+      .select(
+        "*, companies:company_id(corporate_name, trade_name), plans:plan_id(name)",
+      )
+      .eq("id", data.id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!charge) throw new Error("Cobrança não encontrada.");
+
+    let events: any[] = [];
+    if (charge.provider_charge_id) {
+      const { data: evs } = await supabaseAdmin
+        .from("billing_webhook_events")
+        .select(
+          "id, provider, event_id, event_type, status, processed_at, error_message, created_at",
+        )
+        .eq("provider_object_id", charge.provider_charge_id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      events = evs ?? [];
+    }
+    return {
+      ...charge,
+      company_name:
+        (charge as any).companies?.trade_name ??
+        (charge as any).companies?.corporate_name ??
+        null,
+      plan_name: (charge as any).plans?.name ?? null,
+      events,
+    };
+  });
+
+// Global subscription events feed (across all companies).
+export const adminListSubscriptionEventsGlobal = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        event_type: z.string().optional().nullable(),
+        company_id: z.string().uuid().optional().nullable(),
+        limit: z.number().int().min(1).max(500).optional().nullable(),
+      })
+      .parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    let q = supabaseAdmin
+      .from("subscription_events")
+      .select(
+        "id, company_id, subscription_id, event_type, previous_status, new_status, previous_plan_id, new_plan_id, description, metadata, created_by, created_at, companies:company_id(corporate_name, trade_name)",
+      )
+      .order("created_at", { ascending: false })
+      .limit(data.limit ?? 200);
+    if (data.event_type) q = q.eq("event_type", data.event_type);
+    if (data.company_id) q = q.eq("company_id", data.company_id);
+    const { data: rows, error } = await q;
+    if (error) throw new Error(error.message);
+    return (rows ?? []).map((r: any) => ({
+      ...r,
+      company_name:
+        r.companies?.trade_name ?? r.companies?.corporate_name ?? null,
+    }));
+  });
