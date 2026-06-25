@@ -366,7 +366,18 @@ export function CustomerFormSheet({
                       <p className="mt-1 text-xs text-muted-foreground">{docDigits.length}/{docExpectedLen} dígitos</p>
                     )
                   )}
+                  {isCompany && (
+                    <div className="mt-2">
+                      <CustomerCnpjLookupButton
+                        cnpj={form.cpf_cnpj}
+                        disabled={!docComplete || !docValid}
+                        hasExistingData={hasExistingPjData}
+                        onApply={applyCnpjData}
+                      />
+                    </div>
+                  )}
                 </div>
+
                 {isCompany && (
                   <>
                     <div>
