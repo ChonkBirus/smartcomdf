@@ -4586,7 +4586,12 @@ export type Database = {
           activated_at: string | null
           active: boolean
           billing_cycle: string
+          cancel_at_period_end: boolean
           canceled_at: string | null
+          canceled_by: string | null
+          cancellation_effective_at: string | null
+          cancellation_reason: string | null
+          cancellation_scheduled_at: string | null
           company_id: string
           created_at: string
           current_period_end: string | null
@@ -4620,7 +4625,12 @@ export type Database = {
           activated_at?: string | null
           active?: boolean
           billing_cycle?: string
+          cancel_at_period_end?: boolean
           canceled_at?: string | null
+          canceled_by?: string | null
+          cancellation_effective_at?: string | null
+          cancellation_reason?: string | null
+          cancellation_scheduled_at?: string | null
           company_id: string
           created_at?: string
           current_period_end?: string | null
@@ -4654,7 +4664,12 @@ export type Database = {
           activated_at?: string | null
           active?: boolean
           billing_cycle?: string
+          cancel_at_period_end?: boolean
           canceled_at?: string | null
+          canceled_by?: string | null
+          cancellation_effective_at?: string | null
+          cancellation_reason?: string | null
+          cancellation_scheduled_at?: string | null
           company_id?: string
           created_at?: string
           current_period_end?: string | null
@@ -5203,6 +5218,7 @@ export type Database = {
         }
         Returns: string
       }
+      process_pending_cancellations: { Args: never; Returns: number }
       process_pending_plan_changes: { Args: never; Returns: number }
       quote_recalc_totals: { Args: { _quote_id: string }; Returns: undefined }
       quotes_mark_expired: { Args: never; Returns: number }
