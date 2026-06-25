@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Shield, Building2, Package, CreditCard, Receipt, LayoutDashboard, Activity } from "lucide-react";
+import { Shield, Building2, Package, CreditCard, Receipt, LayoutDashboard, Activity, Ticket } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/EmptyState";
 import { getMyContext } from "@/lib/account.functions";
@@ -34,6 +34,7 @@ function AdminLayout() {
     { to: "/admin/plans", label: "Planos", icon: Package },
     { to: "/admin/subscriptions", label: "Assinaturas", icon: CreditCard },
     { to: "/admin/billing", label: "Cobranças", icon: Receipt },
+    { to: "/admin/coupons", label: "Cupons", icon: Ticket },
     { to: "/admin/events", label: "Eventos", icon: Activity },
   ];
 

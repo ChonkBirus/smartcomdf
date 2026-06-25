@@ -15,6 +15,9 @@ export type CheckoutSessionResult = {
   provider: "ASAAS";
   payment_method: "PIX" | "BOLETO" | "CREDIT_CARD";
   amount: number;
+  original_amount: number;
+  discount_amount: number;
+  coupon_code: string | null;
   due_date: string;
   status: string;
   invoice_url: string | null;
@@ -37,6 +40,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         plan_slug: z.enum(["starter", "pro", "business"]),
         billing_cycle: BillingCycleSchema,
         payment_method: PaymentMethodSchema,
+        coupon_code: z.string().min(1).max(64).optional().nullable(),
       })
       .parse(d),
   )
@@ -66,11 +70,70 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!plan) throw new Error("Plano não encontrado.");
 
-    const amount =
+    const baseAmount =
       data.billing_cycle === "YEARLY"
         ? Number(plan.annual_price)
         : Number(plan.monthly_price);
-    if (!amount || amount <= 0) throw new Error("Valor de plano inválido.");
+    if (!baseAmount || baseAmount <= 0)
+      throw new Error("Valor de plano inválido.");
+
+    // Validate coupon (if provided)
+    let appliedCoupon: {
+      id: string;
+      code: string;
+      discount_amount: number;
+      final_amount: number;
+    } | null = null;
+    if (data.coupon_code) {
+      const code = data.coupon_code.trim().toUpperCase();
+      const { data: coupon } = await supabase
+        .from("billing_coupons")
+        .select("*")
+        .eq("code", code)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (!coupon) throw new Error("Cupom inválido ou inativo.");
+      const now = new Date();
+      if (coupon.valid_from && new Date(coupon.valid_from) > now)
+        throw new Error("Cupom ainda não está disponível.");
+      if (coupon.valid_until && new Date(coupon.valid_until) < now)
+        throw new Error("Cupom expirado.");
+      if (
+        Array.isArray(coupon.eligible_plan_ids) &&
+        coupon.eligible_plan_ids.length > 0 &&
+        !coupon.eligible_plan_ids.includes(plan.id)
+      )
+        throw new Error("Cupom não é válido para este plano.");
+      if (
+        coupon.max_redemptions != null &&
+        coupon.redemption_count >= coupon.max_redemptions
+      )
+        throw new Error("Cupom esgotado.");
+      if (coupon.max_redemptions_per_company != null) {
+        const { count } = await supabase
+          .from("billing_coupon_redemptions")
+          .select("id", { count: "exact", head: true })
+          .eq("coupon_id", coupon.id)
+          .eq("company_id", companyId);
+        if ((count ?? 0) >= coupon.max_redemptions_per_company)
+          throw new Error("Sua empresa já utilizou este cupom.");
+      }
+      const round2 = (v: number) => Math.round(v * 100) / 100;
+      const discount =
+        coupon.discount_type === "percent"
+          ? round2((baseAmount * Number(coupon.discount_value)) / 100)
+          : Math.min(round2(Number(coupon.discount_value)), baseAmount);
+      const finalAmt = Math.max(round2(baseAmount - discount), 0);
+      appliedCoupon = {
+        id: coupon.id,
+        code: coupon.code,
+        discount_amount: discount,
+        final_amount: finalAmt,
+      };
+    }
+
+    const amount = appliedCoupon ? appliedCoupon.final_amount : baseAmount;
+    const discountAmount = appliedCoupon?.discount_amount ?? 0;
 
     // Company + current subscription (optional link)
     const { data: company } = await supabase
@@ -185,6 +248,11 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         checkout_url: payment.invoiceUrl,
         created_by: userId,
         expires_at: null,
+        coupon_id: appliedCoupon?.id ?? null,
+        coupon_code: appliedCoupon?.code ?? null,
+        original_amount: baseAmount,
+        discount_amount: discountAmount,
+        final_amount: amount,
       })
       .select("id")
       .single();
@@ -209,10 +277,44 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         pix_qr_code: pixQr?.encodedImage ?? null,
         pix_copy_paste: pixQr?.payload ?? null,
         raw_payload: payment as any,
+        coupon_id: appliedCoupon?.id ?? null,
+        coupon_code: appliedCoupon?.code ?? null,
+        original_amount: baseAmount,
+        discount_amount: discountAmount,
+        final_amount: amount,
       })
       .select("id")
       .single();
     if (chargeErr) throw new Error(chargeErr.message);
+
+    if (appliedCoupon) {
+      const { error: redErr } = await supabaseAdmin
+        .from("billing_coupon_redemptions")
+        .insert({
+          coupon_id: appliedCoupon.id,
+          company_id: companyId,
+          subscription_id: currentSub?.id ?? null,
+          charge_id: charge.id,
+          checkout_session_id: session.id,
+          original_amount: baseAmount,
+          discount_amount: discountAmount,
+          final_amount: amount,
+        });
+      if (redErr) {
+        console.error("[checkout] coupon redemption insert failed", redErr);
+      } else {
+        // Increment redemption_count (best-effort, not strictly atomic)
+        const { data: cur } = await supabaseAdmin
+          .from("billing_coupons")
+          .select("redemption_count")
+          .eq("id", appliedCoupon.id)
+          .single();
+        await supabaseAdmin
+          .from("billing_coupons")
+          .update({ redemption_count: (cur?.redemption_count ?? 0) + 1 })
+          .eq("id", appliedCoupon.id);
+      }
+    }
 
     return {
       session_id: session.id,
@@ -220,6 +322,9 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       provider: "ASAAS",
       payment_method: data.payment_method,
       amount,
+      original_amount: baseAmount,
+      discount_amount: discountAmount,
+      coupon_code: appliedCoupon?.code ?? null,
       due_date: payment.dueDate,
       status: payment.status,
       invoice_url: payment.invoiceUrl,

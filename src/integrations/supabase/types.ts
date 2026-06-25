@@ -194,10 +194,15 @@ export type Database = {
           billing_cycle: string
           checkout_url: string | null
           company_id: string
+          coupon_code: string | null
+          coupon_id: string | null
           created_at: string
+          discount_amount: number | null
           due_date: string | null
+          final_amount: number | null
           id: string
           invoice_url: string | null
+          original_amount: number | null
           paid_at: string | null
           payment_method: string | null
           pix_copy_paste: string | null
@@ -217,10 +222,15 @@ export type Database = {
           billing_cycle: string
           checkout_url?: string | null
           company_id: string
+          coupon_code?: string | null
+          coupon_id?: string | null
           created_at?: string
+          discount_amount?: number | null
           due_date?: string | null
+          final_amount?: number | null
           id?: string
           invoice_url?: string | null
+          original_amount?: number | null
           paid_at?: string | null
           payment_method?: string | null
           pix_copy_paste?: string | null
@@ -240,10 +250,15 @@ export type Database = {
           billing_cycle?: string
           checkout_url?: string | null
           company_id?: string
+          coupon_code?: string | null
+          coupon_id?: string | null
           created_at?: string
+          discount_amount?: number | null
           due_date?: string | null
+          final_amount?: number | null
           id?: string
           invoice_url?: string | null
+          original_amount?: number | null
           paid_at?: string | null
           payment_method?: string | null
           pix_copy_paste?: string | null
@@ -263,6 +278,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_charges_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "billing_coupons"
             referencedColumns: ["id"]
           },
           {
@@ -287,10 +309,15 @@ export type Database = {
           billing_cycle: string
           checkout_url: string | null
           company_id: string
+          coupon_code: string | null
+          coupon_id: string | null
           created_at: string
           created_by: string | null
+          discount_amount: number | null
           expires_at: string | null
+          final_amount: number | null
           id: string
+          original_amount: number | null
           payment_method: string | null
           plan_id: string
           provider: string
@@ -304,10 +331,15 @@ export type Database = {
           billing_cycle: string
           checkout_url?: string | null
           company_id: string
+          coupon_code?: string | null
+          coupon_id?: string | null
           created_at?: string
           created_by?: string | null
+          discount_amount?: number | null
           expires_at?: string | null
+          final_amount?: number | null
           id?: string
+          original_amount?: number | null
           payment_method?: string | null
           plan_id: string
           provider: string
@@ -321,10 +353,15 @@ export type Database = {
           billing_cycle?: string
           checkout_url?: string | null
           company_id?: string
+          coupon_code?: string | null
+          coupon_id?: string | null
           created_at?: string
           created_by?: string | null
+          discount_amount?: number | null
           expires_at?: string | null
+          final_amount?: number | null
           id?: string
+          original_amount?: number | null
           payment_method?: string | null
           plan_id?: string
           provider?: string
@@ -342,6 +379,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "billing_checkout_sessions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "billing_coupons"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "billing_checkout_sessions_plan_id_fkey"
             columns: ["plan_id"]
             isOneToOne: false
@@ -356,6 +400,141 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      billing_coupon_redemptions: {
+        Row: {
+          charge_id: string | null
+          checkout_session_id: string | null
+          company_id: string
+          coupon_id: string
+          created_at: string
+          discount_amount: number
+          final_amount: number
+          id: string
+          original_amount: number
+          subscription_id: string | null
+        }
+        Insert: {
+          charge_id?: string | null
+          checkout_session_id?: string | null
+          company_id: string
+          coupon_id: string
+          created_at?: string
+          discount_amount: number
+          final_amount: number
+          id?: string
+          original_amount: number
+          subscription_id?: string | null
+        }
+        Update: {
+          charge_id?: string | null
+          checkout_session_id?: string | null
+          company_id?: string
+          coupon_id?: string
+          created_at?: string
+          discount_amount?: number
+          final_amount?: number
+          id?: string
+          original_amount?: number
+          subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_coupon_redemptions_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "billing_charges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_coupon_redemptions_checkout_session_id_fkey"
+            columns: ["checkout_session_id"]
+            isOneToOne: false
+            referencedRelation: "billing_checkout_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_coupon_redemptions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_coupon_redemptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "billing_coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_coupon_redemptions_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_coupons: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          duration: string
+          duration_months: number | null
+          eligible_plan_ids: string[] | null
+          id: string
+          is_active: boolean
+          max_redemptions: number | null
+          max_redemptions_per_company: number | null
+          redemption_count: number
+          updated_at: string
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type: string
+          discount_value: number
+          duration: string
+          duration_months?: number | null
+          eligible_plan_ids?: string[] | null
+          id?: string
+          is_active?: boolean
+          max_redemptions?: number | null
+          max_redemptions_per_company?: number | null
+          redemption_count?: number
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          duration?: string
+          duration_months?: number | null
+          eligible_plan_ids?: string[] | null
+          id?: string
+          is_active?: boolean
+          max_redemptions?: number | null
+          max_redemptions_per_company?: number | null
+          redemption_count?: number
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
       }
       billing_customers: {
         Row: {
