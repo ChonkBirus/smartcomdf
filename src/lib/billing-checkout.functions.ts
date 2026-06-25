@@ -15,6 +15,9 @@ export type CheckoutSessionResult = {
   provider: "ASAAS";
   payment_method: "PIX" | "BOLETO" | "CREDIT_CARD";
   amount: number;
+  original_amount: number;
+  discount_amount: number;
+  coupon_code: string | null;
   due_date: string;
   status: string;
   invoice_url: string | null;
