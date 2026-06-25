@@ -218,6 +218,14 @@ function ChargesTab() {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      title="Ver detalhes"
+                      onClick={() => setViewingCharge(c.id)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
                     {c.invoice_url && (
                       <Button
                         size="icon"
@@ -246,6 +254,94 @@ function ChargesTab() {
           </TableBody>
         </Table>
       </Card>
+
+      {viewingCharge && (
+        <ChargeDetailDialog
+          id={viewingCharge}
+          onClose={() => setViewingCharge(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function ChargeDetailDialog({ id, onClose }: { id: string; onClose: () => void }) {
+  const fn = useServerFn(adminGetCharge);
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin", "billing-charge", id],
+    queryFn: () => fn({ data: { id } }),
+  });
+  const c: any = data ?? {};
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Detalhe da cobrança</DialogTitle>
+        </DialogHeader>
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Carregando…</p>
+        ) : (
+          <div className="space-y-4 max-h-[70vh] overflow-auto">
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <Info label="Empresa" value={c.company_name} />
+              <Info label="Plano" value={c.plan_name} />
+              <Info label="Provider" value={c.provider} />
+              <Info label="Provider charge ID" value={c.provider_charge_id} mono />
+              <Info label="Status" value={c.status} />
+              <Info label="Método" value={c.payment_method} />
+              <Info label="Valor" value={fmtMoney(c.amount)} />
+              <Info label="Vencimento" value={c.due_date} />
+              <Info label="Pago em" value={fmtDate(c.paid_at)} />
+              <Info label="Criado em" value={fmtDate(c.created_at)} />
+            </div>
+
+            <div>
+              <h4 className="mb-2 text-sm font-semibold">Eventos do webhook relacionados</h4>
+              {(c.events ?? []).length === 0 ? (
+                <p className="text-xs text-muted-foreground">Nenhum evento registrado.</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {(c.events ?? []).map((ev: any) => (
+                    <div
+                      key={ev.id}
+                      className="flex items-center justify-between rounded-md border border-border p-2 text-xs"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Badge className={eventStatusClass[ev.status] ?? "bg-muted"}>
+                          {ev.status}
+                        </Badge>
+                        <span className="font-mono">{ev.event_type}</span>
+                      </div>
+                      <span className="text-muted-foreground">{fmtDate(ev.created_at)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h4 className="mb-2 text-sm font-semibold">raw_payload</h4>
+              <pre className="max-h-[40vh] overflow-auto rounded-md border border-border bg-muted/40 p-3 text-xs whitespace-pre-wrap break-words">
+                {JSON.stringify(c.raw_payload ?? {}, null, 2)}
+              </pre>
+            </div>
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Fechar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function Info({ label, value, mono }: { label: string; value: any; mono?: boolean }) {
+  return (
+    <div>
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className={mono ? "font-mono text-xs break-all" : "text-sm"}>
+        {value ?? "—"}
+      </div>
     </div>
   );
 }
