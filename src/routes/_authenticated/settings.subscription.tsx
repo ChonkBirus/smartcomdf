@@ -1,14 +1,17 @@
+import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, ArrowUpRight, Clock } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Clock, XCircle } from "lucide-react";
 import { SubscriptionStatusBadge } from "@/components/billing/SubscriptionStatusBadge";
 import { SubscriptionUsageCards } from "@/components/billing/SubscriptionUsageCards";
 import { BillingChargesTable } from "@/components/billing/BillingChargesTable";
 import { RegularizeSubscriptionButton } from "@/components/billing/RegularizeSubscriptionButton";
+import { CancelSubscriptionDialog } from "@/components/billing/CancelSubscriptionDialog";
+import { ReactivateSubscriptionButton } from "@/components/billing/ReactivateSubscriptionButton";
 import {
   getCurrentCompanySubscription,
   getCompanySubscriptionUsage,
@@ -17,6 +20,10 @@ import {
   getPendingPlanChange,
   cancelPendingPlanChange,
 } from "@/lib/billing-plan-changes.functions";
+import {
+  getScheduledCancellation,
+  revertScheduledCancellation,
+} from "@/lib/billing-cancellation.functions";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -42,6 +49,9 @@ function SubscriptionPage() {
   const usageFn = useServerFn(getCompanySubscriptionUsage);
   const pendingFn = useServerFn(getPendingPlanChange);
   const cancelFn = useServerFn(cancelPendingPlanChange);
+  const schedFn = useServerFn(getScheduledCancellation);
+  const revertFn = useServerFn(revertScheduledCancellation);
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   const { data: sub, isLoading } = useQuery({
     queryKey: ["billing", "current-subscription"],
@@ -55,6 +65,10 @@ function SubscriptionPage() {
     queryKey: ["billing", "pending-plan-change"],
     queryFn: () => pendingFn(),
   });
+  const { data: scheduledCancel } = useQuery({
+    queryKey: ["billing", "scheduled-cancellation"],
+    queryFn: () => schedFn(),
+  });
 
   const cancelMut = useMutation({
     mutationFn: () => cancelFn(),
@@ -63,6 +77,15 @@ function SubscriptionPage() {
       qc.invalidateQueries({ queryKey: ["billing"] });
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao cancelar"),
+  });
+
+  const revertMut = useMutation({
+    mutationFn: () => revertFn(),
+    onSuccess: () => {
+      toast.success("Cancelamento revertido.");
+      qc.invalidateQueries({ queryKey: ["billing"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao reverter"),
   });
 
   if (isLoading) {
@@ -149,6 +172,28 @@ function SubscriptionPage() {
         </Alert>
       ) : null}
 
+      {scheduledCancel ? (
+        <Alert variant="destructive">
+          <XCircle className="h-4 w-4" />
+          <AlertTitle>Cancelamento agendado</AlertTitle>
+          <AlertDescription className="flex flex-wrap items-center gap-3">
+            <span>
+              Sua assinatura será encerrada em{" "}
+              <strong>{fmtDate(scheduledCancel.cancellation_effective_at)}</strong>.
+              Até lá o acesso continua normal.
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={revertMut.isPending}
+              onClick={() => revertMut.mutate()}
+            >
+              Manter assinatura
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
       <Card className="card-elevated">
         <CardHeader className="flex flex-row items-start justify-between gap-4">
           <div>
@@ -210,7 +255,23 @@ function SubscriptionPage() {
         {["PAST_DUE", "SUSPENDED", "EXPIRED", "CANCELED"].includes(sub.status) ? (
           <RegularizeSubscriptionButton sub={sub} />
         ) : null}
+        {["CANCELED", "EXPIRED"].includes(sub.status) ? (
+          <ReactivateSubscriptionButton planName={sub.plan_name} />
+        ) : null}
+        {["ACTIVE", "TRIALING", "PAST_DUE"].includes(sub.status) &&
+        !scheduledCancel ? (
+          <Button variant="ghost" onClick={() => setCancelOpen(true)}>
+            <XCircle className="mr-2 h-4 w-4" />
+            Cancelar assinatura
+          </Button>
+        ) : null}
       </div>
+
+      <CancelSubscriptionDialog
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        periodEnd={sub.current_period_end}
+      />
 
       <div id="billing-charges" className="space-y-3">
         <h3 className="text-sm font-semibold text-muted-foreground">
