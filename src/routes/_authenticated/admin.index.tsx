@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -230,13 +230,13 @@ function ActionDialog({
   const [status, setStatus] = useState<SubStatus>("ACTIVE");
   const [days, setDays] = useState<number>(7);
 
-  // Reset form on open
-  useMemoReset(state, () => {
+  useEffect(() => {
+    if (!state) return;
     setReason("");
-    setPlanId(state?.company.plan_id ?? "");
-    setStatus((state?.company.subscription_status as SubStatus) ?? "ACTIVE");
+    setPlanId(state.company.plan_id ?? "");
+    setStatus((state.company.subscription_status as SubStatus) ?? "ACTIVE");
     setDays(7);
-  });
+  }, [state]);
 
   const mut = useMutation({
     mutationFn: (payload: any) => updateFn({ data: payload }),
@@ -356,7 +356,3 @@ function ActionDialog({
   );
 }
 
-// Helper: reset form fields whenever the action target changes.
-function useMemoReset(key: unknown, fn: () => void) {
-  useMemo(() => { fn(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [key]);
-}
