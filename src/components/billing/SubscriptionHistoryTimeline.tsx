@@ -29,9 +29,11 @@ import {
 } from "@/components/ui/select";
 import {
   getSubscriptionCommercialHistory,
+  getSubscriptionCommercialHistoryAdmin,
   type CommercialHistoryEntry,
   type CommercialHistorySource,
 } from "@/lib/billing-history.functions";
+import { Download } from "lucide-react";
 
 const fmtDateTime = (s: string) =>
   new Date(s).toLocaleString("pt-BR", {
@@ -99,21 +101,73 @@ const actorLabel: Record<string, string> = {
 
 const PAGE_SIZE = 20;
 
+function csvEscape(v: unknown): string {
+  if (v === null || v === undefined) return "";
+  const s = String(v);
+  return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function downloadCsv(entries: CommercialHistoryEntry[]) {
+  const header = [
+    "data",
+    "tipo",
+    "origem",
+    "titulo",
+    "descricao",
+    "valor",
+    "responsavel",
+    "nome",
+  ];
+  const lines = entries.map((e) =>
+    [
+      new Date(e.event_date).toISOString(),
+      e.event_type,
+      e.source,
+      e.title,
+      e.description ?? "",
+      e.amount ?? "",
+      e.actor_type,
+      e.actor_name ?? "",
+    ]
+      .map(csvEscape)
+      .join(","),
+  );
+  const blob = new Blob(["\uFEFF" + [header.join(","), ...lines].join("\n")], {
+    type: "text/csv;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `historico-comercial-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function SubscriptionHistoryTimeline({
   subscriptionId,
+  mode = "user",
 }: {
   subscriptionId?: string;
+  mode?: "user" | "admin";
 }) {
-  const fn = useServerFn(getSubscriptionCommercialHistory);
+  const userFn = useServerFn(getSubscriptionCommercialHistory);
+  const adminFn = useServerFn(getSubscriptionCommercialHistoryAdmin);
   const [source, setSource] = useState<CommercialHistorySource | "ALL">("ALL");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [page, setPage] = useState(1);
+  const [exporting, setExporting] = useState(false);
+
+  const callFn = (args: any) =>
+    mode === "admin"
+      ? adminFn({ data: { ...args, subscriptionId: subscriptionId! } })
+      : userFn({ data: args });
 
   const { data, isLoading } = useQuery({
     queryKey: [
       "billing",
       "commercial-history",
+      mode,
       subscriptionId ?? null,
       source,
       fromDate,
@@ -121,17 +175,13 @@ export function SubscriptionHistoryTimeline({
       page,
     ],
     queryFn: () =>
-      fn({
-        data: {
-          subscriptionId,
-          source,
-          fromDate: fromDate ? new Date(fromDate).toISOString() : undefined,
-          toDate: toDate
-            ? new Date(toDate + "T23:59:59").toISOString()
-            : undefined,
-          page,
-          pageSize: PAGE_SIZE,
-        },
+      callFn({
+        subscriptionId,
+        source,
+        fromDate: fromDate ? new Date(fromDate).toISOString() : undefined,
+        toDate: toDate ? new Date(toDate + "T23:59:59").toISOString() : undefined,
+        page,
+        pageSize: PAGE_SIZE,
       }),
   });
 
@@ -184,10 +234,10 @@ export function SubscriptionHistoryTimeline({
             }}
           />
         </div>
-        <div className="flex items-end">
+        <div className="flex items-end gap-2">
           <Button
             variant="ghost"
-            className="w-full"
+            className="flex-1"
             onClick={() => {
               setSource("ALL");
               setFromDate("");
@@ -195,7 +245,39 @@ export function SubscriptionHistoryTimeline({
               setPage(1);
             }}
           >
-            Limpar filtros
+            Limpar
+          </Button>
+          <Button
+            variant="outline"
+            disabled={exporting}
+            onClick={async () => {
+              setExporting(true);
+              try {
+                const all: CommercialHistoryEntry[] = [];
+                let p = 1;
+                const size = 500;
+                // fetch up to 5000 rows respecting current filters
+                for (let i = 0; i < 10; i++) {
+                  const res = await callFn({
+                    subscriptionId,
+                    source,
+                    fromDate: fromDate ? new Date(fromDate).toISOString() : undefined,
+                    toDate: toDate ? new Date(toDate + "T23:59:59").toISOString() : undefined,
+                    page: p,
+                    pageSize: size,
+                  });
+                  all.push(...(res.entries ?? []));
+                  if ((res.entries ?? []).length < size) break;
+                  p += 1;
+                }
+                downloadCsv(all);
+              } finally {
+                setExporting(false);
+              }
+            }}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            CSV
           </Button>
         </div>
       </div>
