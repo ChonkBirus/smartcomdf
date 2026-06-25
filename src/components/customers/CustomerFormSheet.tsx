@@ -20,6 +20,8 @@ import {
   type CustomerAddress, type CustomerContact, type CustomerType, type CustomerStatus, type CustomerAddressType,
 } from "@/lib/customers.functions";
 import { COUNTRIES, statesFor, isValidEmail } from "@/lib/locations";
+import { CustomerCnpjLookupButton } from "@/components/customers/CustomerCnpjLookupDialog";
+import type { CnpjLookupResultDTO } from "@/lib/cnpj-lookup.functions";
 
 type AddrRow = Omit<CustomerAddress, "id" | "company_id" | "customer_id" | "created_at" | "updated_at"> & { id?: string };
 type ContactRow = Omit<CustomerContact, "id" | "company_id" | "customer_id" | "created_at" | "updated_at"> & { id?: string };
