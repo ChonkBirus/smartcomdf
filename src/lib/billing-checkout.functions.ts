@@ -40,6 +40,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         plan_slug: z.enum(["starter", "pro", "business"]),
         billing_cycle: BillingCycleSchema,
         payment_method: PaymentMethodSchema,
+        coupon_code: z.string().min(1).max(64).optional().nullable(),
       })
       .parse(d),
   )
