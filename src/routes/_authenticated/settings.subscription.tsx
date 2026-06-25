@@ -1,14 +1,17 @@
+import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, ArrowUpRight, Clock } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Clock, XCircle } from "lucide-react";
 import { SubscriptionStatusBadge } from "@/components/billing/SubscriptionStatusBadge";
 import { SubscriptionUsageCards } from "@/components/billing/SubscriptionUsageCards";
 import { BillingChargesTable } from "@/components/billing/BillingChargesTable";
 import { RegularizeSubscriptionButton } from "@/components/billing/RegularizeSubscriptionButton";
+import { CancelSubscriptionDialog } from "@/components/billing/CancelSubscriptionDialog";
+import { ReactivateSubscriptionButton } from "@/components/billing/ReactivateSubscriptionButton";
 import {
   getCurrentCompanySubscription,
   getCompanySubscriptionUsage,
@@ -17,6 +20,10 @@ import {
   getPendingPlanChange,
   cancelPendingPlanChange,
 } from "@/lib/billing-plan-changes.functions";
+import {
+  getScheduledCancellation,
+  revertScheduledCancellation,
+} from "@/lib/billing-cancellation.functions";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
