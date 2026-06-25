@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, ArrowUpRight, Clock } from "lucide-react";
 import { SubscriptionStatusBadge } from "@/components/billing/SubscriptionStatusBadge";
 import { SubscriptionUsageCards } from "@/components/billing/SubscriptionUsageCards";
+import { BillingChargesTable } from "@/components/billing/BillingChargesTable";
 import {
   getCurrentCompanySubscription,
   getCompanySubscriptionUsage,
