@@ -103,14 +103,23 @@ const PAGE_SIZE = 20;
 
 export function SubscriptionHistoryTimeline({
   subscriptionId,
+  mode = "user",
 }: {
   subscriptionId?: string;
+  mode?: "user" | "admin";
 }) {
-  const fn = useServerFn(getSubscriptionCommercialHistory);
+  const userFn = useServerFn(getSubscriptionCommercialHistory);
+  const adminFn = useServerFn(getSubscriptionCommercialHistoryAdmin);
   const [source, setSource] = useState<CommercialHistorySource | "ALL">("ALL");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [page, setPage] = useState(1);
+  const [exporting, setExporting] = useState(false);
+
+  const callFn = (args: any) =>
+    mode === "admin"
+      ? adminFn({ data: { ...args, subscriptionId: subscriptionId! } })
+      : userFn({ data: args });
 
   const { data, isLoading } = useQuery({
     queryKey: [
