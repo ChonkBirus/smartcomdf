@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { AlertCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RegularizeSubscriptionButton } from "./RegularizeSubscriptionButton";
 import type { CurrentSubscription } from "@/lib/billing.functions";
 
 function daysUntil(iso: string | null): number | null {
@@ -24,7 +25,7 @@ export function SubscriptionBanner({ sub }: { sub: CurrentSubscription | null })
           </span>
         </div>
         <Button asChild size="sm" variant="default">
-          <Link to="/billing/plans">Escolher plano</Link>
+          <Link to="/billing/plans">Assinar agora</Link>
         </Button>
       </div>
     );
@@ -43,9 +44,47 @@ export function SubscriptionBanner({ sub }: { sub: CurrentSubscription | null })
               : "Regularize agora para evitar a suspensão da conta."}
           </span>
         </div>
+        <RegularizeSubscriptionButton sub={sub} size="sm" label="Regularizar assinatura" />
+      </div>
+    );
+  }
+
+  if (sub.status === "SUSPENDED") {
+    return (
+      <div className="flex items-center justify-between gap-3 border-b border-red-500/40 bg-red-500/10 px-4 py-2 text-sm">
+        <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
+          <AlertCircle className="h-4 w-4" />
+          <span>
+            Sua assinatura está suspensa. Regularize o pagamento para voltar a usar o SmartCom Pro.
+          </span>
+        </div>
+        <RegularizeSubscriptionButton sub={sub} size="sm" label="Regularizar assinatura" />
+      </div>
+    );
+  }
+
+  if (sub.status === "EXPIRED") {
+    return (
+      <div className="flex items-center justify-between gap-3 border-b border-red-500/40 bg-red-500/10 px-4 py-2 text-sm">
+        <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
+          <AlertCircle className="h-4 w-4" />
+          <span>Seu período de teste ou assinatura expirou. Escolha um plano para continuar.</span>
+        </div>
         <Button asChild size="sm" variant="default">
-          <Link to="/settings/subscription">Regularizar</Link>
+          <Link to="/billing/plans">Escolher plano</Link>
         </Button>
+      </div>
+    );
+  }
+
+  if (sub.status === "CANCELED") {
+    return (
+      <div className="flex items-center justify-between gap-3 border-b border-muted-foreground/30 bg-muted px-4 py-2 text-sm">
+        <div className="flex items-center gap-2 text-foreground">
+          <AlertCircle className="h-4 w-4" />
+          <span>Sua assinatura foi cancelada. Reative para continuar usando o sistema.</span>
+        </div>
+        <RegularizeSubscriptionButton sub={sub} size="sm" label="Reativar assinatura" />
       </div>
     );
   }
