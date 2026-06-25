@@ -255,7 +255,23 @@ function SubscriptionPage() {
         {["PAST_DUE", "SUSPENDED", "EXPIRED", "CANCELED"].includes(sub.status) ? (
           <RegularizeSubscriptionButton sub={sub} />
         ) : null}
+        {["CANCELED", "EXPIRED"].includes(sub.status) ? (
+          <ReactivateSubscriptionButton planName={sub.plan_name} />
+        ) : null}
+        {["ACTIVE", "TRIALING", "PAST_DUE"].includes(sub.status) &&
+        !scheduledCancel ? (
+          <Button variant="ghost" onClick={() => setCancelOpen(true)}>
+            <XCircle className="mr-2 h-4 w-4" />
+            Cancelar assinatura
+          </Button>
+        ) : null}
       </div>
+
+      <CancelSubscriptionDialog
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        periodEnd={sub.current_period_end}
+      />
 
       <div id="billing-charges" className="space-y-3">
         <h3 className="text-sm font-semibold text-muted-foreground">
