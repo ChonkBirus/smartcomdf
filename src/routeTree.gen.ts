@@ -48,6 +48,7 @@ import { Route as AuthenticatedServiceOrdersIdRouteImport } from './routes/_auth
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects_.$id'
 import { Route as AuthenticatedClientsIdRouteImport } from './routes/_authenticated/clients_.$id'
 import { Route as AuthenticatedBillingPlansRouteImport } from './routes/_authenticated/billing.plans'
+import { Route as AuthenticatedBillingInvoicesRouteImport } from './routes/_authenticated/billing.invoices'
 import { Route as AuthenticatedAdminSubscriptionsRouteImport } from './routes/_authenticated/admin.subscriptions'
 import { Route as AuthenticatedAdminPlansRouteImport } from './routes/_authenticated/admin.plans'
 import { Route as AuthenticatedAdminBillingRouteImport } from './routes/_authenticated/admin.billing'
@@ -259,6 +260,12 @@ const AuthenticatedBillingPlansRoute =
     path: '/billing/plans',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedBillingInvoicesRoute =
+  AuthenticatedBillingInvoicesRouteImport.update({
+    id: '/billing/invoices',
+    path: '/billing/invoices',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminSubscriptionsRoute =
   AuthenticatedAdminSubscriptionsRouteImport.update({
     id: '/subscriptions',
@@ -312,6 +319,7 @@ export interface FileRoutesByFullPath {
   '/admin/billing': typeof AuthenticatedAdminBillingRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
+  '/billing/invoices': typeof AuthenticatedBillingInvoicesRoute
   '/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
@@ -354,6 +362,7 @@ export interface FileRoutesByTo {
   '/admin/billing': typeof AuthenticatedAdminBillingRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
+  '/billing/invoices': typeof AuthenticatedBillingInvoicesRoute
   '/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
@@ -400,6 +409,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/billing': typeof AuthenticatedAdminBillingRoute
   '/_authenticated/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/_authenticated/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
+  '/_authenticated/billing/invoices': typeof AuthenticatedBillingInvoicesRoute
   '/_authenticated/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/_authenticated/clients_/$id': typeof AuthenticatedClientsIdRoute
   '/_authenticated/projects_/$id': typeof AuthenticatedProjectsIdRoute
@@ -446,6 +456,7 @@ export interface FileRouteTypes {
     | '/admin/billing'
     | '/admin/plans'
     | '/admin/subscriptions'
+    | '/billing/invoices'
     | '/billing/plans'
     | '/clients/$id'
     | '/projects/$id'
@@ -488,6 +499,7 @@ export interface FileRouteTypes {
     | '/admin/billing'
     | '/admin/plans'
     | '/admin/subscriptions'
+    | '/billing/invoices'
     | '/billing/plans'
     | '/clients/$id'
     | '/projects/$id'
@@ -533,6 +545,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/billing'
     | '/_authenticated/admin/plans'
     | '/_authenticated/admin/subscriptions'
+    | '/_authenticated/billing/invoices'
     | '/_authenticated/billing/plans'
     | '/_authenticated/clients_/$id'
     | '/_authenticated/projects_/$id'
@@ -836,6 +849,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBillingPlansRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/billing/invoices': {
+      id: '/_authenticated/billing/invoices'
+      path: '/billing/invoices'
+      fullPath: '/billing/invoices'
+      preLoaderRoute: typeof AuthenticatedBillingInvoicesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/subscriptions': {
       id: '/_authenticated/admin/subscriptions'
       path: '/subscriptions'
@@ -942,6 +962,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSmartReceivingRoute: typeof AuthenticatedSmartReceivingRoute
   AuthenticatedStockRoute: typeof AuthenticatedStockRoute
   AuthenticatedSuppliersRoute: typeof AuthenticatedSuppliersRoute
+  AuthenticatedBillingInvoicesRoute: typeof AuthenticatedBillingInvoicesRoute
   AuthenticatedBillingPlansRoute: typeof AuthenticatedBillingPlansRoute
   AuthenticatedClientsIdRoute: typeof AuthenticatedClientsIdRoute
   AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
@@ -968,6 +989,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSmartReceivingRoute: AuthenticatedSmartReceivingRoute,
   AuthenticatedStockRoute: AuthenticatedStockRoute,
   AuthenticatedSuppliersRoute: AuthenticatedSuppliersRoute,
+  AuthenticatedBillingInvoicesRoute: AuthenticatedBillingInvoicesRoute,
   AuthenticatedBillingPlansRoute: AuthenticatedBillingPlansRoute,
   AuthenticatedClientsIdRoute: AuthenticatedClientsIdRoute,
   AuthenticatedProjectsIdRoute: AuthenticatedProjectsIdRoute,
@@ -993,13 +1015,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

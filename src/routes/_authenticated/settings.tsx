@@ -13,6 +13,7 @@ const tabs = [
   { to: "/settings/team", label: "Equipe" },
   { to: "/settings/roles", label: "Permissões" },
   { to: "/settings/subscription", label: "Assinatura" },
+  { to: "/billing/invoices", label: "Faturas e Pagamentos" },
 ];
 
 function SettingsLayout() {

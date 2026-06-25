@@ -9,7 +9,13 @@ import { SubscriptionBlockedScreen } from "./SubscriptionBlockedScreen";
 const BLOCKING_STATUSES = new Set(["SUSPENDED", "CANCELED", "EXPIRED"]);
 
 // Routes that remain accessible even when blocked (so users can recover).
-const ALLOW_PATHS = ["/billing/plans", "/settings/subscription", "/settings", "/profile"];
+const ALLOW_PATHS = [
+  "/billing/plans",
+  "/billing/invoices",
+  "/settings/subscription",
+  "/settings",
+  "/profile",
+];
 
 export function SubscriptionGuard({
   children,

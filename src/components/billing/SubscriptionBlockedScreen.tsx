@@ -3,22 +3,26 @@ import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SubscriptionStatusBadge } from "./SubscriptionStatusBadge";
+import { RegularizeSubscriptionButton } from "./RegularizeSubscriptionButton";
 import type { CurrentSubscription } from "@/lib/billing.functions";
 
-const COPY: Record<string, { title: string; description: string }> = {
+const COPY: Record<string, { title: string; description: string; cta: string }> = {
   SUSPENDED: {
     title: "Conta suspensa",
     description:
       "Sua assinatura foi suspensa por falta de pagamento. Regularize para reativar o acesso ao sistema.",
+    cta: "Regularizar assinatura",
   },
   CANCELED: {
     title: "Assinatura cancelada",
-    description: "Sua assinatura foi cancelada. Escolha um plano para retomar o uso do sistema.",
+    description: "Sua assinatura foi cancelada. Reative sua assinatura para continuar usando o sistema.",
+    cta: "Reativar assinatura",
   },
   EXPIRED: {
-    title: "Trial expirado",
+    title: "Assinatura expirada",
     description:
-      "Seu período de avaliação chegou ao fim. Escolha um plano para continuar usando o sistema.",
+      "Seu período de avaliação ou assinatura chegou ao fim. Escolha um plano para continuar usando o sistema.",
+    cta: "Regularizar assinatura",
   },
 };
 
@@ -38,11 +42,12 @@ export function SubscriptionBlockedScreen({ sub }: { sub: CurrentSubscription })
           <CardDescription>{copy.description}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
-          <Button asChild size="lg">
+          <RegularizeSubscriptionButton sub={sub} size="lg" label={copy.cta} />
+          <Button asChild variant="outline">
             <Link to="/billing/plans">Ver planos disponíveis</Link>
           </Button>
-          <Button asChild variant="outline">
-            <Link to="/settings/subscription">Detalhes da assinatura</Link>
+          <Button asChild variant="ghost">
+            <Link to="/billing/invoices">Ver faturas</Link>
           </Button>
         </CardContent>
       </Card>
