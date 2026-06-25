@@ -29,9 +29,11 @@ import {
 } from "@/components/ui/select";
 import {
   getSubscriptionCommercialHistory,
+  getSubscriptionCommercialHistoryAdmin,
   type CommercialHistoryEntry,
   type CommercialHistorySource,
 } from "@/lib/billing-history.functions";
+import { Download } from "lucide-react";
 
 const fmtDateTime = (s: string) =>
   new Date(s).toLocaleString("pt-BR", {
