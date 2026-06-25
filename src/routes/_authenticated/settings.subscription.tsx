@@ -49,6 +49,9 @@ function SubscriptionPage() {
   const usageFn = useServerFn(getCompanySubscriptionUsage);
   const pendingFn = useServerFn(getPendingPlanChange);
   const cancelFn = useServerFn(cancelPendingPlanChange);
+  const schedFn = useServerFn(getScheduledCancellation);
+  const revertFn = useServerFn(revertScheduledCancellation);
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   const { data: sub, isLoading } = useQuery({
     queryKey: ["billing", "current-subscription"],
@@ -62,6 +65,10 @@ function SubscriptionPage() {
     queryKey: ["billing", "pending-plan-change"],
     queryFn: () => pendingFn(),
   });
+  const { data: scheduledCancel } = useQuery({
+    queryKey: ["billing", "scheduled-cancellation"],
+    queryFn: () => schedFn(),
+  });
 
   const cancelMut = useMutation({
     mutationFn: () => cancelFn(),
@@ -70,6 +77,15 @@ function SubscriptionPage() {
       qc.invalidateQueries({ queryKey: ["billing"] });
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao cancelar"),
+  });
+
+  const revertMut = useMutation({
+    mutationFn: () => revertFn(),
+    onSuccess: () => {
+      toast.success("Cancelamento revertido.");
+      qc.invalidateQueries({ queryKey: ["billing"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao reverter"),
   });
 
   if (isLoading) {
