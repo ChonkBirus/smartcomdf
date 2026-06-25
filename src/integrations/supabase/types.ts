@@ -5531,6 +5531,13 @@ export type Database = {
         }
         Returns: string
       }
+      process_billing_dunning_rules: {
+        Args: never
+        Returns: {
+          inserted_count: number
+          rule_code: string
+        }[]
+      }
       process_pending_cancellations: { Args: never; Returns: number }
       process_pending_plan_changes: { Args: never; Returns: number }
       quote_recalc_totals: { Args: { _quote_id: string }; Returns: undefined }
@@ -5543,6 +5550,16 @@ export type Database = {
           _po_id: string
         }
         Returns: Json
+      }
+      register_dunning_contact: {
+        Args: {
+          _channel: string
+          _event_id: string
+          _message: string
+          _next_follow_up_at: string
+          _result: string
+        }
+        Returns: string
       }
       register_public_quote_view: {
         Args: { _token: string }
