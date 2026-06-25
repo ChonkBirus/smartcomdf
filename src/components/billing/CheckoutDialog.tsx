@@ -17,7 +17,8 @@ import {
   createCheckoutSession,
   type CheckoutSessionResult,
 } from "@/lib/billing-checkout.functions";
-import { Copy, ExternalLink, Loader2 } from "lucide-react";
+import { syncBillingStatus } from "@/lib/billing-sync.functions";
+import { Copy, ExternalLink, Loader2, RefreshCw } from "lucide-react";
 
 type Method = "PIX" | "BOLETO" | "CREDIT_CARD";
 
