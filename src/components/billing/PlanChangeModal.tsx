@@ -76,21 +76,16 @@ export function PlanChangeModal({
         onOpenChange(false);
         onUpgradeCheckout(targetPlan);
       } else if (res.kind === "DOWNGRADE") {
-        toast({
-          title: "Downgrade agendado",
-          description: `O plano será alterado em ${fmtDate(res.scheduled_at)}.`,
-        });
+        toast.success(
+          `Downgrade agendado para ${fmtDate(res.scheduled_at)}`,
+        );
       } else if (res.kind === "NOOP") {
-        toast({ title: "Sem alterações", description: res.reason });
+        toast.message(res.reason);
         onOpenChange(false);
       }
     },
     onError: (err: any) => {
-      toast({
-        title: "Não foi possível alterar o plano",
-        description: err?.message ?? "Erro desconhecido",
-        variant: "destructive",
-      });
+      toast.error(err?.message ?? "Não foi possível alterar o plano");
     },
   });
 
