@@ -12,7 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   requestPlanChangeV2,
   type RequestPlanChangeResult,
