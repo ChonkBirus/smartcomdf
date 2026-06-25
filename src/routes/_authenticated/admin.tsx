@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Shield, Building2, Package, CreditCard, Receipt } from "lucide-react";
+import { Shield, Building2, Package, CreditCard, Receipt, LayoutDashboard } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/EmptyState";
 import { getMyContext } from "@/lib/account.functions";
@@ -29,6 +29,7 @@ function AdminLayout() {
   }
 
   const tabs = [
+    { to: "/admin/overview", label: "Visão Geral", icon: LayoutDashboard },
     { to: "/admin", label: "Empresas", icon: Building2, exact: true },
     { to: "/admin/plans", label: "Planos", icon: Package },
     { to: "/admin/subscriptions", label: "Assinaturas", icon: CreditCard },
