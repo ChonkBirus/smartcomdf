@@ -303,8 +303,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       if (redErr) {
         console.error("[checkout] coupon redemption insert failed", redErr);
       } else {
-        await supabaseAdmin.rpc("increment" as any, {}).then(() => {}).catch(() => {});
-        // Increment redemption_count atomically via update
+        // Increment redemption_count (best-effort, not strictly atomic)
         const { data: cur } = await supabaseAdmin
           .from("billing_coupons")
           .select("redemption_count")
