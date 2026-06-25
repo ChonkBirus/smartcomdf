@@ -4819,13 +4819,19 @@ export type Database = {
           corporate_name: string
           created_at: string
           id: string
+          last_paid_at: string
+          next_billing_date: string
+          plan_id: string
           plan_name: string
           plan_slug: string
           status: Database["public"]["Enums"]["company_status"]
           subscription_active: boolean
           subscription_expires: string
+          subscription_id: string
+          subscription_status: string
           subscription_trial: boolean
           trade_name: string
+          trial_ends_at: string
           users_count: number
         }[]
       }
