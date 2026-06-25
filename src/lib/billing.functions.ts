@@ -64,6 +64,22 @@ export type SubscriptionUsage = {
   service_orders_count: number;
 };
 
+export type CompanyCharge = {
+  id: string;
+  provider: string;
+  status: string;
+  payment_method: string | null;
+  billing_cycle: "MONTHLY" | "YEARLY";
+  amount: number;
+  due_date: string | null;
+  paid_at: string | null;
+  invoice_url: string | null;
+  bank_slip_url: string | null;
+  pix_copy_paste: string | null;
+  checkout_url: string | null;
+  created_at: string;
+};
+
 async function getCompanyId(supabase: any, userId: string): Promise<string | null> {
   const { data } = await supabase
     .from("profiles")
@@ -329,4 +345,27 @@ export const getCompanyUsage = createServerFn({ method: "GET" })
       .select("id", { count: "exact", head: true })
       .eq("company_id", companyId);
     return { users: users ?? 0 };
+  });
+
+export const listCompanyCharges = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<CompanyCharge[]> => {
+    const { supabase, userId } = context;
+    const companyId = await getCompanyId(supabase, userId);
+    if (!companyId) return [];
+
+    const { data, error } = await supabase
+      .from("billing_charges")
+      .select(
+        "id, provider, status, payment_method, billing_cycle, amount, due_date, paid_at, invoice_url, bank_slip_url, pix_copy_paste, checkout_url, created_at",
+      )
+      .eq("company_id", companyId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (error) return [];
+    return (data ?? []).map((r: any) => ({
+      ...r,
+      amount: Number(r.amount ?? 0),
+    }));
   });

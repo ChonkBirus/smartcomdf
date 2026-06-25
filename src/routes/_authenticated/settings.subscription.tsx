@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, ArrowUpRight, Clock } from "lucide-react";
 import { SubscriptionStatusBadge } from "@/components/billing/SubscriptionStatusBadge";
 import { SubscriptionUsageCards } from "@/components/billing/SubscriptionUsageCards";
+import { BillingChargesTable } from "@/components/billing/BillingChargesTable";
 import {
   getCurrentCompanySubscription,
   getCompanySubscriptionUsage,
@@ -155,9 +156,25 @@ function SubscriptionPage() {
           Alterar plano
         </Button>
         {sub.status === "PAST_DUE" || sub.status === "SUSPENDED" ? (
-          <Button variant="default">Regularizar pagamento</Button>
+          <Button
+            variant="default"
+            onClick={() =>
+              document
+                .getElementById("billing-charges")
+                ?.scrollIntoView({ behavior: "smooth", block: "start" })
+            }
+          >
+            Regularizar pagamento
+          </Button>
         ) : null}
         <Button variant="outline">Falar com suporte</Button>
+      </div>
+
+      <div id="billing-charges" className="space-y-3">
+        <h3 className="text-sm font-semibold text-muted-foreground">
+          Histórico de cobranças
+        </h3>
+        <BillingChargesTable />
       </div>
     </div>
   );
