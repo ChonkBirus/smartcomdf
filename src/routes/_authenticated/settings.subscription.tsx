@@ -13,6 +13,12 @@ import {
   getCurrentCompanySubscription,
   getCompanySubscriptionUsage,
 } from "@/lib/billing.functions";
+import {
+  getPendingPlanChange,
+  cancelPendingPlanChange,
+} from "@/lib/billing-plan-changes.functions";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settings/subscription")({
   head: () => ({ meta: [{ title: "Assinatura — SecureERP" }] }),
