@@ -128,7 +128,7 @@ export const registerDunningContact = createServerFn({ method: "POST" })
         _result: data.result ?? null,
         _message: data.message ?? null,
         _next_follow_up_at: data.next_follow_up_at ?? null,
-      },
+      } as any,
     );
     if (error) throw error;
     return { log_id: logId as string };
