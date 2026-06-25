@@ -12,6 +12,8 @@ import { BillingChargesTable } from "@/components/billing/BillingChargesTable";
 import { RegularizeSubscriptionButton } from "@/components/billing/RegularizeSubscriptionButton";
 import { CancelSubscriptionDialog } from "@/components/billing/CancelSubscriptionDialog";
 import { ReactivateSubscriptionButton } from "@/components/billing/ReactivateSubscriptionButton";
+import { SubscriptionHistoryTimeline } from "@/components/billing/SubscriptionHistoryTimeline";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   getCurrentCompanySubscription,
   getCompanySubscriptionUsage,
