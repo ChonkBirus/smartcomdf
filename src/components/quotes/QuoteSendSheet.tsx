@@ -77,6 +77,9 @@ export function QuoteSendSheet({
   const fetchPdfPayload = useServerFn(getQuotePdfPayload);
   const [pdfTemplate, setPdfTemplate] = useState<QuotePdfTemplate>("premium");
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [previewBusy, setPreviewBusy] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
 
   const enabled = open && !!quoteId;
   const { data, isLoading } = useQuery({
