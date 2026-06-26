@@ -60,21 +60,6 @@ const CHARGE_STATUSES = [
 ];
 const EVENT_STATUSES = ["PROCESSED", "ERROR", "DUPLICATE", "RECEIVED"];
 
-const chargeStatusClass: Record<string, string> = {
-  PENDING: "bg-warning/15 text-warning",
-  CONFIRMED: "bg-success/15 text-success",
-  RECEIVED: "bg-success/15 text-success",
-  OVERDUE: "bg-destructive/15 text-destructive",
-  REFUNDED: "bg-muted text-muted-foreground",
-  DELETED: "bg-muted text-muted-foreground",
-};
-
-const eventStatusClass: Record<string, string> = {
-  PROCESSED: "bg-success/15 text-success",
-  ERROR: "bg-destructive/15 text-destructive",
-  DUPLICATE: "bg-muted text-muted-foreground",
-  RECEIVED: "bg-primary/15 text-primary",
-};
 
 function fmtDate(d: string | null | undefined) {
   return d ? new Date(d).toLocaleString("pt-BR") : "—";
