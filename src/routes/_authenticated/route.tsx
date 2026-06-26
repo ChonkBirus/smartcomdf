@@ -12,6 +12,8 @@ import { PermissionsProvider } from "@/lib/permissions";
 import { FeaturesProvider, type PlanInfo } from "@/lib/features";
 import { UpgradeModal } from "@/components/app/UpgradeModal";
 import { SubscriptionGuard } from "@/components/billing/SubscriptionGuard";
+import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
+
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -61,26 +63,29 @@ function AuthenticatedLayout() {
         subscription={data?.subscription ?? null}
         isSuperAdmin={!!data?.isSuperAdmin}
       >
-        <SidebarProvider>
-          <div className="flex min-h-screen w-full bg-background">
-            <AppSidebar isSuperAdmin={data?.isSuperAdmin} />
-            <SidebarInset className="flex min-h-screen flex-1 flex-col">
-              <Topbar
-                name={data?.profile?.full_name}
-                email={data?.profile?.email}
-                avatarUrl={data?.profile?.avatar_url}
-                companyName={data?.company?.trade_name ?? data?.company?.corporate_name}
-                userId={data?.profile?.id}
-              />
-              <main className="flex-1 p-4 md:p-6 lg:p-8">
-                <SubscriptionGuard isSuperAdmin={!!data?.isSuperAdmin}>
-                  <Outlet />
-                </SubscriptionGuard>
-              </main>
-            </SidebarInset>
-          </div>
-          <UpgradeModal />
-        </SidebarProvider>
+        <OnboardingProvider enabled={!!data?.company}>
+          <SidebarProvider>
+            <div className="flex min-h-screen w-full bg-background">
+              <AppSidebar isSuperAdmin={data?.isSuperAdmin} />
+              <SidebarInset className="flex min-h-screen flex-1 flex-col">
+                <Topbar
+                  name={data?.profile?.full_name}
+                  email={data?.profile?.email}
+                  avatarUrl={data?.profile?.avatar_url}
+                  companyName={data?.company?.trade_name ?? data?.company?.corporate_name}
+                  userId={data?.profile?.id}
+                />
+                <main className="flex-1 p-4 md:p-6 lg:p-8">
+                  <SubscriptionGuard isSuperAdmin={!!data?.isSuperAdmin}>
+                    <Outlet />
+                  </SubscriptionGuard>
+                </main>
+              </SidebarInset>
+            </div>
+            <UpgradeModal />
+          </SidebarProvider>
+        </OnboardingProvider>
+
       </FeaturesProvider>
     </PermissionsProvider>
   );
