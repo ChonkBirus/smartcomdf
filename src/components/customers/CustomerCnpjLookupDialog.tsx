@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { lookupCnpj, type CnpjLookupResultDTO } from "@/lib/cnpj-lookup.functions";
+import { lookupCnpj, type CnpjLookupFailureDTO, type CnpjLookupResultDTO } from "@/lib/cnpj-lookup.functions";
 
 type Props = {
   cnpj: string;
@@ -15,6 +15,14 @@ type Props = {
   hasExistingData?: boolean;
   onApply: (data: CnpjLookupResultDTO, replaceExisting: boolean) => void;
 };
+
+function cleanCnpj(value: string) {
+  return (value || "").replace(/\D/g, "");
+}
+
+function isLookupFailure(value: unknown): value is CnpjLookupFailureDTO {
+  return !!value && typeof value === "object" && (value as CnpjLookupFailureDTO).ok === false;
+}
 
 export function CustomerCnpjLookupButton({ cnpj, disabled, hasExistingData, onApply }: Props) {
   const lookup = useServerFn(lookupCnpj);
@@ -24,14 +32,32 @@ export function CustomerCnpjLookupButton({ cnpj, disabled, hasExistingData, onAp
   const mut = useMutation({
     mutationFn: () => lookup({ data: { cnpj } }),
     onSuccess: (d) => {
+      if (isLookupFailure(d)) {
+        if (import.meta.env.DEV) {
+          console.error("[CNPJ LOOKUP] debug:", d.debug);
+        }
+        toast.error(d.userMessage || "Consulta indisponível no momento. Preencha os dados manualmente ou tente novamente.");
+        return;
+      }
       setResult(d);
       setOpen(true);
     },
-    onError: (e: any) => toast.error(e?.message ?? "Falha ao consultar CNPJ."),
+    onError: (e: any) => {
+      if (import.meta.env.DEV) {
+        console.error("[CNPJ LOOKUP] erro real:", e);
+      }
+      toast.error(e?.message ?? "Falha ao consultar CNPJ.");
+    },
   });
 
   const onClick = () => {
-    if (!cnpj || cnpj.replace(/\D/g, "").length !== 14) {
+    const cnpjLimpo = cleanCnpj(cnpj);
+    if (import.meta.env.DEV) {
+      console.log("[CNPJ LOOKUP] CNPJ digitado:", cnpj);
+      console.log("[CNPJ LOOKUP] CNPJ limpo:", cnpjLimpo);
+      console.log("[CNPJ LOOKUP] chamando função:", "lookupCnpj");
+    }
+    if (!cnpj || cnpjLimpo.length !== 14) {
       toast.error("Informe um CNPJ com 14 dígitos.");
       return;
     }
@@ -42,7 +68,7 @@ export function CustomerCnpjLookupButton({ cnpj, disabled, hasExistingData, onAp
     if (result) onApply(result, replace);
     setOpen(false);
     setResult(null);
-    toast.success("Dados aplicados ao formulário.");
+    toast.success("Dados da empresa preenchidos com sucesso.");
   };
 
   return (
