@@ -410,6 +410,9 @@ export function QuoteSendSheet({
                     <Mail className="mr-1 h-4 w-4" />E-mail
                   </Button>
                   <div className="flex gap-1">
+                    <Button variant="outline" onClick={handlePreviewPDF} className="flex-1" disabled={previewBusy}>
+                      <FileSearch className="mr-1 h-4 w-4" />{previewBusy ? "Gerando..." : "Pré-visualizar"}
+                    </Button>
                     <Button variant="outline" onClick={handleDownloadPDF} className="flex-1" disabled={pdfBusy}>
                       <Download className="mr-1 h-4 w-4" />{pdfBusy ? "Gerando..." : "PDF"}
                     </Button>
@@ -423,6 +426,7 @@ export function QuoteSendSheet({
                       </SelectContent>
                     </Select>
                   </div>
+
                   <Button
                     variant="secondary"
                     onClick={() => sendMut.mutate()}
