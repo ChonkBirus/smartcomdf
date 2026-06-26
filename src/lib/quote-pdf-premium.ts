@@ -1418,11 +1418,31 @@ function renderCompanyDataPage(doc: jsPDF, ctx: { company: PdfCompany; settings:
     setText(doc, PALETTE.black);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
-    doc.text(String(r.value), MARGIN + 140, y);
+    const valueText = String(r.value);
+    if (r.label === "WhatsApp") {
+      const digits = valueText.replace(/\D/g, "");
+      if (digits) {
+        const intlDigits = digits.startsWith("55") ? digits : `55${digits}`;
+        const waUrl = `https://wa.me/${intlDigits}`;
+        setText(doc, PALETTE.gold);
+        doc.textWithLink(valueText, MARGIN + 140, y, { url: waUrl });
+        setText(doc, PALETTE.gray);
+        doc.setFontSize(8);
+        doc.text(waUrl, MARGIN + 140, y + 12);
+      } else {
+        doc.text(valueText, MARGIN + 140, y);
+      }
+    } else if (r.label === "E-mail") {
+      setText(doc, PALETTE.gold);
+      doc.textWithLink(valueText, MARGIN + 140, y, { url: `mailto:${valueText}` });
+    } else {
+      doc.text(valueText, MARGIN + 140, y);
+    }
     setStroke(doc, PALETTE.grayLight);
-    doc.line(MARGIN, y + 8, A4.w - MARGIN, y + 8);
-    y += 24;
+    doc.line(MARGIN, y + 18, A4.w - MARGIN, y + 18);
+    y += r.label === "WhatsApp" && String(r.value).replace(/\D/g, "") ? 36 : 28;
   });
+
 
   y += 16;
   setFill(doc, PALETTE.black);
