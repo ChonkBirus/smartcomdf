@@ -115,7 +115,7 @@ function AdminSubscriptionsPage() {
                 <TableCell className="font-medium">{s.company_name ?? "—"}</TableCell>
                 <TableCell>{s.plan_name ?? "—"}</TableCell>
                 <TableCell>
-                  <Badge className={statusClass[s.status] ?? "bg-muted"}>{s.status}</Badge>
+                  <StatusBadge status={s.status} />
                 </TableCell>
                 <TableCell className="text-xs">{s.billing_cycle ?? "—"}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{fmtDate(s.trial_ends_at)}</TableCell>
