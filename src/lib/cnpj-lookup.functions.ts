@@ -221,7 +221,7 @@ export const lookupCnpj = createServerFn({ method: "POST" })
     await supabaseAdmin.from("cnpj_lookup_cache").upsert(
       {
         cnpj,
-        provider: "BRASIL_API",
+        provider: providerUsed,
         normalized_data: normalized,
         raw_payload: raw,
         fetched_at: new Date().toISOString(),
