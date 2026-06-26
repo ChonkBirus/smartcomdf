@@ -87,11 +87,13 @@ export async function generateQrDataUrl(text: string, opts?: { dark?: string; li
 export function drawSectionTitle(doc: jsPDF, text: string, y: number) {
   setText(doc, PALETTE.black);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.text(text, MARGIN, y);
+  doc.setFontSize(20);
+  const lines = doc.splitTextToSize(text, A4.w - MARGIN * 2) as string[];
+  lines.forEach((ln, i) => doc.text(ln, MARGIN, y + i * 24));
+  const afterTitle = y + lines.length * 24;
   setFill(doc, PALETTE.gold);
-  doc.rect(MARGIN, y + 6, 48, 3, "F");
-  return y + 28;
+  doc.rect(MARGIN, afterTitle + 6, 56, 3, "F");
+  return afterTitle + 28;
 }
 
 export function drawEyebrow(doc: jsPDF, text: string, y: number) {
@@ -99,7 +101,55 @@ export function drawEyebrow(doc: jsPDF, text: string, y: number) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
   doc.text(text.toUpperCase(), MARGIN, y);
-  return y + 12;
+  return y + 22;
+}
+
+/**
+ * Loads an image and makes near-white pixels transparent.
+ * Used for logos on dark backgrounds. Returns PNG dataURL.
+ * Falls back to plain loadImageAsDataUrl on failure.
+ */
+export async function loadLogoForDarkBg(
+  url: string | null | undefined,
+  threshold = 235,
+): Promise<string | null> {
+  if (!url) return null;
+  if (typeof document === "undefined" || typeof Image === "undefined") {
+    return loadImageAsDataUrl(url);
+  }
+  try {
+    const dataUrl = await loadImageAsDataUrl(url);
+    if (!dataUrl) return null;
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const im = new Image();
+      im.crossOrigin = "anonymous";
+      im.onload = () => resolve(im);
+      im.onerror = reject;
+      im.src = dataUrl;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth || img.width;
+    canvas.height = img.naturalHeight || img.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return dataUrl;
+    ctx.drawImage(img, 0, 0);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const d = imageData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const r = d[i], g = d[i + 1], b = d[i + 2];
+      if (r >= threshold && g >= threshold && b >= threshold) {
+        d[i + 3] = 0;
+      } else if (r >= 200 && g >= 200 && b >= 200) {
+        // soft edge: partial transparency
+        const avg = (r + g + b) / 3;
+        d[i + 3] = Math.max(0, Math.min(255, Math.round((255 - avg) * 8)));
+      }
+    }
+    ctx.putImageData(imageData, 0, 0);
+    return canvas.toDataURL("image/png");
+  } catch {
+    return loadImageAsDataUrl(url);
+  }
 }
 
 export function drawParagraph(
