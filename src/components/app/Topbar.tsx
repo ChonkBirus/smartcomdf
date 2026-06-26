@@ -11,7 +11,10 @@ import {
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationsBell } from "./NotificationsBell";
 import { supabase } from "@/integrations/supabase/client";
-import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
+import { useContext } from "react";
+import { OnboardingCtx } from "@/components/onboarding/OnboardingProvider";
+function useOnboardingSafe() { return useContext(OnboardingCtx); }
+
 
 
 export function Topbar({ name, email, avatarUrl, companyName, userId }: {
