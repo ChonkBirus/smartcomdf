@@ -124,8 +124,8 @@ function ServiceOrdersListPage() {
                   {so.scheduled_date ? new Date(so.scheduled_date).toLocaleDateString("pt-BR") : "—"}
                   {so.scheduled_start_time ? ` ${so.scheduled_start_time.slice(0,5)}` : ""}
                 </TableCell>
-                <TableCell><Badge variant={STATUS_VARIANT[so.status]}>{STATUS_LABEL[so.status]}</Badge></TableCell>
-                <TableCell><Badge variant="outline">{PRIORITY_LABEL[so.priority]}</Badge></TableCell>
+                <TableCell><StatusBadge status={so.status} label={STATUS_LABEL[so.status]} /></TableCell>
+                <TableCell><StatusBadge status={so.priority} tone="neutral" label={PRIORITY_LABEL[so.priority]} /></TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <Button variant="ghost" size="sm"
                     onClick={() => navigate({ to: "/service-orders/$id", params: { id: so.id } } as any)}>
