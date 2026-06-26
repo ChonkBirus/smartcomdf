@@ -167,7 +167,7 @@ function AdminPilotsPage() {
             ))}
           </SelectContent>
         </Select>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <Target className="h-4 w-4" />
           {metrics?.pendingFollowUps ?? 0} follow-ups pendentes
           <Button size="sm" onClick={() => setCreateOpen(true)}>
