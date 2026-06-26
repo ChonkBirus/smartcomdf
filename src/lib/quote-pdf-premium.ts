@@ -83,6 +83,7 @@ type PdfItem = {
 };
 
 export type PremiumPdfConfig = {
+  compactPremiumPdf?: boolean;
   showCftPage?: boolean;
   showCftvImportance?: boolean;
   showDiagnosis?: boolean;
@@ -109,13 +110,14 @@ const DEFAULTS: Required<Omit<PremiumPdfConfig, "kpis" | "responsibleName" | "re
   responsibleName: string | null;
   responsiblePhone: string | null;
 } = {
+  compactPremiumPdf: true,
   showCftPage: true,
   showCftvImportance: true,
   showDiagnosis: true,
   showSolutionSummary: true,
   showScope: true,
   showProductHighlights: true,
-  maxProductHighlights: 4,
+  maxProductHighlights: 3,
   showMaterialsTable: true,
   showExecutionProcess: true,
   showWarrantySupport: true,
@@ -127,6 +129,121 @@ const DEFAULTS: Required<Omit<PremiumPdfConfig, "kpis" | "responsibleName" | "re
   kpis: { projects: "500+", cities: "30+", clients: "Alta satisfação" },
   responsibleName: null,
   responsiblePhone: null,
+};
+
+// ============================================================
+// STRATEGIC ITEM SELECTION
+// ============================================================
+
+type ScoredItem = { item: PdfItem; score: number; category: HighlightCategory };
+
+type HighlightCategory =
+  | "camera" | "dvr" | "switch" | "alarm_central" | "sensor" | "siren"
+  | "intercom" | "lock" | "access_reader" | "controller" | "router" | "ap"
+  | "motor" | "inverter" | "solar_panel" | "ev_charger" | "amp" | "speaker"
+  | "led_panel" | "radio" | "other";
+
+const NEGATIVE_RE = /(cabo|canaleta|conector|parafuso|caixa\s*de\s*passag|disjuntor|protetor|suporte|abraçad|abracad|braçad|bracad|eletrod|terminal|presilha|fita|bucha|chumb|silicone|fonte\s*simples|adaptador\s*simples)/i;
+
+function categorizeItem(it: PdfItem): HighlightCategory {
+  const s = `${it.name} ${it.description ?? ""}`.toLowerCase();
+  if (/(dvr|nvr|gravador)/.test(s)) return "dvr";
+  if (/(c[âa]mer|bullet|dome|speed\s*dome|ipc\b)/.test(s)) return "camera";
+  if (/(switch|poe)/.test(s)) return "switch";
+  if (/(central\s*de\s*alarme|painel\s*de\s*alarme)/.test(s)) return "alarm_central";
+  if (/(sensor|infraverm|ivp\b|magn[ée]tic)/.test(s)) return "sensor";
+  if (/(sirene)/.test(s)) return "siren";
+  if (/(interfon|porteiro\s*eletr|video[- ]?porteir)/.test(s)) return "intercom";
+  if (/(fechadura|trinco|eletro[ií]m)/.test(s)) return "lock";
+  if (/(leitor|biometr|facial|catraca|rfid)/.test(s)) return "access_reader";
+  if (/(controladora|controlador|central(?!\s*de\s*alarme))/.test(s)) return "controller";
+  if (/(roteador|router)/.test(s)) return "router";
+  if (/(access\s*point|\bap\b\s|repet|mesh)/.test(s)) return "ap";
+  if (/(motor|automatizador\s*de\s*port|m[áa]quina\s*de\s*port)/.test(s)) return "motor";
+  if (/(inversor)/.test(s)) return "inverter";
+  if (/(m[óo]dulo\s*solar|placa\s*solar|painel\s*solar|fotovolt)/.test(s)) return "solar_panel";
+  if (/(carregador|wallbox|veicular)/.test(s)) return "ev_charger";
+  if (/(amplificad|matriz\s*de\s*som)/.test(s)) return "amp";
+  if (/(caixa\s*ac[úu]st|alto[- ]?falante|speaker)/.test(s)) return "speaker";
+  if (/(painel\s*de\s*led|tela\s*led)/.test(s)) return "led_panel";
+  if (/(r[áa]dio|enlace|antena)/.test(s)) return "radio";
+  return "other";
+}
+
+const PRIMARY_BY_SOLUTION: Record<SolutionKey, HighlightCategory[]> = {
+  cftv: ["camera", "dvr", "switch", "radio"],
+  alarm: ["alarm_central", "sensor", "siren", "controller"],
+  intercom: ["intercom", "lock", "controller"],
+  access: ["access_reader", "controller", "lock"],
+  network: ["switch", "router", "ap", "radio"],
+  automation: ["controller", "motor", "sensor"],
+  solar: ["inverter", "solar_panel", "controller"],
+  ev: ["ev_charger", "controller"],
+  audio: ["amp", "speaker", "controller", "led_panel"],
+  generic: ["controller", "camera", "dvr", "intercom", "access_reader", "alarm_central"],
+};
+
+function scoreItem(it: PdfItem, solution: SolutionKey): ScoredItem {
+  const cat = categorizeItem(it);
+  const name = `${it.name} ${it.description ?? ""}`;
+  let score = 0;
+  const primary = PRIMARY_BY_SOLUTION[solution] ?? [];
+  if (cat !== "other" && primary[0] === cat) score += 5;
+  else if (primary.includes(cat)) score += 4;
+  else if (cat !== "other") score += 2;
+  if (it.image_url) score += 2;
+  if (it.description && it.description.trim().length > 20) score += 2;
+  if (Number(it.quantity) >= 1) score += 1;
+  if (NEGATIVE_RE.test(name)) score -= 3;
+  if (cat === "other" && !it.image_url) score -= 2;
+  if (it.kind === "LABOR") score -= 10;
+  return { item: it, score, category: cat };
+}
+
+export function selectStrategicQuoteItems(
+  items: PdfItem[],
+  solution: SolutionKey,
+  max = 3,
+): PdfItem[] {
+  const scored = items
+    .filter((it) => it.kind !== "LABOR")
+    .map((it) => scoreItem(it, solution))
+    .filter((s) => s.score >= 4)
+    .sort((a, b) => b.score - a.score);
+  // dedupe by category so we don't repeat 3 cameras
+  const seen = new Set<HighlightCategory>();
+  const result: PdfItem[] = [];
+  for (const s of scored) {
+    if (s.category !== "other" && seen.has(s.category)) continue;
+    seen.add(s.category);
+    result.push(s.item);
+    if (result.length >= max) break;
+  }
+  return result;
+}
+
+const RESOLVES_COPY: Record<HighlightCategory, string> = {
+  camera: "Permite monitorar pontos estratégicos, registrar imagens com mais clareza e aumentar a capacidade de identificação de movimentações no ambiente.",
+  dvr: "Centraliza a gravação das imagens, organiza o monitoramento e permite consulta posterior de eventos importantes.",
+  switch: "Reduz a necessidade de fontes individuais, melhora a organização da infraestrutura e facilita a alimentação dos dispositivos pela rede.",
+  alarm_central: "Monitora sensores e eventos de intrusão, permitindo resposta mais rápida em caso de tentativa de acesso indevido.",
+  sensor: "Detecta movimentação, abertura ou impacto em pontos críticos do ambiente, ativando o sistema de proteção quando necessário.",
+  siren: "Inibe ações suspeitas e sinaliza eventos de forma audível, reforçando o efeito dissuasivo do sistema.",
+  intercom: "Melhora a comunicação com visitantes, aumenta o controle de acesso e torna a entrada no ambiente mais segura e organizada.",
+  lock: "Controla a liberação de acesso, reduz uso de chaves físicas e aumenta a segurança da entrada.",
+  access_reader: "Identifica usuários autorizados e libera o acesso com rastreabilidade, reduzindo riscos de entradas indevidas.",
+  controller: "Centraliza a operação da solução, garantindo integração e funcionamento confiável entre os dispositivos.",
+  router: "Garante a conectividade do ambiente, organiza o tráfego de rede e dá base estável para os demais sistemas.",
+  ap: "Distribui o sinal Wi-Fi nos pontos certos, reduzindo zonas mortas e melhorando a experiência de uso.",
+  motor: "Automatiza o acesso, melhora a praticidade e contribui para a segurança e o controle na entrada.",
+  inverter: "Converte a energia gerada pelos módulos para uso no imóvel, sendo o coração do sistema fotovoltaico.",
+  solar_panel: "Capta a luz solar e gera energia limpa, reduzindo o custo mensal de eletricidade do imóvel.",
+  ev_charger: "Permite recarregar o veículo elétrico em casa, com mais praticidade, segurança e economia.",
+  amp: "Distribui o áudio com qualidade para todo o ambiente, sustentando a experiência sonora da solução.",
+  speaker: "Entrega cobertura sonora equilibrada, melhorando a experiência e a ambientação do espaço.",
+  led_panel: "Comunica informações e conteúdos visuais com alto impacto, fortalecendo a apresentação do ambiente.",
+  radio: "Estabelece o enlace de comunicação entre pontos distantes, mantendo dados e imagens disponíveis com estabilidade.",
+  other: "Contribui para o funcionamento da solução, oferecendo desempenho e confiabilidade adequados ao projeto.",
 };
 
 // ---- Helpers specific to this template ----
