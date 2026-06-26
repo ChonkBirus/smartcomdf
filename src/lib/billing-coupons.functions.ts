@@ -54,7 +54,8 @@ export const validateCoupon = createServerFn({ method: "POST" })
     if (!companyId) throw new Error("Empresa não encontrada.");
 
     const code = data.code.trim().toUpperCase();
-    const { data: coupon, error } = await supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: coupon, error } = await supabaseAdmin
       .from("billing_coupons")
       .select("*")
       .eq("code", code)
