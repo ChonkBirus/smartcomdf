@@ -538,6 +538,44 @@ export function QuoteFormSheet({
               </div>
             </TabsContent>
 
+            {/* DIAGNÓSTICO */}
+            <TabsContent value="diagnosis" className="space-y-3 pt-4">
+              <p className="text-xs text-muted-foreground">
+                Preencha o diagnóstico técnico (visita técnica ou levantamento comercial). Esses campos alimentam a seção
+                "Diagnóstico da necessidade" do PDF da proposta. Se ficar em branco, o PDF usa um texto padrão.
+              </p>
+              <div>
+                <Label>Problema identificado</Label>
+                <Textarea rows={2} value={diagProblem} onChange={(e) => setDiagProblem(e.target.value)}
+                  placeholder="Ex.: Falhas de monitoramento na entrada e área de carga." />
+              </div>
+              <div>
+                <Label>Necessidade do cliente</Label>
+                <Textarea rows={2} value={diagNeed} onChange={(e) => setDiagNeed(e.target.value)}
+                  placeholder="Ex.: Sistema com gravação contínua e acesso remoto." />
+              </div>
+              <div>
+                <Label>Ambiente atendido</Label>
+                <Textarea rows={2} value={diagEnvironment} onChange={(e) => setDiagEnvironment(e.target.value)}
+                  placeholder="Ex.: Galpão de 600m², dois acessos, recepção." />
+              </div>
+              <div>
+                <Label>Objetivo da solução</Label>
+                <Textarea rows={2} value={diagObjective} onChange={(e) => setDiagObjective(e.target.value)}
+                  placeholder="Ex.: Reduzir ocorrências e aumentar controle operacional." />
+              </div>
+              <div>
+                <Label>Pontos críticos observados</Label>
+                <Textarea rows={2} value={diagCritical} onChange={(e) => setDiagCritical(e.target.value)}
+                  placeholder="Ex.: Ângulos cegos na lateral e iluminação baixa à noite." />
+              </div>
+              <div>
+                <Label>Observações técnicas</Label>
+                <Textarea rows={2} value={diagTechNotes} onChange={(e) => setDiagTechNotes(e.target.value)}
+                  placeholder="Ex.: Necessário reforço de infraestrutura elétrica e cabeamento estruturado." />
+              </div>
+            </TabsContent>
+
             {/* CONDIÇÕES */}
             <TabsContent value="terms" className="space-y-3 pt-4">
               <div>
