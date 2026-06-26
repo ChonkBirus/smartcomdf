@@ -451,7 +451,14 @@ export function QuoteFormSheet({
                 </div>
                 <div>
                   <Label>Validade</Label>
-                  <Input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} />
+                  <Input
+                    type="date"
+                    value={validUntil}
+                    onChange={(e) => { setValidUntil(e.target.value); setValidUntilTouched(true); }}
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Preenchida automaticamente com 15 dias após a emissão. Você pode editar manualmente.
+                  </p>
                 </div>
               </div>
 
