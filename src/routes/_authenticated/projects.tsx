@@ -9,7 +9,7 @@ import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
 import { PermissionRoute } from "@/components/app/PermissionRoute";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
