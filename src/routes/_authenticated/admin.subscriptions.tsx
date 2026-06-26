@@ -33,15 +33,6 @@ export const Route = createFileRoute("/_authenticated/admin/subscriptions")({
 
 const STATUSES = ["TRIALING","ACTIVE","PAST_DUE","SUSPENDED","CANCELED","EXPIRED","MANUAL_REVIEW"] as const;
 
-const statusClass: Record<string, string> = {
-  TRIALING: "bg-blue-500/15 text-blue-600",
-  ACTIVE: "bg-emerald-500/15 text-emerald-600",
-  PAST_DUE: "bg-amber-500/15 text-amber-600",
-  SUSPENDED: "bg-red-500/15 text-red-600",
-  CANCELED: "bg-muted text-muted-foreground",
-  EXPIRED: "bg-muted text-muted-foreground",
-  MANUAL_REVIEW: "bg-purple-500/15 text-purple-600",
-};
 
 function fmtDate(d: string | null | undefined) {
   return d ? new Date(d).toLocaleDateString("pt-BR") : "—";
