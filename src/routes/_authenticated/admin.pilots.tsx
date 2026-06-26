@@ -214,7 +214,7 @@ function AdminPilotsPage() {
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.company_name ?? "—"}</TableCell>
                   <TableCell>
-                    <Badge variant={statusVariant(p.status)}>{p.status}</Badge>
+                    <StatusBadge status={p.status} tone={statusTone(p.status)} />
                   </TableCell>
                   <TableCell className="text-xs">{p.source ?? "—"}</TableCell>
                   <TableCell className="text-xs">{fmtDate(p.expected_conversion_date)}</TableCell>
