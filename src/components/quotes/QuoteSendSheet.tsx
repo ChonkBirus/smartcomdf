@@ -596,6 +596,28 @@ export function QuoteSendSheet({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!previewUrl} onOpenChange={(v) => { if (!v) closePreview(); }}>
+        <DialogContent className="max-w-5xl p-0 sm:max-w-5xl">
+          <DialogHeader className="border-b px-6 py-3">
+            <DialogTitle>Pré-visualização — {quote?.quote_number}</DialogTitle>
+          </DialogHeader>
+          {previewUrl && (
+            <iframe
+              src={previewUrl}
+              title="Pré-visualização do PDF"
+              className="h-[75vh] w-full bg-muted"
+            />
+          )}
+          <DialogFooter className="border-t px-6 py-3">
+            <Button variant="outline" onClick={closePreview}>Fechar</Button>
+            <Button onClick={handleDownloadPDF} disabled={pdfBusy}>
+              <Download className="mr-1 h-4 w-4" />{pdfBusy ? "Gerando..." : "Baixar PDF"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Sheet>
+
   );
 }
