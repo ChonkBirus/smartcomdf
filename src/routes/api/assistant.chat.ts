@@ -121,7 +121,7 @@ export const Route = createFileRoute("/api/assistant/chat")({
               if (text) {
                 await supabase.from("ai_messages").insert({
                   conversation_id: conversationId,
-                  company_id: profile.company_id,
+                  company_id: companyId,
                   user_id: userId,
                   role: "assistant",
                   content: text,
