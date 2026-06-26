@@ -175,12 +175,12 @@ function ProjectsPage() {
                     <TableCell>{p.customer_name}</TableCell>
                     <TableCell className="text-muted-foreground">{p.responsible_name ?? "—"}</TableCell>
                     <TableCell>
-                      <Badge variant={STATUS_VARIANT[p.status as ProjectStatus]}>{STATUS_LABEL[p.status as ProjectStatus]}</Badge>
+                      <StatusBadge status={p.status} label={STATUS_LABEL[p.status as ProjectStatus]} />
                     </TableCell>
-                    <TableCell><span className={`rounded px-2 py-0.5 text-xs ${plan.cls}`}>{plan.label}</span></TableCell>
-                    <TableCell><span className={`rounded px-2 py-0.5 text-xs ${mat.cls}`}>{mat.label}</span></TableCell>
+                    <TableCell><StatusBadge status={p.planning_status} tone={plan.tone} label={plan.label} /></TableCell>
+                    <TableCell><StatusBadge status={p.material_status} tone={mat.tone} label={mat.label} /></TableCell>
                     <TableCell>
-                      <Badge variant={PRIORITY_VARIANT[p.priority as ProjectPriority]}>{PRIORITY_LABEL[p.priority as ProjectPriority]}</Badge>
+                      <StatusBadge status={p.priority} tone={PRIORITY_TONE[p.priority as ProjectPriority]} label={PRIORITY_LABEL[p.priority as ProjectPriority]} />
                     </TableCell>
                     <TableCell>{fmtDate((p as any).planned_start_date ?? p.expected_start_date)}</TableCell>
                     <TableCell>{fmtDate((p as any).planned_end_date ?? p.expected_end_date)}</TableCell>
