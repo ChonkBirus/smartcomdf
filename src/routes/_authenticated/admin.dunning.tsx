@@ -235,9 +235,7 @@ function AdminDunningPage() {
                   </TableCell>
                   <TableCell className="text-xs">{fmtBRL(ev.charge_amount)}</TableCell>
                   <TableCell>
-                    <Badge variant={statusVariant(ev.status) as any}>
-                      {ev.status}
-                    </Badge>
+                    <StatusBadge status={ev.status} tone={statusTone(ev.status)} />
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
