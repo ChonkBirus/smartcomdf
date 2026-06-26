@@ -21,7 +21,11 @@ import {
 import {
   listQuotePayments, approveQuotePayment, cancelQuotePayment, getCompanyPix,
 } from "@/lib/quote-payments.functions";
-import { generateQuotePDF } from "@/lib/quote-pdf";
+import { generateQuotePDF, type QuotePdfTemplate } from "@/lib/quote-pdf-index";
+import { getQuotePdfPayload } from "@/lib/quote-pdf.functions";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { Can } from "@/components/app/PermissionRoute";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -66,6 +70,9 @@ export function QuoteSendSheet({
   const fetchPix = useServerFn(getCompanyPix);
   const approvePay = useServerFn(approveQuotePayment);
   const cancelPay = useServerFn(cancelQuotePayment);
+  const fetchPdfPayload = useServerFn(getQuotePdfPayload);
+  const [pdfTemplate, setPdfTemplate] = useState<QuotePdfTemplate>("premium");
+  const [pdfBusy, setPdfBusy] = useState(false);
 
   const enabled = open && !!quoteId;
   const { data, isLoading } = useQuery({
@@ -148,14 +155,26 @@ export function QuoteSendSheet({
     }
   }
 
-  function handleDownloadPDF() {
+  async function handleDownloadPDF() {
     if (!quote) return;
-    generateQuotePDF({
-      quote, items, customer,
-      company: null, // logo/cnpj rendered from quote header
-      publicLink: publicUrl,
-    });
-    logMut.mutate({ quote_id: quoteId!, event_type: "pdf_downloaded" });
+    setPdfBusy(true);
+    try {
+      const payload = await fetchPdfPayload({ data: { quote_id: quote.id } });
+      await generateQuotePDF({
+        template: pdfTemplate,
+        quote: payload.quote as any,
+        items: payload.items as any,
+        customer: payload.customer as any,
+        company: payload.company as any,
+        settings: payload.settings,
+        publicLink: publicUrl,
+      });
+      logMut.mutate({ quote_id: quoteId!, event_type: "pdf_downloaded", meta: { template: pdfTemplate } });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Falha ao gerar PDF.");
+    } finally {
+      setPdfBusy(false);
+    }
   }
 
   function handleWhatsApp() {
@@ -351,9 +370,20 @@ export function QuoteSendSheet({
                   <Button variant="outline" onClick={handleEmail} className="w-full">
                     <Mail className="mr-1 h-4 w-4" />E-mail
                   </Button>
-                  <Button variant="outline" onClick={handleDownloadPDF} className="w-full">
-                    <Download className="mr-1 h-4 w-4" />PDF
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button variant="outline" onClick={handleDownloadPDF} className="flex-1" disabled={pdfBusy}>
+                      <Download className="mr-1 h-4 w-4" />{pdfBusy ? "Gerando..." : "PDF"}
+                    </Button>
+                    <Select value={pdfTemplate} onValueChange={(v) => setPdfTemplate(v as QuotePdfTemplate)}>
+                      <SelectTrigger className="w-[120px]" title="Modelo do PDF">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="premium">Premium</SelectItem>
+                        <SelectItem value="simple">Simples</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <Button
                     variant="secondary"
                     onClick={() => sendMut.mutate()}
