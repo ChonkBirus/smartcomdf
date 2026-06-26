@@ -52,9 +52,6 @@ function formatDoc(v: string) {
 const STATUS_LABEL: Record<CustomerStatus, string> = {
   LEAD: "Lead", ACTIVE: "Ativo", INACTIVE: "Inativo", BLOCKED: "Bloqueado",
 };
-const STATUS_VARIANT: Record<CustomerStatus, "default" | "secondary" | "destructive" | "outline"> = {
-  LEAD: "outline", ACTIVE: "default", INACTIVE: "secondary", BLOCKED: "destructive",
-};
 
 function ClientsPage() {
   const qc = useQueryClient();
