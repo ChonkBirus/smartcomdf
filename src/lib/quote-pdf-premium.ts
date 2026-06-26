@@ -946,36 +946,84 @@ function renderScopePage(doc: jsPDF) {
   });
 }
 
-function renderMaterialsTablePage(doc: jsPDF, ctx: { items: PdfItem[] }) {
+async function renderMaterialsTablePage(
+  doc: jsPDF,
+  ctx: { items: PdfItem[]; thumbnails: Map<string, string> },
+) {
   let y = newPage(doc);
   y = drawEyebrow(doc, "Materiais", y);
   y = drawSectionTitle(doc, "Materiais e itens do projeto", y);
 
   const visible = ctx.items.filter((it) => it.kind !== "LABOR");
 
+  if (visible.length === 0) {
+    setFill(doc, PALETTE.grayLight);
+    doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, 70, 6, 6, "F");
+    setText(doc, PALETTE.grayDark);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(11);
+    doc.text(
+      "Nenhum material cadastrado neste orçamento.",
+      A4.w / 2,
+      y + 40,
+      { align: "center" },
+    );
+    return;
+  }
+
+  const ROW_H = 44;
   autoTable(doc, {
     startY: y,
-    head: [["#", "Item / Descrição", "Qtd", "Un"]],
+    head: [["#", "Foto", "Item / Descrição", "Qtd", "Un"]],
     body: visible.map((it, i) => [
       String(i + 1),
+      "",
       it.description ? `${it.name}\n${it.description}` : it.name,
       String(Number(it.quantity)).replace(".", ","),
       it.unit || "UN",
     ]),
-    styles: { fontSize: 10, cellPadding: 8, valign: "top", textColor: [30, 30, 30] },
+    styles: { fontSize: 10, cellPadding: 6, valign: "middle", textColor: [30, 30, 30], minCellHeight: ROW_H },
     headStyles: {
       fillColor: [11, 11, 11],
       textColor: [201, 162, 75],
       fontStyle: "bold",
       halign: "left",
+      minCellHeight: 24,
     },
     alternateRowStyles: { fillColor: [248, 246, 240] },
     columnStyles: {
-      0: { cellWidth: 28, halign: "center", textColor: [120, 120, 120] },
-      2: { cellWidth: 50, halign: "center" },
-      3: { cellWidth: 40, halign: "center" },
+      0: { cellWidth: 26, halign: "center", textColor: [120, 120, 120] },
+      1: { cellWidth: 50, halign: "center" },
+      3: { cellWidth: 46, halign: "center" },
+      4: { cellWidth: 38, halign: "center" },
     },
     margin: { left: MARGIN, right: MARGIN, bottom: 60 },
+    didDrawCell: (data) => {
+      if (data.section !== "body" || data.column.index !== 1) return;
+      const it = visible[data.row.index];
+      if (!it) return;
+      const url = it.image_url ?? null;
+      const dataUrl = url ? ctx.thumbnails.get(url) ?? null : null;
+      const cell = data.cell;
+      const size = Math.min(cell.width, cell.height) - 6;
+      const cx = cell.x + (cell.width - size) / 2;
+      const cy = cell.y + (cell.height - size) / 2;
+      if (dataUrl) {
+        try {
+          const fmt = detectImageFormat(dataUrl);
+          doc.addImage(dataUrl, fmt, cx, cy, size, size, undefined, "FAST");
+        } catch {
+          /* ignore */
+        }
+      } else {
+        setFill(doc, PALETTE.grayLight);
+        doc.roundedRect(cx, cy, size, size, 3, 3, "F");
+        setText(doc, PALETTE.gray);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7);
+        doc.text("sem foto", cx + size / 2, cy + size / 2 + 2, { align: "center" });
+      }
+    },
   });
 
   // Disclosure
@@ -990,6 +1038,7 @@ function renderMaterialsTablePage(doc: jsPDF, ctx: { items: PdfItem[] }) {
     { maxWidth: A4.w - MARGIN * 2 },
   );
 }
+
 
 async function renderProductHighlight(
   doc: jsPDF,
