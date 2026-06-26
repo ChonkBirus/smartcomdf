@@ -242,6 +242,12 @@ export function QuoteFormSheet({
           internal_notes: internalNotes || null,
           labor_cost: Number(laborCost) || 0,
           discount: Number(discount) || 0,
+          diagnosis_problem: diagProblem || null,
+          diagnosis_need: diagNeed || null,
+          diagnosis_environment: diagEnvironment || null,
+          diagnosis_objective: diagObjective || null,
+          diagnosis_critical_points: diagCritical || null,
+          diagnosis_technical_notes: diagTechNotes || null,
           items: lines.map((l, idx) => ({
             id: l.id,
             item_id: l.item_id,
