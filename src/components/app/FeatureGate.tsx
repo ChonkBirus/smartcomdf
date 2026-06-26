@@ -173,6 +173,25 @@ const FEATURE_META: Record<string, FeatureMeta> = {
     ],
     minPlan: "pro",
   },
+  ai_assistant: {
+    label: "SmartCom IA",
+    tagline: "Copiloto administrativo e operacional",
+    description:
+      "Use o SmartCom IA para criar rascunhos de orçamentos, descrições de serviços, checklists de OS, mensagens para clientes e relatórios técnicos — sem sair do sistema.",
+    benefits: [
+      "Rascunhos de orçamento e proposta",
+      "Sugestões de descrição profissional",
+      "Checklists de OS prontos",
+      "Mensagens de WhatsApp e follow-up",
+      "Apoio técnico em CFTV, alarme, controle de acesso e mais",
+    ],
+    useCases: [
+      "Acelerar redação de orçamentos",
+      "Padronizar relatórios técnicos",
+      "Apoiar equipe de campo no dia a dia",
+    ],
+    minPlan: "pro",
+  },
 };
 
 function generic(code: string): FeatureMeta {
