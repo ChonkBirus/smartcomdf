@@ -240,9 +240,7 @@ function ClientsPage() {
                       </div>
                     </td>
                     <td className="px-3 py-2">
-                      <Badge variant={STATUS_VARIANT[c.customer_status as CustomerStatus]}>
-                        {STATUS_LABEL[c.customer_status as CustomerStatus]}
-                      </Badge>
+                      <StatusBadge status={c.customer_status} label={STATUS_LABEL[c.customer_status as CustomerStatus]} />
                     </td>
                     <td className="px-3 py-2 text-xs text-muted-foreground">
                       {new Date(c.created_at).toLocaleDateString("pt-BR")}
