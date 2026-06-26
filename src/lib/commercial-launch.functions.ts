@@ -78,7 +78,8 @@ export const getLaunchReadiness = createServerFn({ method: "GET" })
         .select("completed", { count: "exact" }),
       supabaseAdmin
         .from("billing_provider_settings")
-        .select("provider, api_key_secret_name, terms_of_use_url, privacy_policy_url, support_whatsapp, support_email")
+        .select("provider, active, terms_of_use_url, privacy_policy_url, support_whatsapp, support_email")
+        .eq("active", true)
         .limit(1)
         .maybeSingle(),
       supabaseAdmin
@@ -102,7 +103,7 @@ export const getLaunchReadiness = createServerFn({ method: "GET" })
       checklistTotal: total,
       checklistDone: done,
       checklistPercent: total > 0 ? Math.round((done / total) * 100) : 0,
-      providerConfigured: !!provider?.api_key_secret_name,
+      providerConfigured: !!provider?.active,
       hasActivePlan: (plansRes.count ?? 0) > 0,
       hasTermsAndPrivacy: !!provider?.terms_of_use_url && !!provider?.privacy_policy_url,
       hasSupportChannels: !!(provider?.support_whatsapp || provider?.support_email),
