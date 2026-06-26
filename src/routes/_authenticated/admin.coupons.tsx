@@ -162,9 +162,10 @@ function AdminCouponsPage() {
                         : "—"}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={c.is_active ? "default" : "secondary"}>
-                        {c.is_active ? "Ativo" : "Inativo"}
-                      </Badge>
+                      <StatusBadge
+                        status={c.is_active ? "ACTIVE" : "INACTIVE"}
+                        label={c.is_active ? "Ativo" : "Inativo"}
+                      />
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
