@@ -14,6 +14,7 @@ import {
   fmtDate,
   generateQrDataUrl,
   loadImageAsDataUrl,
+  loadLogoForDarkBg,
   detectImageFormat,
   newPage,
   setFill,
@@ -124,15 +125,297 @@ const DEFAULTS: Required<Omit<PremiumPdfConfig, "kpis" | "responsibleName" | "re
 
 // ---- Helpers specific to this template ----
 
-function inferSubtitle(quote: PdfQuote): string {
-  const t = (quote.title ?? "").toLowerCase();
-  if (/(acesso|catraca|biometria)/.test(t)) return "Solução em Controle de Acesso";
-  if (/(alarme|sensor)/.test(t)) return "Solução em Alarmes e Sensores";
-  if (/(automa|domot)/.test(t)) return "Solução em Automação";
-  if (/(rede|cabea|fibra)/.test(t)) return "Solução em Redes e Infraestrutura";
-  if (/(solar|energia|carregador|veic)/.test(t)) return "Solução em Energia e Mobilidade";
-  if (/(interfon|porteiro)/.test(t)) return "Solução em Interfonia";
-  return "Solução em CFTV e Segurança Eletrônica";
+type SolutionKey =
+  | "cftv" | "alarm" | "intercom" | "access" | "network"
+  | "automation" | "solar" | "ev" | "audio" | "generic";
+
+type SolutionContent = {
+  subtitle: string;
+  importanceTitle: string;
+  importanceIntro: string;
+  importanceCards: { t: string; b: string }[];
+  solutionTitle: string;
+  solutionIntro: string;
+  solutionBenefits: { t: string; b: string }[];
+};
+
+const SOLUTION_CONTENT: Record<SolutionKey, SolutionContent> = {
+  cftv: {
+    subtitle: "Solução em CFTV e Segurança Eletrônica",
+    importanceTitle: "Por que investir em CFTV e segurança eletrônica?",
+    importanceIntro:
+      "Um sistema de CFTV bem instalado não serve apenas para gravar imagens. Ele ajuda a prevenir ocorrências, acompanhar movimentações, registrar evidências, aumentar a sensação de segurança e melhorar a gestão do ambiente.",
+    importanceCards: [
+      { t: "Prevenção", b: "Câmeras visíveis inibem ações suspeitas e reduzem vulnerabilidades do ambiente." },
+      { t: "Registro de evidências", b: "Imagens auxiliam na análise de ocorrências e tomada de decisão." },
+      { t: "Controle do ambiente", b: "Acompanhe entradas, saídas, áreas comuns e pontos críticos." },
+      { t: "Mais tranquilidade", b: "Síndicos, gestores e moradores ganham segurança e controle." },
+      { t: "Valorização do imóvel", b: "Ambientes com estrutura de segurança transmitem organização." },
+      { t: "Integração", b: "CFTV trabalha junto com alarmes, controle de acesso, redes e automação." },
+    ],
+    solutionTitle: "Solução de monitoramento e vigilância",
+    solutionIntro:
+      "A solução proposta contempla o fornecimento e instalação de um sistema completo de CFTV, com câmeras, gravador, infraestrutura de cabeamento e configuração de acesso remoto. O projeto foi dimensionado para cobrir os pontos críticos do ambiente com qualidade de imagem e estabilidade.",
+    solutionBenefits: [
+      { t: "Cobertura adequada", b: "Pontos críticos monitorados com câmeras corretas." },
+      { t: "Imagem de qualidade", b: "Resolução adequada para identificação visual." },
+      { t: "Acesso remoto", b: "Visualização pelo celular a qualquer momento." },
+      { t: "Gravação contínua", b: "Histórico das imagens conforme dimensionamento." },
+      { t: "Instalação profissional", b: "Cabeamento organizado e bem documentado." },
+      { t: "Suporte e garantia", b: "Pós-instalação estruturado e assistido." },
+    ],
+  },
+  alarm: {
+    subtitle: "Solução em Alarme e Detecção de Intrusão",
+    importanceTitle: "Por que investir em sistema de alarme?",
+    importanceIntro:
+      "O sistema de alarme atua na detecção imediata de tentativas de invasão e situações de risco, permitindo resposta rápida e reduzindo prejuízos. É uma camada essencial de proteção do patrimônio.",
+    importanceCards: [
+      { t: "Detecção imediata", b: "Sensores identificam abertura, movimento e impacto." },
+      { t: "Resposta rápida", b: "Notificação instantânea para o responsável." },
+      { t: "Efeito dissuasivo", b: "Sirenes e sinalização inibem ação criminosa." },
+      { t: "Cobertura perimetral", b: "Proteção do limite externo da propriedade." },
+      { t: "Integração com CFTV", b: "Alarme + câmeras formam um sistema completo." },
+      { t: "Tranquilidade", b: "Ambiente protegido mesmo quando desocupado." },
+    ],
+    solutionTitle: "Solução de proteção perimetral e intrusão",
+    solutionIntro:
+      "A solução contempla central de alarme, sensores adequados ao ambiente, sirene e sinalização, com configuração de partições e usuários. O projeto foi pensado para reduzir riscos e oferecer reação rápida em caso de evento.",
+    solutionBenefits: [
+      { t: "Sensores corretos", b: "Selecionados para cada tipo de ambiente." },
+      { t: "Notificação no app", b: "Aviso imediato em caso de disparo." },
+      { t: "Partições", b: "Áreas armadas separadamente conforme rotina." },
+      { t: "Sirene e sinalização", b: "Inibição visível e audível." },
+      { t: "Instalação criteriosa", b: "Posicionamento técnico de cada sensor." },
+      { t: "Garantia e suporte", b: "Acompanhamento pós-instalação." },
+    ],
+  },
+  intercom: {
+    subtitle: "Solução em Interfonia e Comunicação Interna",
+    importanceTitle: "Por que investir em um sistema de interfonia?",
+    importanceIntro:
+      "O interfone organiza a comunicação interna, o controle de visitantes e o acesso ao imóvel. Ele aumenta a segurança no momento mais sensível: a entrada de pessoas no ambiente.",
+    importanceCards: [
+      { t: "Controle de acesso", b: "Identifique quem chega antes de liberar a entrada." },
+      { t: "Comunicação clara", b: "Áudio e/ou vídeo de qualidade entre pontos." },
+      { t: "Segurança na portaria", b: "Reduz exposição direta de moradores e equipe." },
+      { t: "Praticidade no dia a dia", b: "Atendimento rápido de visitantes e entregas." },
+      { t: "Integração", b: "Pode operar com fechaduras, portões e CFTV." },
+      { t: "Valorização do imóvel", b: "Ambientes com interfonia transmitem organização." },
+    ],
+    solutionTitle: "Solução de comunicação interna e controle de acesso",
+    solutionIntro:
+      "A solução contempla módulos externos e internos de interfonia, infraestrutura de cabeamento e configuração de acionamentos. O projeto foi pensado para garantir comunicação estável, identificação visual quando aplicável e controle confiável da entrada.",
+    solutionBenefits: [
+      { t: "Áudio estável", b: "Comunicação clara entre os pontos." },
+      { t: "Vídeo quando aplicável", b: "Identificação visual do visitante." },
+      { t: "Acionamento de portão", b: "Abertura remota com segurança." },
+      { t: "Infra organizada", b: "Cabeamento bem documentado." },
+      { t: "Durabilidade", b: "Equipamentos adequados ao uso contínuo." },
+      { t: "Suporte técnico", b: "Garantia e acompanhamento da solução." },
+    ],
+  },
+  access: {
+    subtitle: "Solução em Controle de Acesso",
+    importanceTitle: "Por que investir em controle de acesso?",
+    importanceIntro:
+      "O controle de acesso permite saber quem entra, quando entra e onde pode circular. Reduz riscos, registra movimentações e organiza a rotina do ambiente.",
+    importanceCards: [
+      { t: "Rastreabilidade", b: "Histórico de entradas e saídas." },
+      { t: "Permissões por usuário", b: "Cada pessoa acessa só o que precisa." },
+      { t: "Mais segurança", b: "Reduz acessos indevidos ao ambiente." },
+      { t: "Operação organizada", b: "Fluxo previsível e controlável." },
+      { t: "Integração", b: "Trabalha junto com CFTV e alarme." },
+      { t: "Escalável", b: "Cresce conforme a necessidade do ambiente." },
+    ],
+    solutionTitle: "Solução de gestão de entradas e saídas",
+    solutionIntro:
+      "A solução contempla leitores, controladoras, fechaduras/atuadores e software de gestão, com cadastro de usuários e regras de acesso. O projeto foi pensado para organizar o fluxo de pessoas com segurança e auditoria.",
+    solutionBenefits: [
+      { t: "Cadastro de usuários", b: "Gestão simples de permissões." },
+      { t: "Múltiplas tecnologias", b: "Cartão, senha, biometria conforme escopo." },
+      { t: "Logs de acesso", b: "Registro automatizado de cada evento." },
+      { t: "Atuação em portas/portões", b: "Liberação controlada de cada ponto." },
+      { t: "Instalação técnica", b: "Posicionamento e fixação corretos." },
+      { t: "Garantia e suporte", b: "Acompanhamento contínuo." },
+    ],
+  },
+  network: {
+    subtitle: "Solução em Redes e Infraestrutura",
+    importanceTitle: "Por que investir em infraestrutura de rede?",
+    importanceIntro:
+      "Uma rede estável é a base de quase todos os serviços modernos: internet, câmeras, controle de acesso, automação e gestão. Estrutura mal feita gera lentidão, instabilidade e custo recorrente de manutenção.",
+    importanceCards: [
+      { t: "Estabilidade", b: "Conexão consistente para todos os dispositivos." },
+      { t: "Desempenho", b: "Velocidade adequada ao uso do ambiente." },
+      { t: "Cobertura WiFi", b: "Sinal nas áreas certas, sem zonas mortas." },
+      { t: "Cabeamento organizado", b: "Rack limpo e bem documentado." },
+      { t: "Segurança lógica", b: "Segmentação e proteção da rede." },
+      { t: "Escalabilidade", b: "Pronta para crescer com o ambiente." },
+    ],
+    solutionTitle: "Solução de conectividade e infraestrutura",
+    solutionIntro:
+      "A solução contempla cabeamento estruturado, ativos de rede, pontos de acesso WiFi e organização do rack, com configuração das redes. O projeto foi dimensionado para entregar estabilidade, desempenho e facilidade de manutenção.",
+    solutionBenefits: [
+      { t: "Cabeamento estruturado", b: "Padrão técnico em todos os pontos." },
+      { t: "WiFi bem distribuído", b: "Cobertura onde realmente precisa." },
+      { t: "Rack organizado", b: "Identificação e documentação clara." },
+      { t: "Segmentação de rede", b: "Mais segurança e controle." },
+      { t: "Equipamentos adequados", b: "Selecionados para o porte do projeto." },
+      { t: "Suporte e garantia", b: "Acompanhamento pós-instalação." },
+    ],
+  },
+  automation: {
+    subtitle: "Solução em Automação",
+    importanceTitle: "Por que investir em automação?",
+    importanceIntro:
+      "A automação transforma o uso do ambiente em algo mais prático, controlável e integrado. Iluminação, acionamentos, cenas e dispositivos passam a operar de forma centralizada e inteligente.",
+    importanceCards: [
+      { t: "Praticidade", b: "Controle pelo celular, voz ou cena programada." },
+      { t: "Integração", b: "Vários sistemas operando em conjunto." },
+      { t: "Conforto", b: "Ambiente reage à rotina do usuário." },
+      { t: "Economia", b: "Uso mais consciente de energia." },
+      { t: "Segurança", b: "Simulação de presença e acionamentos remotos." },
+      { t: "Valorização", b: "Imóvel com tecnologia agregada." },
+    ],
+    solutionTitle: "Solução de automação e integração",
+    solutionIntro:
+      "A solução contempla módulos de automação, infraestrutura de comando e configuração de cenas/rotinas. O projeto foi pensado para entregar uso simples no dia a dia e integração com os demais sistemas do ambiente.",
+    solutionBenefits: [
+      { t: "Cenas programadas", b: "Acionamentos com um toque." },
+      { t: "Controle remoto", b: "Pelo aplicativo, de qualquer lugar." },
+      { t: "Integração", b: "Funciona com outros sistemas." },
+      { t: "Instalação limpa", b: "Sem alterações estéticas agressivas." },
+      { t: "Suporte técnico", b: "Equipe disponível para ajustes." },
+      { t: "Escalável", b: "Pode crescer por etapas." },
+    ],
+  },
+  solar: {
+    subtitle: "Solução em Energia Solar",
+    importanceTitle: "Por que investir em energia solar?",
+    importanceIntro:
+      "A energia solar reduz o custo de energia elétrica de forma previsível, agrega valor ao imóvel e contribui para uma operação mais eficiente e sustentável.",
+    importanceCards: [
+      { t: "Economia mensal", b: "Redução real da conta de energia." },
+      { t: "Previsibilidade", b: "Custo de energia mais estável no tempo." },
+      { t: "Valorização do imóvel", b: "Sistema próprio de geração agregado." },
+      { t: "Sustentabilidade", b: "Energia limpa e renovável." },
+      { t: "Vida útil longa", b: "Equipamentos com durabilidade comprovada." },
+      { t: "Monitoramento", b: "Acompanhamento da geração pelo app." },
+    ],
+    solutionTitle: "Solução de geração e economia de energia",
+    solutionIntro:
+      "A solução contempla módulos fotovoltaicos, inversor, estrutura de fixação, proteção e configuração do monitoramento. O projeto foi dimensionado conforme o consumo informado e a capacidade do telhado/área disponível.",
+    solutionBenefits: [
+      { t: "Dimensionamento técnico", b: "Adequado ao consumo do imóvel." },
+      { t: "Estrutura segura", b: "Fixação correta dos módulos." },
+      { t: "Inversor de qualidade", b: "Eficiência e confiabilidade." },
+      { t: "Proteções elétricas", b: "String box e aterramento corretos." },
+      { t: "Monitoramento", b: "Acompanhamento contínuo." },
+      { t: "Garantia", b: "Conforme política dos fabricantes." },
+    ],
+  },
+  ev: {
+    subtitle: "Solução em Recarga Veicular Elétrica",
+    importanceTitle: "Por que investir em carregador veicular?",
+    importanceIntro:
+      "O carregador para veículos elétricos é uma infraestrutura cada vez mais essencial. Ele garante recarga segura, rápida e dimensionada conforme a instalação elétrica do imóvel.",
+    importanceCards: [
+      { t: "Recarga segura", b: "Proteções específicas para VE." },
+      { t: "Praticidade", b: "Carregar em casa, no próprio horário." },
+      { t: "Eficiência", b: "Tempo de carga adequado ao veículo." },
+      { t: "Valorização do imóvel", b: "Infraestrutura moderna agregada." },
+      { t: "Sustentabilidade", b: "Combina com energia solar." },
+      { t: "Pronto para o futuro", b: "Imóvel preparado para a mobilidade elétrica." },
+    ],
+    solutionTitle: "Solução de recarga veicular",
+    solutionIntro:
+      "A solução contempla o carregador, infraestrutura elétrica adequada, proteções e configuração. O projeto foi dimensionado conforme o veículo informado e a capacidade da instalação elétrica do imóvel.",
+    solutionBenefits: [
+      { t: "Dimensionamento correto", b: "Compatível com a instalação elétrica." },
+      { t: "Proteções dedicadas", b: "DR, disjuntor e aterramento." },
+      { t: "Equipamento certificado", b: "Modelo adequado ao veículo." },
+      { t: "Instalação organizada", b: "Acabamento profissional." },
+      { t: "Documentação técnica", b: "Memorial e diagrama da instalação." },
+      { t: "Suporte e garantia", b: "Acompanhamento pós-instalação." },
+    ],
+  },
+  audio: {
+    subtitle: "Solução em Som Ambiente e Comunicação Visual",
+    importanceTitle: "Por que investir em som ambiente e mídia?",
+    importanceIntro:
+      "Som ambiente, painéis de LED e mídia visual transformam a experiência do ambiente — comunicam, ambientam, informam e fortalecem a percepção do espaço.",
+    importanceCards: [
+      { t: "Experiência", b: "Ambientes mais agradáveis e envolventes." },
+      { t: "Comunicação", b: "Mensagens, avisos e conteúdo dirigido." },
+      { t: "Profissionalismo", b: "Transmite cuidado e organização." },
+      { t: "Versatilidade", b: "Atende lazer, vendas e operação." },
+      { t: "Cobertura sonora", b: "Volume equilibrado em todo o ambiente." },
+      { t: "Integração", b: "Som + mídia controlados juntos." },
+    ],
+    solutionTitle: "Solução de áudio e ambientação",
+    solutionIntro:
+      "A solução contempla amplificação, caixas acústicas, fontes de áudio e/ou painéis de mídia, com configuração para uso contínuo. O projeto foi pensado para entregar cobertura equilibrada, qualidade sonora e operação simples.",
+    solutionBenefits: [
+      { t: "Cobertura equilibrada", b: "Som distribuído com qualidade." },
+      { t: "Equipamentos adequados", b: "Selecionados para o ambiente." },
+      { t: "Operação simples", b: "Controle prático no dia a dia." },
+      { t: "Instalação limpa", b: "Sem comprometer a estética." },
+      { t: "Integração", b: "Funciona com mídia/cenas." },
+      { t: "Suporte técnico", b: "Garantia e acompanhamento." },
+    ],
+  },
+  generic: {
+    subtitle: "Solução Técnica Personalizada",
+    importanceTitle: "Por que investir nessa solução?",
+    importanceIntro:
+      "Uma solução bem projetada gera mais segurança, controle e eficiência para o ambiente. Estrutura correta reduz retrabalho, custos futuros e dores de cabeça operacionais.",
+    importanceCards: [
+      { t: "Solução adequada", b: "Pensada para o cenário real do cliente." },
+      { t: "Execução técnica", b: "Profissionais capacitados e responsáveis." },
+      { t: "Documentação", b: "Projeto organizado e rastreável." },
+      { t: "Menor retrabalho", b: "Instalação correta desde o início." },
+      { t: "Suporte estruturado", b: "Atendimento pós-instalação." },
+      { t: "Garantia", b: "Cobertura conforme proposta." },
+    ],
+    solutionTitle: "Solução proposta para o seu projeto",
+    solutionIntro:
+      "A solução contempla o fornecimento e instalação dos equipamentos necessários, com configuração, testes e entrega assistida. O projeto foi pensado para atender à necessidade do cliente com qualidade e organização.",
+    solutionBenefits: [
+      { t: "Equipamentos adequados", b: "Selecionados para o ambiente." },
+      { t: "Instalação profissional", b: "Acabamento e organização." },
+      { t: "Documentação técnica", b: "Projeto bem registrado." },
+      { t: "Testes e entrega", b: "Validação antes da conclusão." },
+      { t: "Suporte técnico", b: "Equipe disponível para dúvidas." },
+      { t: "Garantia", b: "Conforme condições da proposta." },
+    ],
+  },
+};
+
+function detectSolutionKey(quote: PdfQuote, items: PdfItem[]): SolutionKey {
+  const haystack = [
+    quote.title ?? "",
+    ...items.map((i) => `${i.name} ${i.description ?? ""}`),
+  ].join(" ").toLowerCase();
+  const test = (re: RegExp) => re.test(haystack);
+  if (test(/(interfon|porteiro\s*eletr|video[- ]?porteir)/)) return "intercom";
+  if (test(/(controle\s*de\s*acesso|catraca|biometr|leitor\s*(rfid|nfc|tag)|fechadura\s*(eletr|digital))/)) return "access";
+  if (test(/(alarme|sensor\s*(de\s*)?(presen|movim|abert)|central\s*de\s*alarme|sirene)/)) return "alarm";
+  if (test(/(carregador|wallbox|veic|ev\b|recarga)/)) return "ev";
+  if (test(/(solar|fotovolt|inversor|placa\s*solar)/)) return "solar";
+  if (test(/(automa(c|ç)ão|domot|cena|smart\s*home)/)) return "automation";
+  if (test(/(rede|switch|roteador|wifi|wi[- ]fi|cabea(mento)?\s*estrutur|patch\s*panel|rack|fibra)/)) return "network";
+  if (test(/(som\s*ambient|caixa\s*acust|amplificad|painel\s*de\s*led|mídia|midia)/)) return "audio";
+  if (test(/(cftv|c(â|a)mer|dvr|nvr|vigil|monitor)/)) return "cftv";
+  return "generic";
+}
+
+function getSolutionContent(quote: PdfQuote, items: PdfItem[]): SolutionContent {
+  return SOLUTION_CONTENT[detectSolutionKey(quote, items)];
+}
+
+function inferSubtitle(quote: PdfQuote, items: PdfItem[]): string {
+  return getSolutionContent(quote, items).subtitle;
 }
 
 function companyName(company: PdfCompany): string {
@@ -151,6 +434,7 @@ async function renderCoverPage(
   doc: jsPDF,
   ctx: {
     quote: PdfQuote;
+    items: PdfItem[];
     company: PdfCompany;
     customer: PdfCustomer;
     cfg: typeof DEFAULTS;
@@ -166,11 +450,22 @@ async function renderCoverPage(
   doc.rect(0, 0, A4.w, 6, "F");
   doc.rect(0, A4.h - 6, A4.w, 6, "F");
 
-  // Logo
+  // Logo — white background already removed in loadLogoForDarkBg.
+  // Rendered directly on the black background, no white box.
   if (ctx.logoDataUrl) {
     try {
-      const fmt = detectImageFormat(ctx.logoDataUrl);
-      doc.addImage(ctx.logoDataUrl, fmt, A4.w / 2 - 60, 90, 120, 60, undefined, "FAST");
+      const lw = 160;
+      const lh = 80;
+      doc.addImage(
+        ctx.logoDataUrl,
+        "PNG",
+        A4.w / 2 - lw / 2,
+        90,
+        lw,
+        lh,
+        undefined,
+        "FAST",
+      );
     } catch {
       /* ignore */
     }
@@ -185,23 +480,23 @@ async function renderCoverPage(
   setText(doc, PALETTE.goldSoft);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
-  doc.text("PROPOSTA TÉCNICA E COMERCIAL", A4.w / 2, 200, { align: "center" });
+  doc.text("PROPOSTA TÉCNICA E COMERCIAL", A4.w / 2, 220, { align: "center" });
 
   // Subtitle dynamic
   setText(doc, PALETTE.white);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(26);
-  const subtitle = inferSubtitle(ctx.quote);
+  const subtitle = inferSubtitle(ctx.quote, ctx.items);
   const subLines = doc.splitTextToSize(subtitle, A4.w - 120) as string[];
-  let sy = 240;
+  let sy = 260;
   subLines.forEach((ln) => {
     doc.text(ln, A4.w / 2, sy, { align: "center" });
-    sy += 30;
+    sy += 32;
   });
 
   // Decorative gold line
   setFill(doc, PALETTE.gold);
-  doc.rect(A4.w / 2 - 30, sy + 6, 60, 2, "F");
+  doc.rect(A4.w / 2 - 30, sy + 10, 60, 2, "F");
 
   // White info card
   const cardX = MARGIN + 20;
@@ -454,46 +749,36 @@ function renderTechnicalAuthorityPage(doc: jsPDF, ctx: { settings: PdfSettings; 
   }
 }
 
-function renderCftvImportancePage(doc: jsPDF) {
+function renderCftvImportancePage(doc: jsPDF, ctx: { quote: PdfQuote; items: PdfItem[] }) {
+  const content = getSolutionContent(ctx.quote, ctx.items);
   let y = newPage(doc);
   y = drawEyebrow(doc, "Importância da Solução", y);
-  y = drawSectionTitle(doc, "Por que investir em CFTV e segurança eletrônica?", y);
+  y = drawSectionTitle(doc, content.importanceTitle, y);
 
-  y = drawParagraph(
-    doc,
-    "Um sistema de CFTV bem instalado não serve apenas para gravar imagens. Ele ajuda a prevenir ocorrências, acompanhar movimentações, registrar evidências, aumentar a sensação de segurança e melhorar a gestão do ambiente.",
-    y,
-  );
-  y += 10;
+  y = drawParagraph(doc, content.importanceIntro, y);
+  y += 14;
 
-  const cards = [
-    { t: "Prevenção", b: "Câmeras visíveis inibem ações suspeitas e reduzem vulnerabilidades do ambiente." },
-    { t: "Registro de evidências", b: "Imagens auxiliam na análise de ocorrências e tomada de decisão." },
-    { t: "Controle do ambiente", b: "Acompanhe entradas, saídas, áreas comuns e pontos críticos." },
-    { t: "Mais tranquilidade", b: "Síndicos, gestores e moradores ganham segurança e controle." },
-    { t: "Valorização do imóvel", b: "Ambientes com estrutura de segurança transmitem organização." },
-    { t: "Integração", b: "CFTV trabalha junto com alarmes, controle de acesso, redes e automação." },
-  ];
+  const cards = content.importanceCards;
   const cw = (A4.w - MARGIN * 2 - 16) / 3;
-  const ch = 80;
+  const ch = 88;
   cards.forEach((c, i) => {
     const col = i % 3;
     const row = Math.floor(i / 3);
     drawCard(doc, {
       x: MARGIN + col * (cw + 8),
-      y: y + row * (ch + 10),
+      y: y + row * (ch + 12),
       w: cw,
       h: ch,
       title: c.t,
       body: c.b,
     });
   });
-  y += (ch + 10) * 2;
+  y += (ch + 12) * Math.ceil(cards.length / 3);
 
-  y += 4;
+  y += 8;
   drawParagraph(
     doc,
-    "O investimento em segurança eletrônica é uma decisão preventiva. Esperar o problema acontecer costuma sair mais caro do que estruturar uma solução correta desde o início.",
+    "O investimento em uma solução bem projetada é uma decisão preventiva. Esperar o problema acontecer costuma sair mais caro do que estruturar a solução correta desde o início.",
     y,
     { color: PALETTE.black, size: 10.5 },
   );
@@ -512,57 +797,47 @@ function renderDiagnosisPage(doc: jsPDF, ctx: { quote: PdfQuote }) {
 }
 
 function renderSolutionSummaryPage(doc: jsPDF, ctx: { quote: PdfQuote; items: PdfItem[] }) {
+  const content = getSolutionContent(ctx.quote, ctx.items);
   let y = newPage(doc);
   y = drawEyebrow(doc, "Solução Proposta", y);
-  y = drawSectionTitle(doc, "Solução proposta para o seu projeto", y);
+  y = drawSectionTitle(doc, content.solutionTitle, y);
 
   const totalItems = ctx.items.filter((i) => i.kind !== "LABOR")
     .reduce((s, i) => s + i.quantity, 0);
 
-  y = drawParagraph(
-    doc,
-    "A solução proposta contempla o fornecimento e instalação dos equipamentos necessários para compor um sistema funcional, organizado e preparado para atender às necessidades do cliente. O projeto foi estruturado considerando qualidade, estabilidade da rede, organização da infraestrutura, facilidade de manutenção e suporte pós-instalação.",
-    y,
-  );
-  y += 6;
+  y = drawParagraph(doc, content.solutionIntro, y);
+  y += 12;
 
   // Quick facts
   setFill(doc, PALETTE.graphite);
-  doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, 56, 6, 6, "F");
+  doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, 60, 6, 6, "F");
   const fW = (A4.w - MARGIN * 2) / 2;
   setText(doc, PALETTE.goldSoft);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
-  doc.text("ESCOPO PRINCIPAL", MARGIN + 16, y + 18);
-  doc.text("ITENS PREVISTOS", MARGIN + 16 + fW, y + 18);
+  doc.text("ESCOPO PRINCIPAL", MARGIN + 16, y + 20);
+  doc.text("ITENS PREVISTOS", MARGIN + 16 + fW, y + 20);
   setText(doc, PALETTE.white);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
-  doc.text(ctx.quote.title || "Solução técnica personalizada", MARGIN + 16, y + 38, { maxWidth: fW - 24 });
+  doc.text(ctx.quote.title || content.subtitle, MARGIN + 16, y + 42, { maxWidth: fW - 24 });
   doc.text(
     `${ctx.items.filter((i) => i.kind !== "LABOR").length} produtos · ${String(totalItems).replace(".", ",")} unidades`,
     MARGIN + 16 + fW,
-    y + 38,
+    y + 42,
   );
-  y += 70;
+  y += 78;
 
-  // Benefits
-  const benefits = [
-    { t: "Monitoramento eficiente", b: "Cobertura adequada dos pontos críticos." },
-    { t: "Acabamento profissional", b: "Instalação organizada e bem documentada." },
-    { t: "Equipamentos adequados", b: "Selecionados para o ambiente do projeto." },
-    { t: "Controle de acesso", b: "Gestão de quem entra, sai e circula." },
-    { t: "Suporte especializado", b: "Equipe técnica para esclarecer dúvidas." },
-    { t: "Garantia e acompanhamento", b: "Pós-instalação assistido e estruturado." },
-  ];
+  // Dynamic benefits per solution type
+  const benefits = content.solutionBenefits;
   const cw = (A4.w - MARGIN * 2 - 16) / 3;
-  const ch = 72;
+  const ch = 78;
   benefits.forEach((c, i) => {
     const col = i % 3;
     const row = Math.floor(i / 3);
     drawCard(doc, {
       x: MARGIN + col * (cw + 8),
-      y: y + row * (ch + 10),
+      y: y + row * (ch + 12),
       w: cw,
       h: ch,
       title: c.t,
@@ -1104,7 +1379,7 @@ export async function generatePremiumQuotePDF(opts: {
   const doc = new jsPDF({ unit: "pt", format: "a4", compress: true });
 
   // Preload images in parallel
-  const logoPromise = loadImageAsDataUrl(opts.company?.logo_url ?? null);
+  const logoPromise = loadLogoForDarkBg(opts.company?.logo_url ?? null);
   const highlightItems = cfg.showProductHighlights
     ? opts.items
         .filter((it) => it.kind !== "LABOR" && it.image_url)
@@ -1118,6 +1393,7 @@ export async function generatePremiumQuotePDF(opts: {
   // Render pages
   await renderCoverPage(doc, {
     quote: opts.quote,
+    items: opts.items,
     company: opts.company,
     customer: opts.customer,
     cfg,
@@ -1126,7 +1402,7 @@ export async function generatePremiumQuotePDF(opts: {
   renderCompanyIntroPage(doc, { company: opts.company });
   renderAboutPage(doc, { company: opts.company, cfg });
   if (cfg.showCftPage) renderTechnicalAuthorityPage(doc, { settings: opts.settings, company: opts.company });
-  if (cfg.showCftvImportance) renderCftvImportancePage(doc);
+  if (cfg.showCftvImportance) renderCftvImportancePage(doc, { quote: opts.quote, items: opts.items });
   if (cfg.showDiagnosis) renderDiagnosisPage(doc, { quote: opts.quote });
   if (cfg.showSolutionSummary) renderSolutionSummaryPage(doc, { quote: opts.quote, items: opts.items });
   if (cfg.showScope) renderScopePage(doc);
