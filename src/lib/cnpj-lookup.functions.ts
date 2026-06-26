@@ -133,30 +133,89 @@ export const lookupCnpj = createServerFn({ method: "POST" })
       return cached.normalized_data as CnpjLookupResultDTO;
     }
 
-    // BrasilAPI
-    let resp: Response;
+    // BrasilAPI (primary)
+    let raw: any = null;
+    let providerUsed: "BRASIL_API" | "RECEITAWS" = "BRASIL_API";
+    let lastStatus: number | null = null;
+    let lastError: string | null = null;
+
     try {
-      resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`, {
+      const resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`, {
         headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(8000),
       });
+      lastStatus = resp.status;
+      if (resp.status === 404) {
+        await writeLog("NOT_FOUND");
+        throw new Error("Não encontramos dados para este CNPJ. Você pode preencher manualmente.");
+      }
+      if (resp.ok) {
+        raw = await resp.json();
+      } else {
+        lastError = `BrasilAPI HTTP ${resp.status}`;
+        console.warn("[lookupCnpj] BrasilAPI failed, will try fallback:", lastError);
+      }
     } catch (e: any) {
-      console.error("[lookupCnpj] provider fetch failed:", e?.message);
-      await writeLog("PROVIDER_ERROR", { error: e?.message });
+      if (e?.message?.startsWith("Não encontramos")) throw e;
+      lastError = `BrasilAPI ${e?.name ?? "fetch"}: ${e?.message ?? "unknown"}`;
+      console.warn("[lookupCnpj] BrasilAPI threw, will try fallback:", lastError);
+    }
+
+    // Fallback: ReceitaWS (public, also rate-limited but independent)
+    if (!raw) {
+      try {
+        const resp2 = await fetch(`https://receitaws.com.br/v1/cnpj/${cnpj}`, {
+          headers: { Accept: "application/json" },
+          signal: AbortSignal.timeout(8000),
+        });
+        if (resp2.ok) {
+          const j = await resp2.json();
+          if (j?.status === "ERROR") {
+            // ReceitaWS returns 200 with status:ERROR for not-found
+            await writeLog("NOT_FOUND");
+            throw new Error("Não encontramos dados para este CNPJ. Você pode preencher manualmente.");
+          }
+          // Map ReceitaWS -> BrasilAPI-ish shape
+          raw = {
+            razao_social: j.nome,
+            nome_fantasia: j.fantasia,
+            email: j.email,
+            ddd_telefone_1: j.telefone,
+            cep: j.cep,
+            logradouro: j.logradouro,
+            numero: j.numero,
+            complemento: j.complemento,
+            bairro: j.bairro,
+            municipio: j.municipio,
+            uf: j.uf,
+            natureza_juridica: j.natureza_juridica,
+            cnae_fiscal: j.atividade_principal?.[0]?.code,
+            cnae_fiscal_descricao: j.atividade_principal?.[0]?.text,
+            descricao_situacao_cadastral: j.situacao,
+            data_inicio_atividade: j.abertura,
+          };
+          providerUsed = "RECEITAWS";
+        } else {
+          lastError = `${lastError ?? ""} | ReceitaWS HTTP ${resp2.status}`.trim();
+          console.error("[lookupCnpj] ReceitaWS HTTP error:", resp2.status);
+        }
+      } catch (e: any) {
+        if (e?.message?.startsWith("Não encontramos")) throw e;
+        lastError = `${lastError ?? ""} | ReceitaWS ${e?.name ?? "fetch"}: ${e?.message ?? "unknown"}`.trim();
+        console.error("[lookupCnpj] ReceitaWS threw:", e?.message);
+      }
+    }
+
+    if (!raw) {
+      await writeLog("PROVIDER_ERROR", { error: lastError ?? `HTTP ${lastStatus}` });
+      if ((lastStatus === 429) || /429/.test(lastError ?? "")) {
+        throw new Error("Limite de consultas atingido. Tente novamente em alguns minutos.");
+      }
       throw new Error("Consulta indisponível no momento. Preencha os dados manualmente ou tente novamente.");
     }
 
-    if (resp.status === 404) {
-      await writeLog("NOT_FOUND");
-      throw new Error("Não foi possível localizar os dados deste CNPJ. Você pode preencher manualmente.");
-    }
-    if (!resp.ok) {
-      console.error("[lookupCnpj] provider HTTP error:", resp.status);
-      await writeLog("PROVIDER_ERROR", { error: `HTTP ${resp.status}` });
-      throw new Error("Consulta indisponível no momento. Preencha os dados manualmente ou tente novamente.");
-    }
-
-    const raw = await resp.json();
     const normalized = normalizeBrasilApi(raw, cnpj);
+    normalized.source = providerUsed;
 
     const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
     await supabaseAdmin.from("cnpj_lookup_cache").upsert(
