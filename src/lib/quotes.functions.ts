@@ -44,6 +44,12 @@ export type Quote = {
   down_payment_amount: number;
   remaining_amount: number;
   payment_approved_at: string | null;
+  diagnosis_problem: string | null;
+  diagnosis_need: string | null;
+  diagnosis_environment: string | null;
+  diagnosis_objective: string | null;
+  diagnosis_critical_points: string | null;
+  diagnosis_technical_notes: string | null;
 };
 
 export type QuotePaymentStatus =
