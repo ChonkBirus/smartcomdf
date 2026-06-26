@@ -319,6 +319,12 @@ export const saveQuote = createServerFn({ method: "POST" })
         internal_notes: nz(data.internal_notes),
         labor_cost: data.labor_cost,
         discount: data.discount,
+        diagnosis_problem: nz(data.diagnosis_problem),
+        diagnosis_need: nz(data.diagnosis_need),
+        diagnosis_environment: nz(data.diagnosis_environment),
+        diagnosis_objective: nz(data.diagnosis_objective),
+        diagnosis_critical_points: nz(data.diagnosis_critical_points),
+        diagnosis_technical_notes: nz(data.diagnosis_technical_notes),
       }).eq("id", quoteId);
       if (error) throw new Error(error.message);
       await sb.from("quote_items").delete().eq("quote_id", quoteId);
