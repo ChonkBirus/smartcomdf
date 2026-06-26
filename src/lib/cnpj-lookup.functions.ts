@@ -534,6 +534,7 @@ export const testCnpjLookup = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ cnpj: z.string().min(1) }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const dev = process.env.NODE_ENV === "development";
     const cnpjLimpo = onlyDigits(data.cnpj);
     console.log("[CNPJ LOOKUP SERVER] testCnpjLookup recebido:", cnpjLimpo);
 
@@ -558,7 +559,7 @@ export const testCnpjLookup = createServerFn({ method: "POST" })
 
     try {
       await assertLookupPermission(sb);
-      const { normalized, provider, debug } = await fetchAndNormalizeCnpj(cnpjLimpo, true);
+      const { normalized, provider, debug } = await fetchAndNormalizeCnpj(cnpjLimpo, dev);
       return {
         cnpjLimpo,
         isValid: true,
