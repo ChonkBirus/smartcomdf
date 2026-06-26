@@ -1379,7 +1379,7 @@ export async function generatePremiumQuotePDF(opts: {
   const doc = new jsPDF({ unit: "pt", format: "a4", compress: true });
 
   // Preload images in parallel
-  const logoPromise = loadImageAsDataUrl(opts.company?.logo_url ?? null);
+  const logoPromise = loadLogoForDarkBg(opts.company?.logo_url ?? null);
   const highlightItems = cfg.showProductHighlights
     ? opts.items
         .filter((it) => it.kind !== "LABOR" && it.image_url)
@@ -1393,6 +1393,7 @@ export async function generatePremiumQuotePDF(opts: {
   // Render pages
   await renderCoverPage(doc, {
     quote: opts.quote,
+    items: opts.items,
     company: opts.company,
     customer: opts.customer,
     cfg,
@@ -1401,7 +1402,7 @@ export async function generatePremiumQuotePDF(opts: {
   renderCompanyIntroPage(doc, { company: opts.company });
   renderAboutPage(doc, { company: opts.company, cfg });
   if (cfg.showCftPage) renderTechnicalAuthorityPage(doc, { settings: opts.settings, company: opts.company });
-  if (cfg.showCftvImportance) renderCftvImportancePage(doc);
+  if (cfg.showCftvImportance) renderCftvImportancePage(doc, { quote: opts.quote, items: opts.items });
   if (cfg.showDiagnosis) renderDiagnosisPage(doc, { quote: opts.quote });
   if (cfg.showSolutionSummary) renderSolutionSummaryPage(doc, { quote: opts.quote, items: opts.items });
   if (cfg.showScope) renderScopePage(doc);
