@@ -87,14 +87,15 @@ export const getQuotePdfPayload = createServerFn({ method: "GET" })
 
     const enrichedItems = (items ?? []).map((it: any) => ({
       id: it.id as string,
-      kind: it.kind as string,
-      name: it.name as string,
+      kind: (it.kind ?? "PRODUCT") as string,
+      name: (it.name ?? it.items?.name ?? "Item") as string,
       description: (it.description ?? it.items?.description ?? null) as string | null,
-      quantity: Number(it.quantity),
-      position: it.position as number,
+      quantity: Number(it.quantity ?? 0),
+      position: (it.position ?? 0) as number,
       unit: (it.items?.unit ?? "UN") as string,
       image_url: (it.items?.image_url ?? null) as string | null,
     }));
+    console.log("[PDF PAYLOAD] enriched items:", enrichedItems.length);
 
     return {
       quote: {
