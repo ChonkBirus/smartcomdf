@@ -14,6 +14,7 @@ import {
   fmtDate,
   generateQrDataUrl,
   loadImageAsDataUrl,
+  loadLogoForDarkBg,
   detectImageFormat,
   newPage,
   setFill,
