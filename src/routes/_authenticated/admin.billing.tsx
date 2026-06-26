@@ -187,9 +187,7 @@ function ChargesTab() {
                 <TableCell>{c.plan_name ?? "—"}</TableCell>
                 <TableCell className="text-xs">{c.payment_method ?? "—"}</TableCell>
                 <TableCell>
-                  <Badge className={chargeStatusClass[c.status] ?? "bg-muted"}>
-                    {c.status}
-                  </Badge>
+                  <StatusBadge status={c.status} />
                 </TableCell>
                 <TableCell>{fmtMoney(c.amount)}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">
