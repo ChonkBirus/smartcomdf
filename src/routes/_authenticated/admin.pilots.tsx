@@ -442,7 +442,7 @@ function EditPilotDialog({
   const [expected, setExpected] = useState("");
   const [lossReason, setLossReason] = useState("");
 
-  useMemo(() => {
+  useEffect(() => {
     if (pilot) {
       setStatus(pilot.status);
       setSource(pilot.source ?? "");
