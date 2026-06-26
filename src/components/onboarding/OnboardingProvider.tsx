@@ -19,7 +19,7 @@ type Ctx = {
   isLoaded: boolean;
 };
 
-const OnboardingCtx = createContext<Ctx | null>(null);
+export const OnboardingCtx = createContext<Ctx | null>(null);
 
 export function useOnboarding() {
   const ctx = useContext(OnboardingCtx);

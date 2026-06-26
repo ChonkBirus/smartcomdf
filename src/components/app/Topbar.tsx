@@ -13,7 +13,8 @@ import { NotificationsBell } from "./NotificationsBell";
 import { supabase } from "@/integrations/supabase/client";
 import { useContext } from "react";
 import { OnboardingCtx } from "@/components/onboarding/OnboardingProvider";
-function useOnboardingSafe() { return useContext(OnboardingCtx); }
+function useOnboardingSafe() { return useContext(OnboardingCtx) as null | { startTour: (k: string) => void }; }
+
 
 
 
