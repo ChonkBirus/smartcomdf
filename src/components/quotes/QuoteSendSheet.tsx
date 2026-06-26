@@ -190,6 +190,7 @@ export function QuoteSendSheet({
     setPreviewBusy(true);
     try {
       const payload = await fetchPdfPayload({ data: { quote_id: quote.id } });
+      console.log("[PDF CLIENT preview] payload.items:", payload.items?.length);
       const blob = await generateQuotePDF({
         template: pdfTemplate,
         quote: payload.quote as any,
