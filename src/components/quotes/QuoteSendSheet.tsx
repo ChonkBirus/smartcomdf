@@ -21,7 +21,11 @@ import {
 import {
   listQuotePayments, approveQuotePayment, cancelQuotePayment, getCompanyPix,
 } from "@/lib/quote-payments.functions";
-import { generateQuotePDF } from "@/lib/quote-pdf";
+import { generateQuotePDF, type QuotePdfTemplate } from "@/lib/quote-pdf-index";
+import { getQuotePdfPayload } from "@/lib/quote-pdf.functions";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { Can } from "@/components/app/PermissionRoute";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
