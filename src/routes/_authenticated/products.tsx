@@ -18,8 +18,9 @@ import {
   ChevronDown,
   Upload,
 } from "lucide-react";
-import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState } from "@/components/app/EmptyState";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { PermissionRoute, Can } from "@/components/app/PermissionRoute";
 import { FeatureGate } from "@/components/app/FeatureGate";
 import { Button } from "@/components/ui/button";
