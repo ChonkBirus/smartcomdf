@@ -79,16 +79,33 @@ export function QuoteFormSheet({
   const [customerOpen, setCustomerOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [issueDate, setIssueDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [validUntil, setValidUntil] = useState("");
+  const addDays = (iso: string, n: number) =>
+    new Date(new Date(iso).getTime() + n * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const [validUntil, setValidUntil] = useState(() => addDays(new Date().toISOString().slice(0, 10), 15));
+  const [validUntilTouched, setValidUntilTouched] = useState(false);
   const [payment, setPayment] = useState(DEFAULT_PAYMENT_TERMS);
   const [delivery, setDelivery] = useState("");
   const [warranty, setWarranty] = useState("");
   const [completion, setCompletion] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
   const [internalNotes, setInternalNotes] = useState("");
+  const [diagProblem, setDiagProblem] = useState("");
+  const [diagNeed, setDiagNeed] = useState("");
+  const [diagEnvironment, setDiagEnvironment] = useState("");
+  const [diagObjective, setDiagObjective] = useState("");
+  const [diagCritical, setDiagCritical] = useState("");
+  const [diagTechNotes, setDiagTechNotes] = useState("");
   const [laborCost, setLaborCost] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [lines, setLines] = useState<Line[]>([]);
+
+  // Auto-fill valid_until = issue_date + 15 days for new quotes when user hasn't manually edited it.
+  useEffect(() => {
+    if (quoteId) return;
+    if (validUntilTouched) return;
+    if (!issueDate) return;
+    setValidUntil(addDays(issueDate, 15));
+  }, [issueDate, quoteId, validUntilTouched]);
 
   const {
     data: customersData,
