@@ -122,7 +122,7 @@ export function ServiceOrderPhotos({
           </DialogHeader>
           {previewPhoto?.signed_url && (
             <img src={previewPhoto.signed_url} alt={previewPhoto.file_name}
-              className="w-full max-h-[70vh] object-contain rounded-md bg-black" />
+              className="w-full max-h-[70vh] object-contain rounded-md bg-foreground" />
           )}
           {previewPhoto?.description && (
             <p className="text-sm text-muted-foreground">{previewPhoto.description}</p>
