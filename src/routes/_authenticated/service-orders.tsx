@@ -36,10 +36,6 @@ const STATUS_LABEL: Record<ServiceOrderStatus, string> = {
   DRAFT: "Rascunho", SCHEDULED: "Agendada", IN_PROGRESS: "Em execução",
   PAUSED: "Pausada", COMPLETED: "Concluída", CANCELLED: "Cancelada",
 };
-const STATUS_VARIANT: Record<ServiceOrderStatus, "default" | "secondary" | "destructive" | "outline"> = {
-  DRAFT: "outline", SCHEDULED: "secondary", IN_PROGRESS: "default",
-  PAUSED: "outline", COMPLETED: "default", CANCELLED: "destructive",
-};
 const PRIORITY_LABEL: Record<ServiceOrderPriority, string> = {
   LOW: "Baixa", NORMAL: "Normal", HIGH: "Alta", URGENT: "Urgente",
 };
