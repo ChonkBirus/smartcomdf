@@ -1096,7 +1096,9 @@ export async function generatePremiumQuotePDF(opts: {
   settings: PdfSettings;
   publicLink: string;
   config?: PremiumPdfConfig;
-}) {
+  output?: "save" | "blob";
+}): Promise<Blob | void> {
+
   const cfg = { ...DEFAULTS, ...(opts.config ?? {}), kpis: { ...DEFAULTS.kpis, ...(opts.config?.kpis ?? {}) } };
 
   const doc = new jsPDF({ unit: "pt", format: "a4", compress: true });
