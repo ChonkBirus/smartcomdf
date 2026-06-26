@@ -20,7 +20,9 @@ export function Topbar({ name, email, avatarUrl, companyName, userId }: {
 }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const onboarding = useOnboardingSafe();
   const initials = (name ?? email ?? "U").split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase();
+
 
   const signOut = async () => {
     await qc.cancelQueries();
@@ -59,6 +61,16 @@ export function Topbar({ name, email, avatarUrl, companyName, userId }: {
             <DropdownMenuItem onClick={() => navigate({ to: "/profile" })}>
               <UserIcon className="mr-2 h-4 w-4" /> Meu perfil
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate({ to: "/help" })}>
+              <LifeBuoy className="mr-2 h-4 w-4" /> Central de Ajuda
+            </DropdownMenuItem>
+            {onboarding && (
+              <DropdownMenuItem onClick={() => onboarding.startTour("initial")}>
+                <RefreshCw className="mr-2 h-4 w-4" /> Reiniciar tour
+              </DropdownMenuItem>
+            )}
+
+
 
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut} className="text-destructive">
