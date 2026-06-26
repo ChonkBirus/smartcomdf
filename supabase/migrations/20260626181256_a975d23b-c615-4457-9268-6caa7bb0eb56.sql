@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.next_quote_number(uuid) TO authenticated;
