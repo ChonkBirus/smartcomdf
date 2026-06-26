@@ -184,6 +184,38 @@ export function QuoteSendSheet({
     }
   }
 
+  async function handlePreviewPDF() {
+    if (!quote) return;
+    setPreviewBusy(true);
+    try {
+      const payload = await fetchPdfPayload({ data: { quote_id: quote.id } });
+      const blob = await generateQuotePDF({
+        template: pdfTemplate,
+        quote: payload.quote as any,
+        items: payload.items as any,
+        customer: payload.customer as any,
+        company: payload.company as any,
+        settings: payload.settings,
+        publicLink: publicUrl,
+        output: "blob",
+      });
+      if (!(blob instanceof Blob)) throw new Error("PDF inválido.");
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(URL.createObjectURL(blob));
+    } catch (e: any) {
+      toast.error(e?.message ?? "Falha ao gerar pré-visualização.");
+    } finally {
+      setPreviewBusy(false);
+    }
+  }
+
+  function closePreview() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+  }
+
+
+
   function handleWhatsApp() {
     if (!quote) return;
     const phone = (customer as any)?.whatsapp || (customer as any)?.phone || "";
