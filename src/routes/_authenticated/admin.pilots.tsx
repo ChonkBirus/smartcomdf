@@ -58,11 +58,11 @@ function fmtDateTime(d: string | null | undefined) {
   return d ? new Date(d).toLocaleString("pt-BR") : "—";
 }
 
-function statusVariant(s: string): "default" | "secondary" | "outline" | "destructive" {
-  if (s === "converted") return "default";
+function statusTone(s: string): StatusTone {
+  if (s === "converted") return "success";
   if (s === "lost") return "destructive";
-  if (s === "paused") return "outline";
-  return "secondary";
+  if (s === "paused") return "neutral";
+  return "primary";
 }
 
 function AdminPilotsPage() {
