@@ -86,7 +86,8 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     } | null = null;
     if (data.coupon_code) {
       const code = data.coupon_code.trim().toUpperCase();
-      const { data: coupon } = await supabase
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: coupon } = await supabaseAdmin
         .from("billing_coupons")
         .select("*")
         .eq("code", code)

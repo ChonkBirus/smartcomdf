@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Authenticated can read active coupons" ON public.billing_coupons;
