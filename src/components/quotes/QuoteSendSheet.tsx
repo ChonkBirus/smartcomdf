@@ -155,14 +155,26 @@ export function QuoteSendSheet({
     }
   }
 
-  function handleDownloadPDF() {
+  async function handleDownloadPDF() {
     if (!quote) return;
-    generateQuotePDF({
-      quote, items, customer,
-      company: null, // logo/cnpj rendered from quote header
-      publicLink: publicUrl,
-    });
-    logMut.mutate({ quote_id: quoteId!, event_type: "pdf_downloaded" });
+    setPdfBusy(true);
+    try {
+      const payload = await fetchPdfPayload({ data: { quote_id: quote.id } });
+      await generateQuotePDF({
+        template: pdfTemplate,
+        quote: payload.quote as any,
+        items: payload.items as any,
+        customer: payload.customer as any,
+        company: payload.company as any,
+        settings: payload.settings,
+        publicLink: publicUrl,
+      });
+      logMut.mutate({ quote_id: quoteId!, event_type: "pdf_downloaded", meta: { template: pdfTemplate } });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Falha ao gerar PDF.");
+    } finally {
+      setPdfBusy(false);
+    }
   }
 
   function handleWhatsApp() {
