@@ -106,14 +106,14 @@ export const Route = createFileRoute("/api/assistant/chat")({
         const result = streamText({
           model: gateway("google/gemini-3-flash-preview"),
           system: SYSTEM_PROMPT,
-          messages: convertToModelMessages(messages),
+          messages: await convertToModelMessages(messages),
         });
 
         return result.toUIMessageStreamResponse({
           originalMessages: messages,
           onFinish: async ({ responseMessage }) => {
             try {
-              const text = responseMessage.parts
+              const text = (responseMessage.parts ?? [])
                 .map((p) => (p.type === "text" ? p.text : ""))
                 .join("")
                 .trim();

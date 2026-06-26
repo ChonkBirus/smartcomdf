@@ -38,6 +38,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing-webhook'
+import { Route as ApiAssistantChatRouteImport } from './routes/api/assistant.chat'
 import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authenticated/settings.team'
 import { Route as AuthenticatedSettingsSubscriptionRouteImport } from './routes/_authenticated/settings.subscription'
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
@@ -206,6 +207,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
 const ApiPublicBillingWebhookRoute = ApiPublicBillingWebhookRouteImport.update({
   id: '/api/public/billing-webhook',
   path: '/api/public/billing-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAssistantChatRoute = ApiAssistantChatRouteImport.update({
+  id: '/api/assistant/chat',
+  path: '/api/assistant/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedSettingsTeamRoute =
@@ -378,6 +384,7 @@ export interface FileRoutesByFullPath {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/api/assistant/chat': typeof ApiAssistantChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -427,6 +434,7 @@ export interface FileRoutesByTo {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/api/assistant/chat': typeof ApiAssistantChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
@@ -480,6 +488,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/_authenticated/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/api/assistant/chat': typeof ApiAssistantChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -533,6 +542,7 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/subscription'
     | '/settings/team'
+    | '/api/assistant/chat'
     | '/api/public/billing-webhook'
     | '/admin/'
     | '/settings/'
@@ -582,6 +592,7 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/subscription'
     | '/settings/team'
+    | '/api/assistant/chat'
     | '/api/public/billing-webhook'
     | '/admin'
     | '/settings'
@@ -634,6 +645,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/subscription'
     | '/_authenticated/settings/team'
+    | '/api/assistant/chat'
     | '/api/public/billing-webhook'
     | '/_authenticated/admin/'
     | '/_authenticated/settings/'
@@ -649,6 +661,7 @@ export interface RootRouteChildren {
   InviteTokenRoute: typeof InviteTokenRoute
   QTokenRoute: typeof QTokenRoute
   RTokenRoute: typeof RTokenRoute
+  ApiAssistantChatRoute: typeof ApiAssistantChatRoute
   ApiPublicBillingWebhookRoute: typeof ApiPublicBillingWebhookRoute
 }
 
@@ -855,6 +868,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/billing-webhook'
       fullPath: '/api/public/billing-webhook'
       preLoaderRoute: typeof ApiPublicBillingWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/assistant/chat': {
+      id: '/api/assistant/chat'
+      path: '/api/assistant/chat'
+      fullPath: '/api/assistant/chat'
+      preLoaderRoute: typeof ApiAssistantChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings/team': {
@@ -1142,6 +1162,7 @@ const rootRouteChildren: RootRouteChildren = {
   InviteTokenRoute: InviteTokenRoute,
   QTokenRoute: QTokenRoute,
   RTokenRoute: RTokenRoute,
+  ApiAssistantChatRoute: ApiAssistantChatRoute,
   ApiPublicBillingWebhookRoute: ApiPublicBillingWebhookRoute,
 }
 export const routeTree = rootRouteImport
