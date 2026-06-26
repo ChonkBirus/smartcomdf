@@ -795,12 +795,36 @@ function renderDiagnosisPage(doc: jsPDF, ctx: { quote: PdfQuote }) {
   y = drawEyebrow(doc, "Análise", y);
   y = drawSectionTitle(doc, "Diagnóstico da necessidade", y);
 
-  const text =
-    ctx.quote.customer_notes?.trim() ||
-    "Durante a análise da necessidade, foram considerados os pontos críticos do ambiente, a rotina de uso, a exposição a riscos, a necessidade de monitoramento, o controle de acesso e a viabilidade técnica da instalação. A solução proposta busca atender ao cenário atual e permitir futuras ampliações de forma organizada.";
+  const q = ctx.quote;
+  const structured: { label: string; value?: string | null }[] = [
+    { label: "Problema identificado", value: q.diagnosis_problem },
+    { label: "Necessidade do cliente", value: q.diagnosis_need },
+    { label: "Ambiente atendido", value: q.diagnosis_environment },
+    { label: "Objetivo da solução", value: q.diagnosis_objective },
+    { label: "Pontos críticos observados", value: q.diagnosis_critical_points },
+    { label: "Observações técnicas", value: q.diagnosis_technical_notes },
+  ].filter((r) => r.value && String(r.value).trim().length > 0);
 
+  if (structured.length > 0) {
+    structured.forEach((r) => {
+      y = ensureSpace(doc, y, 60);
+      setText(doc, PALETTE.gold);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text(r.label.toUpperCase(), MARGIN, y);
+      y += 14;
+      y = drawParagraph(doc, String(r.value), y, { color: PALETTE.black });
+      y += 6;
+    });
+    return;
+  }
+
+  const text =
+    q.customer_notes?.trim() ||
+    "Durante a análise da necessidade, foram considerados os pontos críticos do ambiente, a rotina de uso, a exposição a riscos, a necessidade de monitoramento, o controle de acesso e a viabilidade técnica da instalação. A solução proposta busca atender ao cenário atual e permitir futuras ampliações de forma organizada.";
   drawParagraph(doc, text, y);
 }
+
 
 function renderSolutionSummaryPage(doc: jsPDF, ctx: { quote: PdfQuote; items: PdfItem[] }) {
   const content = getSolutionContent(ctx.quote, ctx.items);
