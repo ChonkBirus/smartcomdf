@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Search } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,15 +42,6 @@ const SUB_STATUS_LABEL: Record<string, string> = {
   MANUAL_REVIEW: "Em análise",
 };
 
-const SUB_STATUS_COLOR: Record<string, string> = {
-  TRIALING: "bg-warning/15 text-warning",
-  ACTIVE: "bg-success/15 text-success",
-  PAST_DUE: "bg-warning/15 text-warning",
-  SUSPENDED: "bg-destructive/15 text-destructive",
-  CANCELED: "bg-muted text-muted-foreground",
-  EXPIRED: "bg-muted text-muted-foreground",
-  MANUAL_REVIEW: "bg-primary/15 text-primary",
-};
 
 type Company = {
   id: string;
@@ -154,9 +145,10 @@ function AdminCompaniesPage() {
                 <TableCell>{c.plan_name ?? "—"}</TableCell>
                 <TableCell>
                   {c.subscription_status ? (
-                    <Badge className={SUB_STATUS_COLOR[c.subscription_status] ?? ""} variant="secondary">
-                      {SUB_STATUS_LABEL[c.subscription_status]}
-                    </Badge>
+                    <StatusBadge
+                      status={c.subscription_status}
+                      label={SUB_STATUS_LABEL[c.subscription_status]}
+                    />
                   ) : (
                     <span className="text-xs text-muted-foreground">sem assinatura</span>
                   )}

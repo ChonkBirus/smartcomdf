@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { ExternalLink, RefreshCw, RotateCw, Search, Eye } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -60,21 +60,6 @@ const CHARGE_STATUSES = [
 ];
 const EVENT_STATUSES = ["PROCESSED", "ERROR", "DUPLICATE", "RECEIVED"];
 
-const chargeStatusClass: Record<string, string> = {
-  PENDING: "bg-warning/15 text-warning",
-  CONFIRMED: "bg-success/15 text-success",
-  RECEIVED: "bg-success/15 text-success",
-  OVERDUE: "bg-destructive/15 text-destructive",
-  REFUNDED: "bg-muted text-muted-foreground",
-  DELETED: "bg-muted text-muted-foreground",
-};
-
-const eventStatusClass: Record<string, string> = {
-  PROCESSED: "bg-success/15 text-success",
-  ERROR: "bg-destructive/15 text-destructive",
-  DUPLICATE: "bg-muted text-muted-foreground",
-  RECEIVED: "bg-primary/15 text-primary",
-};
 
 function fmtDate(d: string | null | undefined) {
   return d ? new Date(d).toLocaleString("pt-BR") : "—";
@@ -202,9 +187,7 @@ function ChargesTab() {
                 <TableCell>{c.plan_name ?? "—"}</TableCell>
                 <TableCell className="text-xs">{c.payment_method ?? "—"}</TableCell>
                 <TableCell>
-                  <Badge className={chargeStatusClass[c.status] ?? "bg-muted"}>
-                    {c.status}
-                  </Badge>
+                  <StatusBadge status={c.status} />
                 </TableCell>
                 <TableCell>{fmtMoney(c.amount)}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">
@@ -307,9 +290,7 @@ function ChargeDetailDialog({ id, onClose }: { id: string; onClose: () => void }
                       className="flex items-center justify-between rounded-md border border-border p-2 text-xs"
                     >
                       <div className="flex items-center gap-2">
-                        <Badge className={eventStatusClass[ev.status] ?? "bg-muted"}>
-                          {ev.status}
-                        </Badge>
+                        <StatusBadge status={ev.status} size="sm" />
                         <span className="font-mono">{ev.event_type}</span>
                       </div>
                       <span className="text-muted-foreground">{fmtDate(ev.created_at)}</span>
@@ -429,9 +410,7 @@ function EventsTab() {
                   {e.provider_object_id ?? "—"}
                 </TableCell>
                 <TableCell>
-                  <Badge className={eventStatusClass[e.status] ?? "bg-muted"}>
-                    {e.status}
-                  </Badge>
+                  <StatusBadge status={e.status} />
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">
                   {fmtDate(e.processed_at)}

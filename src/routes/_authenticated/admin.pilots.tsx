@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Plus, MessageCircle, Mail, Trash2, History, Target } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,11 +58,11 @@ function fmtDateTime(d: string | null | undefined) {
   return d ? new Date(d).toLocaleString("pt-BR") : "—";
 }
 
-function statusVariant(s: string): "default" | "secondary" | "outline" | "destructive" {
-  if (s === "converted") return "default";
+function statusTone(s: string): StatusTone {
+  if (s === "converted") return "success";
   if (s === "lost") return "destructive";
-  if (s === "paused") return "outline";
-  return "secondary";
+  if (s === "paused") return "neutral";
+  return "primary";
 }
 
 function AdminPilotsPage() {
@@ -213,7 +214,7 @@ function AdminPilotsPage() {
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.company_name ?? "—"}</TableCell>
                   <TableCell>
-                    <Badge variant={statusVariant(p.status)}>{p.status}</Badge>
+                    <StatusBadge status={p.status} tone={statusTone(p.status)} />
                   </TableCell>
                   <TableCell className="text-xs">{p.source ?? "—"}</TableCell>
                   <TableCell className="text-xs">{fmtDate(p.expected_conversion_date)}</TableCell>

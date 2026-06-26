@@ -4,7 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Plus, Edit2, Power, Ticket } from "lucide-react";
-import { PageHeader } from "@/components/app/PageHeader";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -162,9 +162,10 @@ function AdminCouponsPage() {
                         : "—"}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={c.is_active ? "default" : "secondary"}>
-                        {c.is_active ? "Ativo" : "Inativo"}
-                      </Badge>
+                      <StatusBadge
+                        status={c.is_active ? "ACTIVE" : "INACTIVE"}
+                        label={c.is_active ? "Ativo" : "Inativo"}
+                      />
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">

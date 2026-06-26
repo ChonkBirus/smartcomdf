@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { MessageCircle, Mail, Play, CheckCircle2, XCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,10 +57,10 @@ function fmtBRL(n: number | null | undefined) {
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-function statusVariant(s: string) {
-  if (s === "PENDING") return "default";
-  if (s === "HANDLED") return "secondary";
-  return "outline";
+function statusTone(s: string): "primary" | "success" | "neutral" {
+  if (s === "PENDING") return "primary";
+  if (s === "HANDLED") return "success";
+  return "neutral";
 }
 
 function defaultMessage(ev: DunningEventRow) {
@@ -234,9 +235,7 @@ function AdminDunningPage() {
                   </TableCell>
                   <TableCell className="text-xs">{fmtBRL(ev.charge_amount)}</TableCell>
                   <TableCell>
-                    <Badge variant={statusVariant(ev.status) as any}>
-                      {ev.status}
-                    </Badge>
+                    <StatusBadge status={ev.status} tone={statusTone(ev.status)} />
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">

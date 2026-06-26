@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { listPlans } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/plans")({
@@ -19,9 +19,10 @@ function AdminPlansPage() {
         <Card key={p.id} className="card-elevated">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{p.name}</CardTitle>
-            <Badge variant={p.active ? "default" : "secondary"}>
-              {p.active ? "Ativo" : "Inativo"}
-            </Badge>
+            <StatusBadge
+              status={p.active ? "ACTIVE" : "INACTIVE"}
+              label={p.active ? "Ativo" : "Inativo"}
+            />
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <div className="text-3xl font-bold text-primary">

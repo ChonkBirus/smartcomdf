@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { History, Pencil, Search } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -33,15 +33,6 @@ export const Route = createFileRoute("/_authenticated/admin/subscriptions")({
 
 const STATUSES = ["TRIALING","ACTIVE","PAST_DUE","SUSPENDED","CANCELED","EXPIRED","MANUAL_REVIEW"] as const;
 
-const statusClass: Record<string, string> = {
-  TRIALING: "bg-blue-500/15 text-blue-600",
-  ACTIVE: "bg-emerald-500/15 text-emerald-600",
-  PAST_DUE: "bg-amber-500/15 text-amber-600",
-  SUSPENDED: "bg-red-500/15 text-red-600",
-  CANCELED: "bg-muted text-muted-foreground",
-  EXPIRED: "bg-muted text-muted-foreground",
-  MANUAL_REVIEW: "bg-purple-500/15 text-purple-600",
-};
 
 function fmtDate(d: string | null | undefined) {
   return d ? new Date(d).toLocaleDateString("pt-BR") : "—";
@@ -124,7 +115,7 @@ function AdminSubscriptionsPage() {
                 <TableCell className="font-medium">{s.company_name ?? "—"}</TableCell>
                 <TableCell>{s.plan_name ?? "—"}</TableCell>
                 <TableCell>
-                  <Badge className={statusClass[s.status] ?? "bg-muted"}>{s.status}</Badge>
+                  <StatusBadge status={s.status} />
                 </TableCell>
                 <TableCell className="text-xs">{s.billing_cycle ?? "—"}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{fmtDate(s.trial_ends_at)}</TableCell>
