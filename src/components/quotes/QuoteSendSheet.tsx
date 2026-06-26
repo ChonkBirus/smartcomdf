@@ -370,9 +370,20 @@ export function QuoteSendSheet({
                   <Button variant="outline" onClick={handleEmail} className="w-full">
                     <Mail className="mr-1 h-4 w-4" />E-mail
                   </Button>
-                  <Button variant="outline" onClick={handleDownloadPDF} className="w-full">
-                    <Download className="mr-1 h-4 w-4" />PDF
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button variant="outline" onClick={handleDownloadPDF} className="flex-1" disabled={pdfBusy}>
+                      <Download className="mr-1 h-4 w-4" />{pdfBusy ? "Gerando..." : "PDF"}
+                    </Button>
+                    <Select value={pdfTemplate} onValueChange={(v) => setPdfTemplate(v as QuotePdfTemplate)}>
+                      <SelectTrigger className="w-[120px]" title="Modelo do PDF">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="premium">Premium</SelectItem>
+                        <SelectItem value="simple">Simples</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <Button
                     variant="secondary"
                     onClick={() => sendMut.mutate()}
