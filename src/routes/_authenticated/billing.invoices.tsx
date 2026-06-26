@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PageHeader } from "@/components/app/PageHeader";
+import { PageHeader } from "@/components/ui/page-header";
 import { BillingChargesTable } from "@/components/billing/BillingChargesTable";
 
 export const Route = createFileRoute("/_authenticated/billing/invoices")({

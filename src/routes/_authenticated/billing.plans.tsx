@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { PageHeader } from "@/components/app/PageHeader";
+import { PageHeader } from "@/components/ui/page-header";
 import { PlanCard } from "@/components/billing/PlanCard";
 import { BillingCycleToggle } from "@/components/billing/BillingCycleToggle";
 import { CheckoutDialog } from "@/components/billing/CheckoutDialog";

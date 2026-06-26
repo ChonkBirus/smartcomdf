@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ExternalLink, Loader2, RefreshCw, Copy } from "lucide-react";
+import { ExternalLink, Loader2, RefreshCw, Copy, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
   TableBody,
@@ -20,16 +21,16 @@ const fmtBRL = (n: number) =>
 const fmtDate = (s: string | null) =>
   s ? new Date(s).toLocaleDateString("pt-BR") : "—";
 
-const STATUS_LABEL: Record<string, { label: string; variant: any }> = {
-  PENDING: { label: "Pendente", variant: "secondary" },
-  WAITING_PAYMENT: { label: "Aguardando", variant: "secondary" },
-  PAID: { label: "Paga", variant: "default" },
-  CONFIRMED: { label: "Confirmada", variant: "default" },
-  OVERDUE: { label: "Vencida", variant: "destructive" },
-  REFUNDED: { label: "Estornada", variant: "outline" },
-  CHARGEBACK: { label: "Chargeback", variant: "destructive" },
-  CANCELED: { label: "Cancelada", variant: "outline" },
-  FAILED: { label: "Falhou", variant: "destructive" },
+const STATUS_LABEL: Record<string, string> = {
+  PENDING: "Pendente",
+  WAITING_PAYMENT: "Aguardando",
+  PAID: "Paga",
+  CONFIRMED: "Confirmada",
+  OVERDUE: "Vencida",
+  REFUNDED: "Estornada",
+  CHARGEBACK: "Chargeback",
+  CANCELED: "Cancelada",
+  FAILED: "Falhou",
 };
 
 const METHOD_LABEL: Record<string, string> = {
@@ -71,9 +72,11 @@ export function BillingChargesTable() {
 
   if (!data || data.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-        Nenhuma cobrança encontrada.
-      </div>
+      <EmptyState
+        icon={<Receipt className="h-5 w-5" />}
+        title="Nenhuma cobrança encontrada"
+        description="As cobranças da sua assinatura aparecerão aqui assim que forem geradas."
+      />
     );
   }
 
@@ -92,10 +95,6 @@ export function BillingChargesTable() {
         </TableHeader>
         <TableBody>
           {data.map((c) => {
-            const st = STATUS_LABEL[c.status] ?? {
-              label: c.status,
-              variant: "outline",
-            };
             const payUrl = c.invoice_url || c.checkout_url || c.bank_slip_url;
             return (
               <TableRow key={c.id}>
@@ -107,7 +106,7 @@ export function BillingChargesTable() {
                   {METHOD_LABEL[c.payment_method ?? "UNDEFINED"] ?? "—"}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={st.variant}>{st.label}</Badge>
+                  <StatusBadge status={c.status} label={STATUS_LABEL[c.status] ?? c.status} />
                 </TableCell>
                 <TableCell>{fmtDate(c.paid_at)}</TableCell>
                 <TableCell>

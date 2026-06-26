@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,33 +52,33 @@ function iconFor(entry: CommercialHistoryEntry) {
   switch (entry.event_type) {
     case "plan_upgrade_requested":
     case "plan_upgrade_applied":
-      return <ArrowUpCircle className="h-5 w-5 text-emerald-600" />;
+      return <ArrowUpCircle className="h-5 w-5 text-success" />;
     case "plan_downgrade_scheduled":
     case "plan_downgrade_applied":
-      return <ArrowDownCircle className="h-5 w-5 text-amber-600" />;
+      return <ArrowDownCircle className="h-5 w-5 text-warning" />;
     case "plan_changed":
-      return <Sparkles className="h-5 w-5 text-blue-600" />;
+      return <Sparkles className="h-5 w-5 text-primary" />;
     case "plan_change_canceled":
       return <Undo2 className="h-5 w-5 text-muted-foreground" />;
     case "cancellation_scheduled":
-      return <Clock className="h-5 w-5 text-amber-600" />;
+      return <Clock className="h-5 w-5 text-warning" />;
     case "cancellation_immediate":
     case "subscription_canceled":
       return <XCircle className="h-5 w-5 text-destructive" />;
     case "cancellation_reverted":
-      return <Undo2 className="h-5 w-5 text-emerald-600" />;
+      return <Undo2 className="h-5 w-5 text-success" />;
     case "subscription_reactivated":
     case "subscription_activated":
-      return <PlayCircle className="h-5 w-5 text-emerald-600" />;
+      return <PlayCircle className="h-5 w-5 text-success" />;
     case "subscription_suspended":
       return <PauseCircle className="h-5 w-5 text-destructive" />;
     case "trial_started":
     case "trial_ended":
-      return <Clock className="h-5 w-5 text-blue-600" />;
+      return <Clock className="h-5 w-5 text-primary" />;
     case "payment_confirmed":
-      return <CheckCircle2 className="h-5 w-5 text-emerald-600" />;
+      return <CheckCircle2 className="h-5 w-5 text-success" />;
     case "payment_pending":
-      return <CreditCard className="h-5 w-5 text-amber-600" />;
+      return <CreditCard className="h-5 w-5 text-warning" />;
     case "payment_overdue":
       return <AlertTriangle className="h-5 w-5 text-destructive" />;
     case "payment_refunded":
@@ -86,7 +87,7 @@ function iconFor(entry: CommercialHistoryEntry) {
       return <XCircle className="h-5 w-5 text-muted-foreground" />;
     case "coupon_redeemed":
     case "coupon_applied":
-      return <TicketPercent className="h-5 w-5 text-purple-600" />;
+      return <TicketPercent className="h-5 w-5 text-accent-foreground" />;
     default:
       return <Clock className="h-5 w-5 text-muted-foreground" />;
   }
@@ -285,11 +286,11 @@ export function SubscriptionHistoryTimeline({
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Carregando histórico...</div>
       ) : entries.length === 0 ? (
-        <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            Nenhum evento encontrado para os filtros selecionados.
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={<Clock className="h-5 w-5" />}
+          title="Nenhum evento encontrado"
+          description="Ajuste os filtros ou aguarde novos eventos da sua assinatura."
+        />
       ) : (
         <ol className="relative space-y-3 border-l border-border pl-6">
           {entries.map((e) => (
@@ -304,7 +305,7 @@ export function SubscriptionHistoryTimeline({
                     {e.amount !== null && e.amount !== undefined ? (
                       <div
                         className={`text-sm font-semibold ${
-                          e.amount < 0 ? "text-emerald-600" : ""
+                          e.amount < 0 ? "text-success" : ""
                         }`}
                       >
                         {fmtMoney(Number(e.amount))}
