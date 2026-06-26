@@ -158,3 +158,13 @@
   border: 1px solid var(--color-border);
   box-shadow: 0 1px 2px 0 oklch(0 0 0 / 0.2);
 }
+
+@utility text-micro {
+  font-size: 0.6875rem;
+  line-height: 1rem;
+}
+
+@utility text-nano {
+  font-size: 0.625rem;
+  line-height: 0.875rem;
+}
