@@ -38,21 +38,22 @@ export type GenerateQuotePdfOpts = {
   settings?: Record<string, any> | null;
   publicLink?: string;
   config?: PremiumPdfConfig;
+  output?: "save" | "blob";
 };
 
-export async function generateQuotePDF(opts: GenerateQuotePdfOpts) {
+export async function generateQuotePDF(opts: GenerateQuotePdfOpts): Promise<Blob | void> {
   const template: QuotePdfTemplate = opts.template ?? "premium";
   if (template === "simple") {
-    generateSimplePDF({
+    return generateSimplePDF({
       quote: opts.quote,
       items: opts.items,
       customer: opts.customer,
       company: opts.company,
       publicLink: opts.publicLink,
+      output: opts.output,
     });
-    return;
   }
-  await generatePremiumQuotePDF({
+  return await generatePremiumQuotePDF({
     quote: opts.quote as any,
     items: opts.items.map((it) => ({
       id: it.id,
@@ -69,5 +70,7 @@ export async function generateQuotePDF(opts: GenerateQuotePdfOpts) {
     settings: opts.settings ?? null,
     publicLink: opts.publicLink ?? "",
     config: opts.config,
+    output: opts.output,
   });
 }
+
