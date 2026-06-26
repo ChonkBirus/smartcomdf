@@ -1,20 +1,17 @@
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
 import type { SubscriptionStatus } from "@/lib/billing.functions";
 
-const STATUS_MAP: Record<
-  SubscriptionStatus,
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
-> = {
-  TRIALING: { label: "Em teste", variant: "secondary" },
-  ACTIVE: { label: "Ativa", variant: "default" },
-  PAST_DUE: { label: "Pagamento pendente", variant: "outline" },
-  SUSPENDED: { label: "Suspensa", variant: "destructive" },
-  CANCELED: { label: "Cancelada", variant: "outline" },
-  EXPIRED: { label: "Expirada", variant: "destructive" },
-  MANUAL_REVIEW: { label: "Análise manual", variant: "outline" },
+const MAP: Record<SubscriptionStatus, { label: string; tone: StatusTone }> = {
+  TRIALING: { label: "Em teste", tone: "warning" },
+  ACTIVE: { label: "Ativa", tone: "success" },
+  PAST_DUE: { label: "Pagamento pendente", tone: "warning" },
+  SUSPENDED: { label: "Suspensa", tone: "destructive" },
+  CANCELED: { label: "Cancelada", tone: "neutral" },
+  EXPIRED: { label: "Expirada", tone: "destructive" },
+  MANUAL_REVIEW: { label: "Análise manual", tone: "warning" },
 };
 
 export function SubscriptionStatusBadge({ status }: { status: SubscriptionStatus }) {
-  const cfg = STATUS_MAP[status] ?? { label: status, variant: "outline" as const };
-  return <Badge variant={cfg.variant}>{cfg.label}</Badge>;
+  const cfg = MAP[status] ?? { label: status, tone: "neutral" as StatusTone };
+  return <StatusBadge status={status} label={cfg.label} tone={cfg.tone} />;
 }
