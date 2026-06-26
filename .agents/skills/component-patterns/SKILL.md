@@ -1,5 +1,5 @@
 ---
-name: Component Patterns
+name: component-patterns
 description: "Padrões de arquitetura de componentes modernos: composição sobre herança, compound components (Card.Header / Card.Body), sistema de tokens em três camadas (global / semântico / componente), variantes via CSS Custom Properties e troca de tema sem recarregar. Ideal para quem quer uma base de componentes reutilizável e escalável no Lovable."
 ---
 
