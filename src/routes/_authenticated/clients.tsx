@@ -7,8 +7,9 @@ import {
   Building2, User as UserIcon, ArrowLeft, ArrowRight, Upload,
 } from "lucide-react";
 import { CustomerImportDialog } from "@/components/customers/CustomerImportDialog";
-import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState } from "@/components/app/EmptyState";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { PermissionRoute, Can } from "@/components/app/PermissionRoute";
 import { FeatureGate } from "@/components/app/FeatureGate";
 import { KpiCard } from "@/components/app/KpiCard";
@@ -50,9 +51,6 @@ function formatDoc(v: string) {
 
 const STATUS_LABEL: Record<CustomerStatus, string> = {
   LEAD: "Lead", ACTIVE: "Ativo", INACTIVE: "Inativo", BLOCKED: "Bloqueado",
-};
-const STATUS_VARIANT: Record<CustomerStatus, "default" | "secondary" | "destructive" | "outline"> = {
-  LEAD: "outline", ACTIVE: "default", INACTIVE: "secondary", BLOCKED: "destructive",
 };
 
 function ClientsPage() {
@@ -242,9 +240,7 @@ function ClientsPage() {
                       </div>
                     </td>
                     <td className="px-3 py-2">
-                      <Badge variant={STATUS_VARIANT[c.customer_status as CustomerStatus]}>
-                        {STATUS_LABEL[c.customer_status as CustomerStatus]}
-                      </Badge>
+                      <StatusBadge status={c.customer_status} label={STATUS_LABEL[c.customer_status as CustomerStatus]} />
                     </td>
                     <td className="px-3 py-2 text-xs text-muted-foreground">
                       {new Date(c.created_at).toLocaleDateString("pt-BR")}

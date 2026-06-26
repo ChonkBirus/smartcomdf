@@ -18,8 +18,9 @@ import {
   ChevronDown,
   Upload,
 } from "lucide-react";
-import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState } from "@/components/app/EmptyState";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { PermissionRoute, Can } from "@/components/app/PermissionRoute";
 import { FeatureGate } from "@/components/app/FeatureGate";
 import { Button } from "@/components/ui/button";
@@ -393,7 +394,7 @@ function ItemsPage() {
                     )}
                   </td>
                   <td className="px-3 py-2 text-center">
-                    <Badge variant={p.active ? "default" : "secondary"}>{p.active ? "Ativo" : "Inativo"}</Badge>
+                    <StatusBadge status={p.active ? "ACTIVE" : "INACTIVE"} label={p.active ? "Ativo" : "Inativo"} />
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex justify-center gap-1">

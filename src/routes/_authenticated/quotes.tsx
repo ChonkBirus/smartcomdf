@@ -5,14 +5,15 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   FileText, Plus, Pencil, Trash2, Copy, Search, Send, XCircle, CheckCircle2, Share2,
 } from "lucide-react";
-import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState } from "@/components/app/EmptyState";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { PermissionRoute, Can } from "@/components/app/PermissionRoute";
 import { FeatureGate } from "@/components/app/FeatureGate";
 import { KpiCard } from "@/components/app/KpiCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -45,11 +46,6 @@ const STATUS_LABEL: Record<QuoteStatus, string> = {
   APPROVED: "Aprovado", REJECTED: "Rejeitado",
   CANCELLED: "Cancelado", EXPIRED: "Expirado", CONVERTED: "Convertido",
 };
-const STATUS_VARIANT: Record<QuoteStatus, "default" | "secondary" | "destructive" | "outline"> = {
-  DRAFT: "outline", SENT: "secondary", VIEWED: "secondary",
-  APPROVED: "default", REJECTED: "destructive",
-  CANCELLED: "destructive", EXPIRED: "destructive", CONVERTED: "default",
-};
 
 const PAY_STATUS_LABEL: Record<QuotePaymentStatus, string> = {
   NOT_STARTED: "Não iniciado",
@@ -57,13 +53,6 @@ const PAY_STATUS_LABEL: Record<QuotePaymentStatus, string> = {
   PAYMENT_APPROVED: "Pagamento aprovado",
   PAYMENT_REJECTED: "Pagamento recusado",
   PAYMENT_CANCELLED: "Pagamento cancelado",
-};
-const PAY_STATUS_VARIANT: Record<QuotePaymentStatus, "default" | "secondary" | "destructive" | "outline"> = {
-  NOT_STARTED: "outline",
-  WAITING_PAYMENT: "secondary",
-  PAYMENT_APPROVED: "default",
-  PAYMENT_REJECTED: "destructive",
-  PAYMENT_CANCELLED: "destructive",
 };
 
 const fmtBRL = (n: number) =>
@@ -238,12 +227,10 @@ function QuotesPage() {
                   <td className="px-3 py-2 hidden md:table-cell">{fmtDate(q.issue_date)}</td>
                   <td className="px-3 py-2 hidden md:table-cell">{fmtDate(q.valid_until)}</td>
                   <td className="px-3 py-2">
-                    <Badge variant={STATUS_VARIANT[q.status]}>{STATUS_LABEL[q.status]}</Badge>
+                    <StatusBadge status={q.status} label={STATUS_LABEL[q.status]} />
                   </td>
                   <td className="px-3 py-2 hidden lg:table-cell">
-                    <Badge variant={PAY_STATUS_VARIANT[q.payment_status]}>
-                      {PAY_STATUS_LABEL[q.payment_status]}
-                    </Badge>
+                    <StatusBadge status={q.payment_status} label={PAY_STATUS_LABEL[q.payment_status]} />
                   </td>
                   <td className="px-3 py-2 text-right font-medium">{fmtBRL(q.total_amount)}</td>
                   <td className="px-3 py-2">

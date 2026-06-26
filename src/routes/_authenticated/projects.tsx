@@ -3,12 +3,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Briefcase, Search, Eye } from "lucide-react";
-import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState } from "@/components/app/EmptyState";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
 import { PermissionRoute } from "@/components/app/PermissionRoute";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -35,30 +36,26 @@ const STATUS_LABEL: Record<ProjectStatus, string> = {
   COMPLETED: "Concluído",
   CANCELLED: "Cancelado",
 };
-const STATUS_VARIANT: Record<ProjectStatus, "default" | "secondary" | "destructive" | "outline"> = {
-  DRAFT: "outline", READY_TO_SCHEDULE: "secondary", SCHEDULED: "secondary",
-  IN_PROGRESS: "default", PAUSED: "outline", COMPLETED: "default", CANCELLED: "destructive",
-};
 const PRIORITY_LABEL: Record<ProjectPriority, string> = {
   LOW: "Baixa", NORMAL: "Normal", HIGH: "Alta", URGENT: "Urgente",
 };
-const PRIORITY_VARIANT: Record<ProjectPriority, "default" | "secondary" | "destructive" | "outline"> = {
-  LOW: "outline", NORMAL: "secondary", HIGH: "default", URGENT: "destructive",
+const PRIORITY_TONE: Record<ProjectPriority, StatusTone> = {
+  LOW: "neutral", NORMAL: "primary", HIGH: "warning", URGENT: "destructive",
 };
 
 const fmtDate = (s: string | null) => s ? new Date(s).toLocaleDateString("pt-BR") : "—";
 
-const PLANNING_LABEL: Record<string, { label: string; cls: string }> = {
-  PENDING: { label: "Pendente", cls: "bg-muted text-muted-foreground" },
-  IN_PROGRESS: { label: "Em planejamento", cls: "bg-sky-100 text-sky-900 dark:bg-sky-950/40 dark:text-sky-300" },
-  READY_FOR_SERVICE_ORDER: { label: "Pronto p/ OS", cls: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300" },
+const PLANNING_LABEL: Record<string, { label: string; tone: StatusTone }> = {
+  PENDING: { label: "Pendente", tone: "neutral" },
+  IN_PROGRESS: { label: "Em planejamento", tone: "primary" },
+  READY_FOR_SERVICE_ORDER: { label: "Pronto p/ OS", tone: "success" },
 };
-const MATERIAL_LABEL: Record<string, { label: string; cls: string }> = {
-  NOT_CHECKED: { label: "Não verificado", cls: "bg-muted text-muted-foreground" },
-  AVAILABLE: { label: "OK", cls: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300" },
-  PARTIALLY_AVAILABLE: { label: "Parcial", cls: "bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-300" },
-  UNAVAILABLE: { label: "Insuficiente", cls: "bg-rose-100 text-rose-900 dark:bg-rose-950/40 dark:text-rose-300" },
-  RESERVED: { label: "Reservado", cls: "bg-sky-100 text-sky-900 dark:bg-sky-950/40 dark:text-sky-300" },
+const MATERIAL_LABEL: Record<string, { label: string; tone: StatusTone }> = {
+  NOT_CHECKED: { label: "Não verificado", tone: "neutral" },
+  AVAILABLE: { label: "OK", tone: "success" },
+  PARTIALLY_AVAILABLE: { label: "Parcial", tone: "warning" },
+  UNAVAILABLE: { label: "Insuficiente", tone: "destructive" },
+  RESERVED: { label: "Reservado", tone: "primary" },
 };
 
 function ProjectsPage() {
@@ -178,12 +175,12 @@ function ProjectsPage() {
                     <TableCell>{p.customer_name}</TableCell>
                     <TableCell className="text-muted-foreground">{p.responsible_name ?? "—"}</TableCell>
                     <TableCell>
-                      <Badge variant={STATUS_VARIANT[p.status as ProjectStatus]}>{STATUS_LABEL[p.status as ProjectStatus]}</Badge>
+                      <StatusBadge status={p.status} label={STATUS_LABEL[p.status as ProjectStatus]} />
                     </TableCell>
-                    <TableCell><span className={`rounded px-2 py-0.5 text-xs ${plan.cls}`}>{plan.label}</span></TableCell>
-                    <TableCell><span className={`rounded px-2 py-0.5 text-xs ${mat.cls}`}>{mat.label}</span></TableCell>
+                    <TableCell><StatusBadge status={p.planning_status} tone={plan.tone} label={plan.label} /></TableCell>
+                    <TableCell><StatusBadge status={p.material_status} tone={mat.tone} label={mat.label} /></TableCell>
                     <TableCell>
-                      <Badge variant={PRIORITY_VARIANT[p.priority as ProjectPriority]}>{PRIORITY_LABEL[p.priority as ProjectPriority]}</Badge>
+                      <StatusBadge status={p.priority} tone={PRIORITY_TONE[p.priority as ProjectPriority]} label={PRIORITY_LABEL[p.priority as ProjectPriority]} />
                     </TableCell>
                     <TableCell>{fmtDate((p as any).planned_start_date ?? p.expected_start_date)}</TableCell>
                     <TableCell>{fmtDate((p as any).planned_end_date ?? p.expected_end_date)}</TableCell>

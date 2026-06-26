@@ -3,11 +3,13 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Wrench, Search } from "lucide-react";
-import { PageHeader } from "@/components/app/PageHeader";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { PermissionRoute } from "@/components/app/PermissionRoute";
 import { FeatureGate } from "@/components/app/FeatureGate";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -33,10 +35,6 @@ export const Route = createFileRoute("/_authenticated/service-orders")({
 const STATUS_LABEL: Record<ServiceOrderStatus, string> = {
   DRAFT: "Rascunho", SCHEDULED: "Agendada", IN_PROGRESS: "Em execução",
   PAUSED: "Pausada", COMPLETED: "Concluída", CANCELLED: "Cancelada",
-};
-const STATUS_VARIANT: Record<ServiceOrderStatus, "default" | "secondary" | "destructive" | "outline"> = {
-  DRAFT: "outline", SCHEDULED: "secondary", IN_PROGRESS: "default",
-  PAUSED: "outline", COMPLETED: "default", CANCELLED: "destructive",
 };
 const PRIORITY_LABEL: Record<ServiceOrderPriority, string> = {
   LOW: "Baixa", NORMAL: "Normal", HIGH: "Alta", URGENT: "Urgente",
@@ -107,12 +105,13 @@ function ServiceOrdersListPage() {
               <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Carregando...</TableCell></TableRow>
             ) : !data || data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="py-12 text-center">
-                  <Wrench className="mx-auto mb-2 h-6 w-6 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">Nenhuma Ordem de Serviço encontrada.</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Gere uma OS a partir de um projeto pronto.
-                  </p>
+                <TableCell colSpan={8} className="p-0">
+                  <EmptyState
+                    icon={<Wrench className="h-6 w-6" />}
+                    title="Nenhuma Ordem de Serviço encontrada"
+                    description="Gere uma OS a partir de um projeto pronto."
+                    className="border-0 shadow-none"
+                  />
                 </TableCell>
               </TableRow>
             ) : data.map((so) => (
@@ -126,8 +125,8 @@ function ServiceOrdersListPage() {
                   {so.scheduled_date ? new Date(so.scheduled_date).toLocaleDateString("pt-BR") : "—"}
                   {so.scheduled_start_time ? ` ${so.scheduled_start_time.slice(0,5)}` : ""}
                 </TableCell>
-                <TableCell><Badge variant={STATUS_VARIANT[so.status]}>{STATUS_LABEL[so.status]}</Badge></TableCell>
-                <TableCell><Badge variant="outline">{PRIORITY_LABEL[so.priority]}</Badge></TableCell>
+                <TableCell><StatusBadge status={so.status} label={STATUS_LABEL[so.status]} /></TableCell>
+                <TableCell><StatusBadge status={so.priority} tone="neutral" label={PRIORITY_LABEL[so.priority]} /></TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <Button variant="ghost" size="sm"
                     onClick={() => navigate({ to: "/service-orders/$id", params: { id: so.id } } as any)}>
