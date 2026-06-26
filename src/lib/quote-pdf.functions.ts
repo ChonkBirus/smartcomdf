@@ -23,12 +23,41 @@ export const getQuotePdfPayload = createServerFn({ method: "GET" })
     if (e1) throw new Error(e1.message);
     if (!q) throw new Error("Orçamento não encontrado.");
 
-    const { data: items } = await sb
+    // Load quote_items first (don't fail if catalog join is blocked by RLS)
+    const { data: itemsRaw, error: itemsErr } = await sb
       .from("quote_items")
-      .select("*, items:item_id(id, name, image_url, unit, description)")
+      .select("*")
       .eq("quote_id", data.quote_id)
-      .order("position", { ascending: true })
+      .order("position", { ascending: true, nullsFirst: true })
       .order("created_at", { ascending: true });
+    if (itemsErr) {
+      console.error("[PDF PAYLOAD] quote_items query failed:", itemsErr);
+      throw new Error("Falha ao carregar itens do orçamento: " + itemsErr.message);
+    }
+
+    // Enrich with catalog data (image_url, unit, description) when available
+    const itemIds = Array.from(
+      new Set((itemsRaw ?? []).map((r: any) => r.item_id).filter(Boolean)),
+    );
+    let catalogById = new Map<string, any>();
+    if (itemIds.length > 0) {
+      const { data: catalog, error: catErr } = await sb
+        .from("items")
+        .select("id, name, image_url, unit, description")
+        .in("id", itemIds as string[]);
+      if (catErr) console.warn("[PDF PAYLOAD] items join warning:", catErr.message);
+      (catalog ?? []).forEach((c: any) => catalogById.set(c.id, c));
+    }
+    const items = (itemsRaw ?? []).map((r: any) => ({
+      ...r,
+      items: r.item_id ? catalogById.get(r.item_id) ?? null : null,
+    }));
+
+    console.log(
+      "[PDF PAYLOAD] quote_id:", data.quote_id,
+      "items_count:", items.length,
+      "kinds:", items.map((i: any) => i.kind),
+    );
 
     const { data: company } = await sb
       .from("companies")
