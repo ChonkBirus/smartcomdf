@@ -631,7 +631,7 @@ function HistoryDialog({
 }: {
   pilot: CommercialPilotRow | null;
   onClose: () => void;
-  logsFn: ReturnType<typeof useServerFn<typeof listPilotContactLogs>>;
+  logsFn: (args: { data: { company_id: string } }) => Promise<Array<{ id: string; contact_type: string | null; contact_channel: string | null; subject: string | null; message: string | null; result: string | null; contacted_at: string; next_follow_up_at: string | null }>>;
 }) {
   const { data: logs, isLoading } = useQuery({
     queryKey: ["admin", "pilot-logs", pilot?.company_id],
