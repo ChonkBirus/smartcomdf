@@ -52,6 +52,7 @@ import { Route as AuthenticatedBillingInvoicesRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminSubscriptionsRouteImport } from './routes/_authenticated/admin.subscriptions'
 import { Route as AuthenticatedAdminPlansRouteImport } from './routes/_authenticated/admin.plans'
 import { Route as AuthenticatedAdminOverviewRouteImport } from './routes/_authenticated/admin.overview'
+import { Route as AuthenticatedAdminLaunchRouteImport } from './routes/_authenticated/admin.launch'
 import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated/admin.events'
 import { Route as AuthenticatedAdminDunningRouteImport } from './routes/_authenticated/admin.dunning'
 import { Route as AuthenticatedAdminCouponsRouteImport } from './routes/_authenticated/admin.coupons'
@@ -287,6 +288,12 @@ const AuthenticatedAdminOverviewRoute =
     path: '/overview',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminLaunchRoute =
+  AuthenticatedAdminLaunchRouteImport.update({
+    id: '/launch',
+    path: '/launch',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminEventsRoute =
   AuthenticatedAdminEventsRouteImport.update({
     id: '/events',
@@ -348,6 +355,7 @@ export interface FileRoutesByFullPath {
   '/admin/coupons': typeof AuthenticatedAdminCouponsRoute
   '/admin/dunning': typeof AuthenticatedAdminDunningRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
+  '/admin/launch': typeof AuthenticatedAdminLaunchRoute
   '/admin/overview': typeof AuthenticatedAdminOverviewRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
@@ -395,6 +403,7 @@ export interface FileRoutesByTo {
   '/admin/coupons': typeof AuthenticatedAdminCouponsRoute
   '/admin/dunning': typeof AuthenticatedAdminDunningRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
+  '/admin/launch': typeof AuthenticatedAdminLaunchRoute
   '/admin/overview': typeof AuthenticatedAdminOverviewRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
@@ -446,6 +455,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/coupons': typeof AuthenticatedAdminCouponsRoute
   '/_authenticated/admin/dunning': typeof AuthenticatedAdminDunningRoute
   '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
+  '/_authenticated/admin/launch': typeof AuthenticatedAdminLaunchRoute
   '/_authenticated/admin/overview': typeof AuthenticatedAdminOverviewRoute
   '/_authenticated/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/_authenticated/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
@@ -497,6 +507,7 @@ export interface FileRouteTypes {
     | '/admin/coupons'
     | '/admin/dunning'
     | '/admin/events'
+    | '/admin/launch'
     | '/admin/overview'
     | '/admin/plans'
     | '/admin/subscriptions'
@@ -544,6 +555,7 @@ export interface FileRouteTypes {
     | '/admin/coupons'
     | '/admin/dunning'
     | '/admin/events'
+    | '/admin/launch'
     | '/admin/overview'
     | '/admin/plans'
     | '/admin/subscriptions'
@@ -594,6 +606,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/coupons'
     | '/_authenticated/admin/dunning'
     | '/_authenticated/admin/events'
+    | '/_authenticated/admin/launch'
     | '/_authenticated/admin/overview'
     | '/_authenticated/admin/plans'
     | '/_authenticated/admin/subscriptions'
@@ -929,6 +942,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminOverviewRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/launch': {
+      id: '/_authenticated/admin/launch'
+      path: '/launch'
+      fullPath: '/admin/launch'
+      preLoaderRoute: typeof AuthenticatedAdminLaunchRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/events': {
       id: '/_authenticated/admin/events'
       path: '/events'
@@ -972,6 +992,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCouponsRoute: typeof AuthenticatedAdminCouponsRoute
   AuthenticatedAdminDunningRoute: typeof AuthenticatedAdminDunningRoute
   AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRoute
+  AuthenticatedAdminLaunchRoute: typeof AuthenticatedAdminLaunchRoute
   AuthenticatedAdminOverviewRoute: typeof AuthenticatedAdminOverviewRoute
   AuthenticatedAdminPlansRoute: typeof AuthenticatedAdminPlansRoute
   AuthenticatedAdminSubscriptionsRoute: typeof AuthenticatedAdminSubscriptionsRoute
@@ -983,6 +1004,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCouponsRoute: AuthenticatedAdminCouponsRoute,
   AuthenticatedAdminDunningRoute: AuthenticatedAdminDunningRoute,
   AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRoute,
+  AuthenticatedAdminLaunchRoute: AuthenticatedAdminLaunchRoute,
   AuthenticatedAdminOverviewRoute: AuthenticatedAdminOverviewRoute,
   AuthenticatedAdminPlansRoute: AuthenticatedAdminPlansRoute,
   AuthenticatedAdminSubscriptionsRoute: AuthenticatedAdminSubscriptionsRoute,
@@ -1103,13 +1125,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
