@@ -394,7 +394,7 @@ function ItemsPage() {
                     )}
                   </td>
                   <td className="px-3 py-2 text-center">
-                    <Badge variant={p.active ? "default" : "secondary"}>{p.active ? "Ativo" : "Inativo"}</Badge>
+                    <StatusBadge status={p.active ? "ACTIVE" : "INACTIVE"} label={p.active ? "Ativo" : "Inativo"} />
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex justify-center gap-1">
