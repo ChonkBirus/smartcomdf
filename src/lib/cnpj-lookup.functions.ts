@@ -230,6 +230,7 @@ async function fetchProvider(provider: CnpjProvider, cnpj: string, logBody: bool
           json: null,
           body: responseBody,
           message: `Invalid JSON from provider: ${parseError?.message ?? "unknown"}`,
+      timeout: false,
         };
       }
     }
@@ -242,6 +243,7 @@ async function fetchProvider(provider: CnpjProvider, cnpj: string, logBody: bool
       json,
       body: responseBody,
       message: response.ok ? "OK" : `HTTP ${response.status}`,
+      timeout: false,
     };
   } catch (error: any) {
     const isTimeout = error?.name === "TimeoutError" || /timeout/i.test(error?.message ?? "");
@@ -576,7 +578,7 @@ export const testCnpjLookup = createServerFn({ method: "POST" })
       return {
         cnpjLimpo,
         isValid: true,
-        provider: failure.debug.provider === "CACHE" || failure.debug.provider === "NONE" ? null : failure.debug.provider,
+        provider: failure.debug.provider === "BRASIL_API" || failure.debug.provider === "CNPJ_WS" ? failure.debug.provider : null,
         status: failure.debug.status,
         endpoint: failure.debug.endpoint || null,
         data_normalizada: null,
