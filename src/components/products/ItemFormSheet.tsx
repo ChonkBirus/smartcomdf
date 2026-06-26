@@ -227,7 +227,7 @@ export function ItemFormSheet({
                 />
               </div>
               {itemId && (
-                <p className="md:col-span-2 -mt-2 text-[11px] text-muted-foreground">
+                <p className="md:col-span-2 -mt-2 text-micro text-muted-foreground">
                   O tipo não pode ser alterado após a criação.
                 </p>
               )}

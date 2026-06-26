@@ -129,7 +129,7 @@ export function ImageUploader({
                 <div className="aspect-square w-full" />
               )}
               {img.is_primary && (
-                <span className="absolute left-1 top-1 rounded bg-primary px-1.5 py-0.5 text-[10px] font-medium text-primary-foreground">
+                <span className="absolute left-1 top-1 rounded bg-primary px-1.5 py-0.5 text-nano font-medium text-primary-foreground">
                   Principal
                 </span>
               )}

@@ -101,7 +101,7 @@ export function CustomerHistorySheet({
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-medium">{h.title}</span>
-                    <Badge variant="outline" className="text-[10px]">{meta.label}</Badge>
+                    <Badge variant="outline" className="text-nano">{meta.label}</Badge>
                   </div>
                   {h.description && <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{h.description}</p>}
                   <span className="text-xs text-muted-foreground">{new Date(h.created_at).toLocaleString("pt-BR")}</span>

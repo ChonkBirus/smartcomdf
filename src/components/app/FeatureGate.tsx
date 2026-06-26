@@ -289,7 +289,7 @@ function PlanCompare({
     >
       <div className="flex flex-col">
         <span className="text-xs font-semibold">{label}</span>
-        {current && <span className="text-[10px] text-primary">Seu plano</span>}
+        {current && <span className="text-nano text-primary">Seu plano</span>}
       </div>
       {included ? <Check className="h-4 w-4 text-success" /> : <X className="h-4 w-4 text-muted-foreground/50" />}
     </div>

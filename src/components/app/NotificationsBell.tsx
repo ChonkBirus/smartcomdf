@@ -61,7 +61,7 @@ export function NotificationsBell({ userId }: { userId?: string | null }) {
         <Button variant="ghost" size="icon" aria-label="Notificações" className="relative">
           <Bell className="h-4 w-4" />
           {unread > 0 && (
-            <Badge className="absolute -right-1 -top-1 h-5 min-w-5 rounded-full bg-primary px-1 text-[10px] text-primary-foreground">
+            <Badge className="absolute -right-1 -top-1 h-5 min-w-5 rounded-full bg-primary px-1 text-nano text-primary-foreground">
               {unread}
             </Badge>
           )}
@@ -94,7 +94,7 @@ export function NotificationsBell({ userId }: { userId?: string | null }) {
                     {!n.read && <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />}
                   </div>
                   {n.message && <div className="mt-1 text-xs text-muted-foreground">{n.message}</div>}
-                  <div className="mt-1 text-[10px] text-muted-foreground">
+                  <div className="mt-1 text-nano text-muted-foreground">
                     {new Date(n.created_at).toLocaleString("pt-BR")}
                   </div>
                 </li>

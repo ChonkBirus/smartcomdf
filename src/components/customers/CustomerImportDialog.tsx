@@ -471,7 +471,7 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: "ok
   const color = tone === "ok" ? "text-emerald-600" : tone === "err" ? "text-destructive" : "";
   return (
     <div className="rounded-md border bg-card p-3">
-      <div className="text-[11px] uppercase text-muted-foreground">{label}</div>
+      <div className="text-micro uppercase text-muted-foreground">{label}</div>
       <div className={`text-2xl font-semibold tabular-nums ${color}`}>{value}</div>
     </div>
   );

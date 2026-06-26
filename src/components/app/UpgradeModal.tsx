@@ -134,7 +134,7 @@ export function UpgradeModal() {
                   {isCurrent ? "Plano atual" : "Solicitar upgrade"}
                 </Button>
                 {upgradeFor && !hasFeature(upgradeFor) && (
-                  <div className="mt-2 text-center text-[10px] text-muted-foreground">
+                  <div className="mt-2 text-center text-nano text-muted-foreground">
                     {p.features.find((f) => f.code === upgradeFor)?.enabled ? (
                       <span className="text-success">✓ Inclui {featureLabel}</span>
                     ) : (

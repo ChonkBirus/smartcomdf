@@ -108,7 +108,7 @@ export function ServiceOrderPhotos({
                 </div>
               )}
               <div className="absolute top-1 left-1">
-                <Badge variant="secondary" className="text-[10px]">{TYPE_LABEL[p.photo_type]}</Badge>
+                <Badge variant="secondary" className="text-nano">{TYPE_LABEL[p.photo_type]}</Badge>
               </div>
             </button>
           ))}
@@ -275,7 +275,7 @@ function UploadControls({
           <ImageIcon className="h-5 w-5 mr-2" /> Galeria
         </Button>
       </div>
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-micro text-muted-foreground">
         JPG, PNG ou WEBP até 10 MB. As fotos ficam em bucket privado.
       </p>
     </div>
