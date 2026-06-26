@@ -108,7 +108,7 @@ export function ServiceOrderPhotos({
                 </div>
               )}
               <div className="absolute top-1 left-1">
-                <Badge variant="secondary" className="text-[10px]">{TYPE_LABEL[p.photo_type]}</Badge>
+                <Badge variant="secondary" className="text-nano">{TYPE_LABEL[p.photo_type]}</Badge>
               </div>
             </button>
           ))}
@@ -122,7 +122,7 @@ export function ServiceOrderPhotos({
           </DialogHeader>
           {previewPhoto?.signed_url && (
             <img src={previewPhoto.signed_url} alt={previewPhoto.file_name}
-              className="w-full max-h-[70vh] object-contain rounded-md bg-black" />
+              className="w-full max-h-[70vh] object-contain rounded-md bg-foreground" />
           )}
           {previewPhoto?.description && (
             <p className="text-sm text-muted-foreground">{previewPhoto.description}</p>
@@ -275,7 +275,7 @@ function UploadControls({
           <ImageIcon className="h-5 w-5 mr-2" /> Galeria
         </Button>
       </div>
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-micro text-muted-foreground">
         JPG, PNG ou WEBP até 10 MB. As fotos ficam em bucket privado.
       </p>
     </div>

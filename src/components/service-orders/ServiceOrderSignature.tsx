@@ -62,7 +62,7 @@ export function ServiceOrderSignature({
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-emerald-600" />
               <span className="text-sm font-medium">{s.signer_name}</span>
-              <Badge variant="secondary" className="text-[10px]">
+              <Badge variant="secondary" className="text-nano">
                 {s.signature_type === "CUSTOMER" ? "Cliente" : "Técnico"}
               </Badge>
             </div>
@@ -79,7 +79,7 @@ export function ServiceOrderSignature({
           ) : (
             <p className="text-xs text-muted-foreground">Pré-visualização indisponível.</p>
           )}
-          <div className="text-[11px] text-muted-foreground space-y-0.5">
+          <div className="text-micro text-muted-foreground space-y-0.5">
             {s.signer_document && <div>Documento: {s.signer_document}</div>}
             {s.signer_email && <div>E-mail: {s.signer_email}</div>}
             {s.signer_phone && <div>Telefone: {s.signer_phone}</div>}
@@ -283,7 +283,7 @@ function SignaturePad({
           Salvar assinatura
         </Button>
       </div>
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-micro text-muted-foreground">
         Ao salvar, registramos data/hora, IP e dispositivo para fins de auditoria.
       </p>
     </div>

@@ -378,7 +378,7 @@ function ItemsPage() {
                   </td>
                   <td className="px-3 py-2">
                     <div className="font-medium">{p.name}</div>
-                    {p.sku && <div className="font-mono text-[11px] text-muted-foreground">SKU: {p.sku}</div>}
+                    {p.sku && <div className="font-mono text-micro text-muted-foreground">SKU: {p.sku}</div>}
                   </td>
                   <td className="px-3 py-2">
                     <ItemBadge type={p.item_type as ItemType} />

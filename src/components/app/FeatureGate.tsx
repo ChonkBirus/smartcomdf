@@ -196,7 +196,7 @@ export function FeatureBlocked({ feature }: { feature: FeatureCode }) {
     <div className="mx-auto max-w-5xl py-6">
       <Card className="card-elevated overflow-hidden">
         <div className="brand-gradient p-8 text-primary-foreground">
-          <Badge className="mb-3 bg-white/20 text-white hover:bg-white/30">
+          <Badge className="mb-3 bg-primary-foreground/15 text-primary-foreground hover:bg-primary-foreground/25">
             <Sparkles className="mr-1 h-3 w-3" />
             Disponível no plano {planLabel}
           </Badge>
@@ -289,7 +289,7 @@ function PlanCompare({
     >
       <div className="flex flex-col">
         <span className="text-xs font-semibold">{label}</span>
-        {current && <span className="text-[10px] text-primary">Seu plano</span>}
+        {current && <span className="text-nano text-primary">Seu plano</span>}
       </div>
       {included ? <Check className="h-4 w-4 text-success" /> : <X className="h-4 w-4 text-muted-foreground/50" />}
     </div>

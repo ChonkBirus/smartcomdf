@@ -443,8 +443,8 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
       </div>
 
       {/* Pronto para OS */}
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-card p-4">
-        <div>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-lg border bg-card p-4 sm:flex sm:flex-wrap sm:justify-between">
+        <div className="min-w-0">
           <p className="text-sm font-medium">Pronto para Ordem de Serviço</p>
           <p className="text-xs text-muted-foreground">
             Requer responsável, datas, equipe e verificação de materiais.

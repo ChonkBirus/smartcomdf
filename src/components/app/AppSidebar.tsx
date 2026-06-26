@@ -83,7 +83,7 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
           {!collapsed && (
             <div className="flex flex-col leading-tight">
               <span className="text-sm font-bold tracking-tight">SecureERP</span>
-              <span className="text-[10px] uppercase text-muted-foreground">Segurança Eletrônica</span>
+              <span className="text-nano uppercase text-muted-foreground">Segurança Eletrônica</span>
             </div>
           )}
         </div>

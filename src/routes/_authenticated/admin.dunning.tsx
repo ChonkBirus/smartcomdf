@@ -161,8 +161,8 @@ function AdminDunningPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:flex-wrap sm:justify-between">
+        <div className="flex min-w-0 items-center gap-2">
           <Select value={status} onValueChange={setStatus}>
             <SelectTrigger className="w-[200px]">
               <SelectValue />

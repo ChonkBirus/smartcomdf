@@ -153,7 +153,7 @@ function AdminPilotsPage() {
         <MetricCard label="Conversão" value={`${metrics?.conversionRate ?? 0}%`} />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:flex-wrap sm:justify-between">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[200px]">
             <SelectValue />
@@ -167,7 +167,7 @@ function AdminPilotsPage() {
             ))}
           </SelectContent>
         </Select>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <Target className="h-4 w-4" />
           {metrics?.pendingFollowUps ?? 0} follow-ups pendentes
           <Button size="sm" onClick={() => setCreateOpen(true)}>

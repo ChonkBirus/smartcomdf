@@ -224,7 +224,7 @@ function ClientsPage() {
                       {c.email && <div className="text-xs text-muted-foreground">{c.email}</div>}
                     </td>
                     <td className="px-3 py-2">
-                      <Badge variant="outline" className="text-[10px]">
+                      <Badge variant="outline" className="text-nano">
                         {c.customer_type === "COMPANY" ? "PJ" : "PF"}
                       </Badge>
                     </td>
@@ -234,7 +234,7 @@ function ClientsPage() {
                     <td className="px-3 py-2">
                       <div className="flex flex-wrap gap-1">
                         {(c.tags ?? []).slice(0, 3).map((t: any) => (
-                          <Badge key={t.id} variant="outline" className="text-[10px]"
+                          <Badge key={t.id} variant="outline" className="text-nano"
                             style={{ borderColor: t.color, color: t.color }}>
                             {t.name}
                           </Badge>

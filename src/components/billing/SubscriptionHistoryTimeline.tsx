@@ -299,8 +299,8 @@ export function SubscriptionHistoryTimeline({
               </span>
               <Card className="card-elevated">
                 <CardContent className="flex flex-col gap-1 py-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="font-medium">{e.title}</div>
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:flex-wrap sm:justify-between">
+                    <div className="min-w-0 truncate font-medium">{e.title}</div>
                     {e.amount !== null && e.amount !== undefined ? (
                       <div
                         className={`text-sm font-semibold ${
