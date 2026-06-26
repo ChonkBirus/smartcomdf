@@ -145,9 +145,10 @@ function AdminCompaniesPage() {
                 <TableCell>{c.plan_name ?? "—"}</TableCell>
                 <TableCell>
                   {c.subscription_status ? (
-                    <Badge className={SUB_STATUS_COLOR[c.subscription_status] ?? ""} variant="secondary">
-                      {SUB_STATUS_LABEL[c.subscription_status]}
-                    </Badge>
+                    <StatusBadge
+                      status={c.subscription_status}
+                      label={SUB_STATUS_LABEL[c.subscription_status]}
+                    />
                   ) : (
                     <span className="text-xs text-muted-foreground">sem assinatura</span>
                   )}
