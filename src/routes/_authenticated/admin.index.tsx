@@ -42,15 +42,6 @@ const SUB_STATUS_LABEL: Record<string, string> = {
   MANUAL_REVIEW: "Em análise",
 };
 
-const SUB_STATUS_COLOR: Record<string, string> = {
-  TRIALING: "bg-warning/15 text-warning",
-  ACTIVE: "bg-success/15 text-success",
-  PAST_DUE: "bg-warning/15 text-warning",
-  SUSPENDED: "bg-destructive/15 text-destructive",
-  CANCELED: "bg-muted text-muted-foreground",
-  EXPIRED: "bg-muted text-muted-foreground",
-  MANUAL_REVIEW: "bg-primary/15 text-primary",
-};
 
 type Company = {
   id: string;
