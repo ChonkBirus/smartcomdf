@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.quote_recalc_totals(uuid) TO authenticated;
