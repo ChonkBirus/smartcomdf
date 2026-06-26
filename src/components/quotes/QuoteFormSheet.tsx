@@ -329,9 +329,10 @@ export function QuoteFormSheet({
 
         <form onSubmit={onSubmit} className="mt-4 space-y-4">
           <Tabs defaultValue="main">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="main">Dados</TabsTrigger>
               <TabsTrigger value="items">Itens</TabsTrigger>
+              <TabsTrigger value="diagnosis">Diagnóstico</TabsTrigger>
               <TabsTrigger value="terms">Condições</TabsTrigger>
             </TabsList>
 
