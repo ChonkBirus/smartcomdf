@@ -70,6 +70,9 @@ export function QuoteSendSheet({
   const fetchPix = useServerFn(getCompanyPix);
   const approvePay = useServerFn(approveQuotePayment);
   const cancelPay = useServerFn(cancelQuotePayment);
+  const fetchPdfPayload = useServerFn(getQuotePdfPayload);
+  const [pdfTemplate, setPdfTemplate] = useState<QuotePdfTemplate>("premium");
+  const [pdfBusy, setPdfBusy] = useState(false);
 
   const enabled = open && !!quoteId;
   const { data, isLoading } = useQuery({
