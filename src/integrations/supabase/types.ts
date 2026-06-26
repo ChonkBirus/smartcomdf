@@ -3418,6 +3418,12 @@ export type Database = {
           customer_id: string
           customer_notes: string | null
           delivery_terms: string | null
+          diagnosis_critical_points: string | null
+          diagnosis_environment: string | null
+          diagnosis_need: string | null
+          diagnosis_objective: string | null
+          diagnosis_problem: string | null
+          diagnosis_technical_notes: string | null
           discount: number
           down_payment_amount: number
           down_payment_percent: number
@@ -3456,6 +3462,12 @@ export type Database = {
           customer_id: string
           customer_notes?: string | null
           delivery_terms?: string | null
+          diagnosis_critical_points?: string | null
+          diagnosis_environment?: string | null
+          diagnosis_need?: string | null
+          diagnosis_objective?: string | null
+          diagnosis_problem?: string | null
+          diagnosis_technical_notes?: string | null
           discount?: number
           down_payment_amount?: number
           down_payment_percent?: number
@@ -3494,6 +3506,12 @@ export type Database = {
           customer_id?: string
           customer_notes?: string | null
           delivery_terms?: string | null
+          diagnosis_critical_points?: string | null
+          diagnosis_environment?: string | null
+          diagnosis_need?: string | null
+          diagnosis_objective?: string | null
+          diagnosis_problem?: string | null
+          diagnosis_technical_notes?: string | null
           discount?: number
           down_payment_amount?: number
           down_payment_percent?: number

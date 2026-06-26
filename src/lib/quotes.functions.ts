@@ -44,6 +44,12 @@ export type Quote = {
   down_payment_amount: number;
   remaining_amount: number;
   payment_approved_at: string | null;
+  diagnosis_problem: string | null;
+  diagnosis_need: string | null;
+  diagnosis_environment: string | null;
+  diagnosis_objective: string | null;
+  diagnosis_critical_points: string | null;
+  diagnosis_technical_notes: string | null;
 };
 
 export type QuotePaymentStatus =
@@ -100,6 +106,12 @@ const quoteSchema = z.object({
   internal_notes: z.string().trim().max(4000).optional().nullable(),
   labor_cost: z.number().min(0).default(0),
   discount: z.number().min(0).default(0),
+  diagnosis_problem: z.string().trim().max(2000).optional().nullable(),
+  diagnosis_need: z.string().trim().max(2000).optional().nullable(),
+  diagnosis_environment: z.string().trim().max(2000).optional().nullable(),
+  diagnosis_objective: z.string().trim().max(2000).optional().nullable(),
+  diagnosis_critical_points: z.string().trim().max(2000).optional().nullable(),
+  diagnosis_technical_notes: z.string().trim().max(2000).optional().nullable(),
   items: z.array(itemLineSchema).min(1, "Adicione pelo menos um item."),
 });
 
@@ -307,6 +319,12 @@ export const saveQuote = createServerFn({ method: "POST" })
         internal_notes: nz(data.internal_notes),
         labor_cost: data.labor_cost,
         discount: data.discount,
+        diagnosis_problem: nz(data.diagnosis_problem),
+        diagnosis_need: nz(data.diagnosis_need),
+        diagnosis_environment: nz(data.diagnosis_environment),
+        diagnosis_objective: nz(data.diagnosis_objective),
+        diagnosis_critical_points: nz(data.diagnosis_critical_points),
+        diagnosis_technical_notes: nz(data.diagnosis_technical_notes),
       }).eq("id", quoteId);
       if (error) throw new Error(error.message);
       await sb.from("quote_items").delete().eq("quote_id", quoteId);
@@ -320,7 +338,7 @@ export const saveQuote = createServerFn({ method: "POST" })
         status: "DRAFT",
         title: nz(data.title),
         issue_date: data.issue_date,
-        valid_until: nz(data.valid_until),
+        valid_until: nz(data.valid_until) ?? new Date(new Date(data.issue_date).getTime() + 15 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
         payment_terms: nz(data.payment_terms),
         delivery_terms: nz(data.delivery_terms),
         warranty_terms: nz(data.warranty_terms),
@@ -329,6 +347,12 @@ export const saveQuote = createServerFn({ method: "POST" })
         internal_notes: nz(data.internal_notes),
         labor_cost: data.labor_cost,
         discount: data.discount,
+        diagnosis_problem: nz(data.diagnosis_problem),
+        diagnosis_need: nz(data.diagnosis_need),
+        diagnosis_environment: nz(data.diagnosis_environment),
+        diagnosis_objective: nz(data.diagnosis_objective),
+        diagnosis_critical_points: nz(data.diagnosis_critical_points),
+        diagnosis_technical_notes: nz(data.diagnosis_technical_notes),
         created_by: context.userId,
       }).select("id").single();
       if (error) throw new Error(error.message);

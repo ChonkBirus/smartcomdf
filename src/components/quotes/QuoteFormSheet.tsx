@@ -79,16 +79,33 @@ export function QuoteFormSheet({
   const [customerOpen, setCustomerOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [issueDate, setIssueDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [validUntil, setValidUntil] = useState("");
+  const addDays = (iso: string, n: number) =>
+    new Date(new Date(iso).getTime() + n * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const [validUntil, setValidUntil] = useState(() => addDays(new Date().toISOString().slice(0, 10), 15));
+  const [validUntilTouched, setValidUntilTouched] = useState(false);
   const [payment, setPayment] = useState(DEFAULT_PAYMENT_TERMS);
   const [delivery, setDelivery] = useState("");
   const [warranty, setWarranty] = useState("");
   const [completion, setCompletion] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
   const [internalNotes, setInternalNotes] = useState("");
+  const [diagProblem, setDiagProblem] = useState("");
+  const [diagNeed, setDiagNeed] = useState("");
+  const [diagEnvironment, setDiagEnvironment] = useState("");
+  const [diagObjective, setDiagObjective] = useState("");
+  const [diagCritical, setDiagCritical] = useState("");
+  const [diagTechNotes, setDiagTechNotes] = useState("");
   const [laborCost, setLaborCost] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [lines, setLines] = useState<Line[]>([]);
+
+  // Auto-fill valid_until = issue_date + 15 days for new quotes when user hasn't manually edited it.
+  useEffect(() => {
+    if (quoteId) return;
+    if (validUntilTouched) return;
+    if (!issueDate) return;
+    setValidUntil(addDays(issueDate, 15));
+  }, [issueDate, quoteId, validUntilTouched]);
 
   const {
     data: customersData,
@@ -155,17 +172,24 @@ export function QuoteFormSheet({
   useEffect(() => {
     if (!open) return;
     if (quoteId && existing) {
-      const q = existing.quote;
+      const q: any = existing.quote;
       setCustomerId(q.customer_id);
       setTitle(q.title ?? "");
       setIssueDate(q.issue_date.slice(0, 10));
       setValidUntil(q.valid_until?.slice(0, 10) ?? "");
+      setValidUntilTouched(true);
       setPayment(q.payment_terms ?? "");
       setDelivery(q.delivery_terms ?? "");
       setWarranty(q.warranty_terms ?? "");
       setCompletion(q.completion_estimate ?? "");
       setCustomerNotes(q.customer_notes ?? "");
       setInternalNotes(q.internal_notes ?? "");
+      setDiagProblem(q.diagnosis_problem ?? "");
+      setDiagNeed(q.diagnosis_need ?? "");
+      setDiagEnvironment(q.diagnosis_environment ?? "");
+      setDiagObjective(q.diagnosis_objective ?? "");
+      setDiagCritical(q.diagnosis_critical_points ?? "");
+      setDiagTechNotes(q.diagnosis_technical_notes ?? "");
       setLaborCost(Number(q.labor_cost || 0));
       setDiscount(Number(q.discount || 0));
       setLines(
@@ -181,10 +205,13 @@ export function QuoteFormSheet({
         })),
       );
     } else if (!quoteId) {
+      const today = new Date().toISOString().slice(0, 10);
       setCustomerId(""); setTitle("");
-      setIssueDate(new Date().toISOString().slice(0, 10)); setValidUntil("");
+      setIssueDate(today); setValidUntil(addDays(today, 15)); setValidUntilTouched(false);
       setPayment(DEFAULT_PAYMENT_TERMS); setDelivery(""); setWarranty(""); setCompletion("");
       setCustomerNotes(""); setInternalNotes("");
+      setDiagProblem(""); setDiagNeed(""); setDiagEnvironment("");
+      setDiagObjective(""); setDiagCritical(""); setDiagTechNotes("");
       setLaborCost(0); setDiscount(0); setLines([]);
     }
   }, [open, quoteId, existing]);
@@ -215,6 +242,12 @@ export function QuoteFormSheet({
           internal_notes: internalNotes || null,
           labor_cost: Number(laborCost) || 0,
           discount: Number(discount) || 0,
+          diagnosis_problem: diagProblem || null,
+          diagnosis_need: diagNeed || null,
+          diagnosis_environment: diagEnvironment || null,
+          diagnosis_objective: diagObjective || null,
+          diagnosis_critical_points: diagCritical || null,
+          diagnosis_technical_notes: diagTechNotes || null,
           items: lines.map((l, idx) => ({
             id: l.id,
             item_id: l.item_id,
@@ -296,9 +329,10 @@ export function QuoteFormSheet({
 
         <form onSubmit={onSubmit} className="mt-4 space-y-4">
           <Tabs defaultValue="main">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="main">Dados</TabsTrigger>
               <TabsTrigger value="items">Itens</TabsTrigger>
+              <TabsTrigger value="diagnosis">Diagnóstico</TabsTrigger>
               <TabsTrigger value="terms">Condições</TabsTrigger>
             </TabsList>
 
@@ -417,7 +451,14 @@ export function QuoteFormSheet({
                 </div>
                 <div>
                   <Label>Validade</Label>
-                  <Input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} />
+                  <Input
+                    type="date"
+                    value={validUntil}
+                    onChange={(e) => { setValidUntil(e.target.value); setValidUntilTouched(true); }}
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Preenchida automaticamente com 15 dias após a emissão. Você pode editar manualmente.
+                  </p>
                 </div>
               </div>
 
@@ -494,6 +535,44 @@ export function QuoteFormSheet({
               <div className="flex items-center justify-between rounded-md bg-muted p-3 text-sm font-semibold">
                 <span>Total da proposta (interno)</span>
                 <span>{fmtBRL(total)}</span>
+              </div>
+            </TabsContent>
+
+            {/* DIAGNÓSTICO */}
+            <TabsContent value="diagnosis" className="space-y-3 pt-4">
+              <p className="text-xs text-muted-foreground">
+                Preencha o diagnóstico técnico (visita técnica ou levantamento comercial). Esses campos alimentam a seção
+                "Diagnóstico da necessidade" do PDF da proposta. Se ficar em branco, o PDF usa um texto padrão.
+              </p>
+              <div>
+                <Label>Problema identificado</Label>
+                <Textarea rows={2} value={diagProblem} onChange={(e) => setDiagProblem(e.target.value)}
+                  placeholder="Ex.: Falhas de monitoramento na entrada e área de carga." />
+              </div>
+              <div>
+                <Label>Necessidade do cliente</Label>
+                <Textarea rows={2} value={diagNeed} onChange={(e) => setDiagNeed(e.target.value)}
+                  placeholder="Ex.: Sistema com gravação contínua e acesso remoto." />
+              </div>
+              <div>
+                <Label>Ambiente atendido</Label>
+                <Textarea rows={2} value={diagEnvironment} onChange={(e) => setDiagEnvironment(e.target.value)}
+                  placeholder="Ex.: Galpão de 600m², dois acessos, recepção." />
+              </div>
+              <div>
+                <Label>Objetivo da solução</Label>
+                <Textarea rows={2} value={diagObjective} onChange={(e) => setDiagObjective(e.target.value)}
+                  placeholder="Ex.: Reduzir ocorrências e aumentar controle operacional." />
+              </div>
+              <div>
+                <Label>Pontos críticos observados</Label>
+                <Textarea rows={2} value={diagCritical} onChange={(e) => setDiagCritical(e.target.value)}
+                  placeholder="Ex.: Ângulos cegos na lateral e iluminação baixa à noite." />
+              </div>
+              <div>
+                <Label>Observações técnicas</Label>
+                <Textarea rows={2} value={diagTechNotes} onChange={(e) => setDiagTechNotes(e.target.value)}
+                  placeholder="Ex.: Necessário reforço de infraestrutura elétrica e cabeamento estruturado." />
               </div>
             </TabsContent>
 
