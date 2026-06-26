@@ -5387,6 +5387,53 @@ export type Database = {
           },
         ]
       }
+      user_onboarding_progress: {
+        Row: {
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          current_step: number
+          id: string
+          skipped_at: string | null
+          status: string
+          tour_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          id?: string
+          skipped_at?: string | null
+          status?: string
+          tour_key: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          id?: string
+          skipped_at?: string | null
+          status?: string
+          tour_key?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_onboarding_progress_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           company_id: string | null
