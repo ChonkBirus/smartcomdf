@@ -230,7 +230,7 @@ async function fetchProvider(provider: CnpjProvider, cnpj: string, logBody: bool
           json: null,
           body: responseBody,
           message: `Invalid JSON from provider: ${parseError?.message ?? "unknown"}`,
-      timeout: false,
+          timeout: false,
         };
       }
     }
@@ -511,7 +511,7 @@ export const lookupCnpj = createServerFn({ method: "POST" })
         await supabaseAdmin.from("cnpj_lookup_logs").insert({
           company_id: null,
           cnpj,
-          provider: failure.debug.provider === "CACHE" || failure.debug.provider === "NONE" ? "BRASIL_API" : failure.debug.provider,
+          provider: failure.debug.provider === "BRASIL_API" || failure.debug.provider === "CNPJ_WS" ? failure.debug.provider : "BRASIL_API",
           status: failure.code === "CNPJ_NOT_FOUND" ? "NOT_FOUND" : failure.code === "INVALID_CNPJ" ? "INVALID_CNPJ" : failure.debug.status === 429 ? "RATE_LIMITED" : "PROVIDER_ERROR",
           result_summary: { debug: failure.debug },
           error_message: failure.debug.message,
