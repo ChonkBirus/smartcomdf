@@ -38,8 +38,10 @@ export function generateQuotePDF(opts: {
   customer: Customer | null;
   company: Company | null;
   publicLink?: string;
-}) {
+  output?: "save" | "blob";
+}): Blob | void {
   const { quote, items, customer, company, publicLink } = opts;
+
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   let y = 40;
@@ -161,5 +163,7 @@ export function generateQuotePDF(opts: {
     doc.text(`${i} / ${pageCount}`, W - 40, 820, { align: "right" });
   }
 
+  if (opts.output === "blob") return doc.output("blob");
   doc.save(`Orcamento-${quote.quote_number}.pdf`);
 }
+

@@ -12,8 +12,12 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Copy, Download, MessageCircle, Send, Eye, CheckCircle2, Link2, History, Mail, Banknote, XCircle, Rocket,
+  Copy, Download, MessageCircle, Send, Eye, CheckCircle2, Link2, History, Mail, Banknote, XCircle, Rocket, FileSearch,
 } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+
 import { toast } from "sonner";
 import {
   getQuote, getQuoteHistory, logQuoteEvent, markQuoteSent,
@@ -73,6 +77,9 @@ export function QuoteSendSheet({
   const fetchPdfPayload = useServerFn(getQuotePdfPayload);
   const [pdfTemplate, setPdfTemplate] = useState<QuotePdfTemplate>("premium");
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [previewBusy, setPreviewBusy] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
 
   const enabled = open && !!quoteId;
   const { data, isLoading } = useQuery({
@@ -176,6 +183,38 @@ export function QuoteSendSheet({
       setPdfBusy(false);
     }
   }
+
+  async function handlePreviewPDF() {
+    if (!quote) return;
+    setPreviewBusy(true);
+    try {
+      const payload = await fetchPdfPayload({ data: { quote_id: quote.id } });
+      const blob = await generateQuotePDF({
+        template: pdfTemplate,
+        quote: payload.quote as any,
+        items: payload.items as any,
+        customer: payload.customer as any,
+        company: payload.company as any,
+        settings: payload.settings,
+        publicLink: publicUrl,
+        output: "blob",
+      });
+      if (!(blob instanceof Blob)) throw new Error("PDF inválido.");
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(URL.createObjectURL(blob));
+    } catch (e: any) {
+      toast.error(e?.message ?? "Falha ao gerar pré-visualização.");
+    } finally {
+      setPreviewBusy(false);
+    }
+  }
+
+  function closePreview() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+  }
+
+
 
   function handleWhatsApp() {
     if (!quote) return;
@@ -371,6 +410,9 @@ export function QuoteSendSheet({
                     <Mail className="mr-1 h-4 w-4" />E-mail
                   </Button>
                   <div className="flex gap-1">
+                    <Button variant="outline" onClick={handlePreviewPDF} className="flex-1" disabled={previewBusy}>
+                      <FileSearch className="mr-1 h-4 w-4" />{previewBusy ? "Gerando..." : "Pré-visualizar"}
+                    </Button>
                     <Button variant="outline" onClick={handleDownloadPDF} className="flex-1" disabled={pdfBusy}>
                       <Download className="mr-1 h-4 w-4" />{pdfBusy ? "Gerando..." : "PDF"}
                     </Button>
@@ -384,6 +426,7 @@ export function QuoteSendSheet({
                       </SelectContent>
                     </Select>
                   </div>
+
                   <Button
                     variant="secondary"
                     onClick={() => sendMut.mutate()}
@@ -553,6 +596,28 @@ export function QuoteSendSheet({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!previewUrl} onOpenChange={(v) => { if (!v) closePreview(); }}>
+        <DialogContent className="max-w-5xl p-0 sm:max-w-5xl">
+          <DialogHeader className="border-b px-6 py-3">
+            <DialogTitle>Pré-visualização — {quote?.quote_number}</DialogTitle>
+          </DialogHeader>
+          {previewUrl && (
+            <iframe
+              src={previewUrl}
+              title="Pré-visualização do PDF"
+              className="h-[75vh] w-full bg-muted"
+            />
+          )}
+          <DialogFooter className="border-t px-6 py-3">
+            <Button variant="outline" onClick={closePreview}>Fechar</Button>
+            <Button onClick={handleDownloadPDF} disabled={pdfBusy}>
+              <Download className="mr-1 h-4 w-4" />{pdfBusy ? "Gerando..." : "Baixar PDF"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Sheet>
+
   );
 }
