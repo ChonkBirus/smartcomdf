@@ -106,6 +106,12 @@ const quoteSchema = z.object({
   internal_notes: z.string().trim().max(4000).optional().nullable(),
   labor_cost: z.number().min(0).default(0),
   discount: z.number().min(0).default(0),
+  diagnosis_problem: z.string().trim().max(2000).optional().nullable(),
+  diagnosis_need: z.string().trim().max(2000).optional().nullable(),
+  diagnosis_environment: z.string().trim().max(2000).optional().nullable(),
+  diagnosis_objective: z.string().trim().max(2000).optional().nullable(),
+  diagnosis_critical_points: z.string().trim().max(2000).optional().nullable(),
+  diagnosis_technical_notes: z.string().trim().max(2000).optional().nullable(),
   items: z.array(itemLineSchema).min(1, "Adicione pelo menos um item."),
 });
 
