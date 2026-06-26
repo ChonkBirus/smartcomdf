@@ -1,4 +1,4 @@
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon, LifeBuoy, RefreshCw } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -11,6 +11,12 @@ import {
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationsBell } from "./NotificationsBell";
 import { supabase } from "@/integrations/supabase/client";
+import { useContext } from "react";
+import { OnboardingCtx } from "@/components/onboarding/OnboardingProvider";
+function useOnboardingSafe() { return useContext(OnboardingCtx) as null | { startTour: (k: string) => void }; }
+
+
+
 
 export function Topbar({ name, email, avatarUrl, companyName, userId }: {
   name?: string | null; email?: string | null; avatarUrl?: string | null;
@@ -18,7 +24,9 @@ export function Topbar({ name, email, avatarUrl, companyName, userId }: {
 }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const onboarding = useOnboardingSafe();
   const initials = (name ?? email ?? "U").split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase();
+
 
   const signOut = async () => {
     await qc.cancelQueries();
@@ -57,6 +65,16 @@ export function Topbar({ name, email, avatarUrl, companyName, userId }: {
             <DropdownMenuItem onClick={() => navigate({ to: "/profile" })}>
               <UserIcon className="mr-2 h-4 w-4" /> Meu perfil
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate({ to: "/help" })}>
+              <LifeBuoy className="mr-2 h-4 w-4" /> Central de Ajuda
+            </DropdownMenuItem>
+            {onboarding && (
+              <DropdownMenuItem onClick={() => onboarding.startTour("initial")}>
+                <RefreshCw className="mr-2 h-4 w-4" /> Reiniciar tour
+              </DropdownMenuItem>
+            )}
+
+
 
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut} className="text-destructive">

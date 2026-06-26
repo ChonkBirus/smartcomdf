@@ -11,6 +11,8 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
 import { stockOverview } from "@/lib/stock.functions";
 import { usePermissions } from "@/lib/permissions";
 import { useFeatures } from "@/lib/features";
+import { GettingStartedChecklist } from "@/components/onboarding/GettingStartedChecklist";
+
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — SecureERP" }] }),
@@ -32,7 +34,14 @@ function Dashboard() {
       <PageHeader
         title="Dashboard"
         description="Visão geral do desempenho da sua empresa."
+        tourKey="initial"
       />
+
+      <div className="mb-6">
+        <GettingStartedChecklist />
+      </div>
+
+
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard title="Clientes" value={formatNumber(124)} icon={<Users className="h-5 w-5" />}
