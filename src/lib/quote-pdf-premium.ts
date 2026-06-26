@@ -797,57 +797,47 @@ function renderDiagnosisPage(doc: jsPDF, ctx: { quote: PdfQuote }) {
 }
 
 function renderSolutionSummaryPage(doc: jsPDF, ctx: { quote: PdfQuote; items: PdfItem[] }) {
+  const content = getSolutionContent(ctx.quote, ctx.items);
   let y = newPage(doc);
   y = drawEyebrow(doc, "Solução Proposta", y);
-  y = drawSectionTitle(doc, "Solução proposta para o seu projeto", y);
+  y = drawSectionTitle(doc, content.solutionTitle, y);
 
   const totalItems = ctx.items.filter((i) => i.kind !== "LABOR")
     .reduce((s, i) => s + i.quantity, 0);
 
-  y = drawParagraph(
-    doc,
-    "A solução proposta contempla o fornecimento e instalação dos equipamentos necessários para compor um sistema funcional, organizado e preparado para atender às necessidades do cliente. O projeto foi estruturado considerando qualidade, estabilidade da rede, organização da infraestrutura, facilidade de manutenção e suporte pós-instalação.",
-    y,
-  );
-  y += 6;
+  y = drawParagraph(doc, content.solutionIntro, y);
+  y += 12;
 
   // Quick facts
   setFill(doc, PALETTE.graphite);
-  doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, 56, 6, 6, "F");
+  doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, 60, 6, 6, "F");
   const fW = (A4.w - MARGIN * 2) / 2;
   setText(doc, PALETTE.goldSoft);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
-  doc.text("ESCOPO PRINCIPAL", MARGIN + 16, y + 18);
-  doc.text("ITENS PREVISTOS", MARGIN + 16 + fW, y + 18);
+  doc.text("ESCOPO PRINCIPAL", MARGIN + 16, y + 20);
+  doc.text("ITENS PREVISTOS", MARGIN + 16 + fW, y + 20);
   setText(doc, PALETTE.white);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
-  doc.text(ctx.quote.title || "Solução técnica personalizada", MARGIN + 16, y + 38, { maxWidth: fW - 24 });
+  doc.text(ctx.quote.title || content.subtitle, MARGIN + 16, y + 42, { maxWidth: fW - 24 });
   doc.text(
     `${ctx.items.filter((i) => i.kind !== "LABOR").length} produtos · ${String(totalItems).replace(".", ",")} unidades`,
     MARGIN + 16 + fW,
-    y + 38,
+    y + 42,
   );
-  y += 70;
+  y += 78;
 
-  // Benefits
-  const benefits = [
-    { t: "Monitoramento eficiente", b: "Cobertura adequada dos pontos críticos." },
-    { t: "Acabamento profissional", b: "Instalação organizada e bem documentada." },
-    { t: "Equipamentos adequados", b: "Selecionados para o ambiente do projeto." },
-    { t: "Controle de acesso", b: "Gestão de quem entra, sai e circula." },
-    { t: "Suporte especializado", b: "Equipe técnica para esclarecer dúvidas." },
-    { t: "Garantia e acompanhamento", b: "Pós-instalação assistido e estruturado." },
-  ];
+  // Dynamic benefits per solution type
+  const benefits = content.solutionBenefits;
   const cw = (A4.w - MARGIN * 2 - 16) / 3;
-  const ch = 72;
+  const ch = 78;
   benefits.forEach((c, i) => {
     const col = i % 3;
     const row = Math.floor(i / 3);
     drawCard(doc, {
       x: MARGIN + col * (cw + 8),
-      y: y + row * (ch + 10),
+      y: y + row * (ch + 12),
       w: cw,
       h: ch,
       title: c.t,
