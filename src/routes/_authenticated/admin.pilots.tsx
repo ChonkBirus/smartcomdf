@@ -153,7 +153,7 @@ function AdminPilotsPage() {
         <MetricCard label="Conversão" value={`${metrics?.conversionRate ?? 0}%`} />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:flex-wrap sm:justify-between">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[200px]">
             <SelectValue />
