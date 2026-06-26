@@ -434,6 +434,7 @@ async function renderCoverPage(
   doc: jsPDF,
   ctx: {
     quote: PdfQuote;
+    items: PdfItem[];
     company: PdfCompany;
     customer: PdfCustomer;
     cfg: typeof DEFAULTS;
@@ -449,11 +450,22 @@ async function renderCoverPage(
   doc.rect(0, 0, A4.w, 6, "F");
   doc.rect(0, A4.h - 6, A4.w, 6, "F");
 
-  // Logo
+  // Logo — white background already removed in loadLogoForDarkBg.
+  // Rendered directly on the black background, no white box.
   if (ctx.logoDataUrl) {
     try {
-      const fmt = detectImageFormat(ctx.logoDataUrl);
-      doc.addImage(ctx.logoDataUrl, fmt, A4.w / 2 - 60, 90, 120, 60, undefined, "FAST");
+      const lw = 160;
+      const lh = 80;
+      doc.addImage(
+        ctx.logoDataUrl,
+        "PNG",
+        A4.w / 2 - lw / 2,
+        90,
+        lw,
+        lh,
+        undefined,
+        "FAST",
+      );
     } catch {
       /* ignore */
     }
@@ -468,23 +480,23 @@ async function renderCoverPage(
   setText(doc, PALETTE.goldSoft);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
-  doc.text("PROPOSTA TÉCNICA E COMERCIAL", A4.w / 2, 200, { align: "center" });
+  doc.text("PROPOSTA TÉCNICA E COMERCIAL", A4.w / 2, 220, { align: "center" });
 
   // Subtitle dynamic
   setText(doc, PALETTE.white);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(26);
-  const subtitle = inferSubtitle(ctx.quote);
+  const subtitle = inferSubtitle(ctx.quote, ctx.items);
   const subLines = doc.splitTextToSize(subtitle, A4.w - 120) as string[];
-  let sy = 240;
+  let sy = 260;
   subLines.forEach((ln) => {
     doc.text(ln, A4.w / 2, sy, { align: "center" });
-    sy += 30;
+    sy += 32;
   });
 
   // Decorative gold line
   setFill(doc, PALETTE.gold);
-  doc.rect(A4.w / 2 - 30, sy + 6, 60, 2, "F");
+  doc.rect(A4.w / 2 - 30, sy + 10, 60, 2, "F");
 
   // White info card
   const cardX = MARGIN + 20;
