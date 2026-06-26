@@ -140,17 +140,19 @@ export const lookupCnpj = createServerFn({ method: "POST" })
         headers: { Accept: "application/json" },
       });
     } catch (e: any) {
+      console.error("[lookupCnpj] provider fetch failed:", e?.message);
       await writeLog("PROVIDER_ERROR", { error: e?.message });
-      throw new Error("Não foi possível consultar este CNPJ no momento. Preencha os dados manualmente ou tente novamente.");
+      throw new Error("Consulta indisponível no momento. Preencha os dados manualmente ou tente novamente.");
     }
 
     if (resp.status === 404) {
       await writeLog("NOT_FOUND");
-      throw new Error("CNPJ não encontrado na base consultada. Verifique o número ou preencha manualmente.");
+      throw new Error("Não foi possível localizar os dados deste CNPJ. Você pode preencher manualmente.");
     }
     if (!resp.ok) {
+      console.error("[lookupCnpj] provider HTTP error:", resp.status);
       await writeLog("PROVIDER_ERROR", { error: `HTTP ${resp.status}` });
-      throw new Error("Não foi possível consultar este CNPJ no momento. Preencha os dados manualmente ou tente novamente.");
+      throw new Error("Consulta indisponível no momento. Preencha os dados manualmente ou tente novamente.");
     }
 
     const raw = await resp.json();
