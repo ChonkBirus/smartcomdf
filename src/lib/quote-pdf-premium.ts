@@ -1591,15 +1591,37 @@ export async function generatePremiumQuotePDF(opts: {
 
   const doc = new jsPDF({ unit: "pt", format: "a4", compress: true });
 
+  // Compact mode is the new default: enxuto, mais vendedor.
+  const compact = cfg.compactPremiumPdf;
+  const effective = {
+    showCompanyIntro: !compact,
+    showAbout: true,
+    showCftPage: cfg.showCftPage && !compact,
+    showCftvImportance: cfg.showCftvImportance && !compact,
+    showDiagnosis: cfg.showDiagnosis,
+    showSolutionSummary: cfg.showSolutionSummary,
+    showScope: cfg.showScope && !compact,
+    showProductHighlights: cfg.showProductHighlights,
+    showMaterialsTable: cfg.showMaterialsTable,
+    showExecutionProcess: cfg.showExecutionProcess && !compact,
+    showWarrantySupport: cfg.showWarrantySupport && !compact,
+    showCommercialConditions: cfg.showCommercialConditions,
+    showImportantNotes: cfg.showImportantNotes && !compact,
+    showAcceptancePage: cfg.showAcceptancePage,
+  };
+  const maxHighlights = Math.min(compact ? 3 : cfg.maxProductHighlights, 3);
+
   // Preload images in parallel
   const logoPromise = loadLogoForDarkBg(opts.company?.logo_url ?? null);
-  const highlightItems = cfg.showProductHighlights
-    ? opts.items
-        .filter((it) => it.kind !== "LABOR" && it.image_url)
-        .slice(0, cfg.maxProductHighlights)
+
+  // Strategic selection — only equipamentos principais get a página própria.
+  const solutionKey = detectSolutionKey(opts.quote, opts.items);
+  const strategicItems = effective.showProductHighlights
+    ? selectStrategicQuoteItems(opts.items, solutionKey, maxHighlights)
     : [];
+  const strategicCategories = strategicItems.map((it) => categorizeItem(it));
   const productImagesPromise = Promise.all(
-    highlightItems.map((it) => loadImageAsDataUrl(it.image_url)),
+    strategicItems.map((it) => loadImageAsDataUrl(it.image_url)),
   );
 
   // Preload all material thumbnails (deduped by URL) for the materials table
@@ -1636,29 +1658,30 @@ export async function generatePremiumQuotePDF(opts: {
     cfg,
     logoDataUrl,
   });
-  renderCompanyIntroPage(doc, { company: opts.company });
-  renderAboutPage(doc, { company: opts.company, cfg });
-  if (cfg.showCftPage) renderTechnicalAuthorityPage(doc, { settings: opts.settings, company: opts.company });
-  if (cfg.showCftvImportance) renderCftvImportancePage(doc, { quote: opts.quote, items: opts.items });
-  if (cfg.showDiagnosis) renderDiagnosisPage(doc, { quote: opts.quote });
-  if (cfg.showSolutionSummary) renderSolutionSummaryPage(doc, { quote: opts.quote, items: opts.items });
-  if (cfg.showScope) renderScopePage(doc);
-  if (cfg.showMaterialsTable) await renderMaterialsTablePage(doc, { items: opts.items, thumbnails });
-  if (cfg.showProductHighlights) {
-    for (let i = 0; i < highlightItems.length; i++) {
+  if (effective.showCompanyIntro) renderCompanyIntroPage(doc, { company: opts.company });
+  if (effective.showAbout) renderAboutPage(doc, { company: opts.company, cfg });
+  if (effective.showCftPage) renderTechnicalAuthorityPage(doc, { settings: opts.settings, company: opts.company });
+  if (effective.showCftvImportance) renderCftvImportancePage(doc, { quote: opts.quote, items: opts.items });
+  if (effective.showDiagnosis) renderDiagnosisPage(doc, { quote: opts.quote });
+  if (effective.showSolutionSummary) renderSolutionSummaryPage(doc, { quote: opts.quote, items: opts.items });
+  if (effective.showScope) renderScopePage(doc);
+  if (effective.showMaterialsTable) await renderMaterialsTablePage(doc, { items: opts.items, thumbnails });
+  if (effective.showProductHighlights) {
+    for (let i = 0; i < strategicItems.length; i++) {
       await renderProductHighlight(doc, {
-        item: highlightItems[i],
+        item: strategicItems[i],
         imageDataUrl: productImages[i] ?? null,
         index: i,
-        total: highlightItems.length,
+        total: strategicItems.length,
+        category: strategicCategories[i],
       });
     }
   }
-  if (cfg.showExecutionProcess) renderExecutionProcessPage(doc);
-  if (cfg.showWarrantySupport) renderWarrantySupportPage(doc);
-  if (cfg.showCommercialConditions) renderCommercialConditionsPage(doc, { quote: opts.quote });
-  if (cfg.showImportantNotes) renderImportantNotesPage(doc, { quote: opts.quote });
-  if (cfg.showAcceptancePage) {
+  if (effective.showExecutionProcess) renderExecutionProcessPage(doc);
+  if (effective.showWarrantySupport) renderWarrantySupportPage(doc);
+  if (effective.showCommercialConditions) renderCommercialConditionsPage(doc, { quote: opts.quote });
+  if (effective.showImportantNotes) renderImportantNotesPage(doc, { quote: opts.quote });
+  if (effective.showAcceptancePage) {
     await renderAcceptancePage(doc, {
       quote: opts.quote,
       customer: opts.customer,
