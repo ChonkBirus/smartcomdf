@@ -249,7 +249,7 @@ function PublicQuotePage() {
               <div><strong>Observações:</strong><p className="text-muted-foreground whitespace-pre-line">{quote.customer_notes}</p></div>
             )}
             {data.payment && data.payment.payment_status === "APPROVED" && (
-              <p className="mt-2 inline-block rounded bg-green-600 px-2 py-0.5 text-xs font-semibold text-white">
+              <p className="mt-2 inline-block rounded bg-success px-2 py-0.5 text-xs font-semibold text-success-foreground">
                 Pagamento aprovado
               </p>
             )}
