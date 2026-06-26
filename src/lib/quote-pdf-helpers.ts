@@ -226,7 +226,7 @@ export function applyFooters(doc: jsPDF, companyName: string) {
 /** Adds a new page and returns the cursor Y after top margin. */
 export function newPage(doc: jsPDF) {
   doc.addPage();
-  return MARGIN + 8;
+  return MARGIN + 20;
 }
 
 export function ensureSpace(doc: jsPDF, y: number, needed: number) {
