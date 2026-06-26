@@ -1159,10 +1159,10 @@ async function renderMaterialsTablePage(
 
 async function renderProductHighlight(
   doc: jsPDF,
-  ctx: { item: PdfItem; imageDataUrl: string | null; index: number; total: number },
+  ctx: { item: PdfItem; imageDataUrl: string | null; index: number; total: number; category: HighlightCategory },
 ) {
   let y = newPage(doc);
-  y = drawEyebrow(doc, `Produto em destaque · ${ctx.index + 1}/${ctx.total}`, y);
+  y = drawEyebrow(doc, `Produto estratégico da solução · ${ctx.index + 1}/${ctx.total}`, y);
   y = drawSectionTitle(doc, ctx.item.name, y);
 
   // Image box on left, copy on right
@@ -1195,40 +1195,37 @@ async function renderProductHighlight(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   const reason =
-    "Este equipamento foi selecionado por oferecer bom desempenho, confiabilidade e compatibilidade com a necessidade técnica do projeto.";
+    "Este equipamento foi selecionado por ser uma peça importante para o funcionamento da solução proposta. Ele contribui para maior segurança, estabilidade e confiabilidade do sistema, reduzindo riscos de falhas e facilitando a operação no dia a dia.";
   const rLines = doc.splitTextToSize(reason, tw) as string[];
   let cy = y + 32;
   rLines.forEach((ln) => { doc.text(ln, tx, cy); cy += 13; });
+
+  cy += 6;
+  setText(doc, PALETTE.gold);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text("O QUE ESTE PRODUTO RESOLVE", tx, cy);
+  cy += 12;
+  setText(doc, PALETTE.grayDark);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9.5);
+  const resolves = RESOLVES_COPY[ctx.category] ?? RESOLVES_COPY.other;
+  const resLines = doc.splitTextToSize(resolves, tw) as string[];
+  resLines.forEach((ln) => { doc.text(ln, tx, cy); cy += 12; });
 
   if (ctx.item.description) {
     cy += 6;
     setText(doc, PALETTE.gold);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
-    doc.text("DESCRIÇÃO", tx, cy);
+    doc.text("DESCRIÇÃO CADASTRADA", tx, cy);
     cy += 12;
     setText(doc, PALETTE.grayDark);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9.5);
     const dLines = doc.splitTextToSize(ctx.item.description, tw) as string[];
-    dLines.slice(0, 8).forEach((ln) => { doc.text(ln, tx, cy); cy += 12; });
+    dLines.slice(0, 6).forEach((ln) => { doc.text(ln, tx, cy); cy += 12; });
   }
-
-  cy += 6;
-  setText(doc, PALETTE.gold);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.text("BENEFÍCIOS", tx, cy);
-  cy += 12;
-  setText(doc, PALETTE.grayDark);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9.5);
-  ["Qualidade comprovada", "Boa durabilidade", "Compatibilidade", "Facilidade de manutenção"].forEach((b) => {
-    setFill(doc, PALETTE.gold);
-    doc.circle(tx + 2, cy - 3, 1.6, "F");
-    doc.text(b, tx + 10, cy);
-    cy += 12;
-  });
 
   // Quantity badge
   let by = y + imgH + 16;
