@@ -163,5 +163,7 @@ export function generateQuotePDF(opts: {
     doc.text(`${i} / ${pageCount}`, W - 40, 820, { align: "right" });
   }
 
+  if (opts.output === "blob") return doc.output("blob");
   doc.save(`Orcamento-${quote.quote_number}.pdf`);
 }
+
