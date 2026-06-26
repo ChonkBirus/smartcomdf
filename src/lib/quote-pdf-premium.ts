@@ -1180,5 +1180,7 @@ export async function generatePremiumQuotePDF(opts: {
     { align: "center", maxWidth: A4.w - 120 },
   );
 
+  if (opts.output === "blob") return doc.output("blob");
   doc.save(`Proposta-${opts.quote.quote_number}.pdf`);
 }
+
