@@ -51,6 +51,7 @@ import { Route as AuthenticatedBillingPlansRouteImport } from './routes/_authent
 import { Route as AuthenticatedBillingInvoicesRouteImport } from './routes/_authenticated/billing.invoices'
 import { Route as AuthenticatedAdminSubscriptionsRouteImport } from './routes/_authenticated/admin.subscriptions'
 import { Route as AuthenticatedAdminPlansRouteImport } from './routes/_authenticated/admin.plans'
+import { Route as AuthenticatedAdminPilotsRouteImport } from './routes/_authenticated/admin.pilots'
 import { Route as AuthenticatedAdminOverviewRouteImport } from './routes/_authenticated/admin.overview'
 import { Route as AuthenticatedAdminLaunchRouteImport } from './routes/_authenticated/admin.launch'
 import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated/admin.events'
@@ -282,6 +283,12 @@ const AuthenticatedAdminPlansRoute = AuthenticatedAdminPlansRouteImport.update({
   path: '/plans',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminPilotsRoute =
+  AuthenticatedAdminPilotsRouteImport.update({
+    id: '/pilots',
+    path: '/pilots',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminOverviewRoute =
   AuthenticatedAdminOverviewRouteImport.update({
     id: '/overview',
@@ -357,6 +364,7 @@ export interface FileRoutesByFullPath {
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/launch': typeof AuthenticatedAdminLaunchRoute
   '/admin/overview': typeof AuthenticatedAdminOverviewRoute
+  '/admin/pilots': typeof AuthenticatedAdminPilotsRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
   '/billing/invoices': typeof AuthenticatedBillingInvoicesRoute
@@ -405,6 +413,7 @@ export interface FileRoutesByTo {
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/launch': typeof AuthenticatedAdminLaunchRoute
   '/admin/overview': typeof AuthenticatedAdminOverviewRoute
+  '/admin/pilots': typeof AuthenticatedAdminPilotsRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
   '/billing/invoices': typeof AuthenticatedBillingInvoicesRoute
@@ -457,6 +466,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
   '/_authenticated/admin/launch': typeof AuthenticatedAdminLaunchRoute
   '/_authenticated/admin/overview': typeof AuthenticatedAdminOverviewRoute
+  '/_authenticated/admin/pilots': typeof AuthenticatedAdminPilotsRoute
   '/_authenticated/admin/plans': typeof AuthenticatedAdminPlansRoute
   '/_authenticated/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
   '/_authenticated/billing/invoices': typeof AuthenticatedBillingInvoicesRoute
@@ -509,6 +519,7 @@ export interface FileRouteTypes {
     | '/admin/events'
     | '/admin/launch'
     | '/admin/overview'
+    | '/admin/pilots'
     | '/admin/plans'
     | '/admin/subscriptions'
     | '/billing/invoices'
@@ -557,6 +568,7 @@ export interface FileRouteTypes {
     | '/admin/events'
     | '/admin/launch'
     | '/admin/overview'
+    | '/admin/pilots'
     | '/admin/plans'
     | '/admin/subscriptions'
     | '/billing/invoices'
@@ -608,6 +620,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/events'
     | '/_authenticated/admin/launch'
     | '/_authenticated/admin/overview'
+    | '/_authenticated/admin/pilots'
     | '/_authenticated/admin/plans'
     | '/_authenticated/admin/subscriptions'
     | '/_authenticated/billing/invoices'
@@ -935,6 +948,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPlansRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/pilots': {
+      id: '/_authenticated/admin/pilots'
+      path: '/pilots'
+      fullPath: '/admin/pilots'
+      preLoaderRoute: typeof AuthenticatedAdminPilotsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/overview': {
       id: '/_authenticated/admin/overview'
       path: '/overview'
@@ -994,6 +1014,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRoute
   AuthenticatedAdminLaunchRoute: typeof AuthenticatedAdminLaunchRoute
   AuthenticatedAdminOverviewRoute: typeof AuthenticatedAdminOverviewRoute
+  AuthenticatedAdminPilotsRoute: typeof AuthenticatedAdminPilotsRoute
   AuthenticatedAdminPlansRoute: typeof AuthenticatedAdminPlansRoute
   AuthenticatedAdminSubscriptionsRoute: typeof AuthenticatedAdminSubscriptionsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -1006,6 +1027,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRoute,
   AuthenticatedAdminLaunchRoute: AuthenticatedAdminLaunchRoute,
   AuthenticatedAdminOverviewRoute: AuthenticatedAdminOverviewRoute,
+  AuthenticatedAdminPilotsRoute: AuthenticatedAdminPilotsRoute,
   AuthenticatedAdminPlansRoute: AuthenticatedAdminPlansRoute,
   AuthenticatedAdminSubscriptionsRoute: AuthenticatedAdminSubscriptionsRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
