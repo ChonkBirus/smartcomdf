@@ -105,12 +105,13 @@ function ServiceOrdersListPage() {
               <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Carregando...</TableCell></TableRow>
             ) : !data || data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="py-12 text-center">
-                  <Wrench className="mx-auto mb-2 h-6 w-6 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">Nenhuma Ordem de Serviço encontrada.</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Gere uma OS a partir de um projeto pronto.
-                  </p>
+                <TableCell colSpan={8} className="p-0">
+                  <EmptyState
+                    icon={<Wrench className="h-6 w-6" />}
+                    title="Nenhuma Ordem de Serviço encontrada"
+                    description="Gere uma OS a partir de um projeto pronto."
+                    className="border-0 shadow-none"
+                  />
                 </TableCell>
               </TableRow>
             ) : data.map((so) => (
