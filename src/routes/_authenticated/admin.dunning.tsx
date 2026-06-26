@@ -57,10 +57,10 @@ function fmtBRL(n: number | null | undefined) {
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-function statusVariant(s: string) {
-  if (s === "PENDING") return "default";
-  if (s === "HANDLED") return "secondary";
-  return "outline";
+function statusTone(s: string): "primary" | "success" | "neutral" {
+  if (s === "PENDING") return "primary";
+  if (s === "HANDLED") return "success";
+  return "neutral";
 }
 
 function defaultMessage(ev: DunningEventRow) {
