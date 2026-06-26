@@ -38,8 +38,10 @@ export function generateQuotePDF(opts: {
   customer: Customer | null;
   company: Company | null;
   publicLink?: string;
-}) {
+  output?: "save" | "blob";
+}): Blob | void {
   const { quote, items, customer, company, publicLink } = opts;
+
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   let y = 40;
