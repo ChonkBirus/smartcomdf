@@ -203,7 +203,7 @@ function truncateBody(body: string) {
   return body.length > 1600 ? `${body.slice(0, 1600)}…[truncated]` : body;
 }
 
-async function fetchProvider(provider: CnpjProvider, cnpj: string) {
+async function fetchProvider(provider: CnpjProvider, cnpj: string, logBody: boolean) {
   const endpoint = provider === "BRASIL_API" ? BRASIL_API_ENDPOINT(cnpj) : CNPJ_WS_ENDPOINT(cnpj);
   console.log("[CNPJ LOOKUP SERVER] provider:", provider);
   console.log("[CNPJ LOOKUP SERVER] endpoint:", endpoint);
@@ -215,7 +215,7 @@ async function fetchProvider(provider: CnpjProvider, cnpj: string) {
     });
     const responseBody = await response.text();
     console.log("[CNPJ LOOKUP SERVER] status:", response.status);
-    console.log("[CNPJ LOOKUP SERVER] body:", truncateBody(responseBody));
+    console.log("[CNPJ LOOKUP SERVER] body:", logBody ? truncateBody(responseBody) : "[omitted outside development]");
 
     let json: any = null;
     if (responseBody) {
@@ -262,8 +262,8 @@ async function fetchProvider(provider: CnpjProvider, cnpj: string) {
   }
 }
 
-async function fetchAndNormalizeCnpj(cnpj: string) {
-  const primary = await fetchProvider("BRASIL_API", cnpj);
+async function fetchAndNormalizeCnpj(cnpj: string, logBody: boolean) {
+  const primary = await fetchProvider("BRASIL_API", cnpj, logBody);
 
   if (primary.ok) {
     return {
@@ -290,7 +290,7 @@ async function fetchAndNormalizeCnpj(cnpj: string) {
     });
   }
 
-  const fallback = await fetchProvider("CNPJ_WS", cnpj);
+  const fallback = await fetchProvider("CNPJ_WS", cnpj, logBody);
   if (fallback.ok) {
     return {
       normalized: normalizeByProvider("CNPJ_WS", fallback.json, cnpj),
@@ -475,7 +475,7 @@ export const lookupCnpj = createServerFn({ method: "POST" })
         return cached.normalized_data as CnpjLookupResultDTO;
       }
 
-      const { normalized, raw, provider, debug } = await fetchAndNormalizeCnpj(cnpj);
+      const { normalized, raw, provider, debug } = await fetchAndNormalizeCnpj(cnpj, dev);
       normalized.source = provider;
 
       const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -558,7 +558,7 @@ export const testCnpjLookup = createServerFn({ method: "POST" })
 
     try {
       await assertLookupPermission(sb);
-      const { normalized, provider, debug } = await fetchAndNormalizeCnpj(cnpjLimpo);
+      const { normalized, provider, debug } = await fetchAndNormalizeCnpj(cnpjLimpo, true);
       return {
         cnpjLimpo,
         isValid: true,
