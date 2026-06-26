@@ -37,6 +37,7 @@ function AdminLayout() {
     { to: "/admin/coupons", label: "Cupons", icon: Ticket },
     { to: "/admin/dunning", label: "Cobrança", icon: AlertTriangle },
     { to: "/admin/launch", label: "Lançamento", icon: Rocket },
+    { to: "/admin/pilots", label: "Pilotos", icon: Target },
     { to: "/admin/events", label: "Eventos", icon: Activity },
   ];
 
