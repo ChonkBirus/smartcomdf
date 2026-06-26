@@ -1467,7 +1467,31 @@ export async function generatePremiumQuotePDF(opts: {
   const productImagesPromise = Promise.all(
     highlightItems.map((it) => loadImageAsDataUrl(it.image_url)),
   );
-  const [logoDataUrl, productImages] = await Promise.all([logoPromise, productImagesPromise]);
+
+  // Preload all material thumbnails (deduped by URL) for the materials table
+  const thumbUrls = Array.from(
+    new Set(
+      opts.items
+        .filter((it) => it.kind !== "LABOR" && it.image_url)
+        .map((it) => it.image_url as string),
+    ),
+  );
+  const thumbnailsPromise = Promise.all(thumbUrls.map((u) => loadImageAsDataUrl(u))).then(
+    (results) => {
+      const map = new Map<string, string>();
+      thumbUrls.forEach((u, i) => {
+        const r = results[i];
+        if (r) map.set(u, r);
+      });
+      return map;
+    },
+  );
+
+  const [logoDataUrl, productImages, thumbnails] = await Promise.all([
+    logoPromise,
+    productImagesPromise,
+    thumbnailsPromise,
+  ]);
 
   // Render pages
   await renderCoverPage(doc, {
@@ -1485,7 +1509,7 @@ export async function generatePremiumQuotePDF(opts: {
   if (cfg.showDiagnosis) renderDiagnosisPage(doc, { quote: opts.quote });
   if (cfg.showSolutionSummary) renderSolutionSummaryPage(doc, { quote: opts.quote, items: opts.items });
   if (cfg.showScope) renderScopePage(doc);
-  if (cfg.showMaterialsTable) renderMaterialsTablePage(doc, { items: opts.items });
+  if (cfg.showMaterialsTable) await renderMaterialsTablePage(doc, { items: opts.items, thumbnails });
   if (cfg.showProductHighlights) {
     for (let i = 0; i < highlightItems.length; i++) {
       await renderProductHighlight(doc, {
