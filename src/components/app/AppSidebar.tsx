@@ -164,7 +164,23 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        <SidebarGroup>
+          {!collapsed && <SidebarGroupLabel>Ajuda</SidebarGroupLabel>}
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith("/help")} tooltip="Central de Ajuda">
+                  <Link to="/help" className="flex items-center gap-2">
+                    <LifeBuoy className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span>Central de Ajuda</span>}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
         {isSuperAdmin && (
+
           <SidebarGroup>
             {!collapsed && <SidebarGroupLabel>Plataforma</SidebarGroupLabel>}
             <SidebarGroupContent>

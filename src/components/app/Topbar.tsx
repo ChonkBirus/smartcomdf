@@ -1,4 +1,4 @@
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon, LifeBuoy, RefreshCw } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -11,6 +11,8 @@ import {
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationsBell } from "./NotificationsBell";
 import { supabase } from "@/integrations/supabase/client";
+import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
+
 
 export function Topbar({ name, email, avatarUrl, companyName, userId }: {
   name?: string | null; email?: string | null; avatarUrl?: string | null;
