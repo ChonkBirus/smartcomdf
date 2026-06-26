@@ -49,6 +49,7 @@ export const Route = createFileRoute("/api/assistant/chat")({
           .eq("id", userId)
           .maybeSingle();
         if (!profile?.company_id) return new Response("No company", { status: 403 });
+        const companyId: string = profile.company_id;
 
         const { data: conv } = await supabase
           .from("ai_conversations")
