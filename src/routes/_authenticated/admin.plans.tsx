@@ -19,9 +19,10 @@ function AdminPlansPage() {
         <Card key={p.id} className="card-elevated">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{p.name}</CardTitle>
-            <Badge variant={p.active ? "default" : "secondary"}>
-              {p.active ? "Ativo" : "Inativo"}
-            </Badge>
+            <StatusBadge
+              status={p.active ? "ACTIVE" : "INACTIVE"}
+              label={p.active ? "Ativo" : "Inativo"}
+            />
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <div className="text-3xl font-bold text-primary">
