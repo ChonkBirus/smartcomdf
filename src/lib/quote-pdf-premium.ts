@@ -749,46 +749,36 @@ function renderTechnicalAuthorityPage(doc: jsPDF, ctx: { settings: PdfSettings; 
   }
 }
 
-function renderCftvImportancePage(doc: jsPDF) {
+function renderCftvImportancePage(doc: jsPDF, ctx: { quote: PdfQuote; items: PdfItem[] }) {
+  const content = getSolutionContent(ctx.quote, ctx.items);
   let y = newPage(doc);
   y = drawEyebrow(doc, "Importância da Solução", y);
-  y = drawSectionTitle(doc, "Por que investir em CFTV e segurança eletrônica?", y);
+  y = drawSectionTitle(doc, content.importanceTitle, y);
 
-  y = drawParagraph(
-    doc,
-    "Um sistema de CFTV bem instalado não serve apenas para gravar imagens. Ele ajuda a prevenir ocorrências, acompanhar movimentações, registrar evidências, aumentar a sensação de segurança e melhorar a gestão do ambiente.",
-    y,
-  );
-  y += 10;
+  y = drawParagraph(doc, content.importanceIntro, y);
+  y += 14;
 
-  const cards = [
-    { t: "Prevenção", b: "Câmeras visíveis inibem ações suspeitas e reduzem vulnerabilidades do ambiente." },
-    { t: "Registro de evidências", b: "Imagens auxiliam na análise de ocorrências e tomada de decisão." },
-    { t: "Controle do ambiente", b: "Acompanhe entradas, saídas, áreas comuns e pontos críticos." },
-    { t: "Mais tranquilidade", b: "Síndicos, gestores e moradores ganham segurança e controle." },
-    { t: "Valorização do imóvel", b: "Ambientes com estrutura de segurança transmitem organização." },
-    { t: "Integração", b: "CFTV trabalha junto com alarmes, controle de acesso, redes e automação." },
-  ];
+  const cards = content.importanceCards;
   const cw = (A4.w - MARGIN * 2 - 16) / 3;
-  const ch = 80;
+  const ch = 88;
   cards.forEach((c, i) => {
     const col = i % 3;
     const row = Math.floor(i / 3);
     drawCard(doc, {
       x: MARGIN + col * (cw + 8),
-      y: y + row * (ch + 10),
+      y: y + row * (ch + 12),
       w: cw,
       h: ch,
       title: c.t,
       body: c.b,
     });
   });
-  y += (ch + 10) * 2;
+  y += (ch + 12) * Math.ceil(cards.length / 3);
 
-  y += 4;
+  y += 8;
   drawParagraph(
     doc,
-    "O investimento em segurança eletrônica é uma decisão preventiva. Esperar o problema acontecer costuma sair mais caro do que estruturar uma solução correta desde o início.",
+    "O investimento em uma solução bem projetada é uma decisão preventiva. Esperar o problema acontecer costuma sair mais caro do que estruturar a solução correta desde o início.",
     y,
     { color: PALETTE.black, size: 10.5 },
   );
