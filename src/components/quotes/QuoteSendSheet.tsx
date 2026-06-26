@@ -404,22 +404,29 @@ export function QuoteSendSheet({
                   />
                 </div>
 
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <Button onClick={handleWhatsApp} className="w-full">
-                    <MessageCircle className="mr-1 h-4 w-4" />WhatsApp
-                  </Button>
-                  <Button variant="outline" onClick={handleEmail} className="w-full">
-                    <Mail className="mr-1 h-4 w-4" />E-mail
-                  </Button>
-                  <div className="flex gap-1">
-                    <Button variant="outline" onClick={handlePreviewPDF} className="flex-1" disabled={previewBusy}>
-                      <FileSearch className="mr-1 h-4 w-4" />{previewBusy ? "Gerando..." : "Pré-visualizar"}
+                <div className="space-y-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <Button onClick={handleWhatsApp} className="w-full min-w-0 justify-center whitespace-nowrap">
+                      <MessageCircle className="mr-1 h-4 w-4 shrink-0" />WhatsApp
                     </Button>
-                    <Button variant="outline" onClick={handleDownloadPDF} className="flex-1" disabled={pdfBusy}>
-                      <Download className="mr-1 h-4 w-4" />{pdfBusy ? "Gerando..." : "PDF"}
+                    <Button variant="outline" onClick={handleEmail} className="w-full min-w-0 justify-center whitespace-nowrap">
+                      <Mail className="mr-1 h-4 w-4 shrink-0" />E-mail
                     </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <Button variant="outline" onClick={handlePreviewPDF} className="w-full min-w-0 justify-center whitespace-nowrap" disabled={previewBusy}>
+                      <FileSearch className="mr-1 h-4 w-4 shrink-0" />{previewBusy ? "Gerando..." : "Pré-visualizar"}
+                    </Button>
+                    <Button variant="outline" onClick={handleDownloadPDF} className="w-full min-w-0 justify-center whitespace-nowrap" disabled={pdfBusy}>
+                      <Download className="mr-1 h-4 w-4 shrink-0" />{pdfBusy ? "Gerando..." : "Baixar PDF"}
+                    </Button>
+                  </div>
+
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <Label className="text-xs text-muted-foreground sm:w-auto">Modelo do PDF</Label>
                     <Select value={pdfTemplate} onValueChange={(v) => setPdfTemplate(v as QuotePdfTemplate)}>
-                      <SelectTrigger className="w-[120px]" title="Modelo do PDF">
+                      <SelectTrigger className="w-full sm:w-[180px]" title="Modelo do PDF">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -433,9 +440,9 @@ export function QuoteSendSheet({
                     variant="secondary"
                     onClick={() => sendMut.mutate()}
                     disabled={!["DRAFT", "VIEWED"].includes(quote.status) || sendMut.isPending}
-                    className="w-full"
+                    className="w-full min-w-0 justify-center whitespace-nowrap"
                   >
-                    <Send className="mr-1 h-4 w-4" />Marcar enviado
+                    <Send className="mr-1 h-4 w-4 shrink-0" />Marcar enviado
                   </Button>
                 </div>
 
