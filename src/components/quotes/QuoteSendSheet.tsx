@@ -166,7 +166,8 @@ export function QuoteSendSheet({
     if (!quote) return;
     setPdfBusy(true);
     try {
-      const payload = await fetchPdfPayload({ data: { quote_id: quote.id } });
+      const payload = await fetchPdfPayload({ data: { quote: { id: quote.id } as any, quote_id: quote.id } as any });
+      console.log("[PDF CLIENT] payload.items:", payload.items?.length, payload.items);
       await generateQuotePDF({
         template: pdfTemplate,
         quote: payload.quote as any,
