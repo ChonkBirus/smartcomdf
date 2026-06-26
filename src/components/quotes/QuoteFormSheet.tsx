@@ -172,17 +172,24 @@ export function QuoteFormSheet({
   useEffect(() => {
     if (!open) return;
     if (quoteId && existing) {
-      const q = existing.quote;
+      const q: any = existing.quote;
       setCustomerId(q.customer_id);
       setTitle(q.title ?? "");
       setIssueDate(q.issue_date.slice(0, 10));
       setValidUntil(q.valid_until?.slice(0, 10) ?? "");
+      setValidUntilTouched(true);
       setPayment(q.payment_terms ?? "");
       setDelivery(q.delivery_terms ?? "");
       setWarranty(q.warranty_terms ?? "");
       setCompletion(q.completion_estimate ?? "");
       setCustomerNotes(q.customer_notes ?? "");
       setInternalNotes(q.internal_notes ?? "");
+      setDiagProblem(q.diagnosis_problem ?? "");
+      setDiagNeed(q.diagnosis_need ?? "");
+      setDiagEnvironment(q.diagnosis_environment ?? "");
+      setDiagObjective(q.diagnosis_objective ?? "");
+      setDiagCritical(q.diagnosis_critical_points ?? "");
+      setDiagTechNotes(q.diagnosis_technical_notes ?? "");
       setLaborCost(Number(q.labor_cost || 0));
       setDiscount(Number(q.discount || 0));
       setLines(
@@ -198,10 +205,13 @@ export function QuoteFormSheet({
         })),
       );
     } else if (!quoteId) {
+      const today = new Date().toISOString().slice(0, 10);
       setCustomerId(""); setTitle("");
-      setIssueDate(new Date().toISOString().slice(0, 10)); setValidUntil("");
+      setIssueDate(today); setValidUntil(addDays(today, 15)); setValidUntilTouched(false);
       setPayment(DEFAULT_PAYMENT_TERMS); setDelivery(""); setWarranty(""); setCompletion("");
       setCustomerNotes(""); setInternalNotes("");
+      setDiagProblem(""); setDiagNeed(""); setDiagEnvironment("");
+      setDiagObjective(""); setDiagCritical(""); setDiagTechNotes("");
       setLaborCost(0); setDiscount(0); setLines([]);
     }
   }, [open, quoteId, existing]);
