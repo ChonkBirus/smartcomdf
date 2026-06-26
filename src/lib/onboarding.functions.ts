@@ -62,7 +62,7 @@ export const upsertOnboardingProgress = createServerFn({ method: "POST" })
     const companyId = await getCompanyId(context.supabase, context.userId);
     if (!companyId) return null;
     const now = new Date().toISOString();
-    const payload: Record<string, unknown> = {
+    const payload = {
       user_id: context.userId,
       company_id: companyId,
       tour_key: data.tourKey,
@@ -71,7 +71,7 @@ export const upsertOnboardingProgress = createServerFn({ method: "POST" })
       completed_at: data.status === "COMPLETED" ? now : null,
       skipped_at: data.status === "SKIPPED" ? now : null,
     };
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await (context.supabase as any)
       .from("user_onboarding_progress")
       .upsert(payload, { onConflict: "user_id,company_id,tour_key" })
       .select("tour_key,status,current_step,completed_at,skipped_at")
@@ -79,6 +79,7 @@ export const upsertOnboardingProgress = createServerFn({ method: "POST" })
     if (error) throw error;
     return row as OnboardingProgress;
   });
+
 
 export type GettingStartedStatus = {
   hasCustomer: boolean;
@@ -103,11 +104,12 @@ export const getGettingStartedStatus = createServerFn({ method: "GET" })
     if (!companyId) return empty;
 
     const count = async (table: string, filters: Record<string, unknown> = {}) => {
-      let q = context.supabase.from(table).select("id", { count: "exact", head: true }).eq("company_id", companyId);
+      let q: any = (context.supabase as any).from(table).select("id", { count: "exact", head: true }).eq("company_id", companyId);
       for (const [k, v] of Object.entries(filters)) q = q.eq(k, v);
       const { count: c } = await q;
       return (c ?? 0) > 0;
     };
+
 
     const [hasCustomer, hasProduct, hasQuote, hasServiceOrder] = await Promise.all([
       count("customers"),
