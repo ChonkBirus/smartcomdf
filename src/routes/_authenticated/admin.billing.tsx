@@ -290,9 +290,7 @@ function ChargeDetailDialog({ id, onClose }: { id: string; onClose: () => void }
                       className="flex items-center justify-between rounded-md border border-border p-2 text-xs"
                     >
                       <div className="flex items-center gap-2">
-                        <Badge className={eventStatusClass[ev.status] ?? "bg-muted"}>
-                          {ev.status}
-                        </Badge>
+                        <StatusBadge status={ev.status} size="sm" />
                         <span className="font-mono">{ev.event_type}</span>
                       </div>
                       <span className="text-muted-foreground">{fmtDate(ev.created_at)}</span>
