@@ -111,7 +111,7 @@ export function ExecutionActions({
 
   if (status === "COMPLETED") {
     return (
-      <div className="flex items-center gap-2 rounded-md border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 p-3 text-sm text-emerald-700 dark:text-emerald-300">
+      <div className="flex items-center gap-2 rounded-md border border-success/40 bg-success/10 p-3 text-sm text-success">
         <CheckCircle2 className="h-4 w-4" /> Execução técnica concluída.
       </div>
     );
@@ -130,7 +130,7 @@ export function ExecutionActions({
   return (
     <div className="space-y-2">
       {blockStart && (
-        <div className="flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-2 text-xs text-amber-700 dark:text-amber-300">
+        <div className="flex items-center gap-2 rounded-md border border-warning/40 bg-warning/10 p-2 text-xs text-warning">
           <AlertTriangle className="h-4 w-4" /> OS sem técnico atribuído. Solicite a um gestor.
         </div>
       )}
@@ -229,7 +229,7 @@ export function ExecutionActions({
           </DialogHeader>
           <div className="space-y-3">
             {pendingRequired.length > 0 && (
-              <div className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs text-amber-700 dark:text-amber-300 space-y-1">
+              <div className="rounded-md border border-warning/40 bg-warning/10 p-3 text-xs text-warning space-y-1">
                 <div className="flex items-center gap-1 font-semibold">
                   <AlertTriangle className="h-4 w-4" /> Itens obrigatórios não concluídos
                 </div>

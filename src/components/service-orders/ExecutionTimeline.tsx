@@ -4,10 +4,10 @@ import { Play, Pause, RefreshCw, CheckCircle2, History, FileText } from "lucide-
 import { listServiceOrderExecutionLogs } from "@/lib/service-order-execution.functions";
 
 const ACTION_META: Record<string, { icon: any; label: string; color: string }> = {
-  STARTED: { icon: Play, label: "Atendimento iniciado", color: "text-emerald-600" },
-  PAUSED: { icon: Pause, label: "Atendimento pausado", color: "text-amber-600" },
-  RESUMED: { icon: RefreshCw, label: "Atendimento retomado", color: "text-blue-600" },
-  FINISHED_EXECUTION: { icon: CheckCircle2, label: "Execução técnica finalizada", color: "text-emerald-700" },
+  STARTED: { icon: Play, label: "Atendimento iniciado", color: "text-success" },
+  PAUSED: { icon: Pause, label: "Atendimento pausado", color: "text-warning" },
+  RESUMED: { icon: RefreshCw, label: "Atendimento retomado", color: "text-primary" },
+  FINISHED_EXECUTION: { icon: CheckCircle2, label: "Execução técnica finalizada", color: "text-success" },
   STATUS_CHANGED: { icon: History, label: "Status alterado", color: "text-muted-foreground" },
   NOTE_ADDED: { icon: FileText, label: "Observação adicionada", color: "text-muted-foreground" },
 };

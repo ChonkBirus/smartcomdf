@@ -17,8 +17,8 @@ export const Route = createFileRoute("/_authenticated/settings/audit")({
 });
 
 const ACTION_COLORS: Record<string, string> = {
-  create: "bg-emerald-500/15 text-emerald-500",
-  update: "bg-amber-500/15 text-amber-500",
+  create: "bg-success/15 text-success",
+  update: "bg-warning/15 text-warning",
   delete: "bg-destructive/15 text-destructive",
   login: "bg-primary/15 text-primary",
 };

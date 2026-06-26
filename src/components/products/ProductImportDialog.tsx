@@ -486,7 +486,7 @@ export function ProductImportDialog({ open, onOpenChange }: { open: boolean; onO
 }
 
 function Stat({ label, value, tone }: { label: string; value: number; tone?: "ok" | "err" }) {
-  const color = tone === "ok" ? "text-emerald-600" : tone === "err" ? "text-destructive" : "";
+  const color = tone === "ok" ? "text-success" : tone === "err" ? "text-destructive" : "";
   return (
     <div className="rounded-md border bg-card p-3">
       <div className="text-micro uppercase text-muted-foreground">{label}</div>

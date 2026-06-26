@@ -34,24 +34,24 @@ const PRIORITY_LABEL: Record<string, string> = {
 const ROLES = ["Técnico", "Auxiliar", "Supervisor", "Responsável comercial", "Outro"];
 
 const MAT_BADGE: Record<MaterialCheckStatus, { label: string; cls: string }> = {
-  AVAILABLE: { label: "Disponível", cls: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300" },
-  PARTIALLY_AVAILABLE: { label: "Parcial", cls: "bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-300" },
-  UNAVAILABLE: { label: "Indisponível", cls: "bg-rose-100 text-rose-900 dark:bg-rose-950/40 dark:text-rose-300" },
+  AVAILABLE: { label: "Disponível", cls: "bg-success/15 text-success" },
+  PARTIALLY_AVAILABLE: { label: "Parcial", cls: "bg-warning/15 text-warning" },
+  UNAVAILABLE: { label: "Indisponível", cls: "bg-destructive/15 text-destructive" },
   NOT_APPLICABLE: { label: "N/A", cls: "bg-muted text-muted-foreground" },
 };
 
 const PROJ_MAT_LABEL: Record<string, { label: string; cls: string }> = {
   NOT_CHECKED: { label: "Não verificado", cls: "bg-muted text-muted-foreground" },
-  AVAILABLE: { label: "Materiais OK", cls: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300" },
-  PARTIALLY_AVAILABLE: { label: "Parcialmente disponível", cls: "bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-300" },
-  UNAVAILABLE: { label: "Materiais insuficientes", cls: "bg-rose-100 text-rose-900 dark:bg-rose-950/40 dark:text-rose-300" },
-  RESERVED: { label: "Reservado", cls: "bg-sky-100 text-sky-900 dark:bg-sky-950/40 dark:text-sky-300" },
+  AVAILABLE: { label: "Materiais OK", cls: "bg-success/15 text-success" },
+  PARTIALLY_AVAILABLE: { label: "Parcialmente disponível", cls: "bg-warning/15 text-warning" },
+  UNAVAILABLE: { label: "Materiais insuficientes", cls: "bg-destructive/15 text-destructive" },
+  RESERVED: { label: "Reservado", cls: "bg-primary/15 text-primary" },
 };
 
 const PLAN_LABEL: Record<string, { label: string; cls: string }> = {
   PENDING: { label: "Pendente", cls: "bg-muted text-muted-foreground" },
-  IN_PROGRESS: { label: "Em planejamento", cls: "bg-sky-100 text-sky-900 dark:bg-sky-950/40 dark:text-sky-300" },
-  READY_FOR_SERVICE_ORDER: { label: "Pronto para OS", cls: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300" },
+  IN_PROGRESS: { label: "Em planejamento", cls: "bg-primary/15 text-primary" },
+  READY_FOR_SERVICE_ORDER: { label: "Pronto para OS", cls: "bg-success/15 text-success" },
 };
 
 export function ProjectPlanningPanel({ project, onChanged }: { project: any; onChanged: () => void }) {
@@ -379,13 +379,13 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
         </div>
 
         {insufficient && missingItems.length > 0 && (
-          <div className="mb-3 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-900/50 dark:bg-amber-950/30">
-            <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-700 dark:text-amber-300" />
+          <div className="mb-3 flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-3 text-sm">
+            <AlertTriangle className="mt-0.5 h-4 w-4 text-warning" />
             <div className="flex-1">
-              <p className="font-medium text-amber-900 dark:text-amber-200">
+              <p className="font-medium text-warning">
                 Existem materiais insuficientes para este projeto.
               </p>
-              <ul className="mt-1 text-amber-800 dark:text-amber-300">
+              <ul className="mt-1 text-warning">
                 {missingItems.map((m) => (
                   <li key={m.id}>
                     {m.name}: faltam {Number(m.missing_quantity).toLocaleString("pt-BR")} {m.unit}
@@ -489,8 +489,8 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
 
 function Step({ done, label }: { done: boolean; label: string }) {
   return (
-    <div className={`flex items-center gap-2 rounded-md border p-2 ${done ? "border-emerald-300 bg-emerald-50/40 dark:border-emerald-900/50 dark:bg-emerald-950/20" : "border-dashed"}`}>
-      <CheckCircle2 className={`h-4 w-4 ${done ? "text-emerald-600" : "text-muted-foreground"}`} />
+    <div className={`flex items-center gap-2 rounded-md border p-2 ${done ? "border-success/40 bg-success/10" : "border-dashed"}`}>
+      <CheckCircle2 className={`h-4 w-4 ${done ? "text-success" : "text-muted-foreground"}`} />
       <span className={done ? "" : "text-muted-foreground"}>{label}</span>
     </div>
   );

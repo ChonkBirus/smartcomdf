@@ -258,9 +258,9 @@ function PublicQuotePage() {
 
         {/* Accept */}
         {isAccepted ? (
-          <div className="rounded-lg border border-green-300 bg-green-50 p-5 text-center dark:border-green-900 dark:bg-green-950/30">
-            <CheckCircle2 className="mx-auto h-10 w-10 text-green-600" />
-            <h3 className="mt-2 font-semibold text-green-800 dark:text-green-300">
+          <div className="rounded-lg border border-success/40 bg-success/10 p-5 text-center">
+            <CheckCircle2 className="mx-auto h-10 w-10 text-success" />
+            <h3 className="mt-2 font-semibold text-success">
               Proposta aceita
             </h3>
             {quote.accepted_by_name && (
@@ -321,7 +321,7 @@ function PublicQuotePage() {
                 )}
               </div>
             ) : (
-              <div className="mt-3 rounded border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+              <div className="mt-3 rounded border border-warning/40 bg-warning/10 p-3 text-xs text-warning">
                 A empresa ainda não cadastrou a chave Pix. Entre em contato para combinar o pagamento.
               </div>
             )}

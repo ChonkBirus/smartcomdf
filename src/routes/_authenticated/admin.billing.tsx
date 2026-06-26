@@ -61,19 +61,19 @@ const CHARGE_STATUSES = [
 const EVENT_STATUSES = ["PROCESSED", "ERROR", "DUPLICATE", "RECEIVED"];
 
 const chargeStatusClass: Record<string, string> = {
-  PENDING: "bg-amber-500/15 text-amber-600",
-  CONFIRMED: "bg-emerald-500/15 text-emerald-600",
-  RECEIVED: "bg-emerald-500/15 text-emerald-600",
-  OVERDUE: "bg-red-500/15 text-red-600",
+  PENDING: "bg-warning/15 text-warning",
+  CONFIRMED: "bg-success/15 text-success",
+  RECEIVED: "bg-success/15 text-success",
+  OVERDUE: "bg-destructive/15 text-destructive",
   REFUNDED: "bg-muted text-muted-foreground",
   DELETED: "bg-muted text-muted-foreground",
 };
 
 const eventStatusClass: Record<string, string> = {
-  PROCESSED: "bg-emerald-500/15 text-emerald-600",
-  ERROR: "bg-red-500/15 text-red-600",
+  PROCESSED: "bg-success/15 text-success",
+  ERROR: "bg-destructive/15 text-destructive",
   DUPLICATE: "bg-muted text-muted-foreground",
-  RECEIVED: "bg-blue-500/15 text-blue-600",
+  RECEIVED: "bg-primary/15 text-primary",
 };
 
 function fmtDate(d: string | null | undefined) {
@@ -436,7 +436,7 @@ function EventsTab() {
                 <TableCell className="text-xs text-muted-foreground">
                   {fmtDate(e.processed_at)}
                 </TableCell>
-                <TableCell className="text-xs text-red-600 max-w-[240px] truncate">
+                <TableCell className="text-xs text-destructive max-w-[240px] truncate">
                   {e.error_message ?? ""}
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">

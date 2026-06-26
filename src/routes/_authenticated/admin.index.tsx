@@ -43,13 +43,13 @@ const SUB_STATUS_LABEL: Record<string, string> = {
 };
 
 const SUB_STATUS_COLOR: Record<string, string> = {
-  TRIALING: "bg-amber-500/15 text-amber-600",
-  ACTIVE: "bg-emerald-500/15 text-emerald-600",
-  PAST_DUE: "bg-orange-500/15 text-orange-600",
+  TRIALING: "bg-warning/15 text-warning",
+  ACTIVE: "bg-success/15 text-success",
+  PAST_DUE: "bg-warning/15 text-warning",
   SUSPENDED: "bg-destructive/15 text-destructive",
   CANCELED: "bg-muted text-muted-foreground",
   EXPIRED: "bg-muted text-muted-foreground",
-  MANUAL_REVIEW: "bg-blue-500/15 text-blue-600",
+  MANUAL_REVIEW: "bg-primary/15 text-primary",
 };
 
 type Company = {

@@ -36,9 +36,9 @@ function Metric({
 }) {
   const toneCls = {
     default: "text-foreground",
-    success: "text-emerald-600 dark:text-emerald-400",
-    warning: "text-amber-600 dark:text-amber-400",
-    danger: "text-red-600 dark:text-red-400",
+    success: "text-success",
+    warning: "text-warning",
+    danger: "text-destructive",
   }[tone];
   return (
     <Card>
@@ -64,7 +64,7 @@ function OverviewPage() {
   });
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando…</p>;
-  if (error) return <p className="text-sm text-red-600">{(error as Error).message}</p>;
+  if (error) return <p className="text-sm text-destructive">{(error as Error).message}</p>;
   if (!data) return null;
 
   return (
@@ -111,13 +111,13 @@ function OverviewPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <AlertTriangle className="h-4 w-4 text-red-600" /> Saúde do billing
+              <AlertTriangle className="h-4 w-4 text-destructive" /> Saúde do billing
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Webhooks com erro</span>
-              <span className={data.webhooksErrorCount > 0 ? "font-semibold text-red-600" : ""}>
+              <span className={data.webhooksErrorCount > 0 ? "font-semibold text-destructive" : ""}>
                 {data.webhooksErrorCount}
               </span>
             </div>
