@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Package, Users, Boxes, FileText,
   DollarSign, HeartHandshake, Wrench, BarChart3, Settings, Shield, ShieldCheck, Lock,
-  Building2, ShoppingCart, Sparkles, Briefcase,
+  Building2, ShoppingCart, Sparkles, Briefcase, Bot,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -132,6 +132,37 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
             </SidebarGroupContent>
           </SidebarGroup>
         ))}
+        <SidebarGroup>
+          {!collapsed && <SidebarGroupLabel>Inteligência</SidebarGroupLabel>}
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {(() => {
+                const active = pathname === "/assistant" || pathname.startsWith("/assistant/");
+                const locked = !hasFeature("ai_assistant");
+                return (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={active} tooltip={locked ? "SmartCom IA — Plano Superior" : "SmartCom IA"}>
+                      <Link to="/assistant" className={cn("flex items-center gap-2", locked && "opacity-70")}>
+                        <Bot className="h-4 w-4 shrink-0" />
+                        {!collapsed && (
+                          <>
+                            <span className="flex-1 truncate">SmartCom IA</span>
+                            {locked && (
+                              <span className="flex items-center gap-1 rounded-sm bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-semibold text-amber-600 dark:text-amber-400">
+                                <Lock className="h-2.5 w-2.5" />
+                                Premium
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })()}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
         {isSuperAdmin && (
           <SidebarGroup>
             {!collapsed && <SidebarGroupLabel>Plataforma</SidebarGroupLabel>}

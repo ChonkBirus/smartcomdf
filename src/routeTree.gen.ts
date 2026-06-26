@@ -34,10 +34,12 @@ import { Route as AuthenticatedFinancialRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
 import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated/clients'
+import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing-webhook'
+import { Route as ApiAssistantChatRouteImport } from './routes/api/assistant.chat'
 import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authenticated/settings.team'
 import { Route as AuthenticatedSettingsSubscriptionRouteImport } from './routes/_authenticated/settings.subscription'
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
@@ -187,6 +189,11 @@ const AuthenticatedClientsRoute = AuthenticatedClientsRouteImport.update({
   path: '/clients',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -206,6 +213,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
 const ApiPublicBillingWebhookRoute = ApiPublicBillingWebhookRouteImport.update({
   id: '/api/public/billing-webhook',
   path: '/api/public/billing-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAssistantChatRoute = ApiAssistantChatRouteImport.update({
+  id: '/api/assistant/chat',
+  path: '/api/assistant/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedSettingsTeamRoute =
@@ -338,6 +350,7 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/assistant': typeof AuthenticatedAssistantRoute
   '/clients': typeof AuthenticatedClientsRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -378,6 +391,7 @@ export interface FileRoutesByFullPath {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/api/assistant/chat': typeof ApiAssistantChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -388,6 +402,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/assistant': typeof AuthenticatedAssistantRoute
   '/clients': typeof AuthenticatedClientsRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -427,6 +442,7 @@ export interface FileRoutesByTo {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/api/assistant/chat': typeof ApiAssistantChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
@@ -440,6 +456,7 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/clients': typeof AuthenticatedClientsRoute
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -480,6 +497,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/_authenticated/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/api/assistant/chat': typeof ApiAssistantChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -493,6 +511,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/reset-password'
     | '/admin'
+    | '/assistant'
     | '/clients'
     | '/crm'
     | '/dashboard'
@@ -533,6 +552,7 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/subscription'
     | '/settings/team'
+    | '/api/assistant/chat'
     | '/api/public/billing-webhook'
     | '/admin/'
     | '/settings/'
@@ -543,6 +563,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/forgot-password'
     | '/reset-password'
+    | '/assistant'
     | '/clients'
     | '/crm'
     | '/dashboard'
@@ -582,6 +603,7 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/subscription'
     | '/settings/team'
+    | '/api/assistant/chat'
     | '/api/public/billing-webhook'
     | '/admin'
     | '/settings'
@@ -594,6 +616,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/reset-password'
     | '/_authenticated/admin'
+    | '/_authenticated/assistant'
     | '/_authenticated/clients'
     | '/_authenticated/crm'
     | '/_authenticated/dashboard'
@@ -634,6 +657,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/subscription'
     | '/_authenticated/settings/team'
+    | '/api/assistant/chat'
     | '/api/public/billing-webhook'
     | '/_authenticated/admin/'
     | '/_authenticated/settings/'
@@ -649,6 +673,7 @@ export interface RootRouteChildren {
   InviteTokenRoute: typeof InviteTokenRoute
   QTokenRoute: typeof QTokenRoute
   RTokenRoute: typeof RTokenRoute
+  ApiAssistantChatRoute: typeof ApiAssistantChatRoute
   ApiPublicBillingWebhookRoute: typeof ApiPublicBillingWebhookRoute
 }
 
@@ -829,6 +854,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/assistant': {
+      id: '/_authenticated/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AuthenticatedAssistantRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -855,6 +887,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/billing-webhook'
       fullPath: '/api/public/billing-webhook'
       preLoaderRoute: typeof ApiPublicBillingWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/assistant/chat': {
+      id: '/api/assistant/chat'
+      path: '/api/assistant/chat'
+      fullPath: '/api/assistant/chat'
+      preLoaderRoute: typeof ApiAssistantChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings/team': {
@@ -1077,6 +1116,7 @@ const AuthenticatedServiceOrdersIdRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -1104,6 +1144,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedClientsRoute: AuthenticatedClientsRoute,
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
@@ -1142,6 +1183,7 @@ const rootRouteChildren: RootRouteChildren = {
   InviteTokenRoute: InviteTokenRoute,
   QTokenRoute: QTokenRoute,
   RTokenRoute: RTokenRoute,
+  ApiAssistantChatRoute: ApiAssistantChatRoute,
   ApiPublicBillingWebhookRoute: ApiPublicBillingWebhookRoute,
 }
 export const routeTree = rootRouteImport

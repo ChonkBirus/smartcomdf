@@ -25,7 +25,8 @@ export type FeatureCode =
   | "suppliers"
   | "purchases"
   | "smart_receiving"
-  | "ai_parser";
+  | "ai_parser"
+  | "ai_assistant";
 
 export type PlanInfo = {
   id: string;
