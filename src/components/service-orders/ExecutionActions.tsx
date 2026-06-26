@@ -111,7 +111,7 @@ export function ExecutionActions({
 
   if (status === "COMPLETED") {
     return (
-      <div className="flex items-center gap-2 rounded-md border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 p-3 text-sm text-emerald-700 dark:text-emerald-300">
+      <div className="flex items-center gap-2 rounded-md border border-success/40 bg-success/10 p-3 text-sm text-success">
         <CheckCircle2 className="h-4 w-4" /> Execução técnica concluída.
       </div>
     );

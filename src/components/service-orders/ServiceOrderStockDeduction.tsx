@@ -105,9 +105,9 @@ export function ServiceOrderStockDeduction({
           {logs.map((l) => (
             <li key={l.id} className="flex items-start gap-3 p-3 text-sm">
               {l.status === "DEDUCTED" ? (
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />
               ) : l.status === "BLOCKED" ? (
-                <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                <AlertCircle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
               ) : (
                 <XCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
               )}
@@ -120,7 +120,7 @@ export function ServiceOrderStockDeduction({
                   {new Date(l.created_at).toLocaleString("pt-BR")}
                 </div>
                 {l.error_message && (
-                  <div className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                  <div className="text-xs text-warning mt-1">
                     {l.error_message}
                   </div>
                 )}

@@ -19,17 +19,17 @@ export const SO_PRIORITY_LABEL: Record<ServiceOrderPriority, string> = {
 
 const STATUS_CLASS: Record<ServiceOrderStatus, string> = {
   DRAFT: "bg-muted text-muted-foreground border-transparent",
-  SCHEDULED: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-transparent",
-  IN_PROGRESS: "bg-amber-500/20 text-amber-800 dark:text-amber-200 border-transparent",
-  PAUSED: "bg-orange-500/15 text-orange-700 dark:text-orange-300 border-transparent",
-  COMPLETED: "bg-emerald-500/20 text-emerald-800 dark:text-emerald-200 border-transparent",
+  SCHEDULED: "bg-primary/15 text-primary border-transparent",
+  IN_PROGRESS: "bg-warning/20 text-warning border-transparent",
+  PAUSED: "bg-warning/15 text-warning border-transparent",
+  COMPLETED: "bg-success/20 text-success border-transparent",
   CANCELLED: "bg-destructive/15 text-destructive border-transparent",
 };
 
 const PRIORITY_CLASS: Record<ServiceOrderPriority, string> = {
   LOW: "bg-muted text-muted-foreground border-transparent",
   NORMAL: "bg-secondary text-secondary-foreground border-transparent",
-  HIGH: "bg-orange-500/20 text-orange-800 dark:text-orange-200 border-transparent",
+  HIGH: "bg-warning/20 text-warning border-transparent",
   URGENT: "bg-destructive/20 text-destructive border-transparent",
 };
 

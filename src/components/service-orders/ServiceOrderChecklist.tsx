@@ -68,7 +68,7 @@ export function ServiceOrderChecklist({
       <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
         <span>{done}/{data.length} concluídos</span>
         {reqPending > 0 && (
-          <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-300">
+          <span className="inline-flex items-center gap-1 text-warning">
             <AlertTriangle className="h-3 w-3" /> {reqPending} obrigatório(s) pendente(s)
           </span>
         )}
@@ -130,7 +130,7 @@ function ChecklistRow({
               {item.title}
             </span>
             {item.required && <Badge variant="outline" className="text-xs">Obrigatório</Badge>}
-            {item.checked && <CheckCircle2 className="h-4 w-4 text-emerald-600" />}
+            {item.checked && <CheckCircle2 className="h-4 w-4 text-success" />}
           </div>
           {item.description && (
             <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>

@@ -60,7 +60,7 @@ export function ServiceOrderSignature({
         <div key={s.id} className="rounded-md border p-3 space-y-2 bg-muted/30">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-emerald-600" />
+              <ShieldCheck className="h-4 w-4 text-success" />
               <span className="text-sm font-medium">{s.signer_name}</span>
               <Badge variant="secondary" className="text-nano">
                 {s.signature_type === "CUSTOMER" ? "Cliente" : "Técnico"}

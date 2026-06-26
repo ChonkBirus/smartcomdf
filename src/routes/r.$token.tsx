@@ -141,7 +141,7 @@ function PublicReportPage() {
             <ul className="text-sm space-y-1">
               {checklist.map((c: any) => (
                 <li key={c.id} className="flex items-center gap-2">
-                  <span className={c.is_completed ? "text-green-600" : "text-muted-foreground"}>
+                  <span className={c.is_completed ? "text-success" : "text-muted-foreground"}>
                     {c.is_completed ? "✓" : "○"}
                   </span>
                   <span>{c.title}</span>

@@ -127,7 +127,7 @@ function MobileSODetailPage() {
           assignedTechnicianId={so.assigned_technician_id}
         />
         {so.status === "PAUSED" && so.pending_reason && (
-          <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
+          <p className="text-xs text-warning mt-2">
             Pausa: {so.pending_reason}
           </p>
         )}
@@ -168,7 +168,7 @@ function MobileSODetailPage() {
             )}
           </div>
         ) : (
-          <p className="text-sm text-amber-700 dark:text-amber-300">Endereço não informado.</p>
+          <p className="text-sm text-warning">Endereço não informado.</p>
         )}
       </Section>
 
@@ -312,7 +312,7 @@ function MobileSODetailPage() {
       <Section title="Técnico responsável">
         <div className="flex items-center gap-2 text-sm">
           <User className="h-4 w-4 text-muted-foreground" />
-          {so.technician_name ?? <span className="text-amber-700 dark:text-amber-300">Técnico não definido</span>}
+          {so.technician_name ?? <span className="text-warning">Técnico não definido</span>}
         </div>
       </Section>
 
