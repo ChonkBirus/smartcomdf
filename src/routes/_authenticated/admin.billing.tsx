@@ -410,9 +410,7 @@ function EventsTab() {
                   {e.provider_object_id ?? "—"}
                 </TableCell>
                 <TableCell>
-                  <Badge className={eventStatusClass[e.status] ?? "bg-muted"}>
-                    {e.status}
-                  </Badge>
+                  <StatusBadge status={e.status} />
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">
                   {fmtDate(e.processed_at)}
