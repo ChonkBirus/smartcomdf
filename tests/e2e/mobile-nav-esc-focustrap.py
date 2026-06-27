@@ -34,7 +34,7 @@ async def open_mobile_menu(page):
     await page.wait_for_selector('[role="dialog"]', state="visible", timeout=3000)
 
 async def test_route(browser, browser_name, route):
-    r = {"route": route, "opens": False, "esc_closes": False, "focus_trapped": False, "error": None}
+    r = {"route": route, "opens": False, "esc_closes": False, "outside_closes": False, "focus_trapped": False, "error": None}
     s = slug(route)
     video_dir = VIDEOS / f"{browser_name}_{s}"
     video_dir.mkdir(parents=True, exist_ok=True)
