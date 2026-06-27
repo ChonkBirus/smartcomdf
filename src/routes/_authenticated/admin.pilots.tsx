@@ -577,10 +577,12 @@ function EditPilotDialog({
               onSubmit({
                 id: pilot.id,
                 status,
+                onboarding_status: onboarding,
                 source: source || null,
                 notes: notes || null,
                 expected_conversion_date: expected || null,
-                loss_reason: status === "lost" ? lossReason || null : null,
+                loss_reason:
+                  status === "lost" || status === "LOST" ? lossReason || null : null,
               });
             }}
           >
