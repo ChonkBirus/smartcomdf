@@ -1,0 +1,79 @@
+name: Lighthouse CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node (for Lighthouse CI)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install deps
+        run: bun install --frozen-lockfile
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.14.x
+
+      - name: Build app
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+
+      - name: Run Lighthouse CI
+        run: lhci autorun --config=./lighthouserc.json
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: Summarize Core Web Vitals
+        if: always()
+        run: |
+          set -e
+          shopt -s nullglob
+          echo "## Core Web Vitals (Lighthouse CI)" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| URL | LCP (ms) | CLS | TBT (ms, INP proxy) | Performance |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| --- | --- | --- | --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+          for f in .lighthouseci/lhr-*.json; do
+            node -e "
+              const r = require('./' + process.argv[1]);
+              const a = r.audits;
+              const row = [
+                r.finalUrl,
+                Math.round(a['largest-contentful-paint'].numericValue),
+                a['cumulative-layout-shift'].numericValue.toFixed(3),
+                Math.round(a['total-blocking-time'].numericValue),
+                Math.round(r.categories.performance.score * 100),
+              ];
+              console.log('| ' + row.join(' | ') + ' |');
+            " "$f" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/**
+          if-no-files-found: ignore
+          retention-days: 14
