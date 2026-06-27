@@ -309,10 +309,10 @@ export const getCommercialPilotMetrics = createServerFn({ method: "GET" })
       .not("next_follow_up_at", "is", null);
     return {
       total,
-      active: count("active"),
-      inProgress: count("in_progress"),
-      converted,
-      lost: count("lost"),
+      active: count("active") + count("ACTIVE_TRIAL") + count("USING") + count("ONBOARDING") + count("INVITED"),
+      inProgress: count("in_progress") + count("ONBOARDING") + count("READY_TO_CONVERT"),
+      converted: converted + count("CONVERTED"),
+      lost: count("lost") + count("LOST"),
       paused: count("paused"),
       conversionRate: closed > 0 ? Math.round((converted / closed) * 100) : 0,
       pendingFollowUps: pendingFollowUps ?? 0,
