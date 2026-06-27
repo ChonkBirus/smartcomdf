@@ -9,7 +9,7 @@ on:
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,12 +37,22 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
 
-      - name: Run Lighthouse CI
-        run: lhci autorun --config=./lighthouserc.json
+      - name: Run Lighthouse CI (desktop)
+        run: |
+          lhci autorun --config=./lighthouserc.json
+          mkdir -p .lighthouseci-desktop
+          cp -r .lighthouseci/* .lighthouseci-desktop/ || true
+          rm -rf .lighthouseci
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: Run Lighthouse CI (mobile)
+        run: |
+          lhci autorun --config=./lighthouserc.mobile.json
+          mkdir -p .lighthouseci-mobile
+          cp -r .lighthouseci/* .lighthouseci-mobile/ || true
+          rm -rf .lighthouseci
+        env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
 
       - name: Summarize Core Web Vitals
@@ -50,30 +60,39 @@ jobs:
         run: |
           set -e
           shopt -s nullglob
-          echo "## Core Web Vitals (Lighthouse CI)" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "| URL | LCP (ms) | CLS | TBT (ms, INP proxy) | Performance |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| --- | --- | --- | --- | --- |" >> "$GITHUB_STEP_SUMMARY"
-          for f in .lighthouseci/lhr-*.json; do
-            node -e "
-              const r = require('./' + process.argv[1]);
-              const a = r.audits;
-              const row = [
-                r.finalUrl,
-                Math.round(a['largest-contentful-paint'].numericValue),
-                a['cumulative-layout-shift'].numericValue.toFixed(3),
-                Math.round(a['total-blocking-time'].numericValue),
-                Math.round(r.categories.performance.score * 100),
-              ];
-              console.log('| ' + row.join(' | ') + ' |');
-            " "$f" >> "$GITHUB_STEP_SUMMARY"
-          done
+          summarize() {
+            local label="$1"
+            local dir="$2"
+            echo "## Core Web Vitals — ${label}" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "| URL | LCP (ms) | INP proxy / TBT (ms) | CLS | Performance |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| --- | --- | --- | --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+            for f in "$dir"/lhr-*.json; do
+              node -e "
+                const r = require('${PWD}/' + process.argv[1]);
+                const a = r.audits;
+                const row = [
+                  r.finalUrl,
+                  Math.round(a['largest-contentful-paint'].numericValue),
+                  Math.round(a['total-blocking-time'].numericValue),
+                  a['cumulative-layout-shift'].numericValue.toFixed(3),
+                  Math.round(r.categories.performance.score * 100),
+                ];
+                console.log('| ' + row.join(' | ') + ' |');
+              " "$f" >> "$GITHUB_STEP_SUMMARY"
+            done
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+          }
+          summarize "Desktop" ".lighthouseci-desktop"
+          summarize "Mobile"  ".lighthouseci-mobile"
 
       - name: Upload Lighthouse reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: lighthouse-reports
-          path: .lighthouseci/**
+          path: |
+            .lighthouseci-desktop/**
+            .lighthouseci-mobile/**
           if-no-files-found: ignore
           retention-days: 14
