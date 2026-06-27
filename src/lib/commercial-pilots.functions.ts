@@ -93,14 +93,14 @@ export const listCommercialPilots = createServerFn({ method: "GET" })
     let q = supabaseAdmin
       .from("commercial_pilots")
       .select(
-        "id, company_id, status, source, responsible_admin_id, notes, expected_conversion_date, converted_at, lost_at, loss_reason, created_at, updated_at, companies:company_id(trade_name, corporate_name, email, whatsapp)",
+        "id, company_id, status, onboarding_status, source, responsible_admin_id, notes, expected_conversion_date, converted_at, lost_at, loss_reason, created_at, updated_at, companies:company_id(trade_name, corporate_name, email, whatsapp)",
       )
       .order("created_at", { ascending: false });
     if (data.status && data.status !== "ALL") q = q.eq("status", data.status);
     const { data: rows, error } = await q;
     if (error) throw error;
     const ids = (rows ?? []).map((r: any) => r.company_id);
-    let contactsByCompany = new Map<string, { last: string | null; next: string | null }>();
+    const contactsByCompany = new Map<string, { last: string | null; next: string | null }>();
     if (ids.length > 0) {
       const { data: logs } = await supabaseAdmin
         .from("commercial_contact_logs")
@@ -119,8 +119,19 @@ export const listCommercialPilots = createServerFn({ method: "GET" })
         }
       });
     }
+    // Fetch activation metrics per company in parallel
+    const activations = await Promise.all(
+      (rows ?? []).map(async (r: any) => {
+        const { data: act } = await supabaseAdmin.rpc("get_pilot_activation", {
+          _company_id: r.company_id,
+        });
+        return { id: r.id, act: (act as any) ?? {} };
+      }),
+    );
+    const actById = new Map(activations.map((a) => [a.id, a.act]));
     return (rows ?? []).map((r: any) => {
       const c = contactsByCompany.get(r.company_id);
+      const act: any = actById.get(r.id) ?? {};
       return {
         ...r,
         company_name: r.companies?.trade_name ?? r.companies?.corporate_name ?? null,
@@ -128,6 +139,12 @@ export const listCommercialPilots = createServerFn({ method: "GET" })
         company_whatsapp: r.companies?.whatsapp ?? null,
         last_contact_at: c?.last ?? null,
         next_follow_up_at: c?.next ?? null,
+        activation_score: act.score ?? 0,
+        activation_tier: act.tier ?? "LOW",
+        last_login: act.last_login ?? null,
+        users_count: act.users_count ?? 0,
+        counts: act.counts ?? {},
+        checklist: act.checklist ?? {},
         companies: undefined,
       };
     }) as CommercialPilotRow[];
@@ -139,6 +156,7 @@ export const createCommercialPilot = createServerFn({ method: "POST" })
     (input: {
       company_id: string;
       status?: string;
+      onboarding_status?: string;
       source?: string | null;
       notes?: string | null;
       expected_conversion_date?: string | null;
@@ -149,7 +167,8 @@ export const createCommercialPilot = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("commercial_pilots").insert({
       company_id: data.company_id,
-      status: data.status ?? "active",
+      status: data.status ?? "INVITED",
+      onboarding_status: data.onboarding_status ?? "NOT_STARTED",
       source: data.source ?? null,
       notes: data.notes ?? null,
       expected_conversion_date: data.expected_conversion_date ?? null,
@@ -165,6 +184,7 @@ export const updateCommercialPilot = createServerFn({ method: "POST" })
     (input: {
       id: string;
       status?: string;
+      onboarding_status?: string;
       source?: string | null;
       notes?: string | null;
       expected_conversion_date?: string | null;
@@ -177,9 +197,12 @@ export const updateCommercialPilot = createServerFn({ method: "POST" })
     const patch: any = { updated_at: new Date().toISOString() };
     if (data.status !== undefined) {
       patch.status = data.status;
-      if (data.status === "converted") patch.converted_at = new Date().toISOString();
-      if (data.status === "lost") patch.lost_at = new Date().toISOString();
+      if (data.status === "CONVERTED" || data.status === "converted")
+        patch.converted_at = new Date().toISOString();
+      if (data.status === "LOST" || data.status === "lost")
+        patch.lost_at = new Date().toISOString();
     }
+    if (data.onboarding_status !== undefined) patch.onboarding_status = data.onboarding_status;
     if (data.source !== undefined) patch.source = data.source;
     if (data.notes !== undefined) patch.notes = data.notes;
     if (data.expected_conversion_date !== undefined)
