@@ -10,7 +10,7 @@ import { ShieldCheck } from "lucide-react";
 import { acceptInvitation } from "@/lib/team.functions";
 
 export const Route = createFileRoute("/invite/$token")({
-  head: () => ({ meta: [{ title: "Convite — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Convite — SecureERP" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: InvitePage,
 });
 

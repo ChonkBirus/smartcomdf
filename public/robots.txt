@@ -4,3 +4,12 @@ Disallow: /dashboard
 Disallow: /admin
 Disallow: /settings
 Disallow: /onboarding
+Disallow: /auth
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /invite/
+Disallow: /q/
+Disallow: /r/
+Disallow: /api/
+
+Sitemap: https://smartcompro.lovable.app/sitemap.xml

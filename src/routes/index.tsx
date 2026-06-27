@@ -42,8 +42,61 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://smartcompro.lovable.app/" },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/7a404137-d6af-41cb-aa03-3f139ee433fc",
+      },
+      { name: "twitter:title", content: "SmartCom Pro | ERP para empresas de segurança eletrônica" },
+      {
+        name: "twitter:description",
+        content: "Orçamento, estoque, OS, técnico em campo e relatórios com fotos — tudo em um só lugar.",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/7a404137-d6af-41cb-aa03-3f139ee433fc",
+      },
     ],
     links: [{ rel: "canonical", href: "https://smartcompro.lovable.app/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "SmartCom Pro",
+          applicationCategory: "BusinessApplication",
+          operatingSystem: "Web",
+          url: "https://smartcompro.lovable.app/",
+          description:
+            "ERP SaaS para empresas de segurança eletrônica: clientes, produtos, estoque, orçamentos, projetos, ordens de serviço, técnicos em campo e relatórios.",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "BRL", category: "free trial" },
+          inLanguage: "pt-BR",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            ["Preciso instalar algum programa?", "Não. O SmartCom Pro funciona online, pelo navegador, e foi pensado para uso em computador e celular."],
+            ["Serve para empresas pequenas?", "Sim. O Starter é para empresas pequenas começarem com clientes, produtos, estoque e orçamentos."],
+            ["O técnico consegue usar pelo celular?", "Sim. A área de OS foi pensada para uso mobile, com checklist, fotos, materiais e finalização técnica."],
+            ["O sistema emite nota fiscal?", "A emissão de NFe/NFSe está prevista para fase futura nos planos avançados."],
+            ["A IA lança tudo sozinha?", "Não. A IA ajuda a ler e preencher dados, mas o usuário revisa e confirma antes de gravar."],
+            ["Tem teste grátis?", "Sim. O teste grátis dura 7 dias."],
+            ["Posso importar produtos e clientes?", "Sim. O sistema aceita importação por Excel ou CSV."],
+            ["Tem suporte?", "Sim. O cliente pode falar com o suporte pelo WhatsApp informado na página."],
+          ].map(([q, a]) => ({
+            "@type": "Question",
+            name: q,
+            acceptedAnswer: { "@type": "Answer", text: a },
+          })),
+        }),
+      },
+    ],
   }),
   component: Landing,
 });
