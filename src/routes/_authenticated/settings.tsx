@@ -13,8 +13,10 @@ const tabs = [
   { to: "/settings/team", label: "Equipe" },
   { to: "/settings/roles", label: "Permissões" },
   { to: "/settings/subscription", label: "Assinatura" },
+  { to: "/settings/homologation", label: "Homologação" },
   { to: "/billing/invoices", label: "Faturas e Pagamentos" },
 ];
+
 
 function SettingsLayout() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });

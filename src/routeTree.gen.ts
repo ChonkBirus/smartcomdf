@@ -45,6 +45,7 @@ import { Route as ApiAssistantChatRouteImport } from './routes/api/assistant.cha
 import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authenticated/settings.team'
 import { Route as AuthenticatedSettingsSubscriptionRouteImport } from './routes/_authenticated/settings.subscription'
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
+import { Route as AuthenticatedSettingsHomologationRouteImport } from './routes/_authenticated/settings.homologation'
 import { Route as AuthenticatedSettingsCompanyRouteImport } from './routes/_authenticated/settings.company'
 import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
 import { Route as AuthenticatedServiceOrdersMyRouteImport } from './routes/_authenticated/service-orders_.my'
@@ -251,6 +252,12 @@ const AuthenticatedSettingsRolesRoute =
     path: '/roles',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSettingsHomologationRoute =
+  AuthenticatedSettingsHomologationRouteImport.update({
+    id: '/homologation',
+    path: '/homologation',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsCompanyRoute =
   AuthenticatedSettingsCompanyRouteImport.update({
     id: '/company',
@@ -409,6 +416,7 @@ export interface FileRoutesByFullPath {
   '/service-orders/my': typeof AuthenticatedServiceOrdersMyRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/company': typeof AuthenticatedSettingsCompanyRoute
+  '/settings/homologation': typeof AuthenticatedSettingsHomologationRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
@@ -463,6 +471,7 @@ export interface FileRoutesByTo {
   '/service-orders/my': typeof AuthenticatedServiceOrdersMyRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/company': typeof AuthenticatedSettingsCompanyRoute
+  '/settings/homologation': typeof AuthenticatedSettingsHomologationRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
@@ -521,6 +530,7 @@ export interface FileRoutesById {
   '/_authenticated/service-orders_/my': typeof AuthenticatedServiceOrdersMyRoute
   '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/_authenticated/settings/company': typeof AuthenticatedSettingsCompanyRoute
+  '/_authenticated/settings/homologation': typeof AuthenticatedSettingsHomologationRoute
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/_authenticated/settings/team': typeof AuthenticatedSettingsTeamRoute
@@ -579,6 +589,7 @@ export interface FileRouteTypes {
     | '/service-orders/my'
     | '/settings/audit'
     | '/settings/company'
+    | '/settings/homologation'
     | '/settings/roles'
     | '/settings/subscription'
     | '/settings/team'
@@ -633,6 +644,7 @@ export interface FileRouteTypes {
     | '/service-orders/my'
     | '/settings/audit'
     | '/settings/company'
+    | '/settings/homologation'
     | '/settings/roles'
     | '/settings/subscription'
     | '/settings/team'
@@ -690,6 +702,7 @@ export interface FileRouteTypes {
     | '/_authenticated/service-orders_/my'
     | '/_authenticated/settings/audit'
     | '/_authenticated/settings/company'
+    | '/_authenticated/settings/homologation'
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/subscription'
     | '/_authenticated/settings/team'
@@ -968,6 +981,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRolesRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/settings/homologation': {
+      id: '/_authenticated/settings/homologation'
+      path: '/homologation'
+      fullPath: '/settings/homologation'
+      preLoaderRoute: typeof AuthenticatedSettingsHomologationRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/company': {
       id: '/_authenticated/settings/company'
       path: '/company'
@@ -1136,6 +1156,7 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsAuditRoute: typeof AuthenticatedSettingsAuditRoute
   AuthenticatedSettingsCompanyRoute: typeof AuthenticatedSettingsCompanyRoute
+  AuthenticatedSettingsHomologationRoute: typeof AuthenticatedSettingsHomologationRoute
   AuthenticatedSettingsRolesRoute: typeof AuthenticatedSettingsRolesRoute
   AuthenticatedSettingsSubscriptionRoute: typeof AuthenticatedSettingsSubscriptionRoute
   AuthenticatedSettingsTeamRoute: typeof AuthenticatedSettingsTeamRoute
@@ -1145,6 +1166,8 @@ interface AuthenticatedSettingsRouteChildren {
 const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsAuditRoute: AuthenticatedSettingsAuditRoute,
   AuthenticatedSettingsCompanyRoute: AuthenticatedSettingsCompanyRoute,
+  AuthenticatedSettingsHomologationRoute:
+    AuthenticatedSettingsHomologationRoute,
   AuthenticatedSettingsRolesRoute: AuthenticatedSettingsRolesRoute,
   AuthenticatedSettingsSubscriptionRoute:
     AuthenticatedSettingsSubscriptionRoute,
