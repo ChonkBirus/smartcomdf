@@ -63,14 +63,16 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
 
-      - name: Run Playwright E2E tests
+      - name: Run Playwright E2E tests (${{ matrix.browser }})
         run: |
           mkdir -p test-results
-          python tests/e2e/mobile-nav-esc-focustrap.py 2>&1 | tee test-results/output.log
+          python tests/e2e/mobile-nav-esc-focustrap.py 2>&1 | tee test-results/output-${{ matrix.browser }}.log
         env:
+          E2E_BROWSER: ${{ matrix.browser }}
           LOVABLE_BROWSER_SUPABASE_SESSION_JSON: ${{ secrets.E2E_SUPABASE_SESSION_JSON }}
           LOVABLE_BROWSER_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_SUPABASE_STORAGE_KEY }}
           LOVABLE_BROWSER_AUTH_STATUS: injected
+
 
       - name: Stop preview server
         if: always()
