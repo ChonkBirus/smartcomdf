@@ -71,6 +71,21 @@ async def test_route(browser, browser_name, route):
             if await page.locator('[role="dialog"]').count() == 0:
                 r["esc_closes"] = True
                 break
+
+        # Re-open and verify click-outside (Radix overlay) closes the menu
+        await open_mobile_menu(page)
+        # Radix overlay sits as a sibling of the dialog; click it via pointerdown
+        overlay = page.locator('[data-radix-dialog-overlay], [data-state="open"][class*="fixed"][class*="inset-0"]').first
+        if await overlay.count() > 0:
+            await overlay.click(position={"x": 5, "y": 5}, force=True)
+        else:
+            # Fallback: click far from the sheet panel
+            await page.mouse.click(380, 900)
+        for _ in range(20):
+            await page.wait_for_timeout(100)
+            if await page.locator('[role="dialog"]').count() == 0:
+                r["outside_closes"] = True
+                break
     except Exception as e:
         r["error"] = str(e)[:200]
 
