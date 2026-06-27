@@ -532,6 +532,21 @@ function EditPilotDialog({
               </Select>
             </div>
             <div className="space-y-2">
+              <Label>Onboarding</Label>
+              <Select value={onboarding} onValueChange={setOnboarding}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ONBOARDING_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label>Origem</Label>
               <Input value={source} onChange={(e) => setSource(e.target.value)} />
             </div>
