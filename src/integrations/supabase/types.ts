@@ -2569,6 +2569,53 @@ export type Database = {
           },
         ]
       }
+      production_checklist_items: {
+        Row: {
+          code: string
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          note: string | null
+          responsible: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          company_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          responsible?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          responsible?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_checklist_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_roles: {
         Row: {
           company_id: string | null
