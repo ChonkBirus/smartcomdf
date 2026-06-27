@@ -86,7 +86,12 @@ export const updateProductionChecklistItem = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      status?: "pending" | "done";
+      completed_at?: string | null;
+      note?: string | null;
+      responsible?: string | null;
+    } = {};
     if (data.status !== undefined) {
       patch.status = data.status;
       patch.completed_at = data.status === "done" ? new Date().toISOString() : null;
@@ -98,6 +103,7 @@ export const updateProductionChecklistItem = createServerFn({ method: "POST" })
       .from("production_checklist_items")
       .update(patch)
       .eq("id", data.id);
+
     if (error) throw new Error(error.message);
     return { ok: true };
   });
