@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   PILOT_STATUSES,
+  ONBOARDING_STATUSES,
   type CommercialPilotRow,
   listCommercialPilots,
   createCommercialPilot,
@@ -59,10 +60,30 @@ function fmtDateTime(d: string | null | undefined) {
 }
 
 function statusTone(s: string): StatusTone {
-  if (s === "converted") return "success";
-  if (s === "lost") return "destructive";
+  if (s === "converted" || s === "CONVERTED") return "success";
+  if (s === "lost" || s === "LOST") return "destructive";
   if (s === "paused") return "neutral";
+  if (s === "READY_TO_CONVERT") return "warning";
   return "primary";
+}
+
+function tierTone(t: string): StatusTone {
+  if (t === "READY") return "success";
+  if (t === "GOOD") return "primary";
+  if (t === "ACTIVATING") return "warning";
+  return "neutral";
+}
+
+function tierLabel(t: string): string {
+  if (t === "READY") return "Pronto p/ converter";
+  if (t === "GOOD") return "Bom uso";
+  if (t === "ACTIVATING") return "Em ativação";
+  return "Baixo uso";
+}
+
+function buildPilotWhatsappMessage(name: string | null) {
+  const firstName = (name ?? "").split(/\s+/)[0] || "tudo bem";
+  return `Olá ${firstName}, tudo certo? Estou acompanhando o uso do SmartCom Pro e queria saber se você conseguiu criar seu primeiro orçamento e gerar a proposta em PDF. Posso te ajudar em algum ponto?`;
 }
 
 function AdminPilotsPage() {
@@ -177,15 +198,16 @@ function AdminPilotsPage() {
         </div>
       </div>
 
-      <Card className="card-elevated overflow-hidden">
+      <Card className="card-elevated overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Empresa</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Origem</TableHead>
-              <TableHead>Conversão esperada</TableHead>
-              <TableHead>Último contato</TableHead>
+              <TableHead>Onboarding</TableHead>
+              <TableHead>Ativação</TableHead>
+              <TableHead className="text-xs">Uso (Cli/Pro/Orç/PDF/OS)</TableHead>
+              <TableHead>Último acesso</TableHead>
               <TableHead>Próximo follow-up</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -193,37 +215,66 @@ function AdminPilotsPage() {
           <TableBody>
             {isLoading && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
                   Carregando…
                 </TableCell>
               </TableRow>
             )}
             {!isLoading && (pilots ?? []).length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
                   Nenhum piloto cadastrado.
                 </TableCell>
               </TableRow>
             )}
             {(pilots ?? []).map((p) => {
               const phone = (p.company_whatsapp ?? "").replace(/\D/g, "");
-              const waText = encodeURIComponent(
-                `Olá ${p.company_name ?? ""}, tudo bem? Estamos acompanhando seu piloto no SecureERP.`,
-              );
+              const waMessage = buildPilotWhatsappMessage(p.company_name);
+              const waText = encodeURIComponent(waMessage);
+              const counts = p.counts ?? ({} as CommercialPilotRow["counts"]);
+              const usage = `${counts.customers ?? 0}/${counts.items ?? 0}/${counts.quotes ?? 0}/${counts.pdfs ?? 0}/${counts.service_orders ?? 0}`;
               return (
                 <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.company_name ?? "—"}</TableCell>
+                  <TableCell className="font-medium">
+                    {p.company_name ?? "—"}
+                    <div className="text-xs text-muted-foreground">
+                      {p.users_count ?? 0} usuário(s) · {p.company_email ?? "sem e-mail"}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <StatusBadge status={p.status} tone={statusTone(p.status)} />
                   </TableCell>
-                  <TableCell className="text-xs">{p.source ?? "—"}</TableCell>
-                  <TableCell className="text-xs">{fmtDate(p.expected_conversion_date)}</TableCell>
-                  <TableCell className="text-xs">{fmtDateTime(p.last_contact_at)}</TableCell>
+                  <TableCell className="text-xs">{p.onboarding_status ?? "NOT_STARTED"}</TableCell>
+                  <TableCell>
+                    <StatusBadge
+                      status={`${tierLabel(p.activation_tier)} · ${p.activation_score ?? 0}`}
+                      tone={tierTone(p.activation_tier)}
+                    />
+                  </TableCell>
+                  <TableCell className="text-xs tabular-nums">{usage}</TableCell>
+                  <TableCell className="text-xs">{fmtDateTime(p.last_login)}</TableCell>
                   <TableCell className="text-xs">{fmtDateTime(p.next_follow_up_at)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       {phone && (
-                        <Button asChild size="sm" variant="outline">
+                        <Button
+                          asChild
+                          size="sm"
+                          variant="outline"
+                          title="Falar no WhatsApp (registra contato)"
+                          onClick={() => {
+                            addLogMut.mutate({
+                              data: {
+                                company_id: p.company_id,
+                                contact_channel: "WHATSAPP",
+                                subject: "Follow-up piloto",
+                                message: waMessage,
+                                result: "Mensagem enviada via WhatsApp",
+                                next_follow_up_at: null,
+                              },
+                            });
+                          }}
+                        >
                           <a
                             href={`https://wa.me/${phone}?text=${waText}`}
                             target="_blank"
@@ -234,7 +285,7 @@ function AdminPilotsPage() {
                         </Button>
                       )}
                       {p.company_email && (
-                        <Button asChild size="sm" variant="outline">
+                        <Button asChild size="sm" variant="outline" title="Enviar e-mail">
                           <a href={`mailto:${p.company_email}`}>
                             <Mail className="h-4 w-4" />
                           </a>
@@ -328,7 +379,7 @@ function CreatePilotDialog({
   pending: boolean;
 }) {
   const [companyId, setCompanyId] = useState("");
-  const [status, setStatus] = useState("active");
+  const [status, setStatus] = useState("INVITED");
   const [source, setSource] = useState("");
   const [notes, setNotes] = useState("");
   const [expected, setExpected] = useState("");
@@ -342,7 +393,7 @@ function CreatePilotDialog({
           setSource("");
           setNotes("");
           setExpected("");
-          setStatus("active");
+          setStatus("INVITED");
         }
         onOpenChange(o);
       }}
@@ -430,6 +481,7 @@ function EditPilotDialog({
   onSubmit: (p: {
     id: string;
     status: string;
+    onboarding_status?: string;
     source?: string | null;
     notes?: string | null;
     expected_conversion_date?: string | null;
@@ -437,7 +489,8 @@ function EditPilotDialog({
   }) => void;
   pending: boolean;
 }) {
-  const [status, setStatus] = useState("active");
+  const [status, setStatus] = useState("INVITED");
+  const [onboarding, setOnboarding] = useState("NOT_STARTED");
   const [source, setSource] = useState("");
   const [notes, setNotes] = useState("");
   const [expected, setExpected] = useState("");
@@ -446,6 +499,7 @@ function EditPilotDialog({
   useEffect(() => {
     if (pilot) {
       setStatus(pilot.status);
+      setOnboarding(pilot.onboarding_status ?? "NOT_STARTED");
       setSource(pilot.source ?? "");
       setNotes(pilot.notes ?? "");
       setExpected(pilot.expected_conversion_date ?? "");
@@ -470,6 +524,21 @@ function EditPilotDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {PILOT_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Onboarding</Label>
+              <Select value={onboarding} onValueChange={setOnboarding}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ONBOARDING_STATUSES.map((s) => (
                     <SelectItem key={s} value={s}>
                       {s}
                     </SelectItem>
@@ -508,10 +577,12 @@ function EditPilotDialog({
               onSubmit({
                 id: pilot.id,
                 status,
+                onboarding_status: onboarding,
                 source: source || null,
                 notes: notes || null,
                 expected_conversion_date: expected || null,
-                loss_reason: status === "lost" ? lossReason || null : null,
+                loss_reason:
+                  status === "lost" || status === "LOST" ? lossReason || null : null,
               });
             }}
           >

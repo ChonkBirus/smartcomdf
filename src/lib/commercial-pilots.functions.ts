@@ -14,6 +14,7 @@ export type CommercialPilotRow = {
   id: string;
   company_id: string;
   status: string;
+  onboarding_status: string;
   source: string | null;
   responsible_admin_id: string | null;
   notes: string | null;
@@ -28,6 +29,24 @@ export type CommercialPilotRow = {
   company_whatsapp: string | null;
   last_contact_at: string | null;
   next_follow_up_at: string | null;
+  activation_score: number;
+  activation_tier: "LOW" | "ACTIVATING" | "GOOD" | "READY";
+  last_login: string | null;
+  users_count: number;
+  counts: {
+    customers: number;
+    items: number;
+    quotes: number;
+    pdfs: number;
+    sent: number;
+    approved: number;
+    projects: number;
+    service_orders: number;
+    service_orders_done: number;
+    reports: number;
+    users: number;
+  };
+  checklist: Record<string, boolean>;
 };
 
 export type PilotContactLog = {
@@ -42,12 +61,27 @@ export type PilotContactLog = {
 };
 
 export const PILOT_STATUSES = [
+  "INVITED",
+  "ACTIVE_TRIAL",
+  "ONBOARDING",
+  "USING",
+  "READY_TO_CONVERT",
+  "CONVERTED",
+  "LOST",
+  // legacy
   "prospect",
   "active",
   "in_progress",
   "converted",
   "lost",
   "paused",
+] as const;
+
+export const ONBOARDING_STATUSES = [
+  "NOT_STARTED",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "STUCK",
 ] as const;
 
 export const listCommercialPilots = createServerFn({ method: "GET" })
@@ -59,14 +93,14 @@ export const listCommercialPilots = createServerFn({ method: "GET" })
     let q = supabaseAdmin
       .from("commercial_pilots")
       .select(
-        "id, company_id, status, source, responsible_admin_id, notes, expected_conversion_date, converted_at, lost_at, loss_reason, created_at, updated_at, companies:company_id(trade_name, corporate_name, email, whatsapp)",
+        "id, company_id, status, onboarding_status, source, responsible_admin_id, notes, expected_conversion_date, converted_at, lost_at, loss_reason, created_at, updated_at, companies:company_id(trade_name, corporate_name, email, whatsapp)",
       )
       .order("created_at", { ascending: false });
     if (data.status && data.status !== "ALL") q = q.eq("status", data.status);
     const { data: rows, error } = await q;
     if (error) throw error;
     const ids = (rows ?? []).map((r: any) => r.company_id);
-    let contactsByCompany = new Map<string, { last: string | null; next: string | null }>();
+    const contactsByCompany = new Map<string, { last: string | null; next: string | null }>();
     if (ids.length > 0) {
       const { data: logs } = await supabaseAdmin
         .from("commercial_contact_logs")
@@ -85,8 +119,19 @@ export const listCommercialPilots = createServerFn({ method: "GET" })
         }
       });
     }
+    // Fetch activation metrics per company in parallel
+    const activations = await Promise.all(
+      (rows ?? []).map(async (r: any) => {
+        const { data: act } = await supabaseAdmin.rpc("get_pilot_activation", {
+          _company_id: r.company_id,
+        });
+        return { id: r.id, act: (act as any) ?? {} };
+      }),
+    );
+    const actById = new Map(activations.map((a) => [a.id, a.act]));
     return (rows ?? []).map((r: any) => {
       const c = contactsByCompany.get(r.company_id);
+      const act: any = actById.get(r.id) ?? {};
       return {
         ...r,
         company_name: r.companies?.trade_name ?? r.companies?.corporate_name ?? null,
@@ -94,6 +139,12 @@ export const listCommercialPilots = createServerFn({ method: "GET" })
         company_whatsapp: r.companies?.whatsapp ?? null,
         last_contact_at: c?.last ?? null,
         next_follow_up_at: c?.next ?? null,
+        activation_score: act.score ?? 0,
+        activation_tier: act.tier ?? "LOW",
+        last_login: act.last_login ?? null,
+        users_count: act.users_count ?? 0,
+        counts: act.counts ?? {},
+        checklist: act.checklist ?? {},
         companies: undefined,
       };
     }) as CommercialPilotRow[];
@@ -105,6 +156,7 @@ export const createCommercialPilot = createServerFn({ method: "POST" })
     (input: {
       company_id: string;
       status?: string;
+      onboarding_status?: string;
       source?: string | null;
       notes?: string | null;
       expected_conversion_date?: string | null;
@@ -115,7 +167,8 @@ export const createCommercialPilot = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("commercial_pilots").insert({
       company_id: data.company_id,
-      status: data.status ?? "active",
+      status: data.status ?? "INVITED",
+      onboarding_status: data.onboarding_status ?? "NOT_STARTED",
       source: data.source ?? null,
       notes: data.notes ?? null,
       expected_conversion_date: data.expected_conversion_date ?? null,
@@ -131,6 +184,7 @@ export const updateCommercialPilot = createServerFn({ method: "POST" })
     (input: {
       id: string;
       status?: string;
+      onboarding_status?: string;
       source?: string | null;
       notes?: string | null;
       expected_conversion_date?: string | null;
@@ -143,9 +197,12 @@ export const updateCommercialPilot = createServerFn({ method: "POST" })
     const patch: any = { updated_at: new Date().toISOString() };
     if (data.status !== undefined) {
       patch.status = data.status;
-      if (data.status === "converted") patch.converted_at = new Date().toISOString();
-      if (data.status === "lost") patch.lost_at = new Date().toISOString();
+      if (data.status === "CONVERTED" || data.status === "converted")
+        patch.converted_at = new Date().toISOString();
+      if (data.status === "LOST" || data.status === "lost")
+        patch.lost_at = new Date().toISOString();
     }
+    if (data.onboarding_status !== undefined) patch.onboarding_status = data.onboarding_status;
     if (data.source !== undefined) patch.source = data.source;
     if (data.notes !== undefined) patch.notes = data.notes;
     if (data.expected_conversion_date !== undefined)
@@ -252,10 +309,10 @@ export const getCommercialPilotMetrics = createServerFn({ method: "GET" })
       .not("next_follow_up_at", "is", null);
     return {
       total,
-      active: count("active"),
-      inProgress: count("in_progress"),
-      converted,
-      lost: count("lost"),
+      active: count("active") + count("ACTIVE_TRIAL") + count("USING") + count("ONBOARDING") + count("INVITED"),
+      inProgress: count("in_progress") + count("ONBOARDING") + count("READY_TO_CONVERT"),
+      converted: converted + count("CONVERTED"),
+      lost: count("lost") + count("LOST"),
       paused: count("paused"),
       conversionRate: closed > 0 ? Math.round((converted / closed) * 100) : 0,
       pendingFollowUps: pendingFollowUps ?? 0,
