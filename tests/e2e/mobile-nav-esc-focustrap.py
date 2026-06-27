@@ -69,8 +69,11 @@ async def test_route(page, route):
     results.append(r)
 
 async def main():
+    browser_name = os.environ.get("E2E_BROWSER", "chromium").lower()
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        launcher = {"chromium": pw.chromium, "firefox": pw.firefox, "webkit": pw.webkit}[browser_name]
+        print(f"Running tests on: {browser_name}")
+        browser = await launcher.launch(headless=True)
         ctx = await browser.new_context(
             viewport={"width": 390, "height": 1800},
             user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148",
