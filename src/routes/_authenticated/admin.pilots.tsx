@@ -60,10 +60,30 @@ function fmtDateTime(d: string | null | undefined) {
 }
 
 function statusTone(s: string): StatusTone {
-  if (s === "converted") return "success";
-  if (s === "lost") return "destructive";
+  if (s === "converted" || s === "CONVERTED") return "success";
+  if (s === "lost" || s === "LOST") return "destructive";
   if (s === "paused") return "neutral";
+  if (s === "READY_TO_CONVERT") return "warning";
   return "primary";
+}
+
+function tierTone(t: string): StatusTone {
+  if (t === "READY") return "success";
+  if (t === "GOOD") return "primary";
+  if (t === "ACTIVATING") return "warning";
+  return "neutral";
+}
+
+function tierLabel(t: string): string {
+  if (t === "READY") return "Pronto p/ converter";
+  if (t === "GOOD") return "Bom uso";
+  if (t === "ACTIVATING") return "Em ativação";
+  return "Baixo uso";
+}
+
+function buildPilotWhatsappMessage(name: string | null) {
+  const firstName = (name ?? "").split(/\s+/)[0] || "tudo bem";
+  return `Olá ${firstName}, tudo certo? Estou acompanhando o uso do SmartCom Pro e queria saber se você conseguiu criar seu primeiro orçamento e gerar a proposta em PDF. Posso te ajudar em algum ponto?`;
 }
 
 function AdminPilotsPage() {
