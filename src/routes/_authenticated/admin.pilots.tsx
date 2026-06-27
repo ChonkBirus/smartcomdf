@@ -198,15 +198,16 @@ function AdminPilotsPage() {
         </div>
       </div>
 
-      <Card className="card-elevated overflow-hidden">
+      <Card className="card-elevated overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Empresa</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Origem</TableHead>
-              <TableHead>Conversão esperada</TableHead>
-              <TableHead>Último contato</TableHead>
+              <TableHead>Onboarding</TableHead>
+              <TableHead>Ativação</TableHead>
+              <TableHead className="text-xs">Uso (Cli/Pro/Orç/PDF/OS)</TableHead>
+              <TableHead>Último acesso</TableHead>
               <TableHead>Próximo follow-up</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -214,37 +215,66 @@ function AdminPilotsPage() {
           <TableBody>
             {isLoading && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
                   Carregando…
                 </TableCell>
               </TableRow>
             )}
             {!isLoading && (pilots ?? []).length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
                   Nenhum piloto cadastrado.
                 </TableCell>
               </TableRow>
             )}
             {(pilots ?? []).map((p) => {
               const phone = (p.company_whatsapp ?? "").replace(/\D/g, "");
-              const waText = encodeURIComponent(
-                `Olá ${p.company_name ?? ""}, tudo bem? Estamos acompanhando seu piloto no SecureERP.`,
-              );
+              const waMessage = buildPilotWhatsappMessage(p.company_name);
+              const waText = encodeURIComponent(waMessage);
+              const counts = p.counts ?? ({} as CommercialPilotRow["counts"]);
+              const usage = `${counts.customers ?? 0}/${counts.items ?? 0}/${counts.quotes ?? 0}/${counts.pdfs ?? 0}/${counts.service_orders ?? 0}`;
               return (
                 <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.company_name ?? "—"}</TableCell>
+                  <TableCell className="font-medium">
+                    {p.company_name ?? "—"}
+                    <div className="text-xs text-muted-foreground">
+                      {p.users_count ?? 0} usuário(s) · {p.company_email ?? "sem e-mail"}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <StatusBadge status={p.status} tone={statusTone(p.status)} />
                   </TableCell>
-                  <TableCell className="text-xs">{p.source ?? "—"}</TableCell>
-                  <TableCell className="text-xs">{fmtDate(p.expected_conversion_date)}</TableCell>
-                  <TableCell className="text-xs">{fmtDateTime(p.last_contact_at)}</TableCell>
+                  <TableCell className="text-xs">{p.onboarding_status ?? "NOT_STARTED"}</TableCell>
+                  <TableCell>
+                    <StatusBadge
+                      status={`${tierLabel(p.activation_tier)} · ${p.activation_score ?? 0}`}
+                      tone={tierTone(p.activation_tier)}
+                    />
+                  </TableCell>
+                  <TableCell className="text-xs tabular-nums">{usage}</TableCell>
+                  <TableCell className="text-xs">{fmtDateTime(p.last_login)}</TableCell>
                   <TableCell className="text-xs">{fmtDateTime(p.next_follow_up_at)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       {phone && (
-                        <Button asChild size="sm" variant="outline">
+                        <Button
+                          asChild
+                          size="sm"
+                          variant="outline"
+                          title="Falar no WhatsApp (registra contato)"
+                          onClick={() => {
+                            addLogMut.mutate({
+                              data: {
+                                company_id: p.company_id,
+                                contact_channel: "WHATSAPP",
+                                subject: "Follow-up piloto",
+                                message: waMessage,
+                                result: "Mensagem enviada via WhatsApp",
+                                next_follow_up_at: null,
+                              },
+                            });
+                          }}
+                        >
                           <a
                             href={`https://wa.me/${phone}?text=${waText}`}
                             target="_blank"
@@ -255,7 +285,7 @@ function AdminPilotsPage() {
                         </Button>
                       )}
                       {p.company_email && (
-                        <Button asChild size="sm" variant="outline">
+                        <Button asChild size="sm" variant="outline" title="Enviar e-mail">
                           <a href={`mailto:${p.company_email}`}>
                             <Mail className="h-4 w-4" />
                           </a>
