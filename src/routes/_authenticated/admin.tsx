@@ -39,7 +39,9 @@ function AdminLayout() {
     { to: "/admin/launch", label: "Lançamento", icon: Rocket },
     { to: "/admin/pilots", label: "Pilotos", icon: Target },
     { to: "/admin/events", label: "Eventos", icon: Activity },
+    { to: "/admin/qa-bugs", label: "QA Bugs", icon: Bug },
   ];
+
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
