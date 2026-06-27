@@ -86,9 +86,10 @@ function QaBugsPage() {
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["qa-bugs"] });
 
-  const upsert = useMutation({
-    mutationFn: (vars: any) =>
+  const upsert = useMutation<unknown, Error, any>({
+    mutationFn: async (vars: any) =>
       editing ? updateFn({ data: { id: editing.id, ...vars } }) : createFn({ data: vars }),
+
     onSuccess: () => {
       toast.success(editing ? "Bug atualizado" : "Bug registrado");
       setOpen(false);
