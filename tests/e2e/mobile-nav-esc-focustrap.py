@@ -34,7 +34,7 @@ async def open_mobile_menu(page):
     await page.wait_for_selector('[role="dialog"]', state="visible", timeout=3000)
 
 async def test_route(browser, browser_name, route):
-    r = {"route": route, "opens": False, "esc_closes": False, "focus_trapped": False, "error": None}
+    r = {"route": route, "opens": False, "esc_closes": False, "outside_closes": False, "focus_trapped": False, "error": None}
     s = slug(route)
     video_dir = VIDEOS / f"{browser_name}_{s}"
     video_dir.mkdir(parents=True, exist_ok=True)
@@ -71,10 +71,25 @@ async def test_route(browser, browser_name, route):
             if await page.locator('[role="dialog"]').count() == 0:
                 r["esc_closes"] = True
                 break
+
+        # Re-open and verify click-outside (Radix overlay) closes the menu
+        await open_mobile_menu(page)
+        # Radix overlay sits as a sibling of the dialog; click it via pointerdown
+        overlay = page.locator('[data-radix-dialog-overlay], [data-state="open"][class*="fixed"][class*="inset-0"]').first
+        if await overlay.count() > 0:
+            await overlay.click(position={"x": 5, "y": 5}, force=True)
+        else:
+            # Fallback: click far from the sheet panel
+            await page.mouse.click(380, 900)
+        for _ in range(20):
+            await page.wait_for_timeout(100)
+            if await page.locator('[role="dialog"]').count() == 0:
+                r["outside_closes"] = True
+                break
     except Exception as e:
         r["error"] = str(e)[:200]
 
-    failed = bool(r["error"]) or not (r["opens"] and r["esc_closes"] and r["focus_trapped"])
+    failed = bool(r["error"]) or not (r["opens"] and r["esc_closes"] and r["outside_closes"] and r["focus_trapped"])
 
     if failed:
         try:
@@ -115,7 +130,7 @@ async def main():
         await browser.close()
 
     print(json.dumps(results, indent=2))
-    failed = [r for r in results if r["error"] or not (r["opens"] and r["esc_closes"] and r["focus_trapped"])]
+    failed = [r for r in results if r["error"] or not (r["opens"] and r["esc_closes"] and r["outside_closes"] and r["focus_trapped"])]
     print(f"\n{len(results) - len(failed)}/{len(results)} passed")
     if failed:
         print("FAILURES:", json.dumps(failed, indent=2))
