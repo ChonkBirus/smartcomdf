@@ -379,7 +379,7 @@ function CreatePilotDialog({
   pending: boolean;
 }) {
   const [companyId, setCompanyId] = useState("");
-  const [status, setStatus] = useState("active");
+  const [status, setStatus] = useState("INVITED");
   const [source, setSource] = useState("");
   const [notes, setNotes] = useState("");
   const [expected, setExpected] = useState("");
