@@ -8,7 +8,7 @@ import { getPublicServiceOrderReport } from "@/lib/service-order-reports.functio
 
 export const Route = createFileRoute("/r/$token")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Relatório de Serviço" }] }),
+  head: () => ({ meta: [{ title: "Relatório de Serviço" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: PublicReportPage,
   notFoundComponent: () => <ErrorView message="Relatório não encontrado." />,
   errorComponent: ({ error }) => <ErrorView message={error?.message ?? "Erro."} />,

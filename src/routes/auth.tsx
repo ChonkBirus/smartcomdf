@@ -17,7 +17,7 @@ import { translateAuthError } from "@/lib/auth-errors";
 const REMEMBER_KEY = "secureerp.remember_email";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Entrar — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Entrar — SecureERP" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: AuthPage,
 });
 
