@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   PILOT_STATUSES,
+  ONBOARDING_STATUSES,
   type CommercialPilotRow,
   listCommercialPilots,
   createCommercialPilot,
