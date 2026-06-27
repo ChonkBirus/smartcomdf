@@ -393,7 +393,7 @@ function CreatePilotDialog({
           setSource("");
           setNotes("");
           setExpected("");
-          setStatus("active");
+          setStatus("INVITED");
         }
         onOpenChange(o);
       }}
