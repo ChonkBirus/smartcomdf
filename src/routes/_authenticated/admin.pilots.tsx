@@ -481,6 +481,7 @@ function EditPilotDialog({
   onSubmit: (p: {
     id: string;
     status: string;
+    onboarding_status?: string;
     source?: string | null;
     notes?: string | null;
     expected_conversion_date?: string | null;
@@ -488,7 +489,8 @@ function EditPilotDialog({
   }) => void;
   pending: boolean;
 }) {
-  const [status, setStatus] = useState("active");
+  const [status, setStatus] = useState("INVITED");
+  const [onboarding, setOnboarding] = useState("NOT_STARTED");
   const [source, setSource] = useState("");
   const [notes, setNotes] = useState("");
   const [expected, setExpected] = useState("");
@@ -497,6 +499,7 @@ function EditPilotDialog({
   useEffect(() => {
     if (pilot) {
       setStatus(pilot.status);
+      setOnboarding(pilot.onboarding_status ?? "NOT_STARTED");
       setSource(pilot.source ?? "");
       setNotes(pilot.notes ?? "");
       setExpected(pilot.expected_conversion_date ?? "");
