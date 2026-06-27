@@ -1,73 +1,52 @@
-# FASE 2.11 — Tour guiado, checklist e Central de Ajuda
+# FASE 2.12 — Módulo de Relatórios Gerenciais
 
-Camada de onboarding sem tocar em billing, PDF, orçamentos, OS, projetos, clientes, estoque ou RLS existentes.
+Escopo grande. Proponho dividir em 3 sub-etapas entregáveis e revisáveis, para reduzir risco de regressão (padrão já adotado em 2.7B/2.7C). Cada etapa termina com build/typecheck verde e UI navegável.
 
-## Entregáveis
+---
 
-### 1. Persistência
-Nova tabela `user_onboarding_progress` (id, user_id, company_id, tour_key, status, current_step, completed_at, skipped_at, timestamps).
-- RLS: usuário só lê/escreve o próprio progresso, escopado por `company_id`.
-- GRANTS para `authenticated` + `service_role`.
-- Índice único `(user_id, company_id, tour_key)`.
+## Etapa A — Fundação (rota, RBAC, filtros, Visão Geral)
 
-Server functions em `src/lib/onboarding.functions.ts`:
-- `getOnboardingProgress({ tourKey })`
-- `upsertOnboardingProgress({ tourKey, status, currentStep })`
-- `getGettingStartedStatus()` — conta clientes/produtos/orçamentos/OS reais da empresa para auto-marcar checklist.
+**Backend**
+- Migration: adicionar permissões `reports.view`, `reports.export`, `reports.financial`, `reports.operational`, `reports.stock`, `reports.sales`, `reports.technicians` na tabela `permissions` e vincular aos papéis (owner=todas; manager=view/operational/stock/sales/technicians; financial=view/financial/sales; technician=nenhuma).
+- `src/lib/reports.functions.ts`:
+  - `getReportsOverview(filters)` — agrega quotes/projects/service_orders/customers/items respeitando `company_id` via `requireSupabaseAuth` + RLS.
+- Sem novas tabelas; só leitura agregada.
 
-### 2. Componentes (`src/components/onboarding/`)
-- `OnboardingProvider.tsx` — contexto com estado do tour ativo, step, mutations de progresso.
-- `GuidedTour.tsx` + `TourTooltip.tsx` — overlay com spotlight (resolve seletor `data-tour="..."`), botões Próximo / Voltar / Pular / Finalizar / Não mostrar novamente. Sem dependência externa (implementação leve com `getBoundingClientRect` + portal).
-- `StartTourButton.tsx`, `ModuleHelpButton.tsx` ("Como usar esta tela").
-- `GettingStartedChecklist.tsx` — card no dashboard, 8 itens, auto-check via `getGettingStartedStatus`, botões linkando para rotas existentes. Dispensável via "Ocultar".
-- `TourRegistry.ts` — definições dos tours (initial, clients, products, stock, quotes, service-orders, billing) com steps `{ target, title, body, route? }`. Filtra steps por permissão/feature via `usePermissions`/`useFeatures`.
+**Frontend**
+- Rota `src/routes/_authenticated/reports.tsx` + sub-rotas por aba (ou single page com tabs — usar tabs para simplicidade).
+- Item de menu "Relatórios" no `AppSidebar` (gated por `reports.view` + FeatureGate Pro/Business — Starter limitado).
+- Componentes:
+  - `ReportsPage`, `ReportsFilters` (período rápido + custom range + cliente/status), `ReportsMetricCard`, `ReportsTabs`, `ReportsOverview`, `ReportEmptyState`.
+- Filtros via URL search params (TanStack Router) para deep-link.
 
-### 3. Central de Ajuda
-- Rota nova `src/routes/_authenticated/help.tsx` (`/help`).
-- `HelpCenterPage` lista `HelpArticleCard`s (hardcoded em `src/lib/help-articles.ts`, campo opcional `video_url`).
-- Rota `src/routes/_authenticated/help_.$slug.tsx` para `TutorialArticlePage`.
-- Cards com botão "Iniciar tour" quando o artigo tem `tourKey`, e "Assistir vídeo" se `video_url` definido.
-- Item "Ajuda" no `AppSidebar`.
+## Etapa B — Relatórios operacionais e comerciais
 
-### 4. Integração nas telas
-- Adicionar atributos `data-tour="..."` nos elementos-chave do `dashboard`, `clients`, `products`, `stock`, `quotes`, `service-orders`, `billing.invoices` (apenas attrs, sem mudar comportamento).
-- `ModuleHelpButton` no `PageHeader` dessas páginas (prop opcional `tourKey`).
-- Disparar tour inicial automaticamente no Dashboard quando `getOnboardingProgress("initial")` retornar `NOT_STARTED` e o usuário tiver `company_id`.
-- Menu do usuário no `Topbar`: item "Reiniciar tour".
+- `getSalesReport`, `getQuotesReport`, `getProjectsReport`, `getServiceOrdersReport`, `getCustomersReport`, `getTechniciansReport`.
+- Componentes de aba correspondentes + `ReportDataTable` reutilizável (paginação client-side com limite server-side de 500 linhas).
+- Gráficos: usar `recharts` se já instalado; senão, só cards/tabelas (verificar antes).
+- Regras: nunca expor custo/margem sem `reports.financial`.
 
-### 5. Regras de exibição
-- Tour inicial só roda se status = NOT_STARTED. "Não mostrar novamente" grava SKIPPED. Reinício via Central de Ajuda ou menu seta de volta para IN_PROGRESS.
-- Steps com recurso bloqueado mostram nota "Disponível no plano Pro/Business" e pulam automaticamente.
-- Mobile: tooltip vira bottom-sheet fullwidth, sem spotlight rígido.
+## Etapa C — Estoque, Financeiro básico e Exportação
 
-### 6. Analytics (best-effort)
-Helper `logOnboardingEvent(event, payload)` que insere em `activity_logs` se a tabela aceitar (caso contrário no-op silencioso). Eventos: `tour_started`, `tour_step_viewed`, `tour_completed`, `tour_skipped`, `help_opened`, `tutorial_opened`.
+- `getStockReport` (saldos + status Normal/Baixo/Sem), `getFinancialBasicReport` (gated por `reports.financial`).
+- `exportReportCsv(reportType, filters)` server-fn — gera CSV server-side, retorna string; botão `ReportExportButton` (gated por `reports.export`).
+- PDF: opcional — só se viável reusando infra de `quote-pdf`; senão, fica para etapa futura.
 
-## Fora de escopo
-- Produção de vídeos.
-- Edição de billing, PDF, RLS de outros módulos, regras de negócio.
-- Tabela `help_articles` (deixar artigos hardcoded; estrutura preparada para migração futura).
+---
 
-## Detalhes técnicos
-- Tour overlay próprio (sem `react-joyride`) para evitar dep nova e SSR issues; portal em `document.body`, `position: fixed`, calcula box do alvo a cada `resize`/`scroll`.
-- `OnboardingProvider` montado dentro de `_authenticated/route.tsx` (depois do `FeaturesProvider`), assim respeita plano/permissões.
-- Mutations usam `useServerFn` + invalidate `["onboarding", tourKey]`.
-- Acessibilidade: foco preso no tooltip, ESC = pular, setas = navegar.
+## Detalhes técnicos transversais
 
-## Arquivos novos
-- `supabase` migration (tabela + RLS + grants)
-- `src/lib/onboarding.functions.ts`
-- `src/lib/help-articles.ts`
-- `src/components/onboarding/{OnboardingProvider,GuidedTour,TourTooltip,StartTourButton,ModuleHelpButton,GettingStartedChecklist,TourRegistry}.tsx`
-- `src/routes/_authenticated/help.tsx`
-- `src/routes/_authenticated/help_.$slug.tsx`
+- **RLS**: tudo via `requireSupabaseAuth`; queries filtram por `company_id` derivado do `userId`. Nenhum uso de `supabaseAdmin`.
+- **Performance**: cada server-fn aceita `{ from, to, limit, offset }`; limites duros (500 linhas tabelas, agregados via `count: 'exact', head: true` quando possível).
+- **Cache**: React Query com `queryKey: ['reports', tab, filters]`, `staleTime: 60_000`.
+- **UI**: `PageHeader`, `StatusBadge`, `EmptyState` globais já existentes. Tailwind tokens semânticos, dark/light ok, responsivo (tabs viram select em <640px).
+- **FeatureGate**: Starter → só abas Visão Geral/Orçamentos/Clientes/Estoque-básico. Pro → +OS/Projetos/Técnicos/Comercial. Business → +Financeiro/Exportação completa.
 
-## Arquivos alterados (mínimo)
-- `src/routes/_authenticated/route.tsx` — montar `OnboardingProvider`
-- `src/routes/_authenticated/dashboard.tsx` — `GettingStartedChecklist` + `data-tour`
-- `src/components/app/AppSidebar.tsx` — item "Ajuda"
-- `src/components/app/Topbar.tsx` — "Reiniciar tour" no menu
-- `src/components/app/PageHeader.tsx` — prop opcional `tourKey` que renderiza `ModuleHelpButton`
-- Rotas listadas acima ganham `data-tour` e `<PageHeader tourKey="…" />`
+## Não tocar
+billing Asaas, webhooks, CNPJ, PDF premium, criação de orçamento, lógica de OS/projetos/estoque/clientes, RLS existente (só adiciona permissões), rotas existentes.
 
-Aprovar para eu implementar.
+---
+
+## Pergunta antes de começar
+
+Confirma que sigo **Etapa A primeiro** (rota + menu + RBAC + filtros + Visão Geral funcional com dados reais), e ao validar visualmente eu continuo com B e C? Ou prefere que eu entregue A+B+C de uma vez (mais risco, menos turnos)?
