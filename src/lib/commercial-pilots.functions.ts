@@ -14,6 +14,7 @@ export type CommercialPilotRow = {
   id: string;
   company_id: string;
   status: string;
+  onboarding_status: string;
   source: string | null;
   responsible_admin_id: string | null;
   notes: string | null;
@@ -28,6 +29,24 @@ export type CommercialPilotRow = {
   company_whatsapp: string | null;
   last_contact_at: string | null;
   next_follow_up_at: string | null;
+  activation_score: number;
+  activation_tier: "LOW" | "ACTIVATING" | "GOOD" | "READY";
+  last_login: string | null;
+  users_count: number;
+  counts: {
+    customers: number;
+    items: number;
+    quotes: number;
+    pdfs: number;
+    sent: number;
+    approved: number;
+    projects: number;
+    service_orders: number;
+    service_orders_done: number;
+    reports: number;
+    users: number;
+  };
+  checklist: Record<string, boolean>;
 };
 
 export type PilotContactLog = {
@@ -42,12 +61,27 @@ export type PilotContactLog = {
 };
 
 export const PILOT_STATUSES = [
+  "INVITED",
+  "ACTIVE_TRIAL",
+  "ONBOARDING",
+  "USING",
+  "READY_TO_CONVERT",
+  "CONVERTED",
+  "LOST",
+  // legacy
   "prospect",
   "active",
   "in_progress",
   "converted",
   "lost",
   "paused",
+] as const;
+
+export const ONBOARDING_STATUSES = [
+  "NOT_STARTED",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "STUCK",
 ] as const;
 
 export const listCommercialPilots = createServerFn({ method: "GET" })
