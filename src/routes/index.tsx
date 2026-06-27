@@ -258,7 +258,11 @@ function Hero() {
               <MockCard tone="destructive" icon={AlertTriangle} title="Estoque baixo" sub="Câmera Bullet 4MP · 2 un" />
               <MockCard tone="success" icon={FileText} title="Relatório enviado" sub="Cliente assinou agora" />
             </div>
+            <p className="mt-3 text-center text-[11px] text-muted-foreground">
+              Prévia ilustrativa da interface do SmartCom Pro.
+            </p>
           </div>
+
         </div>
       </div>
     </section>
