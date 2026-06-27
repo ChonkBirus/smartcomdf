@@ -1,25 +1,24 @@
-import asyncio, json, os
+import asyncio, json, os, sys
 from pathlib import Path
 from playwright.async_api import async_playwright
 
 BASE = "http://localhost:8080"
-SHOTS = Path(__file__).parent / "screenshots"
-SHOTS.mkdir(exist_ok=True)
+OUT = Path(__file__).parent / "artifacts"
+SHOTS = OUT / "screenshots"
+TRACES = OUT / "traces"
+VIDEOS = OUT / "videos"
+for p in (SHOTS, TRACES, VIDEOS):
+    p.mkdir(parents=True, exist_ok=True)
 
-# Authenticated routes that render the AppSidebar (mobile = Sheet)
 ROUTES = [
-    "/dashboard",
-    "/clients",
-    "/products",
-    "/quotes",
-    "/projects",
-    "/service-orders",
-    "/stock",
-    "/suppliers",
-    "/settings",
+    "/dashboard", "/clients", "/products", "/quotes", "/projects",
+    "/service-orders", "/stock", "/suppliers", "/settings",
 ]
 
 results = []
+
+def slug(route):
+    return route.strip("/").replace("/", "_") or "root"
 
 async def restore_session(page):
     key = os.environ["LOVABLE_BROWSER_SUPABASE_STORAGE_KEY"]
@@ -30,22 +29,31 @@ async def restore_session(page):
     )
 
 async def open_mobile_menu(page):
-    # SidebarTrigger has aria-label "Toggle Sidebar"
     trigger = page.get_by_role("button", name="Toggle Sidebar")
     await trigger.first.click()
-    # Wait for Radix Dialog to mount
     await page.wait_for_selector('[role="dialog"]', state="visible", timeout=3000)
 
-async def test_route(page, route):
+async def test_route(browser, browser_name, route):
     r = {"route": route, "opens": False, "esc_closes": False, "focus_trapped": False, "error": None}
+    s = slug(route)
+    video_dir = VIDEOS / f"{browser_name}_{s}"
+    video_dir.mkdir(parents=True, exist_ok=True)
+
+    ctx = await browser.new_context(
+        viewport={"width": 390, "height": 1800},
+        user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148",
+        record_video_dir=str(video_dir),
+    )
+    await ctx.tracing.start(screenshots=True, snapshots=True, sources=True)
+    page = await ctx.new_page()
     try:
+        await restore_session(page)
         await page.goto(BASE + route, wait_until="domcontentloaded")
         await page.wait_for_timeout(500)
         await open_mobile_menu(page)
         r["opens"] = True
-        await page.screenshot(path=str(SHOTS / f"{route.strip('/').replace('/', '_')}_open.png"))
+        await page.screenshot(path=str(SHOTS / f"{browser_name}_{s}_open.png"))
 
-        # Focus trap: Tab repeatedly; active element must stay inside dialog
         trapped = True
         for _ in range(15):
             await page.keyboard.press("Tab")
@@ -57,7 +65,6 @@ async def test_route(page, route):
                 break
         r["focus_trapped"] = trapped
 
-        # Esc closes — dispatch on dialog (locator.press focuses + keydowns)
         await page.locator('[role="dialog"]').first.press("Escape")
         for _ in range(20):
             await page.wait_for_timeout(100)
@@ -66,6 +73,33 @@ async def test_route(page, route):
                 break
     except Exception as e:
         r["error"] = str(e)[:200]
+
+    failed = bool(r["error"]) or not (r["opens"] and r["esc_closes"] and r["focus_trapped"])
+
+    if failed:
+        try:
+            await page.screenshot(path=str(SHOTS / f"FAIL_{browser_name}_{s}.png"), full_page=False)
+        except Exception:
+            pass
+        await ctx.tracing.stop(path=str(TRACES / f"{browser_name}_{s}.zip"))
+        await ctx.close()  # finalize video
+        # Surface video path for the artifact upload
+        try:
+            for v in video_dir.glob("*.webm"):
+                v.rename(VIDEOS / f"FAIL_{browser_name}_{s}.webm")
+        except Exception:
+            pass
+    else:
+        await ctx.tracing.stop()  # discard
+        await ctx.close()
+        # Remove unneeded video on success
+        try:
+            for v in video_dir.glob("*.webm"):
+                v.unlink()
+            video_dir.rmdir()
+        except Exception:
+            pass
+
     results.append(r)
 
 async def main():
@@ -74,15 +108,9 @@ async def main():
         launcher = {"chromium": pw.chromium, "firefox": pw.firefox, "webkit": pw.webkit}[browser_name]
         print(f"Running tests on: {browser_name}")
         browser = await launcher.launch(headless=True)
-        ctx = await browser.new_context(
-            viewport={"width": 390, "height": 1800},
-            user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148",
-        )
-        page = await ctx.new_page()
-        await restore_session(page)
 
         for route in ROUTES:
-            await test_route(page, route)
+            await test_route(browser, browser_name, route)
 
         await browser.close()
 
@@ -91,6 +119,6 @@ async def main():
     print(f"\n{len(results) - len(failed)}/{len(results)} passed")
     if failed:
         print("FAILURES:", json.dumps(failed, indent=2))
-        exit(1)
+        sys.exit(1)
 
 asyncio.run(main())
