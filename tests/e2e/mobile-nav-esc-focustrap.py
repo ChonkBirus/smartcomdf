@@ -89,7 +89,7 @@ async def test_route(browser, browser_name, route):
     except Exception as e:
         r["error"] = str(e)[:200]
 
-    failed = bool(r["error"]) or not (r["opens"] and r["esc_closes"] and r["focus_trapped"])
+    failed = bool(r["error"]) or not (r["opens"] and r["esc_closes"] and r["outside_closes"] and r["focus_trapped"])
 
     if failed:
         try:
@@ -130,7 +130,7 @@ async def main():
         await browser.close()
 
     print(json.dumps(results, indent=2))
-    failed = [r for r in results if r["error"] or not (r["opens"] and r["esc_closes"] and r["focus_trapped"])]
+    failed = [r for r in results if r["error"] or not (r["opens"] and r["esc_closes"] and r["outside_closes"] and r["focus_trapped"])]
     print(f"\n{len(results) - len(failed)}/{len(results)} passed")
     if failed:
         print("FAILURES:", json.dumps(failed, indent=2))
