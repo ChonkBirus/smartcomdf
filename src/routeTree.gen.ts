@@ -56,6 +56,7 @@ import { Route as AuthenticatedClientsIdRouteImport } from './routes/_authentica
 import { Route as AuthenticatedBillingPlansRouteImport } from './routes/_authenticated/billing.plans'
 import { Route as AuthenticatedBillingInvoicesRouteImport } from './routes/_authenticated/billing.invoices'
 import { Route as AuthenticatedAdminSubscriptionsRouteImport } from './routes/_authenticated/admin.subscriptions'
+import { Route as AuthenticatedAdminQaBugsRouteImport } from './routes/_authenticated/admin.qa-bugs'
 import { Route as AuthenticatedAdminPlansRouteImport } from './routes/_authenticated/admin.plans'
 import { Route as AuthenticatedAdminPilotsRouteImport } from './routes/_authenticated/admin.pilots'
 import { Route as AuthenticatedAdminOverviewRouteImport } from './routes/_authenticated/admin.overview'
@@ -315,6 +316,12 @@ const AuthenticatedAdminSubscriptionsRoute =
     path: '/subscriptions',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminQaBugsRoute =
+  AuthenticatedAdminQaBugsRouteImport.update({
+    id: '/qa-bugs',
+    path: '/qa-bugs',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminPlansRoute = AuthenticatedAdminPlansRouteImport.update({
   id: '/plans',
   path: '/plans',
@@ -406,6 +413,7 @@ export interface FileRoutesByFullPath {
   '/admin/overview': typeof AuthenticatedAdminOverviewRoute
   '/admin/pilots': typeof AuthenticatedAdminPilotsRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
+  '/admin/qa-bugs': typeof AuthenticatedAdminQaBugsRoute
   '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
   '/billing/invoices': typeof AuthenticatedBillingInvoicesRoute
   '/billing/plans': typeof AuthenticatedBillingPlansRoute
@@ -461,6 +469,7 @@ export interface FileRoutesByTo {
   '/admin/overview': typeof AuthenticatedAdminOverviewRoute
   '/admin/pilots': typeof AuthenticatedAdminPilotsRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
+  '/admin/qa-bugs': typeof AuthenticatedAdminQaBugsRoute
   '/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
   '/billing/invoices': typeof AuthenticatedBillingInvoicesRoute
   '/billing/plans': typeof AuthenticatedBillingPlansRoute
@@ -520,6 +529,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/overview': typeof AuthenticatedAdminOverviewRoute
   '/_authenticated/admin/pilots': typeof AuthenticatedAdminPilotsRoute
   '/_authenticated/admin/plans': typeof AuthenticatedAdminPlansRoute
+  '/_authenticated/admin/qa-bugs': typeof AuthenticatedAdminQaBugsRoute
   '/_authenticated/admin/subscriptions': typeof AuthenticatedAdminSubscriptionsRoute
   '/_authenticated/billing/invoices': typeof AuthenticatedBillingInvoicesRoute
   '/_authenticated/billing/plans': typeof AuthenticatedBillingPlansRoute
@@ -579,6 +589,7 @@ export interface FileRouteTypes {
     | '/admin/overview'
     | '/admin/pilots'
     | '/admin/plans'
+    | '/admin/qa-bugs'
     | '/admin/subscriptions'
     | '/billing/invoices'
     | '/billing/plans'
@@ -634,6 +645,7 @@ export interface FileRouteTypes {
     | '/admin/overview'
     | '/admin/pilots'
     | '/admin/plans'
+    | '/admin/qa-bugs'
     | '/admin/subscriptions'
     | '/billing/invoices'
     | '/billing/plans'
@@ -692,6 +704,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/overview'
     | '/_authenticated/admin/pilots'
     | '/_authenticated/admin/plans'
+    | '/_authenticated/admin/qa-bugs'
     | '/_authenticated/admin/subscriptions'
     | '/_authenticated/billing/invoices'
     | '/_authenticated/billing/plans'
@@ -1058,6 +1071,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSubscriptionsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/qa-bugs': {
+      id: '/_authenticated/admin/qa-bugs'
+      path: '/qa-bugs'
+      fullPath: '/admin/qa-bugs'
+      preLoaderRoute: typeof AuthenticatedAdminQaBugsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/plans': {
       id: '/_authenticated/admin/plans'
       path: '/plans'
@@ -1133,6 +1153,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminOverviewRoute: typeof AuthenticatedAdminOverviewRoute
   AuthenticatedAdminPilotsRoute: typeof AuthenticatedAdminPilotsRoute
   AuthenticatedAdminPlansRoute: typeof AuthenticatedAdminPlansRoute
+  AuthenticatedAdminQaBugsRoute: typeof AuthenticatedAdminQaBugsRoute
   AuthenticatedAdminSubscriptionsRoute: typeof AuthenticatedAdminSubscriptionsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
@@ -1146,6 +1167,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminOverviewRoute: AuthenticatedAdminOverviewRoute,
   AuthenticatedAdminPilotsRoute: AuthenticatedAdminPilotsRoute,
   AuthenticatedAdminPlansRoute: AuthenticatedAdminPlansRoute,
+  AuthenticatedAdminQaBugsRoute: AuthenticatedAdminQaBugsRoute,
   AuthenticatedAdminSubscriptionsRoute: AuthenticatedAdminSubscriptionsRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }

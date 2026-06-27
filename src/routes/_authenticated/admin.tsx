@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Shield, Building2, Package, CreditCard, Receipt, LayoutDashboard, Activity, Ticket, AlertTriangle, Rocket, Target } from "lucide-react";
+import { Shield, Building2, Package, CreditCard, Receipt, LayoutDashboard, Activity, Ticket, AlertTriangle, Rocket, Target, Bug } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { getMyContext } from "@/lib/account.functions";
@@ -39,7 +39,9 @@ function AdminLayout() {
     { to: "/admin/launch", label: "Lançamento", icon: Rocket },
     { to: "/admin/pilots", label: "Pilotos", icon: Target },
     { to: "/admin/events", label: "Eventos", icon: Activity },
+    { to: "/admin/qa-bugs", label: "QA Bugs", icon: Bug },
   ];
+
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
