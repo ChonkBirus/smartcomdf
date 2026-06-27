@@ -3235,6 +3235,51 @@ export type Database = {
           },
         ]
       }
+      qa_bugs: {
+        Row: {
+          assignee: string | null
+          created_at: string
+          description: string
+          fix: string | null
+          id: string
+          impact: string | null
+          priority: string
+          reporter_id: string | null
+          root_cause: string | null
+          screen: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assignee?: string | null
+          created_at?: string
+          description: string
+          fix?: string | null
+          id?: string
+          impact?: string | null
+          priority?: string
+          reporter_id?: string | null
+          root_cause?: string | null
+          screen: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assignee?: string | null
+          created_at?: string
+          description?: string
+          fix?: string | null
+          id?: string
+          impact?: string | null
+          priority?: string
+          reporter_id?: string | null
+          root_cause?: string | null
+          screen?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       quote_history: {
         Row: {
           actor_label: string | null
