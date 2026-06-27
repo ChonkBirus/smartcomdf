@@ -1150,6 +1150,7 @@ export type Database = {
           loss_reason: string | null
           lost_at: string | null
           notes: string | null
+          onboarding_status: string
           responsible_admin_id: string | null
           source: string | null
           status: string
@@ -1164,6 +1165,7 @@ export type Database = {
           loss_reason?: string | null
           lost_at?: string | null
           notes?: string | null
+          onboarding_status?: string
           responsible_admin_id?: string | null
           source?: string | null
           status?: string
@@ -1178,6 +1180,7 @@ export type Database = {
           loss_reason?: string | null
           lost_at?: string | null
           notes?: string | null
+          onboarding_status?: string
           responsible_admin_id?: string | null
           source?: string | null
           status?: string
@@ -2283,6 +2286,84 @@ export type Database = {
           slug?: string
         }
         Relationships: []
+      }
+      pilot_feedback: {
+        Row: {
+          actual_result: string | null
+          assignee: string | null
+          company_id: string
+          created_at: string
+          description: string | null
+          expected_result: string | null
+          feedback_type: string
+          id: string
+          module: string
+          pilot_id: string | null
+          priority: string
+          resolved_at: string | null
+          screen: string | null
+          status: string
+          steps_to_reproduce: string | null
+          submitted_by: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actual_result?: string | null
+          assignee?: string | null
+          company_id: string
+          created_at?: string
+          description?: string | null
+          expected_result?: string | null
+          feedback_type: string
+          id?: string
+          module: string
+          pilot_id?: string | null
+          priority?: string
+          resolved_at?: string | null
+          screen?: string | null
+          status?: string
+          steps_to_reproduce?: string | null
+          submitted_by?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actual_result?: string | null
+          assignee?: string | null
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          expected_result?: string | null
+          feedback_type?: string
+          id?: string
+          module?: string
+          pilot_id?: string | null
+          priority?: string
+          resolved_at?: string | null
+          screen?: string | null
+          status?: string
+          steps_to_reproduce?: string | null
+          submitted_by?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pilot_feedback_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pilot_feedback_pilot_id_fkey"
+            columns: ["pilot_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_pilots"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       plan_features: {
         Row: {
@@ -5726,6 +5807,7 @@ export type Database = {
       }
       get_my_features: { Args: never; Returns: string[] }
       get_my_permissions: { Args: never; Returns: string[] }
+      get_pilot_activation: { Args: { _company_id: string }; Returns: Json }
       get_public_quote_by_token: { Args: { _token: string }; Returns: Json }
       get_public_so_report: { Args: { _token: string }; Returns: Json }
       has_company_role: {
