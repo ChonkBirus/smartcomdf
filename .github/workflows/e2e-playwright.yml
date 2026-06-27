@@ -86,6 +86,6 @@ jobs:
           name: playwright-results-${{ matrix.browser }}
           path: |
             test-results/
-            tests/e2e/**/screenshots/**
+            tests/e2e/artifacts/**
           if-no-files-found: ignore
           retention-days: 14
