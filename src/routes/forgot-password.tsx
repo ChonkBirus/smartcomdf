@@ -26,11 +26,19 @@ function ForgotPassword() {
 
   const onSubmit = async (d: z.infer<typeof schema>) => {
     setLoading(true);
+    const redirectUrl = appUrl("/reset-password");
+    if (import.meta.env.DEV) {
+      console.info("[AUTH RESET PASSWORD] email", d.email);
+      console.info("[AUTH RESET PASSWORD] redirectUrl", redirectUrl);
+    }
     const { error } = await supabase.auth.resetPasswordForEmail(d.email, {
-      redirectTo: window.location.origin + "/reset-password",
+      redirectTo: redirectUrl,
     });
     setLoading(false);
-    if (error) return toast.error(translateAuthError(error.message));
+    if (error) {
+      if (import.meta.env.DEV) console.warn("[AUTH RESET PASSWORD] error", error.message);
+      return toast.error(translateAuthError(error.message));
+    }
     setSent(true);
     toast.success("Enviamos um link para o seu e-mail.");
   };
