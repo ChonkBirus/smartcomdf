@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -296,6 +296,9 @@ function AdminPilotsPage() {
                       </Button>
                       <Button size="sm" variant="default" onClick={() => setContactPilot(p)}>
                         Registrar
+                      </Button>
+                      <Button asChild size="sm" variant="outline">
+                        <Link to="/admin/pilot-detail/$id" params={{ id: p.id }}>Detalhar</Link>
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => setEditPilot(p)}>
                         Editar
