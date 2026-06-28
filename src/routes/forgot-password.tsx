@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
+import { appUrl } from "@/lib/app-url";
 
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({ meta: [{ title: "Recuperar senha — SecureERP" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -25,11 +26,19 @@ function ForgotPassword() {
 
   const onSubmit = async (d: z.infer<typeof schema>) => {
     setLoading(true);
+    const redirectUrl = appUrl("/reset-password");
+    if (import.meta.env.DEV) {
+      console.info("[AUTH RESET PASSWORD] email", d.email);
+      console.info("[AUTH RESET PASSWORD] redirectUrl", redirectUrl);
+    }
     const { error } = await supabase.auth.resetPasswordForEmail(d.email, {
-      redirectTo: window.location.origin + "/reset-password",
+      redirectTo: redirectUrl,
     });
     setLoading(false);
-    if (error) return toast.error(translateAuthError(error.message));
+    if (error) {
+      if (import.meta.env.DEV) console.warn("[AUTH RESET PASSWORD] error", error.message);
+      return toast.error(translateAuthError(error.message));
+    }
     setSent(true);
     toast.success("Enviamos um link para o seu e-mail.");
   };

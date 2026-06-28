@@ -95,6 +95,29 @@ export const revokeInvitation = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const resendInvitation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: me } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+    if (!me?.company_id) throw new Error("Sem empresa vinculada.");
+    await assertOwner(supabase, userId, me.company_id);
+
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 7);
+
+    const { data: inv, error } = await supabase
+      .from("user_invitations")
+      .update({ status: "pending", expires_at: expires.toISOString() })
+      .eq("id", data.id)
+      .eq("company_id", me.company_id)
+      .select("id, email, role, token, expires_at, status")
+      .single();
+    if (error) throw new Error(error.message);
+    return inv;
+  });
+
 export const updateMemberRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ user_id: z.string().uuid(), role: z.enum(APP_ROLES) }).parse(d))

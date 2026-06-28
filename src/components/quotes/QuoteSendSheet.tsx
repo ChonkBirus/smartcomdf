@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { toast } from "sonner";
+import { appUrl } from "@/lib/app-url";
 import {
   getQuote, getQuoteHistory, logQuoteEvent, markQuoteSent,
 } from "@/lib/quotes.functions";
@@ -58,8 +59,8 @@ const EVENT_LABEL: Record<string, string> = {
 };
 
 function publicUrlFor(token: string) {
-  if (typeof window === "undefined") return `/q/${token}`;
-  return `${window.location.origin}/q/${token}`;
+  // appUrl already handles SSR fallback to official domain
+  return appUrl(`/q/${token}`);
 }
 
 export function QuoteSendSheet({

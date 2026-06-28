@@ -9,6 +9,7 @@ import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { appUrl } from "@/lib/app-url";
 import {
   generateServiceOrderFinalReport,
   getServiceOrderReport,
@@ -53,8 +54,7 @@ function fmtDate(s?: string | null) {
 
 function publicLink(token: string | null | undefined) {
   if (!token) return "";
-  if (typeof window === "undefined") return `/r/${token}`;
-  return `${window.location.origin}/r/${token}`;
+  return appUrl(`/r/${token}`);
 }
 
 async function blobToBase64(blob: Blob): Promise<string> {

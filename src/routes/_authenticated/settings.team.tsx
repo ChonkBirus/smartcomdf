@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Copy, Trash2, UserPlus, X } from "lucide-react";
+import { Copy, RefreshCw, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,9 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  listTeam, inviteMember, revokeInvitation, updateMemberRole, removeMember,
+  listTeam, inviteMember, revokeInvitation, resendInvitation, updateMemberRole, removeMember,
 } from "@/lib/team.functions";
+import { appUrl } from "@/lib/app-url";
 
 export const Route = createFileRoute("/_authenticated/settings/team")({
   component: TeamPage,
@@ -37,6 +38,7 @@ function TeamPage() {
   const fetch = useServerFn(listTeam);
   const invite = useServerFn(inviteMember);
   const revoke = useServerFn(revokeInvitation);
+  const resend = useServerFn(resendInvitation);
   const updateRole = useServerFn(updateMemberRole);
   const remove = useServerFn(removeMember);
 
@@ -48,14 +50,31 @@ function TeamPage() {
   const inviteMut = useMutation({
     mutationFn: () => invite({ data: { email, role: role as any } }),
     onSuccess: (inv: any) => {
-      toast.success("Convite criado!");
-      const link = `${window.location.origin}/invite/${inv.token}`;
+      const link = appUrl(`/invite/${inv.token}`);
+      if (import.meta.env.DEV) {
+        console.info("[AUTH INVITE] email", inv.email);
+        console.info("[AUTH INVITE] redirectUrl", link);
+      }
       navigator.clipboard?.writeText(link).catch(() => {});
-      toast.message("Link de convite copiado para a área de transferência.", { description: link });
+      toast.success("E-mail de convite enviado com sucesso.", { description: link });
       setEmail("");
       qc.invalidateQueries({ queryKey: ["team"] });
     },
-    onError: (e: any) => toast.error(e.message ?? "Falha ao convidar."),
+    onError: (e: any) => {
+      if (import.meta.env.DEV) console.warn("[AUTH INVITE] error", e?.message);
+      toast.error(e?.message ?? "Falha ao convidar.");
+    },
+  });
+
+  const resendMut = useMutation({
+    mutationFn: (id: string) => resend({ data: { id } }),
+    onSuccess: (inv: any) => {
+      const link = appUrl(`/invite/${inv.token}`);
+      navigator.clipboard?.writeText(link).catch(() => {});
+      toast.success("Convite reenviado.", { description: link });
+      qc.invalidateQueries({ queryKey: ["team"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao reenviar convite."),
   });
 
   const revokeMut = useMutation({
@@ -226,15 +245,25 @@ function TeamPage() {
                         <Button
                           size="sm"
                           variant="ghost"
+                          title="Copiar link"
                           onClick={() => {
-                            const link = `${window.location.origin}/invite/${inv.token}`;
+                            const link = appUrl(`/invite/${inv.token}`);
                             navigator.clipboard?.writeText(link);
                             toast.success("Link copiado.");
                           }}
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => revokeMut.mutate(inv.id)}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          title="Reenviar convite"
+                          onClick={() => resendMut.mutate(inv.id)}
+                          disabled={resendMut.isPending}
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" title="Revogar" onClick={() => revokeMut.mutate(inv.id)}>
                           <X className="h-4 w-4 text-destructive" />
                         </Button>
                       </>
