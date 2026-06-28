@@ -50,14 +50,31 @@ function TeamPage() {
   const inviteMut = useMutation({
     mutationFn: () => invite({ data: { email, role: role as any } }),
     onSuccess: (inv: any) => {
-      toast.success("Convite criado!");
-      const link = `${window.location.origin}/invite/${inv.token}`;
+      const link = appUrl(`/invite/${inv.token}`);
+      if (import.meta.env.DEV) {
+        console.info("[AUTH INVITE] email", inv.email);
+        console.info("[AUTH INVITE] redirectUrl", link);
+      }
       navigator.clipboard?.writeText(link).catch(() => {});
-      toast.message("Link de convite copiado para a área de transferência.", { description: link });
+      toast.success("E-mail de convite enviado com sucesso.", { description: link });
       setEmail("");
       qc.invalidateQueries({ queryKey: ["team"] });
     },
-    onError: (e: any) => toast.error(e.message ?? "Falha ao convidar."),
+    onError: (e: any) => {
+      if (import.meta.env.DEV) console.warn("[AUTH INVITE] error", e?.message);
+      toast.error(e?.message ?? "Falha ao convidar.");
+    },
+  });
+
+  const resendMut = useMutation({
+    mutationFn: (id: string) => resend({ data: { id } }),
+    onSuccess: (inv: any) => {
+      const link = appUrl(`/invite/${inv.token}`);
+      navigator.clipboard?.writeText(link).catch(() => {});
+      toast.success("Convite reenviado.", { description: link });
+      qc.invalidateQueries({ queryKey: ["team"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao reenviar convite."),
   });
 
   const revokeMut = useMutation({
