@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
 import { appUrl } from "@/lib/app-url";
+import { logAuthDev, maskEmail } from "@/lib/auth-dev-log";
 
 const REMEMBER_KEY = "secureerp.remember_email";
 
@@ -60,10 +61,12 @@ function AuthPage() {
   const onSignup = async (d: z.infer<typeof signupSchema>) => {
     setLoading(true);
     const redirectUrl = appUrl("/dashboard");
+    const masked = maskEmail(d.email);
     if (import.meta.env.DEV) {
       console.info("[AUTH SIGNUP] email", d.email);
       console.info("[AUTH SIGNUP] redirectUrl", redirectUrl);
     }
+    logAuthDev({ flow: "signup", status: "attempt", emailMasked: masked, redirectUrl });
     const { error } = await supabase.auth.signUp({
       email: d.email,
       password: d.password,
@@ -75,8 +78,10 @@ function AuthPage() {
     setLoading(false);
     if (error) {
       if (import.meta.env.DEV) console.warn("[AUTH SIGNUP] error", error.message);
+      logAuthDev({ flow: "signup", status: "error", emailMasked: masked, message: error.message });
       return toast.error(translateAuthError(error.message));
     }
+    logAuthDev({ flow: "signup", status: "success", emailMasked: masked, redirectUrl });
     toast.success("Cadastro realizado. Verifique seu e-mail para confirmar sua conta.");
   };
 

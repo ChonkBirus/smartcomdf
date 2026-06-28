@@ -52,6 +52,7 @@ import { Route as AuthenticatedServiceOrdersMyRouteImport } from './routes/_auth
 import { Route as AuthenticatedServiceOrdersIdRouteImport } from './routes/_authenticated/service-orders_.$id'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects_.$id'
 import { Route as AuthenticatedHelpSlugRouteImport } from './routes/_authenticated/help_.$slug'
+import { Route as AuthenticatedDevAuthDiagnosticsRouteImport } from './routes/_authenticated/dev.auth-diagnostics'
 import { Route as AuthenticatedClientsIdRouteImport } from './routes/_authenticated/clients_.$id'
 import { Route as AuthenticatedBillingPlansRouteImport } from './routes/_authenticated/billing.plans'
 import { Route as AuthenticatedBillingInvoicesRouteImport } from './routes/_authenticated/billing.invoices'
@@ -295,6 +296,12 @@ const AuthenticatedHelpSlugRoute = AuthenticatedHelpSlugRouteImport.update({
   path: '/help/$slug',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDevAuthDiagnosticsRoute =
+  AuthenticatedDevAuthDiagnosticsRouteImport.update({
+    id: '/dev/auth-diagnostics',
+    path: '/dev/auth-diagnostics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedClientsIdRoute = AuthenticatedClientsIdRouteImport.update({
   id: '/clients_/$id',
   path: '/clients/$id',
@@ -432,6 +439,7 @@ export interface FileRoutesByFullPath {
   '/billing/invoices': typeof AuthenticatedBillingInvoicesRoute
   '/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
+  '/dev/auth-diagnostics': typeof AuthenticatedDevAuthDiagnosticsRoute
   '/help/$slug': typeof AuthenticatedHelpSlugRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/service-orders/$id': typeof AuthenticatedServiceOrdersIdRouteWithChildren
@@ -490,6 +498,7 @@ export interface FileRoutesByTo {
   '/billing/invoices': typeof AuthenticatedBillingInvoicesRoute
   '/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
+  '/dev/auth-diagnostics': typeof AuthenticatedDevAuthDiagnosticsRoute
   '/help/$slug': typeof AuthenticatedHelpSlugRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/service-orders/$id': typeof AuthenticatedServiceOrdersIdRouteWithChildren
@@ -552,6 +561,7 @@ export interface FileRoutesById {
   '/_authenticated/billing/invoices': typeof AuthenticatedBillingInvoicesRoute
   '/_authenticated/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/_authenticated/clients_/$id': typeof AuthenticatedClientsIdRoute
+  '/_authenticated/dev/auth-diagnostics': typeof AuthenticatedDevAuthDiagnosticsRoute
   '/_authenticated/help_/$slug': typeof AuthenticatedHelpSlugRoute
   '/_authenticated/projects_/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/service-orders_/$id': typeof AuthenticatedServiceOrdersIdRouteWithChildren
@@ -614,6 +624,7 @@ export interface FileRouteTypes {
     | '/billing/invoices'
     | '/billing/plans'
     | '/clients/$id'
+    | '/dev/auth-diagnostics'
     | '/help/$slug'
     | '/projects/$id'
     | '/service-orders/$id'
@@ -672,6 +683,7 @@ export interface FileRouteTypes {
     | '/billing/invoices'
     | '/billing/plans'
     | '/clients/$id'
+    | '/dev/auth-diagnostics'
     | '/help/$slug'
     | '/projects/$id'
     | '/service-orders/$id'
@@ -733,6 +745,7 @@ export interface FileRouteTypes {
     | '/_authenticated/billing/invoices'
     | '/_authenticated/billing/plans'
     | '/_authenticated/clients_/$id'
+    | '/_authenticated/dev/auth-diagnostics'
     | '/_authenticated/help_/$slug'
     | '/_authenticated/projects_/$id'
     | '/_authenticated/service-orders_/$id'
@@ -1070,6 +1083,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHelpSlugRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dev/auth-diagnostics': {
+      id: '/_authenticated/dev/auth-diagnostics'
+      path: '/dev/auth-diagnostics'
+      fullPath: '/dev/auth-diagnostics'
+      preLoaderRoute: typeof AuthenticatedDevAuthDiagnosticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/clients_/$id': {
       id: '/_authenticated/clients_/$id'
       path: '/clients/$id'
@@ -1284,6 +1304,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBillingInvoicesRoute: typeof AuthenticatedBillingInvoicesRoute
   AuthenticatedBillingPlansRoute: typeof AuthenticatedBillingPlansRoute
   AuthenticatedClientsIdRoute: typeof AuthenticatedClientsIdRoute
+  AuthenticatedDevAuthDiagnosticsRoute: typeof AuthenticatedDevAuthDiagnosticsRoute
   AuthenticatedHelpSlugRoute: typeof AuthenticatedHelpSlugRoute
   AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
   AuthenticatedServiceOrdersIdRoute: typeof AuthenticatedServiceOrdersIdRouteWithChildren
@@ -1314,6 +1335,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBillingInvoicesRoute: AuthenticatedBillingInvoicesRoute,
   AuthenticatedBillingPlansRoute: AuthenticatedBillingPlansRoute,
   AuthenticatedClientsIdRoute: AuthenticatedClientsIdRoute,
+  AuthenticatedDevAuthDiagnosticsRoute: AuthenticatedDevAuthDiagnosticsRoute,
   AuthenticatedHelpSlugRoute: AuthenticatedHelpSlugRoute,
   AuthenticatedProjectsIdRoute: AuthenticatedProjectsIdRoute,
   AuthenticatedServiceOrdersIdRoute:

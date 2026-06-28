@@ -20,6 +20,7 @@ import {
   listTeam, inviteMember, revokeInvitation, resendInvitation, updateMemberRole, removeMember,
 } from "@/lib/team.functions";
 import { appUrl } from "@/lib/app-url";
+import { logAuthDev, maskEmail } from "@/lib/auth-dev-log";
 
 export const Route = createFileRoute("/_authenticated/settings/team")({
   component: TeamPage,
@@ -51,10 +52,12 @@ function TeamPage() {
     mutationFn: () => invite({ data: { email, role: role as any } }),
     onSuccess: (inv: any) => {
       const link = appUrl(`/invite/${inv.token}`);
+      const masked = maskEmail(inv.email);
       if (import.meta.env.DEV) {
         console.info("[AUTH INVITE] email", inv.email);
         console.info("[AUTH INVITE] redirectUrl", link);
       }
+      logAuthDev({ flow: "invite", status: "success", emailMasked: masked, redirectUrl: link });
       navigator.clipboard?.writeText(link).catch(() => {});
       toast.success("E-mail de convite enviado com sucesso.", { description: link });
       setEmail("");
@@ -62,6 +65,7 @@ function TeamPage() {
     },
     onError: (e: any) => {
       if (import.meta.env.DEV) console.warn("[AUTH INVITE] error", e?.message);
+      logAuthDev({ flow: "invite", status: "error", emailMasked: maskEmail(email), message: e?.message });
       toast.error(e?.message ?? "Falha ao convidar.");
     },
   });
@@ -70,11 +74,15 @@ function TeamPage() {
     mutationFn: (id: string) => resend({ data: { id } }),
     onSuccess: (inv: any) => {
       const link = appUrl(`/invite/${inv.token}`);
+      logAuthDev({ flow: "invite_resend", status: "success", emailMasked: maskEmail(inv.email), redirectUrl: link });
       navigator.clipboard?.writeText(link).catch(() => {});
       toast.success("Convite reenviado.", { description: link });
       qc.invalidateQueries({ queryKey: ["team"] });
     },
-    onError: (e: any) => toast.error(e?.message ?? "Falha ao reenviar convite."),
+    onError: (e: any) => {
+      logAuthDev({ flow: "invite_resend", status: "error", message: e?.message });
+      toast.error(e?.message ?? "Falha ao reenviar convite.");
+    },
   });
 
   const revokeMut = useMutation({

@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
 import { appUrl } from "@/lib/app-url";
+import { logAuthDev, maskEmail } from "@/lib/auth-dev-log";
 
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({ meta: [{ title: "Recuperar senha — SecureERP" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -27,18 +28,22 @@ function ForgotPassword() {
   const onSubmit = async (d: z.infer<typeof schema>) => {
     setLoading(true);
     const redirectUrl = appUrl("/reset-password");
+    const masked = maskEmail(d.email);
     if (import.meta.env.DEV) {
       console.info("[AUTH RESET PASSWORD] email", d.email);
       console.info("[AUTH RESET PASSWORD] redirectUrl", redirectUrl);
     }
+    logAuthDev({ flow: "reset_password", status: "attempt", emailMasked: masked, redirectUrl });
     const { error } = await supabase.auth.resetPasswordForEmail(d.email, {
       redirectTo: redirectUrl,
     });
     setLoading(false);
     if (error) {
       if (import.meta.env.DEV) console.warn("[AUTH RESET PASSWORD] error", error.message);
+      logAuthDev({ flow: "reset_password", status: "error", emailMasked: masked, message: error.message });
       return toast.error(translateAuthError(error.message));
     }
+    logAuthDev({ flow: "reset_password", status: "success", emailMasked: masked, redirectUrl });
     setSent(true);
     toast.success("Enviamos um link para o seu e-mail.");
   };
