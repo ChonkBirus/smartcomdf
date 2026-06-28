@@ -65,6 +65,7 @@ import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminDunningRouteImport } from './routes/_authenticated/admin.dunning'
 import { Route as AuthenticatedAdminCouponsRouteImport } from './routes/_authenticated/admin.coupons'
 import { Route as AuthenticatedAdminBillingRouteImport } from './routes/_authenticated/admin.billing'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as AuthenticatedServiceOrdersIdMobileRouteImport } from './routes/_authenticated/service-orders_.$id.mobile'
 import { Route as AuthenticatedAdminPilotDetailIdRouteImport } from './routes/_authenticated/admin.pilot-detail.$id'
 
@@ -370,6 +371,12 @@ const AuthenticatedAdminBillingRoute =
     path: '/billing',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedServiceOrdersIdMobileRoute =
   AuthenticatedServiceOrdersIdMobileRouteImport.update({
     id: '/mobile',
@@ -441,6 +448,7 @@ export interface FileRoutesByFullPath {
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/admin/pilot-detail/$id': typeof AuthenticatedAdminPilotDetailIdRoute
   '/service-orders/$id/mobile': typeof AuthenticatedServiceOrdersIdMobileRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -498,6 +506,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/admin/pilot-detail/$id': typeof AuthenticatedAdminPilotDetailIdRoute
   '/service-orders/$id/mobile': typeof AuthenticatedServiceOrdersIdMobileRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -559,6 +568,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/admin/pilot-detail/$id': typeof AuthenticatedAdminPilotDetailIdRoute
   '/_authenticated/service-orders_/$id/mobile': typeof AuthenticatedServiceOrdersIdMobileRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -620,6 +630,7 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/admin/pilot-detail/$id'
     | '/service-orders/$id/mobile'
+    | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -677,6 +688,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/admin/pilot-detail/$id'
     | '/service-orders/$id/mobile'
+    | '/lovable/email/queue/process'
   id:
     | '__root__'
     | '/'
@@ -737,6 +749,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/'
     | '/_authenticated/admin/pilot-detail/$id'
     | '/_authenticated/service-orders_/$id/mobile'
+    | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -751,6 +764,7 @@ export interface RootRouteChildren {
   RTokenRoute: typeof RTokenRoute
   ApiAssistantChatRoute: typeof ApiAssistantChatRoute
   ApiPublicBillingWebhookRoute: typeof ApiPublicBillingWebhookRoute
+  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1147,6 +1161,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminBillingRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/service-orders_/$id/mobile': {
       id: '/_authenticated/service-orders_/$id/mobile'
       path: '/mobile'
@@ -1315,17 +1336,8 @@ const rootRouteChildren: RootRouteChildren = {
   RTokenRoute: RTokenRoute,
   ApiAssistantChatRoute: ApiAssistantChatRoute,
   ApiPublicBillingWebhookRoute: ApiPublicBillingWebhookRoute,
+  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
