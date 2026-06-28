@@ -245,15 +245,25 @@ function TeamPage() {
                         <Button
                           size="sm"
                           variant="ghost"
+                          title="Copiar link"
                           onClick={() => {
-                            const link = `${window.location.origin}/invite/${inv.token}`;
+                            const link = appUrl(`/invite/${inv.token}`);
                             navigator.clipboard?.writeText(link);
                             toast.success("Link copiado.");
                           }}
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => revokeMut.mutate(inv.id)}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          title="Reenviar convite"
+                          onClick={() => resendMut.mutate(inv.id)}
+                          disabled={resendMut.isPending}
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" title="Revogar" onClick={() => revokeMut.mutate(inv.id)}>
                           <X className="h-4 w-4 text-destructive" />
                         </Button>
                       </>
