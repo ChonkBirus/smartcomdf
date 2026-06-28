@@ -28,18 +28,22 @@ function ForgotPassword() {
   const onSubmit = async (d: z.infer<typeof schema>) => {
     setLoading(true);
     const redirectUrl = appUrl("/reset-password");
+    const masked = maskEmail(d.email);
     if (import.meta.env.DEV) {
       console.info("[AUTH RESET PASSWORD] email", d.email);
       console.info("[AUTH RESET PASSWORD] redirectUrl", redirectUrl);
     }
+    logAuthDev({ flow: "reset_password", status: "attempt", emailMasked: masked, redirectUrl });
     const { error } = await supabase.auth.resetPasswordForEmail(d.email, {
       redirectTo: redirectUrl,
     });
     setLoading(false);
     if (error) {
       if (import.meta.env.DEV) console.warn("[AUTH RESET PASSWORD] error", error.message);
+      logAuthDev({ flow: "reset_password", status: "error", emailMasked: masked, message: error.message });
       return toast.error(translateAuthError(error.message));
     }
+    logAuthDev({ flow: "reset_password", status: "success", emailMasked: masked, redirectUrl });
     setSent(true);
     toast.success("Enviamos um link para o seu e-mail.");
   };
