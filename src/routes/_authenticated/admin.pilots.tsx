@@ -297,6 +297,9 @@ function AdminPilotsPage() {
                       <Button size="sm" variant="default" onClick={() => setContactPilot(p)}>
                         Registrar
                       </Button>
+                      <Button asChild size="sm" variant="outline">
+                        <Link to="/admin/pilot-detail/$id" params={{ id: p.id }}>Detalhar</Link>
+                      </Button>
                       <Button size="sm" variant="ghost" onClick={() => setEditPilot(p)}>
                         Editar
                       </Button>
