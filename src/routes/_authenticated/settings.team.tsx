@@ -17,8 +17,9 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  listTeam, inviteMember, revokeInvitation, updateMemberRole, removeMember,
+  listTeam, inviteMember, revokeInvitation, resendInvitation, updateMemberRole, removeMember,
 } from "@/lib/team.functions";
+import { appUrl } from "@/lib/app-url";
 
 export const Route = createFileRoute("/_authenticated/settings/team")({
   component: TeamPage,
