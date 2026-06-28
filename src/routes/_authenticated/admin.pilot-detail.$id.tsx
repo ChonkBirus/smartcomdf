@@ -290,8 +290,8 @@ function PilotDetailPage() {
                     ) : null}
                   </TableCell>
                   <TableCell><Badge variant="outline">{row.feedback_type}</Badge></TableCell>
-                  <TableCell><StatusBadge tone={priorityTone(row.priority)}>{row.priority}</StatusBadge></TableCell>
-                  <TableCell><StatusBadge tone={statusTone(row.status)}>{row.status}</StatusBadge></TableCell>
+                  <TableCell><StatusBadge tone={priorityTone(row.priority)} status={String({row.priority}).trim()} /></TableCell>
+                  <TableCell><StatusBadge tone={statusTone(row.status)} status={String({row.status}).trim()} /></TableCell>
                   <TableCell>{row.module ?? "—"}</TableCell>
                   <TableCell>{fmt(row.created_at)}</TableCell>
                   <TableCell className="text-right">
