@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
+import { appUrl } from "@/lib/app-url";
 
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({ meta: [{ title: "Recuperar senha — SecureERP" }, { name: "robots", content: "noindex, nofollow" }] }),
