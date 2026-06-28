@@ -82,7 +82,7 @@ export const createPilotFeedback = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row, error } = await supabaseAdmin
       .from("pilot_feedback")
-      .insert({ ...data, submitted_by: context.userId })
+      .insert({ ...data, submitted_by: context.userId } as any)
       .select("id")
       .single();
     if (error) throw error;
