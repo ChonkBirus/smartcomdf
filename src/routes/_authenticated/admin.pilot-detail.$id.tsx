@@ -198,9 +198,7 @@ function PilotDetailPage() {
           <div className="text-xs text-muted-foreground">Score de ativação</div>
           <div className="mt-1 flex items-center gap-2">
             <div className="text-2xl font-semibold">{activation?.score ?? 0}</div>
-            <StatusBadge tone={tierTone(activation?.tier ?? "LOW")}>
-              {activation?.tier ?? "LOW"}
-            </StatusBadge>
+            <StatusBadge tone={tierTone(activation?.tier ?? "LOW")} status={activation?.tier ?? "LOW"} />
           </div>
         </Card>
         <Card className="card-elevated p-4">
@@ -290,8 +288,8 @@ function PilotDetailPage() {
                     ) : null}
                   </TableCell>
                   <TableCell><Badge variant="outline">{row.feedback_type}</Badge></TableCell>
-                  <TableCell><StatusBadge tone={priorityTone(row.priority)} status={String({row.priority}).trim()} /></TableCell>
-                  <TableCell><StatusBadge tone={statusTone(row.status)} status={String({row.status}).trim()} /></TableCell>
+                  <TableCell><StatusBadge tone={priorityTone(row.priority)} status={row.priority} /></TableCell>
+                  <TableCell><StatusBadge tone={statusTone(row.status)} status={row.status} /></TableCell>
                   <TableCell>{row.module ?? "—"}</TableCell>
                   <TableCell>{fmt(row.created_at)}</TableCell>
                   <TableCell className="text-right">
