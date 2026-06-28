@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { toast } from "sonner";
+import { appUrl } from "@/lib/app-url";
 import {
   getQuote, getQuoteHistory, logQuoteEvent, markQuoteSent,
 } from "@/lib/quotes.functions";
