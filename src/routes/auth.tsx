@@ -59,17 +59,25 @@ function AuthPage() {
 
   const onSignup = async (d: z.infer<typeof signupSchema>) => {
     setLoading(true);
+    const redirectUrl = appUrl("/dashboard");
+    if (import.meta.env.DEV) {
+      console.info("[AUTH SIGNUP] email", d.email);
+      console.info("[AUTH SIGNUP] redirectUrl", redirectUrl);
+    }
     const { error } = await supabase.auth.signUp({
       email: d.email,
       password: d.password,
       options: {
         data: { full_name: d.full_name },
-        emailRedirectTo: window.location.origin + "/dashboard",
+        emailRedirectTo: redirectUrl,
       },
     });
     setLoading(false);
-    if (error) return toast.error(translateAuthError(error.message));
-    toast.success("Conta criada! Confirme seu e-mail e faça login.");
+    if (error) {
+      if (import.meta.env.DEV) console.warn("[AUTH SIGNUP] error", error.message);
+      return toast.error(translateAuthError(error.message));
+    }
+    toast.success("Cadastro realizado. Verifique seu e-mail para confirmar sua conta.");
   };
 
   return (
