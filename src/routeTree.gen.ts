@@ -66,6 +66,7 @@ import { Route as AuthenticatedAdminDunningRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminCouponsRouteImport } from './routes/_authenticated/admin.coupons'
 import { Route as AuthenticatedAdminBillingRouteImport } from './routes/_authenticated/admin.billing'
 import { Route as AuthenticatedServiceOrdersIdMobileRouteImport } from './routes/_authenticated/service-orders_.$id.mobile'
+import { Route as AuthenticatedAdminPilotDetailIdRouteImport } from './routes/_authenticated/admin.pilot-detail.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -375,6 +376,12 @@ const AuthenticatedServiceOrdersIdMobileRoute =
     path: '/mobile',
     getParentRoute: () => AuthenticatedServiceOrdersIdRoute,
   } as any)
+const AuthenticatedAdminPilotDetailIdRoute =
+  AuthenticatedAdminPilotDetailIdRouteImport.update({
+    id: '/pilot-detail/$id',
+    path: '/pilot-detail/$id',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -432,6 +439,7 @@ export interface FileRoutesByFullPath {
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/admin/pilot-detail/$id': typeof AuthenticatedAdminPilotDetailIdRoute
   '/service-orders/$id/mobile': typeof AuthenticatedServiceOrdersIdMobileRoute
 }
 export interface FileRoutesByTo {
@@ -488,6 +496,7 @@ export interface FileRoutesByTo {
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
+  '/admin/pilot-detail/$id': typeof AuthenticatedAdminPilotDetailIdRoute
   '/service-orders/$id/mobile': typeof AuthenticatedServiceOrdersIdMobileRoute
 }
 export interface FileRoutesById {
@@ -548,6 +557,7 @@ export interface FileRoutesById {
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/_authenticated/admin/pilot-detail/$id': typeof AuthenticatedAdminPilotDetailIdRoute
   '/_authenticated/service-orders_/$id/mobile': typeof AuthenticatedServiceOrdersIdMobileRoute
 }
 export interface FileRouteTypes {
@@ -608,6 +618,7 @@ export interface FileRouteTypes {
     | '/api/public/billing-webhook'
     | '/admin/'
     | '/settings/'
+    | '/admin/pilot-detail/$id'
     | '/service-orders/$id/mobile'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -664,6 +675,7 @@ export interface FileRouteTypes {
     | '/api/public/billing-webhook'
     | '/admin'
     | '/settings'
+    | '/admin/pilot-detail/$id'
     | '/service-orders/$id/mobile'
   id:
     | '__root__'
@@ -723,6 +735,7 @@ export interface FileRouteTypes {
     | '/api/public/billing-webhook'
     | '/_authenticated/admin/'
     | '/_authenticated/settings/'
+    | '/_authenticated/admin/pilot-detail/$id'
     | '/_authenticated/service-orders_/$id/mobile'
   fileRoutesById: FileRoutesById
 }
@@ -1141,6 +1154,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedServiceOrdersIdMobileRouteImport
       parentRoute: typeof AuthenticatedServiceOrdersIdRoute
     }
+    '/_authenticated/admin/pilot-detail/$id': {
+      id: '/_authenticated/admin/pilot-detail/$id'
+      path: '/pilot-detail/$id'
+      fullPath: '/admin/pilot-detail/$id'
+      preLoaderRoute: typeof AuthenticatedAdminPilotDetailIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
@@ -1156,6 +1176,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminQaBugsRoute: typeof AuthenticatedAdminQaBugsRoute
   AuthenticatedAdminSubscriptionsRoute: typeof AuthenticatedAdminSubscriptionsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedAdminPilotDetailIdRoute: typeof AuthenticatedAdminPilotDetailIdRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
@@ -1170,6 +1191,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminQaBugsRoute: AuthenticatedAdminQaBugsRoute,
   AuthenticatedAdminSubscriptionsRoute: AuthenticatedAdminSubscriptionsRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+  AuthenticatedAdminPilotDetailIdRoute: AuthenticatedAdminPilotDetailIdRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
