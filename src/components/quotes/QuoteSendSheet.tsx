@@ -58,8 +58,8 @@ const EVENT_LABEL: Record<string, string> = {
 };
 
 function publicUrlFor(token: string) {
-  if (typeof window === "undefined") return `/q/${token}`;
-  return `${window.location.origin}/q/${token}`;
+  // appUrl already handles SSR fallback to official domain
+  return appUrl(`/q/${token}`);
 }
 
 export function QuoteSendSheet({
