@@ -9,6 +9,7 @@ import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { appUrl } from "@/lib/app-url";
 import {
   generateServiceOrderFinalReport,
   getServiceOrderReport,
