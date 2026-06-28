@@ -27,6 +27,9 @@ export const PRODUCTION_CHECKLIST: { code: string; title: string }[] = [
   { code: "landing", title: "Landing page validada" },
   { code: "terms_privacy", title: "Termos e política configurados" },
   { code: "support_whatsapp", title: "WhatsApp de suporte configurado" },
+  { code: "pilots_base", title: "Fase 2.14A — Base de Pilotos + Score de Ativação" },
+  { code: "pilots_feedback", title: "Fase 2.14B — Detalhe do Piloto + Feedback/Bugs" },
+  { code: "pilots_permissions", title: "Fase 2.14C — Permissões e Polimento (UI/RPC/RLS)" },
 ];
 
 async function getCompanyId(supabase: any, userId: string): Promise<string> {
