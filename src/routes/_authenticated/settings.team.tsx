@@ -20,6 +20,7 @@ import {
   listTeam, inviteMember, revokeInvitation, resendInvitation, updateMemberRole, removeMember,
 } from "@/lib/team.functions";
 import { appUrl } from "@/lib/app-url";
+import { logAuthDev, maskEmail } from "@/lib/auth-dev-log";
 
 export const Route = createFileRoute("/_authenticated/settings/team")({
   component: TeamPage,
