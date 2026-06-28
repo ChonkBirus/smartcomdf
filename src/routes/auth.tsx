@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
 import { appUrl } from "@/lib/app-url";
+import { logAuthDev, maskEmail } from "@/lib/auth-dev-log";
 
 const REMEMBER_KEY = "secureerp.remember_email";
 
