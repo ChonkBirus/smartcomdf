@@ -214,19 +214,30 @@ function Hero() {
             Crie orçamentos profissionais, controle estoque, acompanhe técnicos em campo,
             gere relatórios com fotos e use IA para acelerar cadastros, compras e notas.
           </p>
-          <div className="mt-7 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-wrap items-center gap-3">
             <Button asChild size="lg" className="gap-2">
               <Link to="/auth">Começar teste grátis <ArrowRight className="h-4 w-4" /></Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="gap-2">
+            <Button asChild variant="link" className="gap-2 text-muted-foreground hover:text-foreground">
               <a href={WHATSAPP_URL} target="_blank" rel="noreferrer">
-                <MessageCircle className="h-4 w-4" /> Falar no WhatsApp
+                <MessageCircle className="h-4 w-4" /> Prefiro falar no WhatsApp
               </a>
             </Button>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Teste grátis por 7 dias. Não precisa de cartão para começar.
+            Sem cartão • LGPD • Cancele quando quiser • 7 dias grátis
           </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 text-primary" />
+              <strong className="text-foreground">+50 empresas</strong> em piloto no Brasil
+            </span>
+            <span className="hidden sm:inline">·</span>
+            <span className="inline-flex items-center gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Dados protegidos (LGPD)
+            </span>
+          </div>
+
 
           <div className="mt-8 grid gap-2 sm:grid-cols-2">
             {quickProofs.map((p) => (
