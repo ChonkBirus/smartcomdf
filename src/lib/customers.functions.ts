@@ -327,6 +327,8 @@ export const listCustomers = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     const from = (data.page - 1) * data.page_size;
     const to = from + data.page_size - 1;
 
@@ -338,6 +340,7 @@ export const listCustomers = createServerFn({ method: "GET" })
          customer_tag_relations!left(tag_id, customer_tags(id, name, color))`,
         { count: "exact" },
       )
+      .eq("company_id", prof.company_id)
       .is("deleted_at", null);
 
     if (data.customer_type) q = q.eq("customer_type", data.customer_type);
@@ -433,10 +436,13 @@ export const getCustomer = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: customer, error } = await sb
       .from("customers")
       .select("*")
       .eq("id", data.id)
+      .eq("company_id", prof.company_id)
       .is("deleted_at", null)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -666,9 +672,12 @@ export const listCustomerHistory = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ customer_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: rows, error } = await sb
       .from("customer_history")
       .select("*")
+      .eq("company_id", prof.company_id)
       .eq("customer_id", data.customer_id)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -729,9 +738,12 @@ export const listCustomerTags = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: rows, error } = await sb
       .from("customer_tags")
       .select("*")
+      .eq("company_id", prof.company_id)
       .order("name");
     if (error) throw new Error(error.message);
     return (rows ?? []) as CustomerTag[];
@@ -769,28 +781,20 @@ export const customerMetrics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
+    const cid = prof.company_id;
     const now = new Date();
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
+    const base = () => sb.from("customers").select("*", { count: "exact", head: true }).eq("company_id", cid).is("deleted_at", null);
     const [{ count: total }, { count: active }, { count: individual }, { count: company }, { count: newMonth }] =
       await Promise.all([
-        sb.from("customers").select("*", { count: "exact", head: true }).is("deleted_at", null),
-        sb.from("customers").select("*", { count: "exact", head: true }).is("deleted_at", null).eq("active", true),
-        sb
-          .from("customers")
-          .select("*", { count: "exact", head: true })
-          .is("deleted_at", null)
-          .eq("customer_type", "INDIVIDUAL"),
-        sb
-          .from("customers")
-          .select("*", { count: "exact", head: true })
-          .is("deleted_at", null)
-          .eq("customer_type", "COMPANY"),
-        sb
-          .from("customers")
-          .select("*", { count: "exact", head: true })
-          .is("deleted_at", null)
-          .gte("created_at", firstOfMonth),
+        base(),
+        base().eq("active", true),
+        base().eq("customer_type", "INDIVIDUAL"),
+        base().eq("customer_type", "COMPANY"),
+        base().gte("created_at", firstOfMonth),
       ]);
 
     return {

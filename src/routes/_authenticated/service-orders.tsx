@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useCompanyId } from "@/hooks/use-company-id";
 import { Wrench, Search } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -42,13 +43,15 @@ const PRIORITY_LABEL: Record<ServiceOrderPriority, string> = {
 
 function ServiceOrdersListPage() {
   const navigate = useNavigate();
+  const companyId = useCompanyId();
   const fetchFn = useServerFn(listServiceOrders);
   const [status, setStatus] = useState<string>("");
   const [priority, setPriority] = useState<string>("");
   const [search, setSearch] = useState("");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["service-orders", { status, priority, search }],
+    queryKey: ["service-orders", companyId, { status, priority, search }],
+    enabled: !!companyId,
     queryFn: () => fetchFn({ data: { status: status || undefined, priority: priority || undefined, search: search || undefined } }),
   });
 

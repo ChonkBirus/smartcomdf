@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useCompanyId } from "@/hooks/use-company-id";
 import { Boxes, ArrowDownLeft, ArrowUpRight, RefreshCw, MoveRight, AlertTriangle, PackageX } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PermissionRoute, Can } from "@/components/app/PermissionRoute";
@@ -30,8 +31,10 @@ type Mode = "ENTRY" | "EXIT" | "ADJUSTMENT" | "TRANSFER";
 
 function StockPage() {
   const [dialog, setDialog] = useState<Mode | null>(null);
+  const companyId = useCompanyId();
   const overview = useServerFn(stockOverview);
-  const { data } = useQuery({ queryKey: ["stock_overview"], queryFn: () => overview() });
+  const { data } = useQuery({ queryKey: ["stock_overview", companyId], queryFn: () => overview(), enabled: !!companyId });
+
 
   return (
     <div className="mx-auto max-w-7xl">

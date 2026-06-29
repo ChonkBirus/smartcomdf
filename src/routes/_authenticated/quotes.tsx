@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useCompanyId } from "@/hooks/use-company-id";
 import {
   FileText, Plus, Pencil, Trash2, Copy, Search, Send, XCircle, CheckCircle2, Share2,
 } from "lucide-react";
@@ -70,6 +71,7 @@ function QuotesPage() {
   const [confirmDel, setConfirmDel] = useState<{ id: string; number: string } | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
 
+  const companyId = useCompanyId();
   const fetchList = useServerFn(listQuotes);
   const fetchMetrics = useServerFn(quoteMetrics);
   const remove = useServerFn(deleteQuote);
@@ -78,12 +80,14 @@ function QuotesPage() {
   const cancel = useServerFn(cancelQuote);
 
   const { data: metrics } = useQuery({
-    queryKey: ["quote-metrics"],
+    queryKey: ["quote-metrics", companyId],
     queryFn: () => fetchMetrics(),
+    enabled: !!companyId,
   });
 
   const { data: rows, isLoading } = useQuery({
-    queryKey: ["quotes", { search, statusFilter, payFilter }],
+    queryKey: ["quotes", companyId, { search, statusFilter, payFilter }],
+    enabled: !!companyId,
     queryFn: () =>
       fetchList({
         data: {

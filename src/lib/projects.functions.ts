@@ -92,9 +92,12 @@ export const listProjects = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     let q = sb
       .from("projects")
       .select("*, customers:customer_id(name,trade_name,corporate_name), quotes:quote_id(quote_number), responsible:responsible_user_id(full_name,email)")
+      .eq("company_id", prof.company_id)
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
     if (data.status) q = q.eq("status", data.status);
@@ -125,6 +128,9 @@ export const getProject = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
+    const cid = prof.company_id;
     const { data: p, error } = await sb
       .from("projects")
       .select(`*,
@@ -135,6 +141,7 @@ export const getProject = createServerFn({ method: "GET" })
         responsible:responsible_user_id(full_name,email)
       `)
       .eq("id", data.id)
+      .eq("company_id", cid)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!p) return null;
@@ -156,6 +163,7 @@ export const getProject = createServerFn({ method: "GET" })
       const { data: bal } = await sb
         .from("stock_balances")
         .select("item_id, quantity")
+        .eq("company_id", cid)
         .in("item_id", productItemIds);
       (bal ?? []).forEach((b: any) => {
         balances[b.item_id] = (balances[b.item_id] || 0) + Number(b.quantity || 0);
@@ -163,6 +171,7 @@ export const getProject = createServerFn({ method: "GET" })
       const { data: itm } = await sb
         .from("items")
         .select("id, minimum_stock")
+        .eq("company_id", cid)
         .in("id", productItemIds);
       (itm ?? []).forEach((i: any) => { minimums[i.id] = Number(i.minimum_stock || 0); });
     }

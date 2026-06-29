@@ -175,9 +175,12 @@ export const listQuotes = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     let q = sb
       .from("quotes")
       .select("*, customers:customer_id(name, trade_name, corporate_name)")
+      .eq("company_id", prof.company_id)
       .order("issue_date", { ascending: false })
       .order("created_at", { ascending: false });
     if (data.status) q = q.eq("status", data.status);
@@ -210,9 +213,12 @@ export const quoteMetrics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: rows, error } = await sb
       .from("quotes")
-      .select("status, total_amount, created_at");
+      .select("status, total_amount, created_at")
+      .eq("company_id", prof.company_id);
     if (error) throw new Error(error.message);
     const list = rows ?? [];
     const month = new Date();
@@ -238,10 +244,13 @@ export const getQuote = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: q, error: e1 } = await sb
       .from("quotes")
       .select("*, customers:customer_id(id, name, trade_name, corporate_name, cpf_cnpj, email, phone, whatsapp)")
       .eq("id", data.id)
+      .eq("company_id", prof.company_id)
       .maybeSingle();
     if (e1) throw new Error(e1.message);
     if (!q) return null;

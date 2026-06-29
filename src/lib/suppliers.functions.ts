@@ -55,7 +55,9 @@ export const listSuppliers = createServerFn({ method: "GET" })
   }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    let q = sb.from("suppliers").select("*").is("deleted_at", null).order("corporate_name");
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
+    let q = sb.from("suppliers").select("*").eq("company_id", prof.company_id).is("deleted_at", null).order("corporate_name");
     if (typeof data.active === "boolean") q = q.eq("active", data.active);
     if (data.search?.trim()) {
       const s = data.search.trim();
@@ -73,7 +75,9 @@ export const getSupplier = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: row, error } = await sb.from("suppliers").select("*").eq("id", data.id).maybeSingle();
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
+    const { data: row, error } = await sb.from("suppliers").select("*").eq("id", data.id).eq("company_id", prof.company_id).maybeSingle();
     if (error) throw new Error(error.message);
     return row as Supplier | null;
   });

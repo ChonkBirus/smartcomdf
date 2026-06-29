@@ -48,9 +48,12 @@ export const listLocations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data, error } = await sb
       .from("stock_locations")
       .select("id, name, description, active, created_at")
+      .eq("company_id", prof.company_id)
       .order("name");
     if (error) throw new Error(error.message);
     return (data ?? []) as StockLocation[];
@@ -105,9 +108,12 @@ export const listStockItems = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data, error } = await sb
       .from("items")
       .select("id, name, sku, unit, minimum_stock")
+      .eq("company_id", prof.company_id)
       .eq("controls_stock", true)
       .eq("item_type", "PRODUCT")
       .is("deleted_at", null)
@@ -125,19 +131,23 @@ export const listBalances = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ location_id: z.string().uuid().optional(), search: z.string().optional() }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
+    const cid = prof.company_id;
     // Get all stock-eligible items
     const { data: items, error: ierr } = await sb
       .from("items")
       .select("id, name, sku, unit, minimum_stock")
+      .eq("company_id", cid)
       .eq("controls_stock", true)
       .eq("item_type", "PRODUCT")
       .is("deleted_at", null);
     if (ierr) throw new Error(ierr.message);
 
-    const { data: locs, error: lerr } = await sb.from("stock_locations").select("id, name").eq("active", true);
+    const { data: locs, error: lerr } = await sb.from("stock_locations").select("id, name").eq("company_id", cid).eq("active", true);
     if (lerr) throw new Error(lerr.message);
 
-    let balQ = sb.from("stock_balances").select("item_id, location_id, quantity");
+    let balQ = sb.from("stock_balances").select("item_id, location_id, quantity").eq("company_id", cid);
     if (data.location_id) balQ = balQ.eq("location_id", data.location_id);
     const { data: bals, error: berr } = await balQ;
     if (berr) throw new Error(berr.message);
@@ -184,6 +194,8 @@ export const listMovements = createServerFn({ method: "GET" })
   .inputValidator((d) => movementFilter.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     let q = sb.from("stock_movements")
       .select(`
         id, created_at, movement_type, quantity, previous_balance, new_balance, reason, notes,
@@ -192,6 +204,7 @@ export const listMovements = createServerFn({ method: "GET" })
         stock_locations:location_id(name),
         profiles:user_id(full_name, email)
       `)
+      .eq("company_id", prof.company_id)
       .order("created_at", { ascending: false })
       .limit(data.limit);
     if (data.item_id) q = q.eq("item_id", data.item_id);
@@ -283,10 +296,14 @@ export const stockOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
+    const cid = prof.company_id;
     const { data: items } = await sb
       .from("items").select("id, minimum_stock")
+      .eq("company_id", cid)
       .eq("controls_stock", true).eq("item_type", "PRODUCT").is("deleted_at", null);
-    const { data: bals } = await sb.from("stock_balances").select("item_id, quantity");
+    const { data: bals } = await sb.from("stock_balances").select("item_id, quantity").eq("company_id", cid);
     const totalByItem = new Map<string, number>();
     for (const b of bals ?? []) totalByItem.set(b.item_id, (totalByItem.get(b.item_id) ?? 0) + Number(b.quantity));
     let out = 0, low = 0;
@@ -299,6 +316,7 @@ export const stockOverview = createServerFn({ method: "GET" })
     const { data: recent } = await sb
       .from("stock_movements")
       .select("id, created_at, movement_type, quantity, items:item_id(name)")
+      .eq("company_id", cid)
       .order("created_at", { ascending: false }).limit(5);
     return {
       outOfStock: out,

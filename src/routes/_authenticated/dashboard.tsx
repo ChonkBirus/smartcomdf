@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Users, Package, FileText, DollarSign, TrendingUp, Activity, PackageX, AlertTriangle, Boxes } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useCompanyId } from "@/hooks/use-company-id";
 import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/app/KpiCard";
 import { SubscriptionCard } from "@/components/app/SubscriptionCard";
@@ -23,11 +24,12 @@ function Dashboard() {
   const { canView } = usePermissions();
   const { hasFeature } = useFeatures();
   const showStock = canView("stock") && hasFeature("inventory");
+  const companyId = useCompanyId();
   const fetchOverview = useServerFn(stockOverview);
   const { data: stock } = useQuery({
-    queryKey: ["stock_overview"],
+    queryKey: ["stock_overview", companyId],
     queryFn: () => fetchOverview(),
-    enabled: showStock,
+    enabled: showStock && !!companyId,
   });
   return (
     <div className="mx-auto max-w-7xl">
