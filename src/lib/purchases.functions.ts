@@ -397,6 +397,7 @@ export const purchaseAnalytics = createServerFn({ method: "GET" })
   }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
     const start = rangeStart(data.range);
     const startISO = start.toISOString().slice(0, 10);
 
@@ -404,6 +405,7 @@ export const purchaseAnalytics = createServerFn({ method: "GET" })
     const { data: orders, error } = await sb
       .from("purchase_orders")
       .select("id, status, total_amount, issue_date, approved_at, supplier_id, updated_at, suppliers:supplier_id(corporate_name, trade_name)")
+      .eq("company_id", companyId)
       .gte("issue_date", startISO)
       .order("issue_date", { ascending: true });
     if (error) throw new Error(error.message);
