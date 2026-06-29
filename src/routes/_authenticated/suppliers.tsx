@@ -46,13 +46,15 @@ function SuppliersPage() {
   const [confirmDel, setConfirmDel] = useState<Supplier | null>(null);
   const [importOpen, setImportOpen] = useState(false);
 
+  const companyId = useCompanyId();
   const fetchAll = useServerFn(listSuppliers);
   const remove = useServerFn(deleteSupplier);
   const toggle = useServerFn(toggleSupplier);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["suppliers", search],
+    queryKey: ["suppliers", companyId, search],
     queryFn: () => fetchAll({ data: { search } }),
+    enabled: !!companyId,
   });
 
   const delMut = useMutation({
