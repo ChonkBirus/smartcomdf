@@ -21,6 +21,7 @@ import {
 } from "@/lib/team.functions";
 import { appUrl } from "@/lib/app-url";
 import { logAuthDev, maskEmail } from "@/lib/auth-dev-log";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 export const Route = createFileRoute("/_authenticated/settings/team")({
   component: TeamPage,
