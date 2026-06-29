@@ -108,9 +108,12 @@ export const listStockItems = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data, error } = await sb
       .from("items")
       .select("id, name, sku, unit, minimum_stock")
+      .eq("company_id", prof.company_id)
       .eq("controls_stock", true)
       .eq("item_type", "PRODUCT")
       .is("deleted_at", null)
