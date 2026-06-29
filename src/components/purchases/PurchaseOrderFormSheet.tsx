@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { listSuppliers } from "@/lib/suppliers.functions";
 import { listStockItems } from "@/lib/stock.functions";
 import { getPurchaseOrder, savePurchaseOrder } from "@/lib/purchases.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 type Line = { id?: string; item_id: string; quantity: number; unit_cost: number };
 
