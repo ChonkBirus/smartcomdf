@@ -295,9 +295,9 @@ export const duplicatePurchaseOrder = createServerFn({ method: "POST" })
     const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
     if (!profile?.company_id) throw new Error("Sem empresa.");
 
-    const { data: po } = await sb.from("purchase_orders").select("*").eq("id", data.id).maybeSingle();
+    const { data: po } = await sb.from("purchase_orders").select("*").eq("id", data.id).eq("company_id", profile.company_id).maybeSingle();
     if (!po) throw new Error("Pedido não encontrado.");
-    const { data: items } = await sb.from("purchase_order_items").select("item_id, quantity, unit_cost").eq("purchase_order_id", data.id);
+    const { data: items } = await sb.from("purchase_order_items").select("item_id, quantity, unit_cost").eq("purchase_order_id", data.id).eq("company_id", profile.company_id);
 
     const orderNumber = await generateOrderNumber(sb, profile.company_id);
     const { data: row, error } = await sb.from("purchase_orders").insert({
