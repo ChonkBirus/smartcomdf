@@ -57,9 +57,11 @@ function SmartReceivingPage() {
   const parse = useServerFn(parseNotaDocument);
   const remove = useServerFn(deleteNotaDocument);
 
+  const companyId = useCompanyId();
   const { data: docs, isLoading } = useQuery({
-    queryKey: ["nota_documents"],
+    queryKey: ["nota_documents", companyId],
     queryFn: () => fetchList(),
+    enabled: !!companyId,
     refetchInterval: (q) => {
       const list = (q.state.data as NotaDocument[] | undefined) ?? [];
       return list.some((d) => d.status === "PROCESSING") ? 3000 : false;
