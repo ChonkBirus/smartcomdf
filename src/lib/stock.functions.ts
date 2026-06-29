@@ -296,10 +296,14 @@ export const stockOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
+    const cid = prof.company_id;
     const { data: items } = await sb
       .from("items").select("id, minimum_stock")
+      .eq("company_id", cid)
       .eq("controls_stock", true).eq("item_type", "PRODUCT").is("deleted_at", null);
-    const { data: bals } = await sb.from("stock_balances").select("item_id, quantity");
+    const { data: bals } = await sb.from("stock_balances").select("item_id, quantity").eq("company_id", cid);
     const totalByItem = new Map<string, number>();
     for (const b of bals ?? []) totalByItem.set(b.item_id, (totalByItem.get(b.item_id) ?? 0) + Number(b.quantity));
     let out = 0, low = 0;
@@ -312,6 +316,7 @@ export const stockOverview = createServerFn({ method: "GET" })
     const { data: recent } = await sb
       .from("stock_movements")
       .select("id, created_at, movement_type, quantity, items:item_id(name)")
+      .eq("company_id", cid)
       .order("created_at", { ascending: false }).limit(5);
     return {
       outOfStock: out,
