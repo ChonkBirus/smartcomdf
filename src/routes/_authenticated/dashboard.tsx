@@ -24,11 +24,12 @@ function Dashboard() {
   const { canView } = usePermissions();
   const { hasFeature } = useFeatures();
   const showStock = canView("stock") && hasFeature("inventory");
+  const companyId = useCompanyId();
   const fetchOverview = useServerFn(stockOverview);
   const { data: stock } = useQuery({
-    queryKey: ["stock_overview"],
+    queryKey: ["stock_overview", companyId],
     queryFn: () => fetchOverview(),
-    enabled: showStock,
+    enabled: showStock && !!companyId,
   });
   return (
     <div className="mx-auto max-w-7xl">
