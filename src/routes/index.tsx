@@ -906,14 +906,16 @@ function Landing() {
       <Header />
       <Hero />
       <SocialProof />
-      <Pains />
       <Solution />
-      <Flow />
-      <AISection />
+      <Differentials />
       <MobileOS />
-      <Stock />
-      <Quotes />
-      <BeforeAfter />
+      <Pricing />
+      <FAQ />
+      <FinalCTA />
+      <Footer />
+    </div>
+  );
+}
       <Pricing />
       <FAQ />
       <FinalCTA />
