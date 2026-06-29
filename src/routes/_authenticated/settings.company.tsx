@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMyContext } from "@/lib/account.functions";
 import { updateMyCompany, getSignedImageUrl } from "@/lib/profile.functions";
 import { getCompanyPix, saveCompanyPix } from "@/lib/quote-payments.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 export const Route = createFileRoute("/_authenticated/settings/company")({
   component: CompanyPage,
