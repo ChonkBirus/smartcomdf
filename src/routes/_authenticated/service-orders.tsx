@@ -43,13 +43,15 @@ const PRIORITY_LABEL: Record<ServiceOrderPriority, string> = {
 
 function ServiceOrdersListPage() {
   const navigate = useNavigate();
+  const companyId = useCompanyId();
   const fetchFn = useServerFn(listServiceOrders);
   const [status, setStatus] = useState<string>("");
   const [priority, setPriority] = useState<string>("");
   const [search, setSearch] = useState("");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["service-orders", { status, priority, search }],
+    queryKey: ["service-orders", companyId, { status, priority, search }],
+    enabled: !!companyId,
     queryFn: () => fetchFn({ data: { status: status || undefined, priority: priority || undefined, search: search || undefined } }),
   });
 
