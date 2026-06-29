@@ -34,9 +34,12 @@ export const listCompanyUsers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa vinculada.");
     const { data, error } = await sb
       .from("profiles")
       .select("id, full_name, email, active")
+      .eq("company_id", prof.company_id)
       .eq("active", true)
       .order("full_name", { ascending: true });
     if (error) throw new Error(error.message);
