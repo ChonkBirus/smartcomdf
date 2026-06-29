@@ -316,10 +316,12 @@ export const getItem = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const company_id = await getCompanyId(sb, context.userId);
     const { data: p, error } = await sb
       .from("items")
       .select("*, category:categories(id,name), brand:brands(id,name), manufacturer:manufacturers(id,name)")
       .eq("id", data.id)
+      .eq("company_id", company_id)
       .is("deleted_at", null)
       .maybeSingle();
     if (error) throw new Error(error.message);
