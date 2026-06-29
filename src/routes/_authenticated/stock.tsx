@@ -31,8 +31,10 @@ type Mode = "ENTRY" | "EXIT" | "ADJUSTMENT" | "TRANSFER";
 
 function StockPage() {
   const [dialog, setDialog] = useState<Mode | null>(null);
+  const companyId = useCompanyId();
   const overview = useServerFn(stockOverview);
-  const { data } = useQuery({ queryKey: ["stock_overview"], queryFn: () => overview() });
+  const { data } = useQuery({ queryKey: ["stock_overview", companyId], queryFn: () => overview(), enabled: !!companyId });
+
 
   return (
     <div className="mx-auto max-w-7xl">
