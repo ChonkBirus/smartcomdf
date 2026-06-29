@@ -277,10 +277,11 @@ export const deletePurchaseOrder = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: po } = await sb.from("purchase_orders").select("status").eq("id", data.id).maybeSingle();
+    const companyId = await getCompanyId(sb, context.userId);
+    const { data: po } = await sb.from("purchase_orders").select("status").eq("id", data.id).eq("company_id", companyId).maybeSingle();
     if (!po) throw new Error("Pedido não encontrado.");
     if (po.status !== "DRAFT") throw new Error("Apenas rascunhos podem ser excluídos.");
-    const { error } = await sb.from("purchase_orders").delete().eq("id", data.id);
+    const { error } = await sb.from("purchase_orders").delete().eq("id", data.id).eq("company_id", companyId);
     if (error) throw new Error(error.message);
     await sb.rpc("log_audit", { _module: "purchases", _action: "delete", _record_id: data.id });
     return { ok: true };
