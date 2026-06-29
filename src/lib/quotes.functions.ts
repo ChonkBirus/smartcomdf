@@ -213,9 +213,12 @@ export const quoteMetrics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: rows, error } = await sb
       .from("quotes")
-      .select("status, total_amount, created_at");
+      .select("status, total_amount, created_at")
+      .eq("company_id", prof.company_id);
     if (error) throw new Error(error.message);
     const list = rows ?? [];
     const month = new Date();
