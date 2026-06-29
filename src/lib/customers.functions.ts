@@ -781,28 +781,20 @@ export const customerMetrics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
+    const cid = prof.company_id;
     const now = new Date();
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
+    const base = () => sb.from("customers").select("*", { count: "exact", head: true }).eq("company_id", cid).is("deleted_at", null);
     const [{ count: total }, { count: active }, { count: individual }, { count: company }, { count: newMonth }] =
       await Promise.all([
-        sb.from("customers").select("*", { count: "exact", head: true }).is("deleted_at", null),
-        sb.from("customers").select("*", { count: "exact", head: true }).is("deleted_at", null).eq("active", true),
-        sb
-          .from("customers")
-          .select("*", { count: "exact", head: true })
-          .is("deleted_at", null)
-          .eq("customer_type", "INDIVIDUAL"),
-        sb
-          .from("customers")
-          .select("*", { count: "exact", head: true })
-          .is("deleted_at", null)
-          .eq("customer_type", "COMPANY"),
-        sb
-          .from("customers")
-          .select("*", { count: "exact", head: true })
-          .is("deleted_at", null)
-          .gte("created_at", firstOfMonth),
+        base(),
+        base().eq("active", true),
+        base().eq("customer_type", "INDIVIDUAL"),
+        base().eq("customer_type", "COMPANY"),
+        base().gte("created_at", firstOfMonth),
       ]);
 
     return {
