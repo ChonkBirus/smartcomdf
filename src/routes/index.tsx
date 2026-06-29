@@ -532,7 +532,9 @@ function MobileOS() {
           </div>
         ))}
       </div>
+      <InlineCTA label="Quero testar no celular do meu técnico" />
     </Section>
+
   );
 }
 
