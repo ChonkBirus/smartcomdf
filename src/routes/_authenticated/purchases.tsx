@@ -27,6 +27,7 @@ import {
   cancelPurchaseOrder, deletePurchaseOrder, duplicatePurchaseOrder,
   purchaseOverview, type PurchaseOrder, type PurchaseOrderStatus,
 } from "@/lib/purchases.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 export const Route = createFileRoute("/_authenticated/purchases")({
   head: () => ({ meta: [{ title: "Compras — SecureERP" }] }),
