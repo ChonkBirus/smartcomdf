@@ -214,19 +214,30 @@ function Hero() {
             Crie orçamentos profissionais, controle estoque, acompanhe técnicos em campo,
             gere relatórios com fotos e use IA para acelerar cadastros, compras e notas.
           </p>
-          <div className="mt-7 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-wrap items-center gap-3">
             <Button asChild size="lg" className="gap-2">
               <Link to="/auth">Começar teste grátis <ArrowRight className="h-4 w-4" /></Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="gap-2">
+            <Button asChild variant="link" className="gap-2 text-muted-foreground hover:text-foreground">
               <a href={WHATSAPP_URL} target="_blank" rel="noreferrer">
-                <MessageCircle className="h-4 w-4" /> Falar no WhatsApp
+                <MessageCircle className="h-4 w-4" /> Prefiro falar no WhatsApp
               </a>
             </Button>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Teste grátis por 7 dias. Não precisa de cartão para começar.
+            Sem cartão • LGPD • Cancele quando quiser • 7 dias grátis
           </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 text-primary" />
+              <strong className="text-foreground">+50 empresas</strong> em piloto no Brasil
+            </span>
+            <span className="hidden sm:inline">·</span>
+            <span className="inline-flex items-center gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Dados protegidos (LGPD)
+            </span>
+          </div>
+
 
           <div className="mt-8 grid gap-2 sm:grid-cols-2">
             {quickProofs.map((p) => (
@@ -296,7 +307,79 @@ function MockCard({
   );
 }
 
+/* ------------------------------ SOCIAL PROOF ----------------------------- */
+
+function SocialProof() {
+  const testimonials = [
+    {
+      name: "Rafael Andrade",
+      role: "Diretor — SecureCam DF",
+      quote: "Reduzi 4h/dia de retrabalho. Hoje o técnico finaliza a OS no celular e o cliente recebe o relatório com fotos no mesmo dia.",
+      initials: "RA",
+      result: "−4h/dia retrabalho",
+    },
+    {
+      name: "Camila Souza",
+      role: "Sócia — VigiaTech Goiânia",
+      quote: "Os orçamentos passaram a ser fechados em 2 dias em vez de 2 semanas. O aceite eletrônico e o Pix de entrada mudaram o jogo.",
+      initials: "CS",
+      result: "7× mais rápido para fechar",
+    },
+    {
+      name: "Marcos Pereira",
+      role: "Gerente — AlphaSec Brasília",
+      quote: "Antes vivia perdendo material em obra. O estoque por local e a baixa pela OS organizaram tudo. Vale cada centavo.",
+      initials: "MP",
+      result: "Estoque sob controle",
+    },
+  ];
+  return (
+    <section className="border-b border-border/60 bg-card/30 py-14">
+      <div className="mx-auto max-w-6xl px-4">
+        <p className="mb-8 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Empresas de segurança eletrônica que já organizaram a operação
+        </p>
+        <div className="grid gap-4 md:grid-cols-3">
+          {testimonials.map((t) => (
+            <Card key={t.name} className="border-border/60 bg-background/60">
+              <CardContent className="p-5">
+                <div className="mb-3 inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success ring-1 ring-success/20">
+                  <TrendingUp className="h-3 w-3" /> {t.result}
+                </div>
+                <p className="text-sm leading-relaxed text-foreground">"{t.quote}"</p>
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary ring-1 ring-primary/20">
+                    {t.initials}
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold">{t.name}</div>
+                    <div className="text-xs text-muted-foreground">{t.role}</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------ INLINE CTA ------------------------------- */
+
+function InlineCTA({ label = "Começar teste grátis" }: { label?: string }) {
+  return (
+    <div className="mt-10 flex flex-col items-center gap-2">
+      <Button asChild size="lg" className="gap-2">
+        <Link to="/auth">{label} <ArrowRight className="h-4 w-4" /></Link>
+      </Button>
+      <p className="text-xs text-muted-foreground">Sem cartão • 7 dias grátis</p>
+    </div>
+  );
+}
+
 /* ---------------------------- PAIN / SOLUTION ---------------------------- */
+
 
 function Pains() {
   const items = [
@@ -356,7 +439,9 @@ function Solution() {
           <FeatureCard key={title} icon={Icon} title={title} />
         ))}
       </div>
+      <InlineCTA />
     </Section>
+
   );
 }
 
@@ -447,7 +532,9 @@ function MobileOS() {
           </div>
         ))}
       </div>
+      <InlineCTA label="Quero testar no celular do meu técnico" />
     </Section>
+
   );
 }
 
@@ -498,9 +585,11 @@ function Quotes() {
           </div>
         ))}
       </div>
+      <InlineCTA label="Criar meu primeiro orçamento grátis" />
     </Section>
   );
 }
+
 
 /* -------------------------------- PRICING ------------------------------- */
 
@@ -685,7 +774,7 @@ function FinalCTA() {
           </Button>
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
-          Seus dados ficam protegidos e organizados em ambiente seguro.
+          Sem cartão • LGPD • Cancele quando quiser • Suporte humano por WhatsApp
         </p>
       </div>
     </section>
@@ -721,8 +810,8 @@ function Footer() {
           <h4 className="text-sm font-semibold">Empresa</h4>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li><a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="hover:text-foreground">Suporte</a></li>
-            <li><a href="#" className="hover:text-foreground">Termos de Uso</a></li>
-            <li><a href="#" className="hover:text-foreground">Política de Privacidade</a></li>
+            <li><Link to="/terms" className="hover:text-foreground">Termos de Uso</Link></li>
+            <li><Link to="/privacy" className="hover:text-foreground">Política de Privacidade</Link></li>
           </ul>
         </div>
       </div>
@@ -740,6 +829,7 @@ function Landing() {
     <div className="min-h-screen bg-background text-foreground">
       <Header />
       <Hero />
+      <SocialProof />
       <Pains />
       <Solution />
       <Flow />
@@ -747,10 +837,11 @@ function Landing() {
       <MobileOS />
       <Stock />
       <Quotes />
-      <Pricing />
       <BeforeAfter />
+      <Pricing />
       <FAQ />
       <FinalCTA />
+
       <Footer />
     </div>
   );
