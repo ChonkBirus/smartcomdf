@@ -10,6 +10,7 @@ import { KpiCard } from "@/components/app/KpiCard";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { usePermissions } from "@/lib/permissions";
 import { getReport, type ReportColumn, type ReportRow, type ReportType } from "@/lib/reports.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 import { resolvePeriod, type ReportsFiltersValue } from "./ReportsFilters";
 
 const STATUS_COL_KEYS = new Set(["status", "payment_status"]);
