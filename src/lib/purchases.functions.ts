@@ -75,8 +75,10 @@ export const listPurchaseOrders = createServerFn({ method: "GET" })
   }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
     let q = sb.from("purchase_orders")
       .select("*, suppliers:supplier_id(corporate_name, trade_name)")
+      .eq("company_id", companyId)
       .order("issue_date", { ascending: false })
       .order("created_at", { ascending: false });
     if (data.status) q = q.eq("status", data.status);
