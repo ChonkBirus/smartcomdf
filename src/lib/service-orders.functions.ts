@@ -94,6 +94,8 @@ export const listServiceOrders = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     let q = sb
       .from("service_orders")
       .select(`*,
@@ -101,6 +103,7 @@ export const listServiceOrders = createServerFn({ method: "GET" })
         projects:project_id(project_number),
         technician:assigned_technician_id(full_name,email)
       `)
+      .eq("company_id", prof.company_id)
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
     if (data.status) q = q.eq("status", data.status);
