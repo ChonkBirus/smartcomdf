@@ -585,9 +585,11 @@ function Quotes() {
           </div>
         ))}
       </div>
+      <InlineCTA label="Criar meu primeiro orçamento grátis" />
     </Section>
   );
 }
+
 
 /* -------------------------------- PRICING ------------------------------- */
 
