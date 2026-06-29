@@ -68,9 +68,11 @@ export function ReportTab({ type, filters, title }: ReportTabProps) {
   const canExport = has("reports.export");
   const { from, to } = resolvePeriod(filters.period, filters.from, filters.to);
 
+  const companyId = useCompanyId();
   const q = useQuery({
-    queryKey: ["reports", type, filters.period, from, to],
+    queryKey: ["reports", type, companyId, filters.period, from, to],
     queryFn: () => getReport({ data: { type, filters: { from, to } } }),
+    enabled: !!companyId,
     staleTime: 60_000,
   });
 
