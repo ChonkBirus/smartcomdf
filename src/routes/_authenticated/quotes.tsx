@@ -71,6 +71,7 @@ function QuotesPage() {
   const [confirmDel, setConfirmDel] = useState<{ id: string; number: string } | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
 
+  const companyId = useCompanyId();
   const fetchList = useServerFn(listQuotes);
   const fetchMetrics = useServerFn(quoteMetrics);
   const remove = useServerFn(deleteQuote);
@@ -79,12 +80,14 @@ function QuotesPage() {
   const cancel = useServerFn(cancelQuote);
 
   const { data: metrics } = useQuery({
-    queryKey: ["quote-metrics"],
+    queryKey: ["quote-metrics", companyId],
     queryFn: () => fetchMetrics(),
+    enabled: !!companyId,
   });
 
   const { data: rows, isLoading } = useQuery({
-    queryKey: ["quotes", { search, statusFilter, payFilter }],
+    queryKey: ["quotes", companyId, { search, statusFilter, payFilter }],
+    enabled: !!companyId,
     queryFn: () =>
       fetchList({
         data: {
