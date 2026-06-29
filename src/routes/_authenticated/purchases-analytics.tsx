@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { purchaseAnalytics, type PurchaseAnalyticsRange } from "@/lib/purchases.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 export const Route = createFileRoute("/_authenticated/purchases-analytics")({
   head: () => ({ meta: [{ title: "Dashboard de Compras — SecureERP" }] }),
