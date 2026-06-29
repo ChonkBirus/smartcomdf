@@ -24,6 +24,7 @@ import {
   toggleManufacturerActive,
 } from "@/lib/products.functions";
 import { usePermissions } from "@/lib/permissions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 type Tab = "categories" | "brands" | "manufacturers";
 
@@ -73,7 +74,8 @@ function CategoriesPanel() {
   const listFn = useServerFn(listCategories);
   const saveFn = useServerFn(saveCategory);
   const toggleFn = useServerFn(toggleCategoryActive);
-  const { data: items = [] } = useQuery({ queryKey: ["categories"], queryFn: () => listFn() });
+  const companyId = useCompanyId();
+  const { data: items = [] } = useQuery({ queryKey: ["categories", companyId], queryFn: () => listFn(), enabled: !!companyId });
   const [editing, setEditing] = useState<{
     id?: string;
     name: string;
@@ -216,7 +218,8 @@ function BrandsPanel() {
   const listFn = useServerFn(listBrands);
   const saveFn = useServerFn(saveBrand);
   const toggleFn = useServerFn(toggleBrandActive);
-  const { data: items = [] } = useQuery({ queryKey: ["brands"], queryFn: () => listFn() });
+  const companyId = useCompanyId();
+  const { data: items = [] } = useQuery({ queryKey: ["brands", companyId], queryFn: () => listFn(), enabled: !!companyId });
   const [editing, setEditing] = useState<{ id?: string; name: string; description?: string; active: boolean } | null>(
     null,
   );
@@ -334,7 +337,8 @@ function ManufacturersPanel() {
   const listFn = useServerFn(listManufacturers);
   const saveFn = useServerFn(saveManufacturer);
   const toggleFn = useServerFn(toggleManufacturerActive);
-  const { data: items = [] } = useQuery({ queryKey: ["manufacturers"], queryFn: () => listFn() });
+  const companyId = useCompanyId();
+  const { data: items = [] } = useQuery({ queryKey: ["manufacturers", companyId], queryFn: () => listFn(), enabled: !!companyId });
   const [editing, setEditing] = useState<any | null>(null);
 
   const save = useMutation({
