@@ -44,7 +44,8 @@ function TeamPage() {
   const updateRole = useServerFn(updateMemberRole);
   const remove = useServerFn(removeMember);
 
-  const { data } = useQuery({ queryKey: ["team"], queryFn: () => fetch() });
+  const companyId = useCompanyId();
+  const { data } = useQuery({ queryKey: ["team", companyId], queryFn: () => fetch(), enabled: !!companyId });
 
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("commercial");
@@ -62,7 +63,7 @@ function TeamPage() {
       navigator.clipboard?.writeText(link).catch(() => {});
       toast.success("E-mail de convite enviado com sucesso.", { description: link });
       setEmail("");
-      qc.invalidateQueries({ queryKey: ["team"] });
+      qc.invalidateQueries({ queryKey: ["team", companyId] });
     },
     onError: (e: any) => {
       if (import.meta.env.DEV) console.warn("[AUTH INVITE] error", e?.message);
@@ -78,7 +79,7 @@ function TeamPage() {
       logAuthDev({ flow: "invite_resend", status: "success", emailMasked: maskEmail(inv.email), redirectUrl: link });
       navigator.clipboard?.writeText(link).catch(() => {});
       toast.success("Convite reenviado.", { description: link });
-      qc.invalidateQueries({ queryKey: ["team"] });
+      qc.invalidateQueries({ queryKey: ["team", companyId] });
     },
     onError: (e: any) => {
       logAuthDev({ flow: "invite_resend", status: "error", message: e?.message });
@@ -88,18 +89,18 @@ function TeamPage() {
 
   const revokeMut = useMutation({
     mutationFn: (id: string) => revoke({ data: { id } }),
-    onSuccess: () => { toast.success("Convite revogado."); qc.invalidateQueries({ queryKey: ["team"] }); },
+    onSuccess: () => { toast.success("Convite revogado."); qc.invalidateQueries({ queryKey: ["team", companyId] }); },
   });
 
   const roleMut = useMutation({
     mutationFn: (v: { user_id: string; role: string }) => updateRole({ data: v as any }),
-    onSuccess: () => { toast.success("Papel atualizado."); qc.invalidateQueries({ queryKey: ["team"] }); },
+    onSuccess: () => { toast.success("Papel atualizado."); qc.invalidateQueries({ queryKey: ["team", companyId] }); },
     onError: (e: any) => toast.error(e.message ?? "Erro."),
   });
 
   const removeMut = useMutation({
     mutationFn: (user_id: string) => remove({ data: { user_id } }),
-    onSuccess: () => { toast.success("Membro removido."); qc.invalidateQueries({ queryKey: ["team"] }); },
+    onSuccess: () => { toast.success("Membro removido."); qc.invalidateQueries({ queryKey: ["team", companyId] }); },
     onError: (e: any) => toast.error(e.message ?? "Erro."),
   });
 
