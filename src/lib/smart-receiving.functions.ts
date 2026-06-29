@@ -83,8 +83,10 @@ export const getNotaDocument = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!profile?.company_id) throw new Error("Sem empresa vinculada.");
     const { data: doc, error } = await sb
-      .from("nota_documents").select("*").eq("id", data.id).maybeSingle();
+      .from("nota_documents").select("*").eq("id", data.id).eq("company_id", profile.company_id).maybeSingle();
     if (error) throw new Error(error.message);
     if (!doc) return null;
 
