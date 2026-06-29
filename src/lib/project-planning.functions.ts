@@ -51,6 +51,10 @@ export const getProjectPlanning = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ project_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa vinculada.");
+    const { data: proj } = await sb.from("projects").select("id").eq("id", data.project_id).eq("company_id", prof.company_id).maybeSingle();
+    if (!proj) throw new Error("Projeto não encontrado.");
     const { data: team, error: e1 } = await sb
       .from("project_team_members")
       .select("id, user_id, role, profiles:user_id(full_name, email)")
