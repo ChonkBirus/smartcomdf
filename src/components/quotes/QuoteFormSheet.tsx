@@ -155,9 +155,9 @@ export function QuoteFormSheet({
   }, [open, companyId, authLoading, user, profile?.company_id, customersData, customersError, customerOptions.length]);
 
   const { data: catalog } = useQuery({
-    queryKey: ["quote-catalog"],
+    queryKey: ["quote-catalog", companyId],
     queryFn: () => fetchCatalog(),
-    enabled: open,
+    enabled: open && !!companyId,
   });
   const catalogItems = (catalog ?? []) as QuoteCatalogItem[];
   const products = useMemo(() => catalogItems.filter((i) => i.item_type === "PRODUCT"), [catalogItems]);

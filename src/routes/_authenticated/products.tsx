@@ -125,11 +125,20 @@ function ItemsPage() {
   );
 
   const { data, isFetching } = useQuery({
-    queryKey: ["items", filters],
+    queryKey: ["items", companyId, filters],
     queryFn: () => listFn({ data: filters }),
+    enabled: !!companyId,
   });
-  const { data: categories = [] } = useQuery({ queryKey: ["categories"], queryFn: () => catFn() });
-  const { data: brands = [] } = useQuery({ queryKey: ["brands"], queryFn: () => brandFn() });
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories", companyId],
+    queryFn: () => catFn(),
+    enabled: !!companyId,
+  });
+  const { data: brands = [] } = useQuery({
+    queryKey: ["brands", companyId],
+    queryFn: () => brandFn(),
+    enabled: !!companyId,
+  });
 
   const remove = useMutation({
     mutationFn: (id: string) => deleteFn({ data: { id } }),

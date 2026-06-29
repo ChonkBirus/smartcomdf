@@ -46,9 +46,11 @@ export const listCategories = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const company_id = await getCompanyId(sb, context.userId);
     const { data, error } = await sb
       .from("categories")
       .select("id, name, description, active, category_type, created_at")
+      .eq("company_id", company_id)
       .order("name", { ascending: true });
     if (error) throw new Error(error.message);
     return (data ?? []) as any[];
@@ -112,9 +114,11 @@ export const listBrands = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const company_id = await getCompanyId(sb, context.userId);
     const { data, error } = await sb
       .from("brands")
       .select("id, name, description, active, created_at")
+      .eq("company_id", company_id)
       .order("name", { ascending: true });
     if (error) throw new Error(error.message);
     return (data ?? []) as any[];
@@ -166,9 +170,11 @@ export const listManufacturers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const company_id = await getCompanyId(sb, context.userId);
     const { data, error } = await sb
       .from("manufacturers")
       .select("id, name, website, phone, email, active, created_at")
+      .eq("company_id", company_id)
       .order("name", { ascending: true });
     if (error) throw new Error(error.message);
     return (data ?? []) as any[];
@@ -250,6 +256,7 @@ export const listItems = createServerFn({ method: "POST" })
   .inputValidator((d) => listItemsSchema.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const company_id = await getCompanyId(sb, context.userId);
     const from = (data.page - 1) * data.page_size;
     const to = from + data.page_size - 1;
 
@@ -259,6 +266,7 @@ export const listItems = createServerFn({ method: "POST" })
         "id, name, sku, barcode, sale_price, cost_price, active, unit, minimum_stock, controls_stock, item_type, created_at, category:categories(id,name), brand:brands(id,name), manufacturer:manufacturers(id,name)",
         { count: "exact" },
       )
+      .eq("company_id", company_id)
       .is("deleted_at", null)
       .order(data.sort, { ascending: data.direction === "asc" })
       .range(from, to);
@@ -308,10 +316,12 @@ export const getItem = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const company_id = await getCompanyId(sb, context.userId);
     const { data: p, error } = await sb
       .from("items")
       .select("*, category:categories(id,name), brand:brands(id,name), manufacturer:manufacturers(id,name)")
       .eq("id", data.id)
+      .eq("company_id", company_id)
       .is("deleted_at", null)
       .maybeSingle();
     if (error) throw new Error(error.message);
