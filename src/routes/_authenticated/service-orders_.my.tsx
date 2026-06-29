@@ -68,9 +68,11 @@ function MyServiceOrdersPage() {
     return base;
   }, [filter, search]);
 
+  const companyId = useCompanyId();
   const { data, isLoading } = useQuery({
-    queryKey: ["my-service-orders", params],
+    queryKey: ["my-service-orders", companyId, params],
     queryFn: () => fetchFn({ data: params }) as Promise<TechnicianOrderRow[]>,
+    enabled: !!companyId,
   });
 
   const list = (data ?? []).filter((so) => {
