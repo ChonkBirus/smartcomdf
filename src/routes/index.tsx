@@ -829,6 +829,7 @@ function Landing() {
     <div className="min-h-screen bg-background text-foreground">
       <Header />
       <Hero />
+      <SocialProof />
       <Pains />
       <Solution />
       <Flow />
@@ -836,10 +837,11 @@ function Landing() {
       <MobileOS />
       <Stock />
       <Quotes />
-      <Pricing />
       <BeforeAfter />
+      <Pricing />
       <FAQ />
       <FinalCTA />
+
       <Footer />
     </div>
   );
