@@ -327,6 +327,8 @@ export const listCustomers = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     const from = (data.page - 1) * data.page_size;
     const to = from + data.page_size - 1;
 
@@ -338,6 +340,7 @@ export const listCustomers = createServerFn({ method: "GET" })
          customer_tag_relations!left(tag_id, customer_tags(id, name, color))`,
         { count: "exact" },
       )
+      .eq("company_id", prof.company_id)
       .is("deleted_at", null);
 
     if (data.customer_type) q = q.eq("customer_type", data.customer_type);
