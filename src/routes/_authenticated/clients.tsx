@@ -67,6 +67,7 @@ function ClientsPage() {
   const [confirmDel, setConfirmDel] = useState<{ id: string; name: string } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
 
+  const companyId = useCompanyId();
   const fetchList = useServerFn(listCustomers);
   const fetchTags = useServerFn(listCustomerTags);
   const fetchMetrics = useServerFn(customerMetrics);
@@ -74,17 +75,20 @@ function ClientsPage() {
   const toggle = useServerFn(toggleCustomer);
 
   const { data: metrics } = useQuery({
-    queryKey: ["customer-metrics"],
+    queryKey: ["customer-metrics", companyId],
     queryFn: () => fetchMetrics(),
+    enabled: !!companyId,
   });
 
   const { data: tags } = useQuery({
-    queryKey: ["customer-tags"],
+    queryKey: ["customer-tags", companyId],
     queryFn: () => fetchTags(),
+    enabled: !!companyId,
   });
 
   const { data, isLoading } = useQuery({
-    queryKey: ["customers", search, filterType, filterStatus, filterTag, city, page],
+    queryKey: ["customers", companyId, search, filterType, filterStatus, filterTag, city, page],
+    enabled: !!companyId,
     queryFn: () =>
       fetchList({
         data: {
