@@ -60,6 +60,7 @@ const MATERIAL_LABEL: Record<string, { label: string; tone: StatusTone }> = {
 };
 
 function ProjectsPage() {
+  const companyId = useCompanyId();
   const fetchList = useServerFn(listProjects);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("");
@@ -74,8 +75,9 @@ function ProjectsPage() {
   }), [search, status, priority]);
 
   const { data: allRows = [], isLoading } = useQuery({
-    queryKey: ["projects", filters],
+    queryKey: ["projects", companyId, filters],
     queryFn: () => fetchList({ data: filters }),
+    enabled: !!companyId,
   });
 
   const rows = useMemo(() => allRows.filter((p: any) => {
