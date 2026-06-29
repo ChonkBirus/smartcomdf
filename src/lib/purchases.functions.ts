@@ -56,6 +56,13 @@ const orderSchema = z.object({
   items: z.array(itemLineSchema).min(1, "Adicione pelo menos um item."),
 });
 
+async function getCompanyId(sb: any, userId: string): Promise<string> {
+  const { data } = await sb.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  if (!data?.company_id) throw new Error("Sem empresa vinculada.");
+  return data.company_id as string;
+}
+
+
 // ============================================================
 // LIST
 // ============================================================
