@@ -163,6 +163,7 @@ export const getProject = createServerFn({ method: "GET" })
       const { data: bal } = await sb
         .from("stock_balances")
         .select("item_id, quantity")
+        .eq("company_id", cid)
         .in("item_id", productItemIds);
       (bal ?? []).forEach((b: any) => {
         balances[b.item_id] = (balances[b.item_id] || 0) + Number(b.quantity || 0);
@@ -170,6 +171,7 @@ export const getProject = createServerFn({ method: "GET" })
       const { data: itm } = await sb
         .from("items")
         .select("id, minimum_stock")
+        .eq("company_id", cid)
         .in("id", productItemIds);
       (itm ?? []).forEach((i: any) => { minimums[i.id] = Number(i.minimum_stock || 0); });
     }
