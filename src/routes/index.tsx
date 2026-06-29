@@ -162,9 +162,8 @@ function Header() {
           <span className="text-base font-bold tracking-tight">SmartCom Pro</span>
         </a>
         <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
-          <a href="#benefits" className="hover:text-foreground">Benefícios</a>
-          <a href="#features" className="hover:text-foreground">Funcionalidades</a>
-          <a href="#ai" className="hover:text-foreground">IA</a>
+          <a href="#features" className="hover:text-foreground">O que faz</a>
+          <a href="#diferenciais" className="hover:text-foreground">Diferenciais</a>
           <a href="#pricing" className="hover:text-foreground">Planos</a>
           <a href="#faq" className="hover:text-foreground">Dúvidas</a>
         </nav>
