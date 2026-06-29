@@ -22,6 +22,7 @@ import {
 import { COUNTRIES, statesFor, isValidEmail } from "@/lib/locations";
 import { CustomerCnpjLookupButton } from "@/components/customers/CustomerCnpjLookupDialog";
 import type { CnpjLookupResultDTO } from "@/lib/cnpj-lookup.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 type AddrRow = Omit<CustomerAddress, "id" | "company_id" | "customer_id" | "created_at" | "updated_at"> & { id?: string };
 type ContactRow = Omit<CustomerContact, "id" | "company_id" | "customer_id" | "created_at" | "updated_at"> & { id?: string };
@@ -127,21 +128,22 @@ export function CustomerFormSheet({
   const save = useServerFn(saveCustomer);
   const fetchTags = useServerFn(listCustomerTags);
   const newTag = useServerFn(createCustomerTag);
+  const companyId = useCompanyId();
 
   const [form, setForm] = useState<FormState>(EMPTY);
   const [newTagName, setNewTagName] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: existing } = useQuery({
-    queryKey: ["customer", customerId],
+    queryKey: ["customer", companyId, customerId],
     queryFn: () => fetchOne({ data: { id: customerId! } }),
-    enabled: !!customerId && open,
+    enabled: !!customerId && open && !!companyId,
   });
 
   const { data: tags } = useQuery({
-    queryKey: ["customer-tags", (existing as any)?.company_id ?? null],
+    queryKey: ["customer-tags", companyId],
     queryFn: () => fetchTags(),
-    enabled: open,
+    enabled: open && !!companyId,
   });
 
   useEffect(() => {
