@@ -439,7 +439,9 @@ function Solution() {
           <FeatureCard key={title} icon={Icon} title={title} />
         ))}
       </div>
+      <InlineCTA />
     </Section>
+
   );
 }
 
