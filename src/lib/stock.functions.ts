@@ -194,6 +194,8 @@ export const listMovements = createServerFn({ method: "GET" })
   .inputValidator((d) => movementFilter.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     let q = sb.from("stock_movements")
       .select(`
         id, created_at, movement_type, quantity, previous_balance, new_balance, reason, notes,
@@ -202,6 +204,7 @@ export const listMovements = createServerFn({ method: "GET" })
         stock_locations:location_id(name),
         profiles:user_id(full_name, email)
       `)
+      .eq("company_id", prof.company_id)
       .order("created_at", { ascending: false })
       .limit(data.limit);
     if (data.item_id) q = q.eq("item_id", data.item_id);
