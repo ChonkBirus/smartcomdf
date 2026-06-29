@@ -810,8 +810,8 @@ function Footer() {
           <h4 className="text-sm font-semibold">Empresa</h4>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li><a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="hover:text-foreground">Suporte</a></li>
-            <li><a href="#" className="hover:text-foreground">Termos de Uso</a></li>
-            <li><a href="#" className="hover:text-foreground">Política de Privacidade</a></li>
+            <li><Link to="/terms" className="hover:text-foreground">Termos de Uso</Link></li>
+            <li><Link to="/privacy" className="hover:text-foreground">Política de Privacidade</Link></li>
           </ul>
         </div>
       </div>
