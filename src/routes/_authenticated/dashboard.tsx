@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Users, Package, FileText, DollarSign, TrendingUp, Activity, PackageX, AlertTriangle, Boxes } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useCompanyId } from "@/hooks/use-company-id";
 import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/app/KpiCard";
 import { SubscriptionCard } from "@/components/app/SubscriptionCard";
