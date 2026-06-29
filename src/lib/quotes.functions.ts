@@ -175,9 +175,12 @@ export const listQuotes = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     let q = sb
       .from("quotes")
       .select("*, customers:customer_id(name, trade_name, corporate_name)")
+      .eq("company_id", prof.company_id)
       .order("issue_date", { ascending: false })
       .order("created_at", { ascending: false });
     if (data.status) q = q.eq("status", data.status);
