@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/app/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getReportsOverview } from "@/lib/reports.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 import type { ReportsFiltersValue } from "./ReportsFilters";
 import { resolvePeriod } from "./ReportsFilters";
 
@@ -17,9 +18,11 @@ function brl(v: number) {
 
 export function ReportsOverview({ filters }: { filters: ReportsFiltersValue }) {
   const { from, to } = resolvePeriod(filters.period, filters.from, filters.to);
+  const companyId = useCompanyId();
   const q = useQuery({
-    queryKey: ["reports", "overview", filters.period, from, to],
+    queryKey: ["reports", "overview", companyId, filters.period, from, to],
     queryFn: () => getReportsOverview({ data: { from, to } }),
+    enabled: !!companyId,
     staleTime: 60_000,
   });
 
