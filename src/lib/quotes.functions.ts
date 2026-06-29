@@ -244,10 +244,13 @@ export const getQuote = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: q, error: e1 } = await sb
       .from("quotes")
       .select("*, customers:customer_id(id, name, trade_name, corporate_name, cpf_cnpj, email, phone, whatsapp)")
       .eq("id", data.id)
+      .eq("company_id", prof.company_id)
       .maybeSingle();
     if (e1) throw new Error(e1.message);
     if (!q) return null;
