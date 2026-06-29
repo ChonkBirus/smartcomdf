@@ -74,9 +74,11 @@ function formatMonth(ym: string) {
 function PurchasesAnalyticsPage() {
   const [range, setRange] = useState<PurchaseAnalyticsRange>("90d");
   const fetchAnalytics = useServerFn(purchaseAnalytics);
+  const companyId = useCompanyId();
   const { data, isLoading } = useQuery({
-    queryKey: ["purchase_analytics", range],
+    queryKey: ["purchase_analytics", companyId, range],
     queryFn: () => fetchAnalytics({ data: { range } }),
+    enabled: !!companyId,
   });
 
   const monthly = (data?.monthly ?? []).map((m) => ({
