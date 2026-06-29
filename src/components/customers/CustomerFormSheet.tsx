@@ -139,7 +139,7 @@ export function CustomerFormSheet({
   });
 
   const { data: tags } = useQuery({
-    queryKey: ["customer-tags"],
+    queryKey: ["customer-tags", (existing as any)?.company_id ?? null],
     queryFn: () => fetchTags(),
     enabled: open,
   });

@@ -21,6 +21,7 @@ import {
 } from "@/lib/smart-receiving.functions";
 import { listSuppliers } from "@/lib/suppliers.functions";
 import { listLocations } from "@/lib/stock.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 type Props = {
   open: boolean;
@@ -50,22 +51,23 @@ export function NotaReviewSheet({ open, onOpenChange, docId }: Props) {
   const confirm = useServerFn(confirmNotaReceiving);
   const fetchSuppliers = useServerFn(listSuppliers);
   const fetchLocations = useServerFn(listLocations);
+  const companyId = useCompanyId();
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["nota_document", docId],
+    queryKey: ["nota_document", companyId, docId],
     queryFn: () => (docId ? fetchDoc({ data: { id: docId } }) : Promise.resolve(null)),
-    enabled: !!docId && open,
+    enabled: !!docId && open && !!companyId,
   });
 
   const { data: suppliers = [] } = useQuery({
-    queryKey: ["suppliers_list_min"],
+    queryKey: ["suppliers_list_min", companyId],
     queryFn: () => fetchSuppliers({ data: { search: "" } }),
-    enabled: open,
+    enabled: open && !!companyId,
   });
   const { data: locations = [] } = useQuery({
-    queryKey: ["stock_locations_list"],
+    queryKey: ["stock_locations_list", companyId],
     queryFn: () => fetchLocations(),
-    enabled: open,
+    enabled: open && !!companyId,
   });
 
   const [supplierId, setSupplierId] = useState<string>("");
@@ -311,10 +313,11 @@ function ItemReviewRow({
   const searchFn = useServerFn(searchItemsForMatch);
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const companyId = useCompanyId();
   const { data: results = [] } = useQuery({
-    queryKey: ["item_search", search],
+    queryKey: ["item_search", companyId, search],
     queryFn: () => searchFn({ data: { query: search } }),
-    enabled: showSearch,
+    enabled: showSearch && !!companyId,
   });
 
   const total = Number(item.raw_total ?? (Number(item.raw_quantity ?? 0) * Number(item.raw_unit_cost ?? 0)));

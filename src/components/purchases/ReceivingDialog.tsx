@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { getPurchaseOrder, receivePurchaseOrder } from "@/lib/purchases.functions";
 import { listLocations } from "@/lib/stock.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 export function ReceivingDialog({
   open, onOpenChange, orderId,
@@ -18,20 +19,21 @@ export function ReceivingDialog({
   const fetchOne = useServerFn(getPurchaseOrder);
   const fetchLocs = useServerFn(listLocations);
   const receive = useServerFn(receivePurchaseOrder);
+  const companyId = useCompanyId();
 
   const [locationId, setLocationId] = useState("");
   const [notes, setNotes] = useState("");
   const [qtys, setQtys] = useState<Record<string, number>>({});
 
   const { data } = useQuery({
-    queryKey: ["po", orderId],
+    queryKey: ["po", companyId, orderId],
     queryFn: () => fetchOne({ data: { id: orderId! } }),
-    enabled: !!orderId && open,
+    enabled: !!orderId && open && !!companyId,
   });
   const { data: locations } = useQuery({
-    queryKey: ["stock_locations"],
+    queryKey: ["stock_locations", companyId],
     queryFn: () => fetchLocs(),
-    enabled: open,
+    enabled: open && !!companyId,
   });
 
   useEffect(() => {
