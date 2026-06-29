@@ -56,6 +56,13 @@ const orderSchema = z.object({
   items: z.array(itemLineSchema).min(1, "Adicione pelo menos um item."),
 });
 
+async function getCompanyId(sb: any, userId: string): Promise<string> {
+  const { data } = await sb.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  if (!data?.company_id) throw new Error("Sem empresa vinculada.");
+  return data.company_id as string;
+}
+
+
 // ============================================================
 // LIST
 // ============================================================
@@ -68,8 +75,10 @@ export const listPurchaseOrders = createServerFn({ method: "GET" })
   }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
     let q = sb.from("purchase_orders")
       .select("*, suppliers:supplier_id(corporate_name, trade_name)")
+      .eq("company_id", companyId)
       .order("issue_date", { ascending: false })
       .order("created_at", { ascending: false });
     if (data.status) q = q.eq("status", data.status);
@@ -92,10 +101,13 @@ export const getPurchaseOrder = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
     const { data: po, error: e1 } = await sb
       .from("purchase_orders")
       .select("*, suppliers:supplier_id(corporate_name, trade_name)")
-      .eq("id", data.id).maybeSingle();
+      .eq("id", data.id)
+      .eq("company_id", companyId)
+      .maybeSingle();
     if (e1) throw new Error(e1.message);
     if (!po) return null;
 
@@ -265,10 +277,11 @@ export const deletePurchaseOrder = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: po } = await sb.from("purchase_orders").select("status").eq("id", data.id).maybeSingle();
+    const companyId = await getCompanyId(sb, context.userId);
+    const { data: po } = await sb.from("purchase_orders").select("status").eq("id", data.id).eq("company_id", companyId).maybeSingle();
     if (!po) throw new Error("Pedido não encontrado.");
     if (po.status !== "DRAFT") throw new Error("Apenas rascunhos podem ser excluídos.");
-    const { error } = await sb.from("purchase_orders").delete().eq("id", data.id);
+    const { error } = await sb.from("purchase_orders").delete().eq("id", data.id).eq("company_id", companyId);
     if (error) throw new Error(error.message);
     await sb.rpc("log_audit", { _module: "purchases", _action: "delete", _record_id: data.id });
     return { ok: true };
@@ -282,7 +295,7 @@ export const duplicatePurchaseOrder = createServerFn({ method: "POST" })
     const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
     if (!profile?.company_id) throw new Error("Sem empresa.");
 
-    const { data: po } = await sb.from("purchase_orders").select("*").eq("id", data.id).maybeSingle();
+    const { data: po } = await sb.from("purchase_orders").select("*").eq("id", data.id).eq("company_id", profile.company_id).maybeSingle();
     if (!po) throw new Error("Pedido não encontrado.");
     const { data: items } = await sb.from("purchase_order_items").select("item_id, quantity, unit_cost").eq("purchase_order_id", data.id);
 
@@ -347,10 +360,12 @@ export const purchaseOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
     const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
     const { data: rows } = await sb
       .from("purchase_orders")
       .select("status, total_amount, issue_date")
+      .eq("company_id", companyId)
       .gte("issue_date", monthStart.toISOString().slice(0, 10));
     const total = (rows ?? []).reduce((s: number, r: any) => s + Number(r.total_amount || 0), 0);
     const pending = (rows ?? []).filter((r: any) => ["PENDING", "APPROVED", "PARTIALLY_RECEIVED"].includes(r.status)).length;
@@ -382,6 +397,7 @@ export const purchaseAnalytics = createServerFn({ method: "GET" })
   }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
     const start = rangeStart(data.range);
     const startISO = start.toISOString().slice(0, 10);
 
@@ -389,6 +405,7 @@ export const purchaseAnalytics = createServerFn({ method: "GET" })
     const { data: orders, error } = await sb
       .from("purchase_orders")
       .select("id, status, total_amount, issue_date, approved_at, supplier_id, updated_at, suppliers:supplier_id(corporate_name, trade_name)")
+      .eq("company_id", companyId)
       .gte("issue_date", startISO)
       .order("issue_date", { ascending: true });
     if (error) throw new Error(error.message);

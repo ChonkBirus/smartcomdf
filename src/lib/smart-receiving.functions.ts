@@ -57,11 +57,14 @@ export const listNotaDocuments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!profile?.company_id) throw new Error("Sem empresa vinculada.");
     const { data, error } = await sb
       .from("nota_documents")
       .select(
         "id, status, original_name, file_path, mime_type, ai_supplier_name, ai_supplier_cnpj, ai_invoice_number, ai_issue_date, ai_total_amount, ai_confidence, ai_model, supplier_id, location_id, error_message, created_at, processed_at, confirmed_at",
       )
+      .eq("company_id", profile.company_id)
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw new Error(error.message);
@@ -80,8 +83,10 @@ export const getNotaDocument = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!profile?.company_id) throw new Error("Sem empresa vinculada.");
     const { data: doc, error } = await sb
-      .from("nota_documents").select("*").eq("id", data.id).maybeSingle();
+      .from("nota_documents").select("*").eq("id", data.id).eq("company_id", profile.company_id).maybeSingle();
     if (error) throw new Error(error.message);
     if (!doc) return null;
 
