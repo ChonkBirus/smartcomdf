@@ -101,10 +101,13 @@ export const getPurchaseOrder = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
     const { data: po, error: e1 } = await sb
       .from("purchase_orders")
       .select("*, suppliers:supplier_id(corporate_name, trade_name)")
-      .eq("id", data.id).maybeSingle();
+      .eq("id", data.id)
+      .eq("company_id", companyId)
+      .maybeSingle();
     if (e1) throw new Error(e1.message);
     if (!po) return null;
 
