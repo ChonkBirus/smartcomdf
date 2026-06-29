@@ -191,7 +191,7 @@ function PixSettingsCard() {
       }),
     onSuccess: () => {
       toast.success("Chave Pix salva.");
-      qc.invalidateQueries({ queryKey: ["company-pix"] });
+      qc.invalidateQueries({ queryKey: ["company-pix", companyId] });
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
   });
