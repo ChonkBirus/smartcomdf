@@ -774,7 +774,7 @@ function FinalCTA() {
           </Button>
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
-          Seus dados ficam protegidos e organizados em ambiente seguro.
+          Sem cartão • LGPD • Cancele quando quiser • Suporte humano por WhatsApp
         </p>
       </div>
     </section>
