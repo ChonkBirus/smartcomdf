@@ -916,11 +916,3 @@ function Landing() {
     </div>
   );
 }
-      <Pricing />
-      <FAQ />
-      <FinalCTA />
-
-      <Footer />
-    </div>
-  );
-}
