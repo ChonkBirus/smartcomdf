@@ -436,10 +436,13 @@ export const getCustomer = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: customer, error } = await sb
       .from("customers")
       .select("*")
       .eq("id", data.id)
+      .eq("company_id", prof.company_id)
       .is("deleted_at", null)
       .maybeSingle();
     if (error) throw new Error(error.message);
