@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useCompanyId } from "@/hooks/use-company-id";
 import {
   Users, Plus, Pencil, Trash2, Search, MessageCircle, Eye, History,
   Building2, User as UserIcon, ArrowLeft, ArrowRight, Upload,
