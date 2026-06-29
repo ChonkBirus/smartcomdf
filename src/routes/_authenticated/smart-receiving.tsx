@@ -22,6 +22,7 @@ import {
   listNotaDocuments, parseNotaDocument, deleteNotaDocument,
   type NotaDocument, type NotaStatus,
 } from "@/lib/smart-receiving.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 export const Route = createFileRoute("/_authenticated/smart-receiving")({
   head: () => ({ meta: [{ title: "Recebimento Inteligente — SecureERP" }] }),
