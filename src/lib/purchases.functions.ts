@@ -360,10 +360,12 @@ export const purchaseOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
     const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
     const { data: rows } = await sb
       .from("purchase_orders")
       .select("status, total_amount, issue_date")
+      .eq("company_id", companyId)
       .gte("issue_date", monthStart.toISOString().slice(0, 10));
     const total = (rows ?? []).reduce((s: number, r: any) => s + Number(r.total_amount || 0), 0);
     const pending = (rows ?? []).filter((r: any) => ["PENDING", "APPROVED", "PARTIALLY_RECEIVED"].includes(r.status)).length;
