@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useCompanyId } from "@/hooks/use-company-id";
 import { Building2, Plus, Pencil, Trash2, Search, Upload } from "lucide-react";
 import { SupplierImportDialog } from "@/components/purchases/SupplierImportDialog";
 import { PageHeader } from "@/components/app/PageHeader";
