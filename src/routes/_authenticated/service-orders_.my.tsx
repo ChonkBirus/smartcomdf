@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { listMyServiceOrders } from "@/lib/technician-service-orders.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 import {
   TechnicianServiceOrderCard,
   type TechnicianOrderRow,
