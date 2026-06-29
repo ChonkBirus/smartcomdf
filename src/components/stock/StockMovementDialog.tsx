@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createMovement, listLocations, listStockItems, transferStock } from "@/lib/stock.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 type Mode = "ENTRY" | "EXIT" | "ADJUSTMENT" | "TRANSFER";
 
@@ -20,9 +21,18 @@ export function StockMovementDialog({
   const listItems = useServerFn(listStockItems);
   const create = useServerFn(createMovement);
   const transfer = useServerFn(transferStock);
+  const companyId = useCompanyId();
 
-  const { data: locations = [] } = useQuery({ queryKey: ["stock_locations"], queryFn: () => listLocs(), enabled: open });
-  const { data: items = [] } = useQuery({ queryKey: ["stock_items"], queryFn: () => listItems(), enabled: open });
+  const { data: locations = [] } = useQuery({
+    queryKey: ["stock_locations", companyId],
+    queryFn: () => listLocs(),
+    enabled: open && !!companyId,
+  });
+  const { data: items = [] } = useQuery({
+    queryKey: ["stock_items", companyId],
+    queryFn: () => listItems(),
+    enabled: open && !!companyId,
+  });
 
   const [form, setForm] = useState({
     item_id: "", location_id: "", to_location: "", quantity: "", final_quantity: "", reason: "", notes: "",

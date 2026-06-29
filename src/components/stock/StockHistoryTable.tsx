@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { listLocations, listMovements, type MovementType } from "@/lib/stock.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 import { ArrowDownLeft, ArrowUpRight, RefreshCw, MoveRight, MoveLeft } from "lucide-react";
 
 const TYPE_META: Record<MovementType, { label: string; icon: any; cls: string }> = {
@@ -20,13 +21,18 @@ const TYPE_META: Record<MovementType, { label: string; icon: any; cls: string }>
 export function StockHistoryTable() {
   const listMov = useServerFn(listMovements);
   const listLocs = useServerFn(listLocations);
+  const companyId = useCompanyId();
   const [search, setSearch] = useState("");
   const [type, setType] = useState<string>("all");
   const [location, setLocation] = useState<string>("all");
 
-  const { data: locations = [] } = useQuery({ queryKey: ["stock_locations"], queryFn: () => listLocs() });
+  const { data: locations = [] } = useQuery({
+    queryKey: ["stock_locations", companyId],
+    queryFn: () => listLocs(),
+    enabled: !!companyId,
+  });
   const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["stock_movements", type, location, search],
+    queryKey: ["stock_movements", companyId, type, location, search],
     queryFn: () => listMov({
       data: {
         movement_type: type !== "all" ? (type as MovementType) : undefined,
@@ -35,6 +41,7 @@ export function StockHistoryTable() {
         limit: 200,
       },
     }),
+    enabled: !!companyId,
   });
 
   return (

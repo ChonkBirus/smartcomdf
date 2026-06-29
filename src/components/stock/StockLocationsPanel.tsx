@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { listLocations, saveLocation, toggleLocation, type StockLocation } from "@/lib/stock.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 import { Card } from "@/components/ui/card";
 import { Plus, MapPin } from "lucide-react";
 import { Can } from "@/components/app/PermissionRoute";
@@ -18,7 +19,12 @@ export function StockLocationsPanel() {
   const list = useServerFn(listLocations);
   const save = useServerFn(saveLocation);
   const toggle = useServerFn(toggleLocation);
-  const { data: locations = [], isLoading } = useQuery({ queryKey: ["stock_locations"], queryFn: () => list() });
+  const companyId = useCompanyId();
+  const { data: locations = [], isLoading } = useQuery({
+    queryKey: ["stock_locations", companyId],
+    queryFn: () => list(),
+    enabled: !!companyId,
+  });
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<StockLocation | null>(null);

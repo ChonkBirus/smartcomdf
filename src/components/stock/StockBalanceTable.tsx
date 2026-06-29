@@ -7,18 +7,25 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { listBalances, listLocations } from "@/lib/stock.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 export function StockBalanceTable() {
   const listBal = useServerFn(listBalances);
   const listLocs = useServerFn(listLocations);
+  const companyId = useCompanyId();
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const { data: locations = [] } = useQuery({ queryKey: ["stock_locations"], queryFn: () => listLocs() });
+  const { data: locations = [] } = useQuery({
+    queryKey: ["stock_locations", companyId],
+    queryFn: () => listLocs(),
+    enabled: !!companyId,
+  });
   const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["stock_balances", location, search],
+    queryKey: ["stock_balances", companyId, location, search],
     queryFn: () => listBal({ data: { location_id: location !== "all" ? location : undefined, search } }),
+    enabled: !!companyId,
   });
 
   const filtered = useMemo(() => statusFilter === "all" ? rows : rows.filter((r) => r.status === statusFilter), [rows, statusFilter]);
