@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useCompanyId } from "@/hooks/use-company-id";
 import {
   FileText, Plus, Pencil, Trash2, Copy, Search, Send, XCircle, CheckCircle2, Share2,
 } from "lucide-react";
