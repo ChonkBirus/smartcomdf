@@ -77,13 +77,16 @@ function PurchasesPage() {
   const remove = useServerFn(deletePurchaseOrder);
   const duplicate = useServerFn(duplicatePurchaseOrder);
 
+  const companyId = useCompanyId();
   const { data: orders, isLoading } = useQuery({
-    queryKey: ["purchase_orders", status, search],
+    queryKey: ["purchase_orders", companyId, status, search],
     queryFn: () => fetchList({ data: { status: status || undefined, search } }),
+    enabled: !!companyId,
   });
   const { data: overview } = useQuery({
-    queryKey: ["purchase_overview"],
+    queryKey: ["purchase_overview", companyId],
     queryFn: () => fetchOverview(),
+    enabled: !!companyId,
   });
 
   const invalidate = () => {
