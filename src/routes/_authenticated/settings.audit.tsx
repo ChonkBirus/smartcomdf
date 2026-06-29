@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/app/PageHeader";
 import { listAuditLogs } from "@/lib/audit.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 export const Route = createFileRoute("/_authenticated/settings/audit")({
   component: AuditPage,
