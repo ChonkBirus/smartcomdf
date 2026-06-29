@@ -80,6 +80,9 @@ export const getMobileServiceOrderDetails = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }): Promise<MobileServiceOrderDetails | null> => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const companyId = prof?.company_id;
+    if (!companyId) throw new Error("Sem empresa vinculada.");
     const { data: so, error } = await sb
       .from("service_orders")
       .select(`*,
@@ -92,7 +95,9 @@ export const getMobileServiceOrderDetails = createServerFn({ method: "GET" })
         company:company_id(name,trade_name)
       `)
       .eq("id", data.id)
+      .eq("company_id", companyId)
       .maybeSingle();
+
     if (error) throw new Error(error.message);
     if (!so) return null;
     const { data: items, error: e2 } = await sb
