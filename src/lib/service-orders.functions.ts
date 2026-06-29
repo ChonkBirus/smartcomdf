@@ -132,6 +132,8 @@ export const getServiceOrder = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: so, error } = await sb
       .from("service_orders")
       .select(`*,
@@ -143,6 +145,7 @@ export const getServiceOrder = createServerFn({ method: "GET" })
         technician:assigned_technician_id(full_name,email)
       `)
       .eq("id", data.id)
+      .eq("company_id", prof.company_id)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!so) return null;
