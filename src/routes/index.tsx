@@ -411,36 +411,113 @@ function Pains() {
 }
 
 function Solution() {
-  const items: Array<[React.ComponentType<{ className?: string }>, string]> = [
-    [Users, "Clientes"],
-    [Package, "Produtos e serviços"],
-    [Package, "Estoque"],
-    [FileText, "Orçamentos"],
-    [PenLine, "Aceite eletrônico"],
-    [QrCode, "Pix de entrada"],
-    [Workflow, "Projetos"],
-    [ClipboardList, "Ordens de serviço"],
-    [ListChecks, "Checklist técnico"],
-    [Camera, "Fotos antes e depois"],
-    [FileText, "Relatório final"],
-    [PenLine, "Assinatura do cliente"],
-    [FileSpreadsheet, "Importação Excel/CSV"],
-    [Bot, "IA para notas e compras"],
+  const modules: Array<{ icon: React.ComponentType<{ className?: string }>; title: string; desc: string }> = [
+    { icon: Users, title: "Clientes & CRM", desc: "Cadastro completo, histórico de atendimento e busca por CNPJ." },
+    { icon: Package, title: "Produtos & Estoque", desc: "Controle por local, estoque mínimo, entradas e baixas automáticas." },
+    { icon: FileText, title: "Orçamentos", desc: "PDF profissional, link público, aceite eletrônico e Pix de entrada." },
+    { icon: Workflow, title: "Projetos", desc: "Converta o orçamento em projeto com equipe, prazo e materiais." },
+    { icon: ClipboardList, title: "Ordens de Serviço", desc: "OS no celular do técnico, checklist, fotos e relatório final." },
+    { icon: BarChart3, title: "Relatórios & Financeiro", desc: "Visão de receita, OS, estoque e desempenho da operação." },
   ];
   return (
     <Section
       id="features"
-      eyebrow="A solução"
-      title="O SmartCom Pro centraliza sua operação em uma única plataforma."
+      eyebrow="O ERP completo"
+      title="6 módulos para rodar toda a operação"
+      subtitle="Tudo o que uma empresa de segurança eletrônica precisa, em uma única plataforma."
     >
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {items.map(([Icon, title]) => (
-          <FeatureCard key={title} icon={Icon} title={title} />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {modules.map((m) => (
+          <Card key={m.title} className="border-border/60 bg-card/60 backdrop-blur transition hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5">
+            <CardContent className="p-6">
+              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20">
+                <m.icon className="h-5 w-5" />
+              </div>
+              <h3 className="text-base font-semibold">{m.title}</h3>
+              <p className="mt-1.5 text-sm text-muted-foreground">{m.desc}</p>
+            </CardContent>
+          </Card>
         ))}
       </div>
       <InlineCTA />
     </Section>
+  );
+}
 
+/* ----------------------------- DIFERENCIAIS ----------------------------- */
+
+function Differentials() {
+  const items: Array<{ icon: React.ComponentType<{ className?: string }>; title: string; desc: string }> = [
+    {
+      icon: Bot,
+      title: "IA que reduz cadastro manual",
+      desc: "Leitura de notas fiscais, cadastro por CNPJ, importação Excel/CSV e sugestão automática de produtos.",
+    },
+    {
+      icon: Smartphone,
+      title: "OS 100% mobile para o técnico",
+      desc: "Checklist, fotos antes/depois, materiais e finalização direto do celular — sem papel, sem ligar pro escritório.",
+    },
+    {
+      icon: PenLine,
+      title: "Aceite eletrônico + Pix de entrada",
+      desc: "Cliente aceita o orçamento por link público e já paga 50% via Pix automático. Fechamento 7× mais rápido.",
+    },
+    {
+      icon: Camera,
+      title: "Relatório final com fotos e assinatura",
+      desc: "Gerado automaticamente ao fim da OS, assinado pelo cliente e enviado por WhatsApp na hora.",
+    },
+    {
+      icon: ShieldCheck,
+      title: "Valor protegido do cliente",
+      desc: "Você mostra o valor final no orçamento, sem expor custo, margem ou dados internos.",
+    },
+    {
+      icon: Zap,
+      title: "Feito para segurança eletrônica",
+      desc: "Não é ERP genérico. Cada módulo foi desenhado para CFTV, alarme, controle de acesso e instalação.",
+    },
+  ];
+  return (
+    <section id="diferenciais" className="relative scroll-mt-24 border-y border-border/60 bg-gradient-to-b from-primary/[0.04] via-background to-background py-20 md:py-28">
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute left-1/2 top-0 h-[400px] w-[600px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+      </div>
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="mx-auto mb-14 max-w-2xl text-center">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+            <Sparkles className="h-3.5 w-3.5" /> Por que SmartCom Pro
+          </span>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight md:text-5xl">
+            O que nenhum ERP genérico entrega
+          </h2>
+          <p className="mt-4 text-base text-muted-foreground md:text-lg">
+            6 diferenciais que fazem sua operação parar de improvisar e começar a escalar.
+          </p>
+        </div>
+
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {items.map((it, i) => (
+            <div
+              key={it.title}
+              className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/70 p-6 backdrop-blur transition hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10"
+            >
+              <div className="absolute right-4 top-4 text-5xl font-bold text-primary/10 transition group-hover:text-primary/20">
+                {String(i + 1).padStart(2, "0")}
+              </div>
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-chart-4 text-primary-foreground shadow-lg shadow-primary/20">
+                <it.icon className="h-6 w-6" />
+              </div>
+              <h3 className="text-lg font-bold leading-tight">{it.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{it.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <InlineCTA label="Quero esses diferenciais na minha empresa" />
+      </div>
+    </section>
   );
 }
 
