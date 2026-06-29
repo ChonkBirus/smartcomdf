@@ -16,6 +16,7 @@ import {
   getProductionChecklist,
   updateProductionChecklistItem,
 } from "@/lib/homologation.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 export const Route = createFileRoute("/_authenticated/settings/homologation")({
   head: () => ({ meta: [{ title: "Homologação — SmartCom Pro" }] }),
