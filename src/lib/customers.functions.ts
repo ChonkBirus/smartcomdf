@@ -738,9 +738,12 @@ export const listCustomerTags = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: rows, error } = await sb
       .from("customer_tags")
       .select("*")
+      .eq("company_id", prof.company_id)
       .order("name");
     if (error) throw new Error(error.message);
     return (rows ?? []) as CustomerTag[];
