@@ -10,6 +10,7 @@ import { KpiCard } from "@/components/app/KpiCard";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { usePermissions } from "@/lib/permissions";
 import { getReport, type ReportColumn, type ReportRow, type ReportType } from "@/lib/reports.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 import { resolvePeriod, type ReportsFiltersValue } from "./ReportsFilters";
 
 const STATUS_COL_KEYS = new Set(["status", "payment_status"]);
@@ -67,9 +68,11 @@ export function ReportTab({ type, filters, title }: ReportTabProps) {
   const canExport = has("reports.export");
   const { from, to } = resolvePeriod(filters.period, filters.from, filters.to);
 
+  const companyId = useCompanyId();
   const q = useQuery({
-    queryKey: ["reports", type, filters.period, from, to],
+    queryKey: ["reports", type, companyId, filters.period, from, to],
     queryFn: () => getReport({ data: { type, filters: { from, to } } }),
+    enabled: !!companyId,
     staleTime: 60_000,
   });
 

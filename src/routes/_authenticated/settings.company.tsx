@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMyContext } from "@/lib/account.functions";
 import { updateMyCompany, getSignedImageUrl } from "@/lib/profile.functions";
 import { getCompanyPix, saveCompanyPix } from "@/lib/quote-payments.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 export const Route = createFileRoute("/_authenticated/settings/company")({
   component: CompanyPage,
@@ -156,8 +157,9 @@ function PixSettingsCard() {
   const qc = useQueryClient();
   const fetchPix = useServerFn(getCompanyPix);
   const savePix = useServerFn(saveCompanyPix);
+  const companyId = useCompanyId();
 
-  const { data } = useQuery({ queryKey: ["company-pix"], queryFn: () => fetchPix() });
+  const { data } = useQuery({ queryKey: ["company-pix", companyId], queryFn: () => fetchPix(), enabled: !!companyId });
 
   const [pix, setPix] = useState({
     pix_key: "",
@@ -189,7 +191,7 @@ function PixSettingsCard() {
       }),
     onSuccess: () => {
       toast.success("Chave Pix salva.");
-      qc.invalidateQueries({ queryKey: ["company-pix"] });
+      qc.invalidateQueries({ queryKey: ["company-pix", companyId] });
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
   });
