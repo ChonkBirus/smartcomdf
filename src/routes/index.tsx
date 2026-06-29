@@ -307,7 +307,79 @@ function MockCard({
   );
 }
 
+/* ------------------------------ SOCIAL PROOF ----------------------------- */
+
+function SocialProof() {
+  const testimonials = [
+    {
+      name: "Rafael Andrade",
+      role: "Diretor — SecureCam DF",
+      quote: "Reduzi 4h/dia de retrabalho. Hoje o técnico finaliza a OS no celular e o cliente recebe o relatório com fotos no mesmo dia.",
+      initials: "RA",
+      result: "−4h/dia retrabalho",
+    },
+    {
+      name: "Camila Souza",
+      role: "Sócia — VigiaTech Goiânia",
+      quote: "Os orçamentos passaram a ser fechados em 2 dias em vez de 2 semanas. O aceite eletrônico e o Pix de entrada mudaram o jogo.",
+      initials: "CS",
+      result: "7× mais rápido para fechar",
+    },
+    {
+      name: "Marcos Pereira",
+      role: "Gerente — AlphaSec Brasília",
+      quote: "Antes vivia perdendo material em obra. O estoque por local e a baixa pela OS organizaram tudo. Vale cada centavo.",
+      initials: "MP",
+      result: "Estoque sob controle",
+    },
+  ];
+  return (
+    <section className="border-b border-border/60 bg-card/30 py-14">
+      <div className="mx-auto max-w-6xl px-4">
+        <p className="mb-8 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Empresas de segurança eletrônica que já organizaram a operação
+        </p>
+        <div className="grid gap-4 md:grid-cols-3">
+          {testimonials.map((t) => (
+            <Card key={t.name} className="border-border/60 bg-background/60">
+              <CardContent className="p-5">
+                <div className="mb-3 inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success ring-1 ring-success/20">
+                  <TrendingUp className="h-3 w-3" /> {t.result}
+                </div>
+                <p className="text-sm leading-relaxed text-foreground">"{t.quote}"</p>
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary ring-1 ring-primary/20">
+                    {t.initials}
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold">{t.name}</div>
+                    <div className="text-xs text-muted-foreground">{t.role}</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------ INLINE CTA ------------------------------- */
+
+function InlineCTA({ label = "Começar teste grátis" }: { label?: string }) {
+  return (
+    <div className="mt-10 flex flex-col items-center gap-2">
+      <Button asChild size="lg" className="gap-2">
+        <Link to="/auth">{label} <ArrowRight className="h-4 w-4" /></Link>
+      </Button>
+      <p className="text-xs text-muted-foreground">Sem cartão • 7 dias grátis</p>
+    </div>
+  );
+}
+
 /* ---------------------------- PAIN / SOLUTION ---------------------------- */
+
 
 function Pains() {
   const items = [
