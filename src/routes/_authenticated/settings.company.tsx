@@ -157,8 +157,9 @@ function PixSettingsCard() {
   const qc = useQueryClient();
   const fetchPix = useServerFn(getCompanyPix);
   const savePix = useServerFn(saveCompanyPix);
+  const companyId = useCompanyId();
 
-  const { data } = useQuery({ queryKey: ["company-pix"], queryFn: () => fetchPix() });
+  const { data } = useQuery({ queryKey: ["company-pix", companyId], queryFn: () => fetchPix(), enabled: !!companyId });
 
   const [pix, setPix] = useState({
     pix_key: "",
