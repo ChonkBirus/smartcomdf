@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { listMyServiceOrders } from "@/lib/technician-service-orders.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 import {
   TechnicianServiceOrderCard,
   type TechnicianOrderRow,
@@ -67,9 +68,11 @@ function MyServiceOrdersPage() {
     return base;
   }, [filter, search]);
 
+  const companyId = useCompanyId();
   const { data, isLoading } = useQuery({
-    queryKey: ["my-service-orders", params],
+    queryKey: ["my-service-orders", companyId, params],
     queryFn: () => fetchFn({ data: params }) as Promise<TechnicianOrderRow[]>,
+    enabled: !!companyId,
   });
 
   const list = (data ?? []).filter((so) => {

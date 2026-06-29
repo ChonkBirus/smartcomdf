@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/app/PageHeader";
 import { listAuditLogs } from "@/lib/audit.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 export const Route = createFileRoute("/_authenticated/settings/audit")({
   component: AuditPage,
@@ -26,9 +27,11 @@ const ACTION_COLORS: Record<string, string> = {
 function AuditPage() {
   const [filters, setFilters] = useState<{ module?: string; action?: string }>({});
   const fn = useServerFn(listAuditLogs);
+  const companyId = useCompanyId();
   const { data, isLoading } = useQuery({
-    queryKey: ["audit", filters],
+    queryKey: ["audit", companyId, filters],
     queryFn: () => fn({ data: { ...filters, limit: 100 } }),
+    enabled: !!companyId,
   });
 
   return (
