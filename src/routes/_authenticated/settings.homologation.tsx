@@ -46,9 +46,11 @@ function HomologationContent() {
   const fetchList = useServerFn(getProductionChecklist);
   const updateFn = useServerFn(updateProductionChecklistItem);
 
+  const companyId = useCompanyId();
   const q = useQuery({
-    queryKey: ["homologation-checklist"],
+    queryKey: ["homologation-checklist", companyId],
     queryFn: () => fetchList(),
+    enabled: !!companyId,
   });
 
   const mut = useMutation({
@@ -58,7 +60,7 @@ function HomologationContent() {
       note?: string | null;
       responsible?: string | null;
     }) => updateFn({ data: vars }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["homologation-checklist"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["homologation-checklist", companyId] }),
     onError: (e: any) => toast.error(e?.message ?? "Erro ao atualizar"),
   });
 
