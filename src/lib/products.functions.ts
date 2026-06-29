@@ -170,9 +170,11 @@ export const listManufacturers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
+    const company_id = await getCompanyId(sb, context.userId);
     const { data, error } = await sb
       .from("manufacturers")
       .select("id, name, website, phone, email, active, created_at")
+      .eq("company_id", company_id)
       .order("name", { ascending: true });
     if (error) throw new Error(error.message);
     return (data ?? []) as any[];
