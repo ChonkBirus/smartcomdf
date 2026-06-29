@@ -256,6 +256,7 @@ export const listItems = createServerFn({ method: "POST" })
   .inputValidator((d) => listItemsSchema.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const company_id = await getCompanyId(sb, context.userId);
     const from = (data.page - 1) * data.page_size;
     const to = from + data.page_size - 1;
 
@@ -265,6 +266,7 @@ export const listItems = createServerFn({ method: "POST" })
         "id, name, sku, barcode, sale_price, cost_price, active, unit, minimum_stock, controls_stock, item_type, created_at, category:categories(id,name), brand:brands(id,name), manufacturer:manufacturers(id,name)",
         { count: "exact" },
       )
+      .eq("company_id", company_id)
       .is("deleted_at", null)
       .order(data.sort, { ascending: data.direction === "asc" })
       .range(from, to);
