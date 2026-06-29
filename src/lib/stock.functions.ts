@@ -131,19 +131,23 @@ export const listBalances = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ location_id: z.string().uuid().optional(), search: z.string().optional() }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) throw new Error("Sem empresa.");
+    const cid = prof.company_id;
     // Get all stock-eligible items
     const { data: items, error: ierr } = await sb
       .from("items")
       .select("id, name, sku, unit, minimum_stock")
+      .eq("company_id", cid)
       .eq("controls_stock", true)
       .eq("item_type", "PRODUCT")
       .is("deleted_at", null);
     if (ierr) throw new Error(ierr.message);
 
-    const { data: locs, error: lerr } = await sb.from("stock_locations").select("id, name").eq("active", true);
+    const { data: locs, error: lerr } = await sb.from("stock_locations").select("id, name").eq("company_id", cid).eq("active", true);
     if (lerr) throw new Error(lerr.message);
 
-    let balQ = sb.from("stock_balances").select("item_id, location_id, quantity");
+    let balQ = sb.from("stock_balances").select("item_id, location_id, quantity").eq("company_id", cid);
     if (data.location_id) balQ = balQ.eq("location_id", data.location_id);
     const { data: bals, error: berr } = await balQ;
     if (berr) throw new Error(berr.message);
