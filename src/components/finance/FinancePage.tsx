@@ -499,6 +499,7 @@ export function FinancePage() {
       <Tabs defaultValue="overview">
         <TabsList className="flex-wrap">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="health">Saúde Financeira</TabsTrigger>
           <TabsTrigger value="cashflow">Fluxo de Caixa</TabsTrigger>
           <TabsTrigger value="income">Entradas</TabsTrigger>
           <TabsTrigger value="expense">Saídas</TabsTrigger>
