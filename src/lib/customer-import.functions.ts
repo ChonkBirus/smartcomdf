@@ -162,8 +162,8 @@ function isValidEmail(v: string): boolean {
 function detectType(rawTipo: any, doc: string): "INDIVIDUAL" | "COMPANY" | null {
   if (rawTipo) {
     const t = String(rawTipo).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (t.includes("jurid") || t === "pj" || t === "j") return "COMPANY";
-    if (t.includes("fisic") || t === "pf" || t === "f") return "INDIVIDUAL";
+    if (t.includes("jurid") || t === "pj" || t === "j" || t === "company" || t === "empresa") return "COMPANY";
+    if (t.includes("fisic") || t === "pf" || t === "f" || t === "individual" || t === "pessoa fisica") return "INDIVIDUAL";
   }
   if (doc.length === 14) return "COMPANY";
   if (doc.length === 11) return "INDIVIDUAL";
@@ -231,6 +231,13 @@ export const createCustomerImportJob = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const company_id = await getCompanyId(sb, context.userId);
+    const [{ data: canClientsImport }, { data: canCustomersImport }] = await Promise.all([
+      sb.rpc("has_permission", { _slug: "clients.import" }),
+      sb.rpc("has_permission", { _slug: "customers.import" }),
+    ]);
+    if (canClientsImport === false && canCustomersImport === false) {
+      throw new Error("Você não tem permissão para importar clientes.");
+    }
 
     const mapping = suggestMapping(data.headers);
 
@@ -578,8 +585,14 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
     // Check permission
     const { data: canConfirm } = await sb.rpc("has_permission", { _slug: "clients.import.confirm" });
     if (canConfirm === false) {
-      const { data: canImport } = await sb.rpc("has_permission", { _slug: "clients.import" });
-      if (canImport === false) throw new Error("Você não tem permissão para importar clientes.");
+      const [{ data: canImport }, { data: canCustomersImport }, { data: canCustomersConfirm }] = await Promise.all([
+        sb.rpc("has_permission", { _slug: "clients.import" }),
+        sb.rpc("has_permission", { _slug: "customers.import" }),
+        sb.rpc("has_permission", { _slug: "customers.import.confirm" }),
+      ]);
+      if (canImport === false && canCustomersImport === false && canCustomersConfirm === false) {
+        throw new Error("Você não tem permissão para importar clientes.");
+      }
     }
 
     const { data: job, error: jobErr } = await sb
