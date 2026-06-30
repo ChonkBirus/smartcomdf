@@ -321,8 +321,9 @@ export function CustomerImportDialog({
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  Mapeie ao menos "CPF/CNPJ", "Nome ou Razão Social" e "E-mail" para continuar.
+                  Mapeie ao menos "Nome" ou "Razão Social" para continuar. CPF/CNPJ e e-mail são opcionais.
                 </AlertDescription>
+
               </Alert>
             )}
           </div>
