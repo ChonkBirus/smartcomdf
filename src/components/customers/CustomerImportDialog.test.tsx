@@ -86,10 +86,10 @@ describe("CustomerImportDialog — loading/disabled states", () => {
     });
 
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: /validar/i })).toBeInTheDocument(),
+      expect(screen.queryByText(/processando arquivo|validando linhas|importando clientes/i)).toBeNull(),
     );
-    // não há mais barra de progresso/cancelar desabilitado
-    expect(screen.queryByText(/processando arquivo|validando linhas|importando clientes/i)).toBeNull();
+    // step transicionou para "mapping" — input de upload não está mais montado
+    expect(document.querySelector('input[type="file"]')).toBeNull();
   });
 
   it("mantém Validar com loader e bloqueia Voltar durante validateMutation; reabilita em erro", async () => {
