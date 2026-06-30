@@ -28,6 +28,7 @@ import {
 import { useCompanyId } from "@/hooks/use-company-id";
 import { FinancialHealthScoreCard, FinancialHealthPage } from "@/components/finance/FinancialHealthPage";
 import { FinanceAgentChat } from "@/components/finance/FinanceAgentChat";
+import { OpenFinancePage, BankReconciliationPage } from "@/components/finance/OpenFinancePages";
 
 const BRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
