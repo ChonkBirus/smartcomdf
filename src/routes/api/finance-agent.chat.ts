@@ -84,7 +84,8 @@ export const Route = createFileRoute("/api/finance-agent/chat")({
         const iso = (d: Date) => d.toISOString().slice(0, 10);
 
         const { data: company } = await supabase
-          .from("companies").select("name").eq("id", companyId).maybeSingle();
+          .from("companies").select("trade_name,corporate_name").eq("id", companyId).maybeSingle();
+        const companyName = company?.trade_name ?? company?.corporate_name ?? null;
 
         const { data: txRows } = await supabase
           .from("financial_transactions")
