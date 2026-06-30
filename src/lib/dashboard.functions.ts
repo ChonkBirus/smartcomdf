@@ -49,7 +49,7 @@ export const emptyDashboardMetrics: DashboardMetrics = {
   charts: { quotesByStatus: [] },
 };
 
-const isDev = process.env.NODE_ENV !== "production";
+const isDev = typeof process !== "undefined" ? process.env.NODE_ENV !== "production" : true;
 const monthStart = () => {
   const date = new Date();
   date.setDate(1);
