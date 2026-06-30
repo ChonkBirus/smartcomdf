@@ -191,7 +191,7 @@ export const listBankStatementImports = createServerFn({ method: "GET" })
     const cid = await getCompanyId(context.supabase, context.userId);
     const { data, error } = await context.supabase
       .from("bank_statement_imports")
-      .select("*, bank_account:financial_bank_accounts(id,name)")
+      .select("*, bank_account:financial_bank_accounts(id,bank_name,account_name)")
       .eq("company_id", cid)
       .order("created_at", { ascending: false })
       .limit(100);
