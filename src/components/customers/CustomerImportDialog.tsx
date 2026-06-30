@@ -136,10 +136,13 @@ async function parseFile(file: File): Promise<{ headers: string[]; rows: Record<
 export function CustomerImportDialog({
   open,
   onOpenChange,
+  companyId,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
+  companyId?: string | null;
 }) {
+  const qc = useQueryClient();
   const createFn = useServerFn(createCustomerImportJob);
   const validateFn = useServerFn(validateCustomerImport);
   const listRowsFn = useServerFn(listCustomerImportRows);
@@ -155,6 +158,10 @@ export function CustomerImportDialog({
   const [filter, setFilter] = useState<"all" | "CREATE" | "UPDATE" | "ERROR" | "SKIP">("all");
   const [createTags, setCreateTags] = useState(true);
   const [result, setResult] = useState<any | null>(null);
+
+  useEffect(() => {
+    if (open) console.log("[CUSTOMER IMPORT] modal mounted");
+  }, [open]);
 
   const rowsQuery = useQuery({
     queryKey: ["customer-import-rows", jobId, filter],
@@ -173,6 +180,12 @@ export function CustomerImportDialog({
   };
 
   const handleFile = async (f: File) => {
+    console.log("[CUSTOMER IMPORT] file selected", f.name, f.type, f.size);
+    if (!companyId) {
+      console.error("[CUSTOMER IMPORT] companyId", companyId);
+      toast.error("Não foi possível identificar a empresa ativa. Recarregue a página e tente novamente.");
+      return;
+    }
     if (f.size > MAX_BYTES) {
       toast.error("Arquivo excede 10 MB.");
       return;
@@ -185,6 +198,7 @@ export function CustomerImportDialog({
     setParsing(true);
     try {
       const { headers: h, rows } = await parseFile(f);
+      console.log("[CUSTOMER IMPORT] parsed rows", rows);
       if (!h.length || !rows.length) {
         toast.error("Arquivo vazio ou sem cabeçalho.");
         setParsing(false);
@@ -193,9 +207,21 @@ export function CustomerImportDialog({
       const res = await createFn({ data: { file_name: f.name, headers: h, rows } });
       setJobId(res.job_id);
       setHeaders(res.headers);
-      setMapping(res.mapping as any);
-      setStep("mapping");
+      const initialMapping = res.mapping as Record<string, TargetField>;
+      setMapping(initialMapping);
+      const initialTargets = Object.values(initialMapping);
+      if (initialTargets.includes("name") || initialTargets.includes("corporate_name")) {
+        const validationData = await validateFn({ data: { job_id: res.job_id, mapping: initialMapping } });
+        console.log("[CUSTOMER IMPORT] validation result", validationData);
+        setValidation(validationData);
+        setFilter("all");
+        setStep("preview");
+        toast.success(`Prévia pronta: ${validationData.valid} válidas, ${validationData.invalid} com erro.`);
+      } else {
+        setStep("mapping");
+      }
     } catch (e: any) {
+      console.error("[CUSTOMER IMPORT] file/import preparation error", e);
       toast.error(e.message ?? "Falha ao processar arquivo.");
     } finally {
       setParsing(false);
@@ -205,6 +231,7 @@ export function CustomerImportDialog({
   const validateMutation = useMutation({
     mutationFn: () => validateFn({ data: { job_id: jobId!, mapping } }),
     onSuccess: (data) => {
+      console.log("[CUSTOMER IMPORT] validation result", data);
       setValidation(data);
       setFilter("all");
       setStep("preview");
@@ -215,12 +242,41 @@ export function CustomerImportDialog({
 
   const confirmMutation = useMutation({
     mutationFn: () => confirmFn({ data: { job_id: jobId!, create_tags: createTags } }),
+    onMutate: () => {
+      if (!companyId) {
+        console.error("[CUSTOMER IMPORT] companyId", companyId);
+        throw new Error("Não foi possível identificar a empresa ativa. Recarregue a página e tente novamente.");
+      }
+      const validRows = (rowsQuery.data ?? []).filter((r: any) => r.action === "CREATE" && r.status === "VALID");
+      const payload = validRows.map((r: any) => ({
+        company_id: companyId,
+        customer_type: r.mapped_data?.customer_type,
+        name: r.mapped_data?.name,
+        corporate_name: r.mapped_data?.corporate_name ?? null,
+        trade_name: r.mapped_data?.trade_name ?? null,
+        cpf_cnpj: r.mapped_data?.cpf_cnpj ?? "",
+        email: r.mapped_data?.email ?? null,
+        phone: r.mapped_data?.phone ?? null,
+        whatsapp: r.mapped_data?.whatsapp ?? null,
+      }));
+      console.log("[CUSTOMER IMPORT] importing valid rows", validRows);
+      console.log("[CUSTOMER IMPORT] companyId", companyId);
+      console.log("[CUSTOMER IMPORT] insert payload", payload);
+    },
     onSuccess: (data) => {
+      console.log("[CUSTOMER IMPORT] insert result", data);
       setResult(data);
       setStep("done");
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      qc.invalidateQueries({ queryKey: ["customers", companyId] });
+      qc.invalidateQueries({ queryKey: ["customers", "quote-form", companyId] });
+      qc.invalidateQueries({ queryKey: ["customer-metrics", companyId] });
       toast.success(`Importação concluída: ${data.created} criados, ${data.updated} atualizados.`);
     },
-    onError: (e: any) => toast.error(e?.message ?? "Falha ao confirmar importação."),
+    onError: (e: any) => {
+      console.error("[CUSTOMER IMPORT] insert error", e);
+      toast.error(e?.message ?? "Falha ao confirmar importação.");
+    },
   });
 
   const mappingReady = useMemo(() => {
