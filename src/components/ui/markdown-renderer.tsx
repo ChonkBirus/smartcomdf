@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { marked } from "marked";
+import DOMPurify from "dompurify";
 import { cn } from "@/lib/utils";
 
 marked.setOptions({ gfm: true, breaks: true });
@@ -10,10 +11,14 @@ interface MarkdownRendererProps {
 }
 
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
-  const html = useMemo(
-    () => marked.parse(content || "", { async: false }) as string,
-    [content],
-  );
+  const html = useMemo(() => {
+    const raw = marked.parse(content || "", { async: false }) as string;
+    return DOMPurify.sanitize(raw, {
+      USE_PROFILES: { html: true },
+      FORBID_TAGS: ["style", "script", "iframe", "object", "embed", "form"],
+      FORBID_ATTR: ["style", "onerror", "onload", "onclick"],
+    });
+  }, [content]);
 
   return (
     <div
