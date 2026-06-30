@@ -425,6 +425,16 @@ export function CustomerImportDialog({
           </Alert>
         )}
 
+        {(validateMutation.error || confirmMutation.error) && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Erro na importação</AlertTitle>
+            <AlertDescription className="text-xs">
+              {(validateMutation.error as any)?.message ?? (confirmMutation.error as any)?.message}
+            </AlertDescription>
+          </Alert>
+        )}
+
         <DialogFooter>
           {step === "upload" && (
             <Button variant="outline" onClick={() => onOpenChange(false)}>
