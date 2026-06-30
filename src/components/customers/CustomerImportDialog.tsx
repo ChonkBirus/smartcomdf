@@ -216,6 +216,7 @@ export function CustomerImportDialog({
       setMapping(initialMapping);
       const initialTargets = Object.values(initialMapping);
       if (initialTargets.includes("name") || initialTargets.includes("corporate_name")) {
+        setStep("mapping");
         const validationData = await validateFn({ data: { job_id: res.job_id, mapping: initialMapping } });
         console.log("[CUSTOMER IMPORT] validation result", validationData);
         setValidation(validationData);
