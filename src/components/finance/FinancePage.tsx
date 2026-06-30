@@ -26,6 +26,7 @@ import {
   type FinancialTransaction, type FinancialCategory, type FinTxType, type FinTxStatus,
 } from "@/lib/finance.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
+import { FinancialHealthScoreCard, FinancialHealthPage } from "@/components/finance/FinancialHealthPage";
 
 const BRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -498,6 +499,7 @@ export function FinancePage() {
       <Tabs defaultValue="overview">
         <TabsList className="flex-wrap">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="health">Saúde Financeira</TabsTrigger>
           <TabsTrigger value="cashflow">Fluxo de Caixa</TabsTrigger>
           <TabsTrigger value="income">Entradas</TabsTrigger>
           <TabsTrigger value="expense">Saídas</TabsTrigger>
@@ -507,6 +509,7 @@ export function FinancePage() {
         </TabsList>
 
         <TabsContent value="overview" className="mt-4 space-y-4">
+          <FinancialHealthScoreCard filters={filters} compact />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <FinanceMetricCard title="Entradas no período" value={BRL(o?.income ?? 0)} hint="Somente lançamentos pagos." tone="success" icon={<TrendingUp className="h-5 w-5" />} />
             <FinanceMetricCard title="Saídas no período" value={BRL(o?.expense ?? 0)} hint="Somente lançamentos pagos." tone="danger" icon={<TrendingDown className="h-5 w-5" />} />
@@ -516,6 +519,10 @@ export function FinancePage() {
             <FinanceMetricCard title="Recebimentos atrasados" value={BRL(o?.overdueReceivables ?? 0)} hint="Entradas vencidas e não recebidas." tone="warning" icon={<AlertTriangle className="h-5 w-5" />} />
             <FinanceMetricCard title="Contas vencidas" value={BRL(o?.overduePayables ?? 0)} hint="Saídas vencidas e não pagas." tone="warning" icon={<AlertTriangle className="h-5 w-5" />} />
           </div>
+        </TabsContent>
+
+        <TabsContent value="health" className="mt-4">
+          <FinancialHealthPage filters={filters} />
         </TabsContent>
 
         <TabsContent value="cashflow" className="mt-4">
