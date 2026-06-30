@@ -108,16 +108,16 @@ export function OpenFinancePage() {
 
   const status = useQuery({
     queryKey: ["of-status"],
-    queryFn: () => getStatus({ data: {} }),
+    queryFn: () => getStatus(),
   });
   const connections = useQuery({
     queryKey: ["of-connections"],
-    queryFn: () => listConns({ data: {} }),
+    queryFn: () => listConns(),
     enabled: status.data?.configured !== false,
   });
   const accounts = useQuery({
     queryKey: ["of-accounts"],
-    queryFn: () => listAccs({ data: {} }),
+    queryFn: () => listAccs(),
     enabled: status.data?.configured !== false,
   });
   const transactions = useQuery({
@@ -185,7 +185,7 @@ export function OpenFinancePage() {
       <Card>
         <CardContent className="py-10">
           <EmptyState
-            icon={Plug}
+            icon={<Plug className="h-6 w-6" />}
             title="Open Finance ainda não configurado"
             description={
               status.data.reason ??
@@ -237,7 +237,7 @@ export function OpenFinancePage() {
         <CardContent>
           {!connections.data?.length ? (
             <EmptyState
-              icon={Building2}
+              icon={<Building2 className="h-6 w-6" />}
               title="Nenhuma conexão Open Finance"
               description="Conecte sua primeira conta empresarial para começar."
             />
@@ -295,7 +295,7 @@ export function OpenFinancePage() {
         </CardHeader>
         <CardContent>
           {!accounts.data?.length ? (
-            <EmptyState icon={Building2} title="Nenhuma conta empresarial conectada" />
+            <EmptyState icon={<Building2 className="h-6 w-6" />} title="Nenhuma conta empresarial conectada" />
           ) : (
             <Table>
               <TableHeader>
@@ -332,7 +332,7 @@ export function OpenFinancePage() {
         </CardHeader>
         <CardContent>
           {!transactions.data?.length ? (
-            <EmptyState icon={Banknote} title="Nenhuma movimentação bancária importada" />
+            <EmptyState icon={<Banknote className="h-6 w-6" />} title="Nenhuma movimentação bancária importada" />
           ) : (
             <Table>
               <TableHeader>
@@ -467,7 +467,7 @@ export function BankReconciliationPage() {
       <Card>
         <CardContent className="py-10">
           <EmptyState
-            icon={CheckCircle2}
+            icon={<CheckCircle2 className="h-6 w-6" />}
             title="Nenhuma transação pendente de conciliação"
             description="Quando houver movimentações bancárias importadas, elas aparecerão aqui para conferência."
           />
