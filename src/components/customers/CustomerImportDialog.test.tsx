@@ -81,18 +81,12 @@ describe("CustomerImportDialog — loading/disabled states", () => {
     expect(screen.getAllByText(/processando arquivo|validando|importando/i).length).toBeGreaterThan(0);
 
     // resolve a criação do job → vai para "mapping"
-    await act(async () => {
-      resolveCreate({ job_id: "job-1", headers: ["cpf_cnpj", "name", "email"], mapping: {} });
-      await Promise.resolve();
-      await Promise.resolve();
-    });
+    resolveCreate({ job_id: "job-1", headers: ["cpf_cnpj", "name", "email"], mapping: {} });
 
-    await waitFor(() =>
-      expect(
-        screen.queryAllByText(/processando arquivo|validando linhas|importando clientes/i).length,
-      ).toBe(0),
-    );
-    expect(document.querySelector('input[type="file"]')).toBeNull();
+    await waitFor(() => expect(document.querySelector('input[type="file"]')).toBeNull());
+    expect(
+      screen.queryAllByText(/processando arquivo|validando linhas|importando clientes/i).length,
+    ).toBe(0);
   });
 
   it("mantém Validar com loader e bloqueia Voltar durante validateMutation; reabilita em erro", async () => {
