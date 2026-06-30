@@ -504,14 +504,39 @@ export function CustomerFormSheet({
                     </div>
                     <div>
                       <Label>CEP *</Label>
-                      <Input value={a.country === "US" ? (a.zipcode ?? "") : maskZip(a.zipcode ?? "")}
-                        aria-invalid={!!errors[`addr_${i}_zipcode`]}
-                        className={errors[`addr_${i}_zipcode`] ? "border-destructive" : ""}
-                        onChange={(e) => {
-                          const next = [...form.addresses]; next[i] = { ...a, zipcode: e.target.value }; set("addresses", next);
-                        }} />
+                      {a.country === "BR" ? (
+                        <CepInput
+                          value={a.zipcode ?? ""}
+                          aria-invalid={!!errors[`addr_${i}_zipcode`]}
+                          className={errors[`addr_${i}_zipcode`] ? "border-destructive" : ""}
+                          onChange={(v) => {
+                            const next = [...form.addresses]; next[i] = { ...a, zipcode: v }; set("addresses", next);
+                          }}
+                          onResolve={(r) => {
+                            const next = [...form.addresses];
+                            next[i] = {
+                              ...a,
+                              zipcode: r.cep,
+                              street: a.street?.trim() ? a.street : r.street,
+                              district: a.district?.trim() ? a.district : r.district,
+                              city: a.city?.trim() ? a.city : r.city,
+                              state: a.state?.trim() ? a.state : r.state,
+                              complement: a.complement?.trim() ? a.complement : (r.complement ?? a.complement ?? null),
+                            };
+                            set("addresses", next);
+                          }}
+                        />
+                      ) : (
+                        <Input value={a.zipcode ?? ""}
+                          aria-invalid={!!errors[`addr_${i}_zipcode`]}
+                          className={errors[`addr_${i}_zipcode`] ? "border-destructive" : ""}
+                          onChange={(e) => {
+                            const next = [...form.addresses]; next[i] = { ...a, zipcode: e.target.value }; set("addresses", next);
+                          }} />
+                      )}
                       {errors[`addr_${i}_zipcode`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_zipcode`]}</p>}
                     </div>
+
                     <div>
                       <Label>UF *</Label>
                       <Select
