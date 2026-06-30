@@ -10,6 +10,10 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { getSupplier, saveSupplier } from "@/lib/suppliers.functions";
+import { CepInput } from "@/components/shared/CepInput";
+import type { CepResult } from "@/lib/address-lookup";
+import { CustomerCnpjLookupButton } from "@/components/customers/CustomerCnpjLookupDialog";
+import type { CnpjLookupResultDTO } from "@/lib/cnpj-lookup.functions";
 
 type FormState = {
   id?: string;
