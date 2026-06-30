@@ -282,7 +282,7 @@ export function BankStatementReconciliationPanel() {
                 )}
               </CardContent>
             </Card>
-          ))}
+          ); })}
         </div>
       )}
     </div>
