@@ -511,10 +511,10 @@ export function CustomerFormSheet({
                           value={a.zipcode ?? ""}
                           aria-invalid={!!errors[`addr_${i}_zipcode`]}
                           className={errors[`addr_${i}_zipcode`] ? "border-destructive" : ""}
-                          onChange={(v) => {
+                          onChange={(v: string) => {
                             const next = [...form.addresses]; next[i] = { ...a, zipcode: v }; set("addresses", next);
                           }}
-                          onResolve={(r) => {
+                          onResolve={(r: CepResult) => {
                             const next = [...form.addresses];
                             next[i] = {
                               ...a,
