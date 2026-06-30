@@ -56,4 +56,38 @@ describe("MarkdownRenderer XSS sanitization", () => {
     const out = html("<svg/onload=alert(1)>");
     expect(out).not.toMatch(/<svg[^>]*onload/i);
   });
+
+  it("blocks data: URLs in links", () => {
+    const out = html("[x](data:text/html,<script>alert(1)</script>)");
+    expect(out).not.toMatch(/href\s*=\s*"data:/i);
+  });
+
+  it("blocks data: URLs in raw anchor tags", () => {
+    const out = html('<a href="data:text/html,hi">x</a>');
+    expect(out).not.toMatch(/href\s*=\s*"data:/i);
+  });
+
+  it("blocks data: URLs in image src", () => {
+    const out = html('<img src="data:image/svg+xml,<svg onload=alert(1)/>">');
+    expect(out).not.toMatch(/src\s*=\s*"data:/i);
+  });
+
+  it("adds rel=noopener noreferrer and target=_blank on safe links", () => {
+    const out = html("[lovable](https://example.com)");
+    expect(out).toMatch(/href\s*=\s*"https:\/\/example\.com"/i);
+    expect(out).toMatch(/rel\s*=\s*"noopener noreferrer"/i);
+    expect(out).toMatch(/target\s*=\s*"_blank"/i);
+  });
+
+  it("does not add rel/target when href was stripped as unsafe", () => {
+    const out = html("[x](javascript:alert(1))");
+    expect(out).not.toMatch(/href=/i);
+    // anchor without href should not get rel/target either
+    expect(out).not.toMatch(/<a[^>]*\srel=/i);
+  });
+
+  it("preserves rel during partial streaming chunks", () => {
+    const out = html("See [docs](https://lovable.dev) for more **det");
+    expect(out).toMatch(/rel\s*=\s*"noopener noreferrer"/i);
+  });
 });

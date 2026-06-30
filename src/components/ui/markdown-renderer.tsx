@@ -13,6 +13,10 @@ DOMPurify.addHook("afterSanitizeAttributes", (node) => {
     const v = el.getAttribute(attr);
     if (v && UNSAFE_URI.test(v)) el.removeAttribute(attr);
   }
+  if (el.tagName === "A" && el.getAttribute("href")) {
+    el.setAttribute("rel", "noopener noreferrer");
+    el.setAttribute("target", "_blank");
+  }
 });
 
 interface MarkdownRendererProps {
