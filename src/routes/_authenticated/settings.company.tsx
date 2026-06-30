@@ -38,23 +38,34 @@ function CompanyPage() {
 
   const [form, setForm] = useState({
     corporate_name: "", trade_name: "", cnpj: "", phone: "", whatsapp: "", email: "", logo_url: "",
+    zipcode: "", street: "", number: "", complement: "", district: "", city: "", state: "", country: "BR",
   });
   const [signedLogo, setSignedLogo] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (c) {
+      const ca = c as any;
       setForm({
         corporate_name: c.corporate_name ?? "",
         trade_name: c.trade_name ?? "",
         cnpj: c.cnpj ?? "",
         phone: c.phone ?? "",
-        whatsapp: (c as any).whatsapp ?? "",
+        whatsapp: ca.whatsapp ?? "",
         email: c.email ?? "",
         logo_url: c.logo_url ?? "",
+        zipcode: ca.zipcode ?? "",
+        street: ca.street ?? "",
+        number: ca.number ?? "",
+        complement: ca.complement ?? "",
+        district: ca.district ?? "",
+        city: ca.city ?? "",
+        state: ca.state ?? "",
+        country: ca.country ?? "BR",
       });
     }
   }, [c]);
+
 
 
   useEffect(() => {
