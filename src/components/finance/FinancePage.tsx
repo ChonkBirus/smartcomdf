@@ -30,6 +30,7 @@ import { FinancialHealthScoreCard, FinancialHealthPage } from "@/components/fina
 import { FinanceAgentChat } from "@/components/finance/FinanceAgentChat";
 // Open Finance temporariamente desativado (custo de integração).
 // A conciliação bancária agora é feita por upload de extrato (OFX/CSV/XLSX) — Fase 2.16E reescrita.
+import { BankReconciliationPanel } from "@/components/finance/BankReconciliationPanel";
 import { FinanceReportsPage } from "@/components/finance/FinanceReportsPage";
 
 const BRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
