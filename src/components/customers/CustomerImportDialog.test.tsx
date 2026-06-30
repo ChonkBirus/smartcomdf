@@ -80,6 +80,9 @@ describe("CustomerImportDialog — loading/disabled states", () => {
     expect(cancelBtn).toBeDisabled();
     expect(screen.getAllByText(/processando arquivo|validando|importando/i).length).toBeGreaterThan(0);
 
+    // espera o parseFile + chamada de createFn antes de resolver
+    await waitFor(() => expect(createFn).toHaveBeenCalled());
+
     // resolve a criação do job → vai para "mapping"
     resolveCreate({ job_id: "job-1", headers: ["cpf_cnpj", "name", "email"], mapping: {} });
 
