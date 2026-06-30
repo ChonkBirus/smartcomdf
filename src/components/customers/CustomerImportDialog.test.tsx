@@ -83,6 +83,8 @@ describe("CustomerImportDialog — loading/disabled states", () => {
     // resolve a criação do job → vai para "mapping"
     await act(async () => {
       resolveCreate({ job_id: "job-1", headers: ["cpf_cnpj", "name", "email"], mapping: {} });
+      await Promise.resolve();
+      await Promise.resolve();
     });
 
     await waitFor(() =>
