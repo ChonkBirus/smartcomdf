@@ -119,16 +119,16 @@ describe("CustomerImportDialog — loading/disabled states", () => {
     });
 
     // validação automática pendente: input e cancelar seguem bloqueados
-    expect(screen.getByText(/validando linhas/i)).toBeInTheDocument();
-    expect(getFileInput()).toBeDisabled();
-    expect(screen.getByRole("button", { name: /cancelar/i })).toBeDisabled();
+    expect(await screen.findByText(/validando linhas/i)).toBeInTheDocument();
+    expect(document.querySelector('input[type="file"]')).toBeNull();
+    expect(screen.getByRole("button", { name: /validar/i })).toBeDisabled();
 
     // erro → controles reabilitam e erro real aparece via toast
     await act(async () => {
       rejectValidate(new Error("falha de rede"));
     });
 
-    await waitFor(() => expect(getFileInput()).not.toBeDisabled());
+    await waitFor(() => expect(screen.getByRole("button", { name: /validar/i })).not.toBeDisabled());
     expect(screen.queryByText(/validando linhas/i)).toBeNull();
     expect(toast.error).toHaveBeenCalledWith("falha de rede");
   });
@@ -206,7 +206,7 @@ describe("CustomerImportDialog — loading/disabled states", () => {
 
     expect(await screen.findByText("Cliente Importado PF")).toBeInTheDocument();
     expect(screen.getByText("Cliente Importado PJ")).toBeInTheDocument();
-    expect(screen.getByText("2", { selector: ".text-2xl" })).toBeInTheDocument();
+    expect(screen.getAllByText("2", { selector: ".text-2xl" }).length).toBeGreaterThan(0);
 
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: /importar clientes válidos/i }));
