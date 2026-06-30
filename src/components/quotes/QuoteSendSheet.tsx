@@ -37,6 +37,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ConvertQuoteToProjectButton } from "./ConvertQuoteToProjectButton";
+import { QuoteFinancialActions } from "@/components/finance/QuoteFinancialActions";
 
 const fmtBRL = (n: number) =>
   Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -533,16 +534,19 @@ export function QuoteSendSheet({
                 )}
 
                 {(quote.status === "APPROVED" || quote.status === "CONVERTED") && (
-                  <div className="rounded-lg border bg-card p-4">
-                    <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-                      <Rocket className="h-4 w-4" />Projeto de execução
+                  <>
+                    <QuoteFinancialActions quoteId={quote.id} status={quote.status} />
+                    <div className="rounded-lg border bg-card p-4">
+                      <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+                        <Rocket className="h-4 w-4" />Projeto de execução
+                      </div>
+                      <ConvertQuoteToProjectButton
+                        quoteId={quote.id}
+                        status={quote.status}
+                        paymentStatus={quote.payment_status}
+                      />
                     </div>
-                    <ConvertQuoteToProjectButton
-                      quoteId={quote.id}
-                      status={quote.status}
-                      paymentStatus={quote.payment_status}
-                    />
-                  </div>
+                  </>
                 )}
 
                 <Separator />
