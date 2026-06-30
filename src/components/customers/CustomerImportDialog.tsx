@@ -114,6 +114,8 @@ async function parseFile(file: File): Promise<{ headers: string[]; rows: Record<
     return await new Promise((resolve, reject) => {
       Papa.parse(file, {
         header: true,
+        delimiter: "",
+        delimitersToGuess: [",", ";", "\t", "|"],
         skipEmptyLines: true,
         complete: (res) => {
           const headers = (res.meta.fields ?? []).filter((h) => h && h.trim());
