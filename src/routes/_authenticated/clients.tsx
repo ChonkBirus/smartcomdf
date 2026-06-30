@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PermissionRoute, Can } from "@/components/app/PermissionRoute";
 import { FeatureGate } from "@/components/app/FeatureGate";
+import { usePermissions } from "@/lib/permissions";
 import { KpiCard } from "@/components/app/KpiCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,6 +70,9 @@ function ClientsPage() {
   const [importOpen, setImportOpen] = useState(false);
 
   const companyId = useCompanyId();
+  const { can, has, isOwner, isSuperAdmin } = usePermissions();
+  const canImportCustomers = can("clients", "import") || has("customers.import");
+  const userRole = isSuperAdmin ? "super_admin" : isOwner ? "owner" : "member";
   const fetchList = useServerFn(listCustomers);
   const fetchTags = useServerFn(listCustomerTags);
   const fetchMetrics = useServerFn(customerMetrics);
@@ -127,6 +131,29 @@ function ClientsPage() {
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
+  useEffect(() => {
+    console.log("[CUSTOMER IMPORT] permissions", {
+      canImportCustomers,
+      userRole,
+      companyId,
+    });
+  }, [canImportCustomers, userRole, companyId]);
+
+  const handleImportClick = () => {
+    console.log("[CUSTOMER IMPORT] botão clicado");
+    console.log("[CUSTOMER IMPORT] permissions", {
+      canImportCustomers,
+      userRole,
+      companyId,
+    });
+    if (!canImportCustomers) {
+      toast.error("Você não tem permissão para importar clientes.");
+      return;
+    }
+    console.log("[CUSTOMER IMPORT] open modal true");
+    setImportOpen(true);
+  };
+
   return (
     <div className="mx-auto max-w-7xl">
       <PageHeader
@@ -134,11 +161,9 @@ function ClientsPage() {
         description="Gestão completa de pessoas físicas e jurídicas."
         actions={
           <div className="flex items-center gap-2">
-            <Can module="clients" action="import">
-              <Button variant="outline" onClick={() => setImportOpen(true)} disabled={importOpen}>
-                <Upload className="mr-1 h-4 w-4" />Importar
-              </Button>
-            </Can>
+            <Button variant="outline" onClick={handleImportClick} disabled={importOpen}>
+              <Upload className="mr-1 h-4 w-4" />Importar clientes
+            </Button>
             <Can module="clients" action="create">
               <Button onClick={() => { setEditing(null); setOpen(true); }}>
                 <Plus className="mr-1 h-4 w-4" />Novo cliente
@@ -306,6 +331,8 @@ function ClientsPage() {
           </div>
         </>
       )}
+
+      <CustomerImportDialog open={importOpen} onOpenChange={setImportOpen} companyId={companyId} />
 
       <CustomerFormSheet open={open} onOpenChange={setOpen} customerId={editing} />
 

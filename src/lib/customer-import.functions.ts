@@ -6,6 +6,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const HEADER_ALIASES: Record<string, string> = {
   // type
   "tipo": "customer_type",
+  "tipo cliente": "customer_type",
+  "tipo_cliente": "customer_type",
   "tipo de cliente": "customer_type",
   "pessoa": "customer_type",
   "pessoa fisica": "customer_type",
@@ -14,6 +16,8 @@ const HEADER_ALIASES: Record<string, string> = {
   "nome": "name",
   "nome do cliente": "name",
   "cliente": "name",
+  "nome razao social": "name",
+  "nome_razao_social": "name",
   "razao social": "corporate_name",
   "razão social": "corporate_name",
   "nome fantasia": "trade_name",
@@ -61,12 +65,18 @@ const HEADER_ALIASES: Record<string, string> = {
   "referência": "addr_reference",
   // contact extra
   "contato": "contact_name",
+  "contato nome": "contact_name",
+  "contato_nome": "contact_name",
   "nome do contato": "contact_name",
   "responsavel": "contact_name",
   "responsável": "contact_name",
   "cargo": "contact_role",
+  "contato telefone": "contact_phone",
+  "contato_telefone": "contact_phone",
   "telefone do contato": "contact_phone",
   "whatsapp do contato": "contact_whatsapp",
+  "contato email": "contact_email",
+  "contato_email": "contact_email",
   "email do contato": "contact_email",
   "e-mail do contato": "contact_email",
   // tags
@@ -137,6 +147,14 @@ function onlyDigits(v: any): string {
   return String(v ?? "").replace(/\D/g, "");
 }
 
+function normText(v: any): string {
+  return String(v ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
 function isValidEmail(v: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
@@ -144,8 +162,8 @@ function isValidEmail(v: string): boolean {
 function detectType(rawTipo: any, doc: string): "INDIVIDUAL" | "COMPANY" | null {
   if (rawTipo) {
     const t = String(rawTipo).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (t.includes("jurid") || t === "pj" || t === "j") return "COMPANY";
-    if (t.includes("fisic") || t === "pf" || t === "f") return "INDIVIDUAL";
+    if (t.includes("jurid") || t === "pj" || t === "j" || t === "company" || t === "empresa") return "COMPANY";
+    if (t.includes("fisic") || t === "pf" || t === "f" || t === "individual" || t === "pessoa fisica") return "INDIVIDUAL";
   }
   if (doc.length === 14) return "COMPANY";
   if (doc.length === 11) return "INDIVIDUAL";
@@ -213,6 +231,13 @@ export const createCustomerImportJob = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const company_id = await getCompanyId(sb, context.userId);
+    const [{ data: canClientsImport }, { data: canCustomersImport }] = await Promise.all([
+      sb.rpc("has_permission", { _slug: "clients.import" }),
+      sb.rpc("has_permission", { _slug: "customers.import" }),
+    ]);
+    if (canClientsImport === false && canCustomersImport === false) {
+      throw new Error("Você não tem permissão para importar clientes.");
+    }
 
     const mapping = suggestMapping(data.headers);
 
@@ -294,42 +319,76 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
       mapped: buildMappedRow(r.raw_data, mapping),
     }));
 
-    // Lookup existing customers
+    console.log("[CUSTOMER IMPORT] validating job", data.job_id, "companyId", company_id);
+
+    // Lookup existing customers by document, email, phone/whatsapp and name.
     const docs = new Set<string>();
     const emails = new Set<string>();
-    const whats = new Set<string>();
+    const phones = new Set<string>();
+    const names = new Set<string>();
     for (const r of mappedRows) {
       if (r.mapped.cpf_cnpj) docs.add(String(r.mapped.cpf_cnpj));
       if (r.mapped.email) emails.add(String(r.mapped.email).toLowerCase());
-      if (r.mapped.whatsapp) whats.add(onlyDigits(r.mapped.whatsapp));
+      const phone = onlyDigits(r.mapped.phone || r.mapped.whatsapp);
+      if (phone) phones.add(phone);
+      const name = normText(r.mapped.name || r.mapped.corporate_name);
+      if (name) names.add(name);
     }
 
     const existingByDoc = new Map<string, string>();
     const existingByEmail = new Map<string, string>();
-    const existingByWhats = new Map<string, string>();
-
-    if (docs.size || emails.size || whats.size) {
-      const orParts: string[] = [];
-      if (docs.size) orParts.push(`cpf_cnpj.in.(${[...docs].map((s) => `"${s}"`).join(",")})`);
-      if (emails.size) orParts.push(`email.in.(${[...emails].map((s) => `"${s}"`).join(",")})`);
-      if (whats.size) orParts.push(`whatsapp.in.(${[...whats].map((s) => `"${s}"`).join(",")})`);
-      const { data: existing } = await sb
-        .from("customers")
-        .select("id, cpf_cnpj, email, whatsapp")
-        .eq("company_id", company_id)
-        .is("deleted_at", null)
-        .or(orParts.join(","));
+    const existingByPhone = new Map<string, string>();
+    const existingByName = new Map<string, string>();
+    const rememberExisting = (existing: any[] | null | undefined) => {
       (existing ?? []).forEach((c: any) => {
         if (c.cpf_cnpj) existingByDoc.set(c.cpf_cnpj, c.id);
         if (c.email) existingByEmail.set(String(c.email).toLowerCase(), c.id);
-        if (c.whatsapp) existingByWhats.set(onlyDigits(c.whatsapp), c.id);
+        if (c.phone) existingByPhone.set(onlyDigits(c.phone), c.id);
+        if (c.whatsapp) existingByPhone.set(onlyDigits(c.whatsapp), c.id);
+        if (c.name) existingByName.set(normText(c.name), c.id);
+        if (c.corporate_name) existingByName.set(normText(c.corporate_name), c.id);
       });
+    };
+
+    const customerSelect = "id, cpf_cnpj, email, phone, whatsapp, name, corporate_name";
+    if (docs.size) {
+      const { data: existing } = await sb.from("customers").select(customerSelect).eq("company_id", company_id).is("deleted_at", null).in("cpf_cnpj", [...docs]);
+      rememberExisting(existing);
+    }
+    if (emails.size) {
+      const { data: existing } = await sb.from("customers").select(customerSelect).eq("company_id", company_id).is("deleted_at", null).in("email", [...emails]);
+      rememberExisting(existing);
+    }
+    if (phones.size || names.size) {
+      const { data: possibleByPhoneOrName } = await sb
+        .from("customers")
+        .select(customerSelect)
+        .eq("company_id", company_id)
+        .is("deleted_at", null);
+      rememberExisting(
+        (possibleByPhoneOrName ?? []).filter(
+          (c: any) =>
+            phones.has(onlyDigits(c.phone)) ||
+            phones.has(onlyDigits(c.whatsapp)) ||
+            names.has(normText(c.name)) ||
+            names.has(normText(c.corporate_name)),
+        ),
+      );
     }
 
-    // Duplicates within file
+    // Duplicates within file.
+    const count = (map: Map<string, number>, key: string) => map.set(key, (map.get(key) ?? 0) + 1);
     const docCount = new Map<string, number>();
+    const emailCount = new Map<string, number>();
+    const phoneCount = new Map<string, number>();
+    const nameCount = new Map<string, number>();
     for (const r of mappedRows) {
-      if (r.mapped.cpf_cnpj) docCount.set(r.mapped.cpf_cnpj, (docCount.get(r.mapped.cpf_cnpj) ?? 0) + 1);
+      if (r.mapped.cpf_cnpj) count(docCount, r.mapped.cpf_cnpj);
+      if (r.mapped.email) count(emailCount, String(r.mapped.email).toLowerCase());
+      const phone = onlyDigits(r.mapped.phone || r.mapped.whatsapp);
+      if (phone) count(phoneCount, phone);
+      const name = normText(r.mapped.name || r.mapped.corporate_name);
+      if (name) count(nameCount, name);
     }
 
     const newTags = new Set<string>();
@@ -338,6 +397,7 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
 
     let valid = 0;
     let invalid = 0;
+    let duplicates = 0;
     let addresses = 0;
     let contacts = 0;
 
@@ -345,9 +405,13 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
     for (const r of mappedRows) {
       const m = r.mapped;
       const errors: string[] = [];
+      const duplicateReasons: string[] = [];
 
       const doc = String(m.cpf_cnpj ?? "");
-      const type = detectType(m.customer_type, doc) ?? "INDIVIDUAL";
+      const rawTypeProvided = m.customer_type != null && String(m.customer_type).trim() !== "";
+      const detectedType = detectType(m.customer_type, doc);
+      if (rawTypeProvided && !detectedType) errors.push("tipo_cliente deve ser PF ou PJ.");
+      const type = detectedType ?? "INDIVIDUAL";
       m.customer_type = type;
 
       const displayName = type === "COMPANY" ? (m.corporate_name ?? m.name) : (m.name ?? m.corporate_name);
@@ -374,18 +438,23 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
       if (m.contact_email && !isValidEmail(String(m.contact_email))) {
         errors.push("E-mail do contato inválido.");
       }
-      const hasContactData = m.contact_role || m.contact_phone || m.contact_whatsapp || m.contact_email;
-      if (hasContactData && !m.contact_name) errors.push("Nome do contato obrigatório quando há dados do contato.");
+      // Dados de contato são opcionais; sem contact_name, apenas não criamos o contato.
 
-      if (doc && (docCount.get(doc) ?? 0) > 1) errors.push("CPF/CNPJ duplicado no arquivo.");
+      if (doc && (docCount.get(doc) ?? 0) > 1) duplicateReasons.push("CPF/CNPJ duplicado no arquivo.");
+      if (m.email && (emailCount.get(String(m.email).toLowerCase()) ?? 0) > 1) duplicateReasons.push("E-mail duplicado no arquivo.");
+      const phone = onlyDigits(m.phone || m.whatsapp);
+      if (phone && (phoneCount.get(phone) ?? 0) > 1) duplicateReasons.push("Telefone duplicado no arquivo.");
+      const normalizedName = normText(m.name || m.corporate_name);
+      if (normalizedName && (nameCount.get(normalizedName) ?? 0) > 1) duplicateReasons.push("Nome/Razão social duplicado no arquivo.");
 
       // Match existing
       let matched: string | null = null;
       if (doc && existingByDoc.has(doc)) matched = existingByDoc.get(doc)!;
       else if (m.email && existingByEmail.has(String(m.email).toLowerCase()))
         matched = existingByEmail.get(String(m.email).toLowerCase())!;
-      else if (m.whatsapp && existingByWhats.has(onlyDigits(m.whatsapp)))
-        matched = existingByWhats.get(onlyDigits(m.whatsapp))!;
+      else if (phone && existingByPhone.has(phone)) matched = existingByPhone.get(phone)!;
+      else if (normalizedName && existingByName.has(normalizedName)) matched = existingByName.get(normalizedName)!;
+      if (matched) duplicateReasons.push("Duplicado já cadastrado nesta empresa.");
 
       if (Array.isArray(m.tags)) {
         for (const t of m.tags) if (!tagMap.has(t.toLowerCase())) newTags.add(t);
@@ -393,18 +462,19 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
 
       const hasAddress = m.addr_street || m.addr_city || m.addr_zipcode;
       const hasContact = m.contact_name;
-      if (errors.length === 0 && hasAddress) addresses++;
-      if (errors.length === 0 && hasContact) contacts++;
+      if (errors.length === 0 && duplicateReasons.length === 0 && hasAddress) addresses++;
+      if (errors.length === 0 && duplicateReasons.length === 0 && hasContact) contacts++;
 
-      const status = errors.length ? "INVALID" : "VALID";
-      const action = errors.length ? "ERROR" : matched ? "UPDATE" : "CREATE";
+      const status = errors.length ? "INVALID" : duplicateReasons.length ? "SKIPPED" : "VALID";
+      const action = errors.length ? "ERROR" : duplicateReasons.length ? "SKIP" : "CREATE";
       if (errors.length) invalid++;
+      else if (duplicateReasons.length) duplicates++;
       else valid++;
 
       updates.push({
         id: r.id,
         mapped_data: m,
-        validation_errors: errors.length ? errors : null,
+        validation_errors: errors.length ? errors : duplicateReasons.length ? duplicateReasons : null,
         action,
         matched_customer_id: matched,
         status,
@@ -435,6 +505,7 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
       job_id: job.id,
       valid,
       invalid,
+      duplicates,
       total: mappedRows.length,
       addresses_to_create: addresses,
       contacts_to_create: contacts,
@@ -510,7 +581,16 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
 
     // Check permission
     const { data: canConfirm } = await sb.rpc("has_permission", { _slug: "clients.import.confirm" });
-    if (canConfirm === false) throw new Error("Sem permissão para confirmar importação.");
+    if (canConfirm === false) {
+      const [{ data: canImport }, { data: canCustomersImport }, { data: canCustomersConfirm }] = await Promise.all([
+        sb.rpc("has_permission", { _slug: "clients.import" }),
+        sb.rpc("has_permission", { _slug: "customers.import" }),
+        sb.rpc("has_permission", { _slug: "customers.import.confirm" }),
+      ]);
+      if (canImport === false && canCustomersImport === false && canCustomersConfirm === false) {
+        throw new Error("Você não tem permissão para importar clientes.");
+      }
+    }
 
     const { data: job, error: jobErr } = await sb
       .from("customer_import_jobs")
@@ -573,7 +653,7 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
           name: m.name,
           corporate_name: m.corporate_name ?? null,
           trade_name: m.trade_name ?? null,
-          cpf_cnpj: m.cpf_cnpj,
+          cpf_cnpj: m.cpf_cnpj ?? "",
           state_registration: m.state_registration ?? null,
           municipal_registration: m.municipal_registration ?? null,
           email: m.email ?? null,
@@ -584,6 +664,8 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
           notes: m.notes ?? null,
           active: true,
         };
+        console.log("[CUSTOMER IMPORT] companyId", company_id);
+        console.log("[CUSTOMER IMPORT] insert payload", payload);
 
         let customerId: string | null = r.matched_customer_id ?? null;
         if (r.action === "UPDATE" && customerId) {
@@ -593,6 +675,7 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
             .eq("id", customerId)
             .eq("company_id", company_id);
           if (upErr) {
+            console.error("[CUSTOMER IMPORT] insert error", upErr);
             await sb
               .from("customer_import_rows")
               .update({ status: "INVALID", validation_errors: [upErr.message] })
@@ -608,6 +691,7 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
             .select("id")
             .single();
           if (insErr || !ins) {
+            console.error("[CUSTOMER IMPORT] insert error", insErr);
             await sb
               .from("customer_import_rows")
               .update({
@@ -641,6 +725,10 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
             reference: m.addr_reference ?? null,
             is_primary: true,
           });
+          if (addrErr) {
+            console.error("[CUSTOMER IMPORT] insert error", addrErr);
+            throw new Error(`Falha ao criar endereço da linha ${r.row_number}: ${addrErr.message}`);
+          }
           if (!addrErr) {
             addrCount++;
             await logAudit(sb, "customer_addresses", "create_by_import", customerId, null);
@@ -659,6 +747,10 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
             whatsapp: m.contact_whatsapp ? onlyDigits(m.contact_whatsapp) : null,
             is_primary: true,
           });
+          if (cErr) {
+            console.error("[CUSTOMER IMPORT] insert error", cErr);
+            throw new Error(`Falha ao criar contato da linha ${r.row_number}: ${cErr.message}`);
+          }
           if (!cErr) {
             contactCount++;
             await logAudit(sb, "customer_contacts", "create_by_import", customerId, null);
@@ -718,7 +810,9 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
         });
       } catch {}
 
-      return { created, updated, skipped, addresses: addrCount, contacts: contactCount };
+      const result = { created, updated, skipped, addresses: addrCount, contacts: contactCount };
+      console.log("[CUSTOMER IMPORT] insert result", result);
+      return result;
     } catch (e: any) {
       await sb
         .from("customer_import_jobs")

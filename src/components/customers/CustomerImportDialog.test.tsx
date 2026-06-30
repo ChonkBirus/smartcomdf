@@ -27,18 +27,22 @@ vi.mock("sonner", () => ({
 }));
 
 import { CustomerImportDialog } from "./CustomerImportDialog";
+import { toast } from "sonner";
 
 function renderDialog() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={qc}>
-      <CustomerImportDialog open onOpenChange={() => {}} />
+      <CustomerImportDialog open onOpenChange={() => {}} companyId="company-1" />
     </QueryClientProvider>,
   );
 }
 
 function makeCsvFile() {
-  const csv = "cpf_cnpj,name,email\n12345678901,Alice,a@a.com\n";
+  const csv =
+    "tipo_cliente,nome_razao_social,nome_fantasia,cpf_cnpj,telefone,email,cep,endereco,numero,complemento,bairro,cidade,uf,contato_nome,contato_telefone,contato_email,observacoes\n" +
+    "PF,Cliente Importado PF,,12345678900,61999999999,,70000000,Quadra Teste,10,,Asa Sul,Brasília,DF,João,61999999999,,Teste importação\n" +
+    "PJ,Cliente Importado PJ,Empresa PJ,11222333000181,6133333333,,70000000,Quadra Comercial,20,Sala 1,Asa Norte,Brasília,DF,Maria,61988888888,,Teste importação PJ\n";
   return new File([csv], "clientes.csv", { type: "text/csv" });
 }
 
@@ -53,6 +57,8 @@ beforeEach(() => {
   validateFn.mockReset();
   listRowsFn.mockReset();
   confirmFn.mockReset();
+  vi.mocked(toast.success).mockReset();
+  vi.mocked(toast.error).mockReset();
 });
 
 describe("CustomerImportDialog — loading/disabled states", () => {
@@ -92,7 +98,7 @@ describe("CustomerImportDialog — loading/disabled states", () => {
     ).toBe(0);
   });
 
-  it("mantém Validar com loader e bloqueia Voltar durante validateMutation; reabilita em erro", async () => {
+  it("mostra loading durante validação automática e reabilita após erro", async () => {
     createFn.mockResolvedValue({
       job_id: "job-1",
       headers: ["cpf_cnpj", "name", "email"],
@@ -112,27 +118,19 @@ describe("CustomerImportDialog — loading/disabled states", () => {
       fireEvent.change(getFileInput(), { target: { files: [makeCsvFile()] } });
     });
 
-    const validar = await screen.findByRole("button", { name: /validar/i });
-    expect(validar).not.toBeDisabled();
+    // validação automática pendente: input e cancelar seguem bloqueados
+    expect(await screen.findByText(/validando linhas/i)).toBeInTheDocument();
+    expect(document.querySelector('input[type="file"]')).toBeNull();
+    expect(screen.getByRole("button", { name: /validar/i })).toBeDisabled();
 
-    await act(async () => {
-      fireEvent.click(validar);
-    });
-
-    // pending: Validar desabilitado + Voltar desabilitado
-    await waitFor(() => expect(screen.getByRole("button", { name: /validar/i })).toBeDisabled());
-    expect(screen.getByRole("button", { name: /voltar/i })).toBeDisabled();
-    expect(screen.getByText(/validando linhas/i)).toBeInTheDocument();
-
-    // erro → controles reabilitam, alerta de erro aparece
+    // erro → controles reabilitam e erro real aparece via toast
     await act(async () => {
       rejectValidate(new Error("falha de rede"));
     });
 
     await waitFor(() => expect(screen.getByRole("button", { name: /validar/i })).not.toBeDisabled());
-    expect(screen.getByRole("button", { name: /voltar/i })).not.toBeDisabled();
     expect(screen.queryByText(/validando linhas/i)).toBeNull();
-    expect(screen.getByText(/falha de rede/i)).toBeInTheDocument();
+    expect(toast.error).toHaveBeenCalledWith("falha de rede");
   });
 
   it("não fecha o diálogo enquanto está ocupado", async () => {
@@ -142,7 +140,7 @@ describe("CustomerImportDialog — loading/disabled states", () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(
       <QueryClientProvider client={qc}>
-        <CustomerImportDialog open onOpenChange={onOpenChange} />
+        <CustomerImportDialog open onOpenChange={onOpenChange} companyId="company-1" />
       </QueryClientProvider>,
     );
 
@@ -155,5 +153,66 @@ describe("CustomerImportDialog — loading/disabled states", () => {
     const cancelBtn = screen.getByRole("button", { name: /cancelar/i });
     fireEvent.click(cancelBtn);
     expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it("lê o CSV mínimo, mostra preview com 2 válidos e confirma importação", async () => {
+    createFn.mockResolvedValue({
+      job_id: "job-1",
+      headers: ["tipo_cliente", "nome_razao_social", "cpf_cnpj", "telefone", "email", "cidade", "uf"],
+      mapping: {
+        tipo_cliente: "customer_type",
+        nome_razao_social: "name",
+        cpf_cnpj: "cpf_cnpj",
+        telefone: "phone",
+        email: "email",
+        cidade: "addr_city",
+        uf: "addr_state",
+      },
+    });
+    validateFn.mockResolvedValue({
+      job_id: "job-1",
+      valid: 2,
+      invalid: 0,
+      duplicates: 0,
+      total: 2,
+      addresses_to_create: 2,
+      contacts_to_create: 2,
+      new_tags: [],
+    });
+    listRowsFn.mockResolvedValue([
+      {
+        id: "row-1",
+        row_number: 1,
+        action: "CREATE",
+        status: "VALID",
+        validation_errors: null,
+        mapped_data: { customer_type: "INDIVIDUAL", name: "Cliente Importado PF", cpf_cnpj: "12345678900", phone: "61999999999", addr_city: "Brasília", addr_state: "DF" },
+      },
+      {
+        id: "row-2",
+        row_number: 2,
+        action: "CREATE",
+        status: "VALID",
+        validation_errors: null,
+        mapped_data: { customer_type: "COMPANY", name: "Cliente Importado PJ", cpf_cnpj: "11222333000181", phone: "6133333333", addr_city: "Brasília", addr_state: "DF" },
+      },
+    ]);
+    confirmFn.mockResolvedValue({ created: 2, updated: 0, skipped: 0, addresses: 2, contacts: 2 });
+
+    renderDialog();
+    await act(async () => {
+      fireEvent.change(getFileInput(), { target: { files: [makeCsvFile()] } });
+    });
+
+    expect(await screen.findByText("Cliente Importado PF")).toBeInTheDocument();
+    expect(screen.getByText("Cliente Importado PJ")).toBeInTheDocument();
+    expect(screen.getAllByText("2", { selector: ".text-2xl" }).length).toBeGreaterThan(0);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /importar clientes válidos/i }));
+    });
+
+    await waitFor(() => expect(confirmFn).toHaveBeenCalled());
+    expect(await screen.findByText(/importação concluída/i)).toBeInTheDocument();
   });
 });
