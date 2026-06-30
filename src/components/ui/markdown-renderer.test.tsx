@@ -54,6 +54,7 @@ describe("MarkdownRenderer XSS sanitization", () => {
 
   it("blocks svg onload payloads", () => {
     const out = html('<svg/onload=alert(1)>');
-    expect(out).not.toMatch(/onload/i);
+    // marked escapes raw HTML; ensure no live svg element with onload survives
+    expect(out).not.toMatch(/<svg[^>]*onload/i);
   });
 });

@@ -14,9 +14,9 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
   const html = useMemo(() => {
     const raw = marked.parse(content || "", { async: false }) as string;
     return DOMPurify.sanitize(raw, {
-      USE_PROFILES: { html: true },
-      FORBID_TAGS: ["style", "script", "iframe", "object", "embed", "form"],
-      FORBID_ATTR: ["style", "onerror", "onload", "onclick"],
+      FORBID_TAGS: ["style", "script", "iframe", "object", "embed", "form", "svg", "math"],
+      FORBID_ATTR: ["style", "onerror", "onload", "onclick", "onmouseover", "onfocus"],
+      ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel|ftp):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
     });
   }, [content]);
 
