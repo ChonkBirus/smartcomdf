@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { CheckCircle2, EyeOff, Loader2, Sparkles, Undo2 } from "lucide-react";
+import { CheckCircle2, EyeOff, Loader2, Plus, Sparkles, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,8 +15,10 @@ import {
   confirmStatementReconciliation,
   ignoreStatementTransaction,
   undoStatementReconciliation,
+  createFinancialFromStatementTransaction,
   type StatementSuggestion,
 } from "@/lib/bank-statement-reconciliation.functions";
+import { suggestCategoryForDescription } from "@/lib/bank-statement-categorize.functions";
 
 const BRL = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -35,6 +37,8 @@ export function BankStatementReconciliationPanel() {
   const confirmFn = useServerFn(confirmStatementReconciliation);
   const ignoreFn = useServerFn(ignoreStatementTransaction);
   const undoFn = useServerFn(undoStatementReconciliation);
+  const createFinFn = useServerFn(createFinancialFromStatementTransaction);
+  const suggestCatFn = useServerFn(suggestCategoryForDescription);
 
   const [status, setStatus] = useState<StatusFilter>("PENDING");
 
@@ -80,6 +84,24 @@ export function BankStatementReconciliationPanel() {
       refresh();
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao desfazer."),
+  });
+
+  const createMut = useMutation({
+    mutationFn: async (row: StatementSuggestion["bankTransaction"]) => {
+      const type = row.type === "CREDIT" ? "INCOME" : "EXPENSE";
+      const cat = await suggestCatFn({ data: { description: row.description, type } }).catch(() => null);
+      return createFinFn({
+        data: {
+          bankStatementTransactionId: row.id,
+          categoryId: cat?.categoryId ?? null,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Lançamento financeiro criado e conciliado.");
+      refresh();
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao criar lançamento."),
   });
 
   return (
@@ -162,8 +184,20 @@ export function BankStatementReconciliationPanel() {
                 </div>
 
                 {row.candidates.length === 0 ? (
-                  <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
-                    Nenhum lançamento financeiro suficientemente próximo. Crie um novo a partir desta linha pelo módulo financeiro.
+                  <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-dashed p-3">
+                    <div className="text-xs text-muted-foreground">
+                      Nenhum lançamento financeiro próximo encontrado.
+                    </div>
+                    {row.bankTransaction.reconciliation_status !== "RECONCILED" && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={createMut.isPending}
+                        onClick={() => createMut.mutate(row.bankTransaction)}
+                      >
+                        <Plus className="mr-1.5 h-4 w-4" /> Criar lançamento
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <div className="divide-y rounded-md border">
