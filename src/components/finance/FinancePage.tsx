@@ -28,7 +28,8 @@ import {
 import { useCompanyId } from "@/hooks/use-company-id";
 import { FinancialHealthScoreCard, FinancialHealthPage } from "@/components/finance/FinancialHealthPage";
 import { FinanceAgentChat } from "@/components/finance/FinanceAgentChat";
-import { OpenFinancePage, BankReconciliationPage } from "@/components/finance/OpenFinancePages";
+// Open Finance temporariamente desativado (custo de integração).
+// A conciliação bancária agora é feita por upload de extrato (OFX/CSV/XLSX) — Fase 2.16E reescrita.
 import { FinanceReportsPage } from "@/components/finance/FinanceReportsPage";
 
 const BRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -510,8 +511,7 @@ export function FinancePage() {
           <TabsTrigger value="payables">A Pagar</TabsTrigger>
           <TabsTrigger value="categories">Categorias</TabsTrigger>
           <TabsTrigger value="agent">Agente IA</TabsTrigger>
-          <TabsTrigger value="open-finance">Open Finance</TabsTrigger>
-          <TabsTrigger value="reconciliation">Conciliação</TabsTrigger>
+          <TabsTrigger value="reconciliation">Conciliação Bancária</TabsTrigger>
           <TabsTrigger value="reports">Relatórios</TabsTrigger>
         </TabsList>
 
@@ -553,11 +553,12 @@ export function FinancePage() {
         <TabsContent value="agent" className="mt-4">
           <FinanceAgentChat />
         </TabsContent>
-        <TabsContent value="open-finance" className="mt-4">
-          <OpenFinancePage />
-        </TabsContent>
         <TabsContent value="reconciliation" className="mt-4">
-          <BankReconciliationPage />
+          <EmptyState
+            icon={<Wallet className="h-5 w-5" />}
+            title="Importe o extrato do seu banco para conciliar"
+            description="Baixe o extrato no aplicativo do banco ou internet banking (OFX, CSV ou XLSX) e envie aqui no SmartCom Pro para conciliar com seus lançamentos financeiros. O upload de extrato chega na próxima atualização (E2)."
+          />
         </TabsContent>
         <TabsContent value="reports" className="mt-4">
           <FinanceReportsPage filters={filters} />

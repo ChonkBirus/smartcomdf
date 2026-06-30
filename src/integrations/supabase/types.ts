@@ -337,6 +337,167 @@ export type Database = {
           },
         ]
       }
+      bank_statement_imports: {
+        Row: {
+          bank_account_id: string | null
+          company_id: string
+          created_at: string
+          duplicate_rows: number
+          error_message: string | null
+          error_rows: number
+          file_name: string
+          file_size: number
+          file_type: string
+          id: string
+          imported_by: string | null
+          imported_rows: number
+          status: string
+          total_rows: number
+          updated_at: string
+        }
+        Insert: {
+          bank_account_id?: string | null
+          company_id: string
+          created_at?: string
+          duplicate_rows?: number
+          error_message?: string | null
+          error_rows?: number
+          file_name: string
+          file_size?: number
+          file_type: string
+          id?: string
+          imported_by?: string | null
+          imported_rows?: number
+          status?: string
+          total_rows?: number
+          updated_at?: string
+        }
+        Update: {
+          bank_account_id?: string | null
+          company_id?: string
+          created_at?: string
+          duplicate_rows?: number
+          error_message?: string | null
+          error_rows?: number
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          imported_by?: string | null
+          imported_rows?: number
+          status?: string
+          total_rows?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_statement_imports_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "financial_bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_statement_imports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_statement_transactions: {
+        Row: {
+          amount: number
+          bank_account_id: string | null
+          category_suggestion: string | null
+          company_id: string
+          created_at: string
+          description: string
+          document_number: string | null
+          external_id: string | null
+          id: string
+          ignored_reason: string | null
+          import_id: string
+          raw_payload: Json | null
+          reconciled_financial_transaction_id: string | null
+          reconciliation_status: string
+          transaction_date: string
+          transaction_hash: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          bank_account_id?: string | null
+          category_suggestion?: string | null
+          company_id: string
+          created_at?: string
+          description?: string
+          document_number?: string | null
+          external_id?: string | null
+          id?: string
+          ignored_reason?: string | null
+          import_id: string
+          raw_payload?: Json | null
+          reconciled_financial_transaction_id?: string | null
+          reconciliation_status?: string
+          transaction_date: string
+          transaction_hash: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bank_account_id?: string | null
+          category_suggestion?: string | null
+          company_id?: string
+          created_at?: string
+          description?: string
+          document_number?: string | null
+          external_id?: string | null
+          id?: string
+          ignored_reason?: string | null
+          import_id?: string
+          raw_payload?: Json | null
+          reconciled_financial_transaction_id?: string | null
+          reconciliation_status?: string
+          transaction_date?: string
+          transaction_hash?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_statement_transactions_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "financial_bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_statement_transactions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_statement_transactions_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "bank_statement_imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_statement_transactions_reconciled_financial_transacti_fkey"
+            columns: ["reconciled_financial_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "financial_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       billing_charges: {
         Row: {
           amount: number
