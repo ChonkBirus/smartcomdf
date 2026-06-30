@@ -186,15 +186,18 @@ export function CustomerImportDialog({
     return targets.includes("cpf_cnpj") && (targets.includes("name") || targets.includes("corporate_name")) && targets.includes("email");
   }, [mapping]);
 
+  const busy = parsing || validateMutation.isPending || confirmMutation.isPending;
+
   return (
     <Dialog
       open={open}
       onOpenChange={(o) => {
+        if (!o && busy) return; // bloqueia fechar durante operação
         onOpenChange(o);
         if (!o) reset();
       }}
     >
-      <DialogContent className="max-w-5xl">
+      <DialogContent className="max-w-5xl" onPointerDownOutside={(e) => busy && e.preventDefault()} onEscapeKeyDown={(e) => busy && e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Importar clientes</DialogTitle>
           <DialogDescription>
