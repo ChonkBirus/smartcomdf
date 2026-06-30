@@ -555,11 +555,7 @@ export function FinancePage() {
           <FinanceAgentChat />
         </TabsContent>
         <TabsContent value="reconciliation" className="mt-4">
-          <EmptyState
-            icon={<Wallet className="h-5 w-5" />}
-            title="Importe o extrato do seu banco para conciliar"
-            description="Baixe o extrato no aplicativo do banco ou internet banking (OFX, CSV ou XLSX) e envie aqui no SmartCom Pro para conciliar com seus lançamentos financeiros. O upload de extrato chega na próxima atualização (E2)."
-          />
+          <BankReconciliationPanel />
         </TabsContent>
         <TabsContent value="reports" className="mt-4">
           <FinanceReportsPage filters={filters} />
