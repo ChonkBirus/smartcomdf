@@ -359,22 +359,19 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
       const { data: existing } = await sb.from("customers").select(customerSelect).eq("company_id", company_id).is("deleted_at", null).in("email", [...emails]);
       rememberExisting(existing);
     }
-    if (phones.size) {
-      const phoneList = [...phones];
-      const { data: existingPhones } = await sb.from("customers").select(customerSelect).eq("company_id", company_id).is("deleted_at", null).in("phone", phoneList);
-      rememberExisting(existingPhones);
-      const { data: existingWhats } = await sb.from("customers").select(customerSelect).eq("company_id", company_id).is("deleted_at", null).in("whatsapp", phoneList);
-      rememberExisting(existingWhats);
-    }
-    if (names.size) {
-      const { data: possibleByName } = await sb
+    if (phones.size || names.size) {
+      const { data: possibleByPhoneOrName } = await sb
         .from("customers")
         .select(customerSelect)
         .eq("company_id", company_id)
         .is("deleted_at", null);
       rememberExisting(
-        (possibleByName ?? []).filter(
-          (c: any) => names.has(normText(c.name)) || names.has(normText(c.corporate_name)),
+        (possibleByPhoneOrName ?? []).filter(
+          (c: any) =>
+            phones.has(onlyDigits(c.phone)) ||
+            phones.has(onlyDigits(c.whatsapp)) ||
+            names.has(normText(c.name)) ||
+            names.has(normText(c.corporate_name)),
         ),
       );
     }
