@@ -33,7 +33,6 @@ function renderDialog() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={qc}>
-      <CustomerImportDialog open onOpenChange={() => {}} />
       <CustomerImportDialog open onOpenChange={() => {}} companyId="company-1" />
     </QueryClientProvider>,
   );
@@ -141,7 +140,6 @@ describe("CustomerImportDialog — loading/disabled states", () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(
       <QueryClientProvider client={qc}>
-        <CustomerImportDialog open onOpenChange={onOpenChange} />
         <CustomerImportDialog open onOpenChange={onOpenChange} companyId="company-1" />
       </QueryClientProvider>,
     );
