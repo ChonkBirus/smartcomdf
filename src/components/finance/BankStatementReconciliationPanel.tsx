@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -41,11 +41,21 @@ export function BankStatementReconciliationPanel() {
   const suggestCatFn = useServerFn(suggestCategoryForDescription);
 
   const [status, setStatus] = useState<StatusFilter>("PENDING");
+  const [highlightBankId, setHighlightBankId] = useState<string | null>(null);
+  const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const q = useQuery({
     queryKey: ["bank-statement-suggestions", status],
     queryFn: () => listFn({ data: { status, minScore: 50, limit: 100 } }),
   });
+
+  useEffect(() => {
+    if (!highlightBankId) return;
+    const el = rowRefs.current[highlightBankId];
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    const t = setTimeout(() => setHighlightBankId(null), 4500);
+    return () => clearTimeout(t);
+  }, [highlightBankId, q.data]);
 
   const refresh = () =>
     qc.invalidateQueries({ queryKey: ["bank-statement-suggestions"] });
@@ -90,23 +100,27 @@ export function BankStatementReconciliationPanel() {
     mutationFn: async (row: StatementSuggestion["bankTransaction"]) => {
       const type = row.type === "CREDIT" ? "INCOME" : "EXPENSE";
       const cat = await suggestCatFn({ data: { description: row.description, type } }).catch(() => null);
-      return createFinFn({
+      const res = await createFinFn({
         data: {
           bankStatementTransactionId: row.id,
           categoryId: cat?.categoryId ?? null,
         },
       });
+      return { res, bankId: row.id };
     },
-    onSuccess: (res: any) => {
+    onSuccess: ({ res, bankId }: any) => {
       if (res?.already_existed) {
         const finId = res?.financial_transaction_id;
+        // Destacar a linha do extrato e levar o usuário até ela.
+        setStatus("RECONCILED");
+        setHighlightBankId(bankId);
         toast.warning("Já existe um lançamento para esta linha do extrato.", {
-          description: "Nenhum duplicado foi criado.",
+          description: "Nenhum duplicado foi criado. Clique para ver o lançamento.",
           action: finId
             ? {
                 label: "Ver lançamento",
                 onClick: () => {
-                  window.location.href = `/finance?transaction=${finId}`;
+                  window.location.href = `/finance?transaction=${finId}#highlight`;
                 },
               }
             : undefined,
@@ -153,8 +167,18 @@ export function BankStatementReconciliationPanel() {
         />
       ) : (
         <div className="space-y-3">
-          {q.data.map((row: StatementSuggestion) => (
-            <Card key={row.bankTransaction.id}>
+          {q.data.map((row: StatementSuggestion) => {
+            const isHighlighted = highlightBankId === row.bankTransaction.id;
+            return (
+            <Card
+              key={row.bankTransaction.id}
+              ref={(el) => { rowRefs.current[row.bankTransaction.id] = el; }}
+              className={
+                isHighlighted
+                  ? "ring-2 ring-primary ring-offset-2 transition-shadow"
+                  : undefined
+              }
+            >
               <CardContent className="space-y-3 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
@@ -258,7 +282,7 @@ export function BankStatementReconciliationPanel() {
                 )}
               </CardContent>
             </Card>
-          ))}
+          ); })}
         </div>
       )}
     </div>

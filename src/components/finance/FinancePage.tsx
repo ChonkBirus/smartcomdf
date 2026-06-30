@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -246,11 +246,18 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
   );
 }
 
-function TransactionTable({ rows, onChanged }: { rows: FinancialTransaction[]; onChanged: () => void }) {
+function TransactionTable({ rows, onChanged, highlightId }: { rows: FinancialTransaction[]; onChanged: () => void; highlightId?: string | null }) {
   const markPaid = useServerFn(markTransactionAsPaid);
   const cancelFn = useServerFn(cancelFinancialTransaction);
   const delFn = useServerFn(softDeleteFinancialTransaction);
   const [editing, setEditing] = useState<FinancialTransaction | null>(null);
+  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+
+  useEffect(() => {
+    if (!highlightId) return;
+    const el = rowRefs.current[highlightId];
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightId, rows]);
 
   const act = useMutation({
     mutationFn: async ({ kind, id }: { kind: "paid" | "cancel" | "delete"; id: string }) => {
@@ -293,7 +300,11 @@ function TransactionTable({ rows, onChanged }: { rows: FinancialTransaction[]; o
               {rows.map((t) => {
                 const eff = effStatus(t);
                 return (
-                  <TableRow key={t.id}>
+                  <TableRow
+                    key={t.id}
+                    ref={(el) => { rowRefs.current[t.id] = el; }}
+                    className={highlightId === t.id ? "bg-primary/10 ring-2 ring-primary ring-inset transition-colors" : undefined}
+                  >
                     <TableCell className="whitespace-nowrap">{t.due_date ?? "—"}</TableCell>
                     <TableCell>
                       <div className="font-medium">{t.description}</div>
@@ -479,6 +490,24 @@ export function FinancePage() {
   const [sheet, setSheet] = useState<{ open: boolean; type: FinTxType }>({ open: false, type: "INCOME" });
   const o = overview.data;
 
+  const [highlightTxId, setHighlightTxId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("overview");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("transaction");
+    if (!id) return;
+    setHighlightTxId(id);
+    setActiveTab("cashflow");
+    // Clean the URL so reloads don't re-trigger.
+    const url = new URL(window.location.href);
+    url.searchParams.delete("transaction");
+    window.history.replaceState({}, "", url.pathname + (url.search || "") + url.hash);
+    const t = setTimeout(() => setHighlightTxId(null), 5000);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -502,7 +531,7 @@ export function FinancePage() {
         </div>
       </div>
 
-      <Tabs defaultValue="overview">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="flex-wrap">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="health">Saúde Financeira</TabsTrigger>
@@ -535,19 +564,19 @@ export function FinancePage() {
         </TabsContent>
 
         <TabsContent value="cashflow" className="mt-4">
-          <TransactionTable rows={cashflow.data ?? []} onChanged={invalidateAll} />
+          <TransactionTable rows={cashflow.data ?? []} onChanged={invalidateAll} highlightId={highlightTxId} />
         </TabsContent>
         <TabsContent value="income" className="mt-4">
-          <TransactionTable rows={incomes.data ?? []} onChanged={invalidateAll} />
+          <TransactionTable rows={incomes.data ?? []} onChanged={invalidateAll} highlightId={highlightTxId} />
         </TabsContent>
         <TabsContent value="expense" className="mt-4">
-          <TransactionTable rows={expenses.data ?? []} onChanged={invalidateAll} />
+          <TransactionTable rows={expenses.data ?? []} onChanged={invalidateAll} highlightId={highlightTxId} />
         </TabsContent>
         <TabsContent value="receivables" className="mt-4">
-          <TransactionTable rows={(incomes.data ?? []).filter((t) => t.status !== "RECONCILED")} onChanged={invalidateAll} />
+          <TransactionTable rows={(incomes.data ?? []).filter((t) => t.status !== "RECONCILED")} onChanged={invalidateAll} highlightId={highlightTxId} />
         </TabsContent>
         <TabsContent value="payables" className="mt-4">
-          <TransactionTable rows={(expenses.data ?? []).filter((t) => t.status !== "RECONCILED")} onChanged={invalidateAll} />
+          <TransactionTable rows={(expenses.data ?? []).filter((t) => t.status !== "RECONCILED")} onChanged={invalidateAll} highlightId={highlightTxId} />
         </TabsContent>
         <TabsContent value="categories" className="mt-4">
           <CategoriesManager />
