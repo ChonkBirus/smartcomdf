@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import {
   Users, Package, FileText, DollarSign, TrendingUp, Activity,
   PackageX, AlertTriangle, Boxes, CheckCircle2, Clock, PercentCircle,
@@ -6,7 +7,7 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useCompanyId } from "@/hooks/use-company-id";
+import { useCompanyContext } from "@/hooks/use-company-id";
 import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/app/KpiCard";
 import { SubscriptionCard } from "@/components/app/SubscriptionCard";
@@ -15,8 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/app/EmptyState";
 import { formatCurrency } from "@/lib/utils";
-import { stockOverview } from "@/lib/stock.functions";
-import { getReportsOverview } from "@/lib/reports.functions";
+import { getDashboardMetrics, emptyDashboardMetrics } from "@/lib/dashboard.functions";
 import { usePermissions } from "@/lib/permissions";
 import { useFeatures } from "@/lib/features";
 import { GettingStartedChecklist } from "@/components/onboarding/GettingStartedChecklist";
@@ -30,24 +30,30 @@ function Dashboard() {
   const { canView } = usePermissions();
   const { hasFeature } = useFeatures();
   const showStock = canView("stock") && hasFeature("inventory");
-  const companyId = useCompanyId();
+  const companyContext = useCompanyContext();
+  const companyId = companyContext.companyId;
+  const dashboardFilters = { from: null, to: null };
 
-  const fetchOverview = useServerFn(getReportsOverview);
-  const fetchStock = useServerFn(stockOverview);
+  const fetchDashboard = useServerFn(getDashboardMetrics);
 
   const metrics = useQuery({
-    queryKey: ["dashboard-metrics", companyId],
-    queryFn: () => fetchOverview({ data: {} }),
+    queryKey: ["dashboard-metrics", companyId, dashboardFilters],
+    queryFn: () => fetchDashboard({ data: dashboardFilters }),
     enabled: !!companyId,
     staleTime: 60_000,
   });
 
-  const stockQ = useQuery({
-    queryKey: ["dashboard-stock", companyId],
-    queryFn: () => fetchStock(),
-    enabled: showStock && !!companyId,
-    staleTime: 60_000,
-  });
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    console.log("[DASHBOARD] user:", (companyContext.data as any)?.profile?.id);
+    console.log("[DASHBOARD] companyId:", companyId);
+    console.log("[DASHBOARD] filters:", dashboardFilters);
+    console.log("[DASHBOARD] metrics response:", metrics.data);
+    if (metrics.error) console.error("[DASHBOARD ERROR]", metrics.error);
+  }, [companyContext.data, companyId, metrics.data, metrics.error]);
+
+  const data = metrics.data ?? emptyDashboardMetrics;
+  const openServiceOrders = data.serviceOrders.scheduled + data.serviceOrders.inProgress + data.serviceOrders.overdue;
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -61,7 +67,19 @@ function Dashboard() {
         <GettingStartedChecklist />
       </div>
 
-      {metrics.isLoading ? (
+      {companyContext.isLoading ? (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))}
+        </div>
+      ) : !companyId ? (
+        <EmptyState
+          icon={<AlertTriangle className="h-6 w-6" />}
+          title="Nenhuma empresa ativa encontrada"
+          description="Não foi possível identificar a empresa vinculada ao seu usuário. Verifique seu cadastro ou fale com o suporte."
+        />
+      ) : metrics.isLoading ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <Skeleton key={i} className="h-28 w-full" />
@@ -70,20 +88,21 @@ function Dashboard() {
       ) : metrics.isError ? (
         <EmptyState
           icon={<AlertTriangle className="h-6 w-6" />}
-          title="Erro ao carregar indicadores"
-          description={metrics.error instanceof Error ? metrics.error.message : "Tente novamente em alguns instantes."}
+          title="Não foi possível carregar o dashboard"
+          description="Houve um erro ao buscar os dados reais da sua empresa. Tente novamente em instantes."
+          action={<Button onClick={() => metrics.refetch()} variant="outline">Tentar novamente</Button>}
         />
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard title="Clientes" value={String(metrics.data!.cards.customersTotal)} icon={<Users className="h-5 w-5" />} />
-            <KpiCard title="Orçamentos" value={String(metrics.data!.cards.quotesTotal)} icon={<FileText className="h-5 w-5" />} hint={`${metrics.data!.cards.quotesPending} pendentes`} />
-            <KpiCard title="Aprovados" value={String(metrics.data!.cards.quotesApproved)} icon={<CheckCircle2 className="h-5 w-5" />} />
-            <KpiCard title="Valor aprovado" value={formatCurrency(metrics.data!.cards.valueAprovado)} icon={<DollarSign className="h-5 w-5" />} />
-            <KpiCard title="Taxa de conversão" value={`${metrics.data!.cards.conversionRate.toFixed(1)}%`} icon={<PercentCircle className="h-5 w-5" />} />
-            <KpiCard title="Projetos ativos" value={String(metrics.data!.cards.projectsActive)} icon={<FolderKanban className="h-5 w-5" />} />
-            <KpiCard title="OS abertas" value={String(metrics.data!.cards.osOpen)} icon={<Wrench className="h-5 w-5" />} />
-            <KpiCard title="Pagamentos pendentes" value={String(metrics.data!.cards.pendingPayments)} icon={<Wallet className="h-5 w-5" />} />
+            <KpiCard title="Clientes" value={String(data.customers.total ?? 0)} icon={<Users className="h-5 w-5" />} />
+            <KpiCard title="Orçamentos" value={String(data.quotes.total ?? 0)} icon={<FileText className="h-5 w-5" />} hint={`${data.quotes.pending ?? 0} pendentes`} />
+            <KpiCard title="Aprovados" value={String(data.quotes.approved ?? 0)} icon={<CheckCircle2 className="h-5 w-5" />} />
+            <KpiCard title="Valor aprovado" value={formatCurrency(data.quotes.approvedAmount ?? 0)} icon={<DollarSign className="h-5 w-5" />} />
+            <KpiCard title="Taxa de conversão" value={`${(data.quotes.conversionRate ?? 0).toFixed(1)}%`} icon={<PercentCircle className="h-5 w-5" />} />
+            <KpiCard title="Projetos ativos" value={String(data.projects.active ?? 0)} icon={<FolderKanban className="h-5 w-5" />} />
+            <KpiCard title="OS abertas" value={String(openServiceOrders)} icon={<Wrench className="h-5 w-5" />} />
+            <KpiCard title="Pagamentos pendentes" value={String(data.payments.waiting ?? 0)} icon={<Wallet className="h-5 w-5" />} />
           </div>
 
           <Card className="card-elevated mt-6">
@@ -93,14 +112,14 @@ function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {metrics.data!.charts.quotesByStatus.length === 0 ? (
+              {(data.charts.quotesByStatus ?? []).length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Nenhum dado para exibir. Cadastre clientes, produtos e orçamentos para visualizar dados reais aqui.
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {metrics.data!.charts.quotesByStatus.map((row) => {
-                    const max = Math.max(...metrics.data!.charts.quotesByStatus.map((r) => r.count));
+                  {(data.charts.quotesByStatus ?? []).map((row) => {
+                    const max = Math.max(...(data.charts.quotesByStatus ?? []).map((r) => r.count));
                     const pct = max ? (row.count / max) * 100 : 0;
                     return (
                       <div key={row.status}>
@@ -123,26 +142,19 @@ function Dashboard() {
 
       {showStock && (
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
-          <KpiCard title="Itens sem estoque" value={String(stockQ.data?.outOfStock ?? 0)} icon={<PackageX className="h-5 w-5" />} />
-          <KpiCard title="Abaixo do mínimo" value={String(stockQ.data?.lowStock ?? 0)} icon={<AlertTriangle className="h-5 w-5" />} />
+          <KpiCard title="Itens sem estoque" value={String(data.stock.outOfStock ?? 0)} icon={<PackageX className="h-5 w-5" />} />
+          <KpiCard title="Abaixo do mínimo" value={String(data.stock.lowStock ?? 0)} icon={<AlertTriangle className="h-5 w-5" />} />
           <Card className="card-elevated">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
-                <Boxes className="h-4 w-4 text-primary" /> Últimas movimentações
+                <Boxes className="h-4 w-4 text-primary" /> Movimentações de estoque
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-1.5 text-sm">
-              {(stockQ.data?.recent ?? []).length === 0 ? (
+              {(data.stock.recentMovements ?? 0) === 0 ? (
                 <p className="text-muted-foreground">Nenhuma movimentação recente.</p>
               ) : (
-                stockQ.data!.recent.map((r: any) => (
-                  <div key={r.id} className="flex items-center justify-between gap-2">
-                    <span className="truncate">{r.item_name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {r.movement_type} · {r.quantity}
-                    </span>
-                  </div>
-                ))
+                <p className="text-muted-foreground">{data.stock.recentMovements} movimentações registradas.</p>
               )}
               <div className="pt-2">
                 <Button asChild size="sm" variant="outline" className="w-full">

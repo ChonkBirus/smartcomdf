@@ -8,11 +8,17 @@ import { getMyContext } from "@/lib/account.functions";
  * (or a user with multiple companies) switches the active company.
  */
 export function useCompanyId(): string | null {
+  const { companyId } = useCompanyContext();
+  return companyId;
+}
+
+export function useCompanyContext() {
   const fn = useServerFn(getMyContext);
-  const { data } = useQuery({
-    queryKey: ["me", "company-id"],
+  const query = useQuery({
+    queryKey: ["me"],
     queryFn: () => fn(),
     staleTime: 5 * 60 * 1000,
   });
-  return ((data as any)?.company?.id ?? (data as any)?.profile?.company_id ?? null) as string | null;
+  const companyId = ((query.data as any)?.company?.id ?? (query.data as any)?.profile?.company_id ?? null) as string | null;
+  return { ...query, companyId };
 }
