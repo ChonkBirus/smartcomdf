@@ -65,6 +65,19 @@ export function ProductPricingSuggestion({
   const canView = canViewPricing && canViewCosts;
   const canApply = canView && has("finance.apply_suggested_price");
 
+  const missingPermissions = [
+    !canViewPricing && { slug: "finance.pricing.view", label: "Visualizar precificação" },
+    !canViewCosts && { slug: "finance.view_costs", label: "Visualizar custos" },
+    !canApply && canView && { slug: "finance.apply_suggested_price", label: "Aplicar preço sugerido" },
+  ].filter(Boolean) as { slug: string; label: string }[];
+
+  const missingMessage = (extra?: string) =>
+    missingPermissions.length === 0
+      ? ""
+      : `${extra ?? "Permissões necessárias"}: ${missingPermissions
+          .map((p) => `${p.label} (${p.slug})`)
+          .join(", ")}. Solicite ao responsável financeiro.`;
+
   const [open, setOpen] = useState(false);
   const [rates, setRates] = useState<Rates>(EMPTY_RATES);
   const [result, setResult] = useState<PricingResult | null>(null);
@@ -123,7 +136,7 @@ export function ProductPricingSuggestion({
   function handleApply() {
     if (!result?.ok) return;
     if (!canApply) {
-      toast.error("Sem permissão para aplicar preço sugerido.");
+      toast.error(missingMessage("Sem permissão para aplicar"));
       return;
     }
     onApply(result.suggested_price);
@@ -132,11 +145,7 @@ export function ProductPricingSuggestion({
   }
 
   if (!canView) {
-    const missing = [
-      !canViewPricing && "finance.pricing.view",
-      !canViewCosts && "finance.view_costs",
-    ].filter(Boolean).join(" e ");
-    const reason = `Você não tem permissão para usar a sugestão de preço (faltando: ${missing}). Peça ao responsável financeiro.`;
+    const reason = missingMessage("Sugestão de preço indisponível");
     return (
       <Button
         type="button"
