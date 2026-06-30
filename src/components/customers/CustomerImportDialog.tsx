@@ -484,7 +484,7 @@ export function CustomerImportDialog({
           )}
           {step === "confirm" && (
             <>
-              <Button variant="outline" onClick={() => setStep("preview")}>
+              <Button variant="outline" onClick={() => setStep("preview")} disabled={busy}>
                 Voltar
               </Button>
               <Button onClick={() => confirmMutation.mutate()} disabled={confirmMutation.isPending}>
