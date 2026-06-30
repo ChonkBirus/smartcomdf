@@ -164,9 +164,11 @@ export function CustomerImportDialog({
     mutationFn: () => validateFn({ data: { job_id: jobId!, mapping } }),
     onSuccess: (data) => {
       setValidation(data);
+      setFilter("all");
       setStep("preview");
+      toast.success(`Validação concluída: ${data.valid} válidas, ${data.invalid} com erro.`);
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao validar importação."),
   });
 
   const confirmMutation = useMutation({
@@ -174,8 +176,9 @@ export function CustomerImportDialog({
     onSuccess: (data) => {
       setResult(data);
       setStep("done");
+      toast.success(`Importação concluída: ${data.created} criados, ${data.updated} atualizados.`);
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao confirmar importação."),
   });
 
   const mappingReady = useMemo(() => {
@@ -418,6 +421,16 @@ export function CustomerImportDialog({
             <AlertDescription className="text-xs">
               {result.created} criados · {result.updated} atualizados · {result.skipped} ignorados ·{" "}
               {result.addresses} endereços · {result.contacts} contatos
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {(validateMutation.error || confirmMutation.error) && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Erro na importação</AlertTitle>
+            <AlertDescription className="text-xs">
+              {(validateMutation.error as any)?.message ?? (confirmMutation.error as any)?.message}
             </AlertDescription>
           </Alert>
         )}
