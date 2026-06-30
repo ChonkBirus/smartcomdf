@@ -1419,46 +1419,70 @@ export type Database = {
       }
       companies: {
         Row: {
+          city: string | null
           cnpj: string | null
+          complement: string | null
           corporate_name: string
+          country: string
           created_at: string
+          district: string | null
           email: string | null
           id: string
           logo_url: string | null
+          number: string | null
           phone: string | null
           plan_id: string | null
+          state: string | null
           status: Database["public"]["Enums"]["company_status"]
+          street: string | null
           trade_name: string | null
           updated_at: string
           whatsapp: string | null
+          zipcode: string | null
         }
         Insert: {
+          city?: string | null
           cnpj?: string | null
+          complement?: string | null
           corporate_name: string
+          country?: string
           created_at?: string
+          district?: string | null
           email?: string | null
           id?: string
           logo_url?: string | null
+          number?: string | null
           phone?: string | null
           plan_id?: string | null
+          state?: string | null
           status?: Database["public"]["Enums"]["company_status"]
+          street?: string | null
           trade_name?: string | null
           updated_at?: string
           whatsapp?: string | null
+          zipcode?: string | null
         }
         Update: {
+          city?: string | null
           cnpj?: string | null
+          complement?: string | null
           corporate_name?: string
+          country?: string
           created_at?: string
+          district?: string | null
           email?: string | null
           id?: string
           logo_url?: string | null
+          number?: string | null
           phone?: string | null
           plan_id?: string | null
+          state?: string | null
           status?: Database["public"]["Enums"]["company_status"]
+          street?: string | null
           trade_name?: string | null
           updated_at?: string
           whatsapp?: string | null
+          zipcode?: string | null
         }
         Relationships: [
           {

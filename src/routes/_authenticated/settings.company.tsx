@@ -16,6 +16,12 @@ import { getMyContext } from "@/lib/account.functions";
 import { updateMyCompany, getSignedImageUrl } from "@/lib/profile.functions";
 import { getCompanyPix, saveCompanyPix } from "@/lib/quote-payments.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
+import { CepInput } from "@/components/shared/CepInput";
+import type { CepResult } from "@/lib/address-lookup";
+import { CustomerCnpjLookupButton } from "@/components/customers/CustomerCnpjLookupDialog";
+import type { CnpjLookupResultDTO } from "@/lib/cnpj-lookup.functions";
+import { statesFor } from "@/lib/locations";
+
 
 export const Route = createFileRoute("/_authenticated/settings/company")({
   component: CompanyPage,
@@ -32,23 +38,34 @@ function CompanyPage() {
 
   const [form, setForm] = useState({
     corporate_name: "", trade_name: "", cnpj: "", phone: "", whatsapp: "", email: "", logo_url: "",
+    zipcode: "", street: "", number: "", complement: "", district: "", city: "", state: "", country: "BR",
   });
   const [signedLogo, setSignedLogo] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (c) {
+      const ca = c as any;
       setForm({
         corporate_name: c.corporate_name ?? "",
         trade_name: c.trade_name ?? "",
         cnpj: c.cnpj ?? "",
         phone: c.phone ?? "",
-        whatsapp: (c as any).whatsapp ?? "",
+        whatsapp: ca.whatsapp ?? "",
         email: c.email ?? "",
         logo_url: c.logo_url ?? "",
+        zipcode: ca.zipcode ?? "",
+        street: ca.street ?? "",
+        number: ca.number ?? "",
+        complement: ca.complement ?? "",
+        district: ca.district ?? "",
+        city: ca.city ?? "",
+        state: ca.state ?? "",
+        country: ca.country ?? "BR",
       });
     }
   }, [c]);
+
 
 
   useEffect(() => {
@@ -130,7 +147,34 @@ function CompanyPage() {
             <Input value={form.trade_name} onChange={(e) => setForm({ ...form, trade_name: e.target.value })} />
           </Field>
           <Field label="CNPJ">
-            <Input value={form.cnpj} onChange={(e) => setForm({ ...form, cnpj: e.target.value })} />
+            <div className="flex gap-2">
+              <Input
+                value={form.cnpj}
+                onChange={(e) => setForm({ ...form, cnpj: e.target.value })}
+                placeholder="00.000.000/0000-00"
+              />
+              <CustomerCnpjLookupButton
+                cnpj={form.cnpj}
+                hasExistingData={!!(form.corporate_name || form.street || form.zipcode)}
+                onApply={(r: CnpjLookupResultDTO) => {
+                  setForm((f) => ({
+                    ...f,
+                    corporate_name: r.corporate_name || f.corporate_name,
+                    trade_name: r.trade_name || f.trade_name,
+                    phone: r.phone || f.phone,
+                    email: r.email || f.email,
+                    zipcode: r.zipcode || f.zipcode,
+                    street: r.address || f.street,
+                    number: r.number || f.number,
+                    complement: r.complement || f.complement,
+                    district: r.district || f.district,
+                    city: r.city || f.city,
+                    state: r.state || f.state,
+                    country: "BR",
+                  }));
+                }}
+              />
+            </div>
           </Field>
           <Field label="Telefone">
             <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
@@ -141,6 +185,63 @@ function CompanyPage() {
           <Field label="WhatsApp">
             <Input value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} />
           </Field>
+
+          <div className="md:col-span-2 pt-2">
+            <h3 className="mb-3 text-sm font-semibold text-foreground">Endereço da empresa</h3>
+            <div className="grid gap-4 md:grid-cols-6">
+              <div className="md:col-span-2">
+                <Label>CEP</Label>
+                <CepInput
+                  value={form.zipcode}
+                  onChange={(v: string) => setForm((f) => ({ ...f, zipcode: v }))}
+                  onResolve={(r: CepResult) => {
+                    setForm((f) => ({
+                      ...f,
+                      zipcode: r.cep,
+                      street: f.street?.trim() ? f.street : r.street,
+                      district: f.district?.trim() ? f.district : r.district,
+                      city: f.city?.trim() ? f.city : r.city,
+                      state: f.state?.trim() ? f.state : r.state,
+                      complement: f.complement?.trim() ? f.complement : (r.complement ?? f.complement),
+                    }));
+                  }}
+                />
+              </div>
+              <div className="md:col-span-3">
+                <Label>Logradouro</Label>
+                <Input value={form.street} onChange={(e) => setForm({ ...form, street: e.target.value })} />
+              </div>
+              <div>
+                <Label>Número</Label>
+                <Input value={form.number} onChange={(e) => setForm({ ...form, number: e.target.value })} />
+              </div>
+              <div className="md:col-span-2">
+                <Label>Complemento</Label>
+                <Input value={form.complement} onChange={(e) => setForm({ ...form, complement: e.target.value })} />
+              </div>
+              <div className="md:col-span-2">
+                <Label>Bairro</Label>
+                <Input value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} />
+              </div>
+              <div className="md:col-span-2">
+                <Label>Cidade</Label>
+                <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+              </div>
+              <div>
+                <Label>UF</Label>
+                <Select value={form.state || ""} onValueChange={(v) => setForm({ ...form, state: v })}>
+                  <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+                  <SelectContent>
+                    {statesFor("BR").map((s) => (
+                      <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+
 
 
           <div className="md:col-span-2 flex justify-end">
