@@ -27,6 +27,7 @@ import {
 } from "@/lib/finance.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
 import { FinancialHealthScoreCard, FinancialHealthPage } from "@/components/finance/FinancialHealthPage";
+import { FinanceAgentChat } from "@/components/finance/FinanceAgentChat";
 
 const BRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
