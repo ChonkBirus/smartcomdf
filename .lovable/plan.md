@@ -1,81 +1,45 @@
-## FASE 2.16A — Módulo Financeiro (base)
+## FASE 2.16B — Integração Financeira com ERP
 
-Construir a base do módulo financeiro da empresa cliente (separado do billing SaaS). Sem Open Finance, IA ou precificação.
+Não há erro reportado; o texto é uma especificação. Antes de implementar, confirme o plano abaixo.
 
-### 1. Banco de dados (migration única)
+### Escopo desta fase
+1. **Banco (migração única)**
+   - Adicionar índice único parcial em `financial_transactions` para impedir duplicidade:
+     - `(company_id, quote_id, type, origin)` quando `quote_id is not null and deleted_at is null`
+     - `(company_id, purchase_id, type, origin)` quando `purchase_id is not null and deleted_at is null`
+   - Adicionar permissões: `finance.receivables.manage`, `finance.payables.manage`, `finance.view_costs` e vincular a `owner`/`financial`.
 
-**Tabelas novas (schema `public`):**
+2. **Server functions** — `src/lib/finance-integrations.functions.ts`
+   - `createReceivableFromQuote({ quote_id, due_date? })`
+   - `getReceivableByQuote({ quote_id })`
+   - `markReceivablePaidFromQuote({ quote_id, paid_at?, payment_method? })`
+   - `createPayableFromPurchase({ purchase_id, due_date? })` (se tabela existir)
+   - `getCustomerFinancialSummary({ customer_id })`
+   - `getProjectFinancialSummary({ project_id })`
+   - `getServiceOrderFinancialSummary({ service_order_id })`
+   - Todas com `requireSupabaseAuth`, scope por `company_id`, checagem de duplicidade antes do insert, retorno idempotente.
 
-- `financial_categories`
-  - `id`, `company_id` (FK companies), `name`, `type` (`INCOME`|`EXPENSE`), `parent_id` (self FK, null), `active` (bool default true), `is_default` (bool default false), `created_at`, `updated_at`
-  - UNIQUE (`company_id`, `name`, `type`)
-- `financial_transactions`
-  - `id`, `company_id`, `type` (`INCOME`|`EXPENSE`), `category_id` (FK null), `description`, `amount` numeric(14,2), `due_date` date null, `paid_at` timestamptz null, `status` (`PLANNED`|`PAID`|`OVERDUE`|`CANCELED`|`RECONCILED`), `customer_id`, `supplier_id`, `quote_id`, `project_id`, `service_order_id`, `purchase_id` (todos FK nullable), `payment_method` text, `origin` (`MANUAL`|`QUOTE`|`PAYMENT`|`PURCHASE`|`SERVICE_ORDER`|`OPEN_FINANCE`|`IMPORT`), `notes`, `created_by` (auth.users), `created_at`, `updated_at`, `deleted_at` null
-  - Índices em (`company_id`,`type`,`status`), (`company_id`,`due_date`)
+3. **Gancho de pagamento**
+   - No fluxo `accept_public_quote` / confirmação de `quote_payments`: chamar `markReceivablePaidFromQuote` ou criar `financial_transaction` PAID se ainda não existir. Sem reescrever o modelo de parcelas.
 
-**GRANTs:** `SELECT, INSERT, UPDATE, DELETE` para `authenticated`; `ALL` para `service_role`. Sem `anon`.
+4. **UI**
+   - `QuoteFinancialActions` no detalhe do orçamento aprovado: "Gerar conta a receber" / "Ver conta a receber" + `FinancialLinkedBadge`.
+   - `CustomerFinancialSummary` no `clients_.$id.tsx`: aba/seção Financeiro com KPIs (a receber, recebido, vencido) e tabela de lançamentos do cliente.
+   - `ProjectFinancialSummary` no `projects_.$id.tsx`: card com orçamento origem, valor aprovado, recebido, pendente.
+   - `ServiceOrderFinancialSummary` no `service-orders_.$id.tsx` (somente roles não-técnico): status financeiro sem custos.
+   - `PurchaseFinancialActions` + `PayableFromPurchaseModal` apenas se o módulo de compras estiver ativo.
 
-**RLS:** habilitar; políticas usando função existente `is_company_member(company_id)`:
-- SELECT: `is_company_member(company_id)` e (para transactions) `deleted_at IS NULL`
-- INSERT: `is_company_member(company_id)` + `auth.uid() = created_by`
-- UPDATE: `is_company_member(company_id)`
-- DELETE: bloqueado em transactions (usar soft delete via UPDATE); permitido em categorias só se `is_default = false`
+5. **Permissões**
+   - Guardas em todas as ações novas; técnicos sem acesso a financeiro/custos.
 
-**Função SQL `seed_default_financial_categories(_company_id uuid)`** SECURITY DEFINER — popula categorias padrão (lista do prompt) se não existirem.
+6. **Testes manuais documentados** (multi-empresa, duplicidade, pagamento).
 
-**Trigger `updated_at`** nas duas tabelas.
+### Fora de escopo (explícito)
+Open Finance, IA, precificação automática, billing SaaS/Asaas/webhook de assinatura, PDF premium, dashboard, DNS, auth, RLS global, parcelamento complexo.
 
-### 2. Server functions (`src/lib/finance.functions.ts`)
+### Riscos / decisões a confirmar
+- **A**: Geração automática da conta a receber ao aprovar orçamento, **ou** **B**: somente botão manual com confirmação? Spec sugere B como padrão seguro — vou seguir B salvo indicação contrária.
+- Para `due_date` padrão da conta a receber: usar `quote.valid_until` se existir, senão hoje + 7 dias.
+- Compras: se `purchases`/`purchase_orders` existir, habilito o botão; senão, deixo função pronta mas sem UI.
 
-Todas com `requireSupabaseAuth`, derivando `company_id` do contexto via `profiles`:
-
-- `getFinanceOverview({ from, to })` → `{ income, expense, balance, receivables, payables, overdueReceivables, overduePayables }`
-- `listFinancialTransactions({ type?, status?, from?, to?, categoryId?, customerId?, supplierId? })`
-- `createFinancialTransaction(data)` (origin = `MANUAL` nesta fase)
-- `updateFinancialTransaction(id, data)`
-- `softDeleteFinancialTransaction(id)` — UPDATE `deleted_at = now()`
-- `markTransactionAsPaid(id, paidAt?)` — status `PAID`, `paid_at`
-- `cancelFinancialTransaction(id)` — status `CANCELED`
-- `getCashFlow({ from, to })`
-- `getReceivables(filters)` / `getPayables(filters)` (tipo + status)
-- `listFinancialCategories({ type? })`
-- `createFinancialCategory`, `updateFinancialCategory`, `deactivateFinancialCategory`
-- `ensureDefaultFinancialCategories()` — chama RPC
-
-Status calculado: se `status = PLANNED` e `due_date < hoje`, retornar `OVERDUE` em projeções (cálculo na query).
-
-### 3. Permissões
-
-Estender catálogo de permissões com:
-`finance.view`, `finance.manage`, `finance.cashflow.view`, `finance.income.manage`, `finance.expense.manage`, `finance.receivables.manage`, `finance.payables.manage`, `finance.categories.manage`, `finance.view_costs`.
-
-Atribuir ao perfil `owner` e `financial` por padrão via migração de seed de role_permissions (sem quebrar perfis existentes).
-
-### 4. Rota e menu
-
-- Nova rota autenticada `src/routes/_authenticated/finance.tsx` envolta em `<PermissionRoute module="finance">`.
-- Substituir/atualizar `src/routes/_authenticated/financial.tsx` para redirecionar a `/finance` (ou apenas adicionar a nova).
-- Adicionar item "Financeiro" no `AppSidebar` apontando para `/finance` com ícone `Wallet`.
-
-### 5. Componentes (`src/components/finance/`)
-
-`FinancePage`, `FinanceTabs` (Visão Geral, Fluxo de Caixa, Entradas, Saídas, A Receber, A Pagar, Categorias), `FinanceOverview`, `FinanceMetricCard`, `CashFlowView` (tabela), `FinancialTransactionTable`, `FinancialTransactionForm` (Sheet com RHF+Zod), `IncomeList`, `ExpenseList`, `ReceivablesList`, `PayablesList`, `FinancialCategoriesManager`, `FinanceEmptyState`, `FinanceFilters` (presets de período + custom).
-
-UX: linguagem simples, cards com hint curto, sem mocks; empty state padrão SmartCom.
-
-### 6. Aceite
-
-- `/finance` carrega para usuários com `finance.view`; bloqueio amigável para os demais.
-- Criar/editar/marcar pago/cancelar entrada e saída via UI funcionam.
-- Overview e Fluxo de Caixa usam dados reais (zero para empresa nova).
-- Empresa A vê apenas seus lançamentos; Empresa B vê zero (RLS).
-- Build/typecheck passam.
-
-### Notas técnicas
-
-- Não tocar em billing SaaS, Asaas, webhooks, dashboard, quotes, OS, PDF, estoque.
-- `companyId` derivado server-side; nunca aceito do cliente.
-- Tudo soft delete em `financial_transactions`.
-- Categorias padrão chamadas em `ensureDefaultFinancialCategories` no primeiro acesso à página.
-
-Posso seguir?
+Confirme (ou ajuste A/B) que eu executo numa única rodada: migração → server fns → UI → smoke test.

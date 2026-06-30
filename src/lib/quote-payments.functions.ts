@@ -56,6 +56,33 @@ export const approveQuotePayment = createServerFn({ method: "POST" })
       _note: data.note ?? null,
     });
     if (error) throw new Error(error.message);
+
+    // Best-effort: mirror payment into linked financial receivable.
+    try {
+      const { data: pay } = await sb
+        .from("quote_payments")
+        .select("quote_id, payment_method, company_id")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (pay?.quote_id) {
+        const { data: row } = await sb
+          .from("financial_transactions")
+          .select("id, status")
+          .eq("company_id", pay.company_id)
+          .eq("quote_id", pay.quote_id)
+          .eq("type", "INCOME")
+          .is("deleted_at", null)
+          .maybeSingle();
+        if (row && row.status !== "PAID") {
+          await sb.from("financial_transactions").update({
+            status: "PAID",
+            paid_at: new Date().toISOString(),
+            payment_method: pay.payment_method ?? null,
+          }).eq("id", row.id);
+        }
+      }
+    } catch { /* non-blocking */ }
+
     return { ok: true };
   });
 
