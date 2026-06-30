@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   Users, Package, FileText, DollarSign, TrendingUp, Activity,
   PackageX, AlertTriangle, Boxes, CheckCircle2, Clock, PercentCircle,
@@ -32,7 +32,7 @@ function Dashboard() {
   const showStock = canView("stock") && hasFeature("inventory");
   const companyContext = useCompanyContext();
   const companyId = companyContext.companyId;
-  const dashboardFilters = { from: null, to: null };
+  const dashboardFilters = useMemo(() => ({ from: null, to: null }), []);
 
   const fetchDashboard = useServerFn(getDashboardMetrics);
 

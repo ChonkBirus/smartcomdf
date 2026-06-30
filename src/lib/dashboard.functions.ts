@@ -270,14 +270,14 @@ async function getRecentActivity(sb: any, companyId: string): Promise<DashboardM
   try {
     const { data, error } = await sb
       .from("activity_logs")
-      .select("id, action, created_at")
+      .select("id, description, created_at")
       .eq("company_id", companyId)
       .order("created_at", { ascending: false })
       .limit(5);
     if (error) throw error;
     return (data ?? []).map((row: any) => ({
       id: row.id,
-      label: row.action ?? "Atividade registrada",
+      label: row.description ?? "Atividade registrada",
       created_at: row.created_at,
     }));
   } catch (error) {
