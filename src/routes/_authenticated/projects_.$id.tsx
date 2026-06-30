@@ -324,6 +324,8 @@ function ProjectDetailPage() {
           <p className="whitespace-pre-wrap text-sm text-muted-foreground">{project.notes}</p>
         </div>
       )}
+
+      <ProjectFinancialSummary projectId={project.id} />
         </TabsContent>
 
         <TabsContent value="planning">
