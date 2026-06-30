@@ -63,7 +63,8 @@ export const createReceivableFromQuote = createServerFn({ method: "POST" })
       .maybeSingle();
     if (qerr) throw new Error(qerr.message);
     if (!quote) throw new Error("Orçamento não encontrado.");
-    if (quote.status !== "APPROVED" && quote.status !== "CONVERTED") {
+    const qStatus = String(quote.status);
+    if (qStatus !== "APPROVED" && qStatus !== "CONVERTED") {
       throw new Error("Orçamento precisa estar aprovado.");
     }
 
@@ -112,7 +113,7 @@ export const markReceivablePaidFromQuote = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!row) return { ok: false, reason: "not_found" };
     if (row.status === "PAID") return { ok: true, already: true };
-    const patch: Record<string, unknown> = {
+    const patch: any = {
       status: "PAID",
       paid_at: data.paid_at ?? new Date().toISOString(),
     };
