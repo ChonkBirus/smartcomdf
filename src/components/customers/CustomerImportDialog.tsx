@@ -160,7 +160,10 @@ export function CustomerImportDialog({
   const [result, setResult] = useState<any | null>(null);
 
   useEffect(() => {
-    if (open) console.log("[CUSTOMER IMPORT] modal mounted");
+    if (open) {
+      console.log("[CUSTOMER IMPORT] open modal true");
+      console.log("[CUSTOMER IMPORT] modal mounted");
+    }
   }, [open]);
 
   const rowsQuery = useQuery({
