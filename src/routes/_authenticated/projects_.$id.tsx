@@ -30,6 +30,7 @@ import {
   type ProjectStatus, type ProjectPriority,
 } from "@/lib/projects.functions";
 import { ProjectPlanningPanel } from "@/components/projects/ProjectPlanningPanel";
+import { ProjectFinancialSummary } from "@/components/finance/ProjectFinancialSummary";
 import { CreateServiceOrderFromProjectButton } from "@/components/service-orders/CreateServiceOrderFromProjectButton";
 
 export const Route = createFileRoute("/_authenticated/projects_/$id")({

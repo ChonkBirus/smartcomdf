@@ -28,6 +28,7 @@ import {
   getServiceOrder, updateServiceOrder, cancelServiceOrder, listCompanyTechnicians,
   type ServiceOrderStatus, type ServiceOrderPriority,
 } from "@/lib/service-orders.functions";
+import { ServiceOrderFinancialSummary } from "@/components/finance/ServiceOrderFinancialSummary";
 
 export const Route = createFileRoute("/_authenticated/service-orders_/$id")({
   head: () => ({ meta: [{ title: "Detalhe da OS — SecureERP" }] }),
@@ -355,6 +356,8 @@ function ServiceOrderDetailPage() {
           </TableBody>
         </Table>
       </div>
+
+      <ServiceOrderFinancialSummary serviceOrderId={so.id} />
 
       <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <AlertDialogContent>
