@@ -22,6 +22,7 @@ import {
   type ProductUnit,
 } from "@/lib/products.functions";
 import { ImageUploader, type ItemImage } from "./ImageUploader";
+import { ProductPricingSuggestion } from "./ProductPricingSuggestion";
 
 const UNITS: { value: ProductUnit; label: string }[] = [
   { value: "UN", label: "UN — Unidade" },
@@ -336,13 +337,19 @@ export function ItemFormSheet({
                 />
               </Field>
               <Field label="Preço de venda (R$)">
-                <Input
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={form.sale_price}
-                  onChange={(e) => setForm({ ...form, sale_price: e.target.value })}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={form.sale_price}
+                    onChange={(e) => setForm({ ...form, sale_price: e.target.value })}
+                  />
+                  <ProductPricingSuggestion
+                    costPrice={form.cost_price}
+                    onApply={(price) => setForm({ ...form, sale_price: String(price) })}
+                  />
+                </div>
               </Field>
               <Field label="Unidade de medida">
                 <Select value={form.unit} onValueChange={(v) => setForm({ ...form, unit: v as ProductUnit })}>
