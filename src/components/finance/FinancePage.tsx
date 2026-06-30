@@ -490,6 +490,24 @@ export function FinancePage() {
   const [sheet, setSheet] = useState<{ open: boolean; type: FinTxType }>({ open: false, type: "INCOME" });
   const o = overview.data;
 
+  const [highlightTxId, setHighlightTxId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("overview");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("transaction");
+    if (!id) return;
+    setHighlightTxId(id);
+    setActiveTab("cashflow");
+    // Clean the URL so reloads don't re-trigger.
+    const url = new URL(window.location.href);
+    url.searchParams.delete("transaction");
+    window.history.replaceState({}, "", url.pathname + (url.search || "") + url.hash);
+    const t = setTimeout(() => setHighlightTxId(null), 5000);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
