@@ -284,6 +284,7 @@ export type Database = {
           financial_transaction_id: string | null
           id: string
           matched_by: string
+          source: string
           status: string
           updated_at: string
         }
@@ -297,6 +298,7 @@ export type Database = {
           financial_transaction_id?: string | null
           id?: string
           matched_by?: string
+          source?: string
           status?: string
           updated_at?: string
         }
@@ -310,17 +312,11 @@ export type Database = {
           financial_transaction_id?: string | null
           id?: string
           matched_by?: string
+          source?: string
           status?: string
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "bank_reconciliations_bank_transaction_id_fkey"
-            columns: ["bank_transaction_id"]
-            isOneToOne: false
-            referencedRelation: "openfinance_transactions"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "bank_reconciliations_company_id_fkey"
             columns: ["company_id"]
