@@ -10,6 +10,10 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { getSupplier, saveSupplier } from "@/lib/suppliers.functions";
+import { CepInput } from "@/components/shared/CepInput";
+import type { CepResult } from "@/lib/address-lookup";
+import { CustomerCnpjLookupButton } from "@/components/customers/CustomerCnpjLookupDialog";
+import type { CnpjLookupResultDTO } from "@/lib/cnpj-lookup.functions";
 
 type FormState = {
   id?: string;
@@ -118,11 +122,34 @@ export function SupplierFormSheet({
               </div>
               <div>
                 <Label>CPF/CNPJ *</Label>
-                <Input value={form.cpf_cnpj} onChange={(e) => set("cpf_cnpj", e.target.value)} required />
+                <div className="flex gap-2">
+                  <Input value={form.cpf_cnpj} onChange={(e) => set("cpf_cnpj", e.target.value)} required />
+                  <CustomerCnpjLookupButton
+                    cnpj={form.cpf_cnpj}
+                    hasExistingData={!!(form.corporate_name || form.address || form.zipcode)}
+                    onApply={(r: CnpjLookupResultDTO) => {
+                      setForm((s) => ({
+                        ...s,
+                        corporate_name: r.corporate_name || s.corporate_name,
+                        trade_name: r.trade_name || s.trade_name,
+                        email: r.email || s.email,
+                        phone: r.phone || s.phone,
+                        zipcode: r.zipcode || s.zipcode,
+                        address: r.address || s.address,
+                        number: r.number || s.number,
+                        complement: r.complement || s.complement,
+                        district: r.district || s.district,
+                        city: r.city || s.city,
+                        state: r.state || s.state,
+                      }));
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </section>
           <Separator />
+
           <section className="space-y-3">
             <h3 className="text-sm font-semibold">Contato</h3>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -136,7 +163,24 @@ export function SupplierFormSheet({
           <section className="space-y-3">
             <h3 className="text-sm font-semibold">Endereço</h3>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div><Label>CEP</Label><Input value={form.zipcode} onChange={(e) => set("zipcode", e.target.value)} /></div>
+              <div>
+                <Label>CEP</Label>
+                <CepInput
+                  value={form.zipcode}
+                  onChange={(v: string) => set("zipcode", v)}
+                  onResolve={(r: CepResult) => {
+                    setForm((s) => ({
+                      ...s,
+                      zipcode: r.cep,
+                      address: s.address?.trim() ? s.address : r.street,
+                      district: s.district?.trim() ? s.district : r.district,
+                      city: s.city?.trim() ? s.city : r.city,
+                      state: s.state?.trim() ? s.state : r.state,
+                      complement: s.complement?.trim() ? s.complement : (r.complement ?? s.complement),
+                    }));
+                  }}
+                />
+              </div>
               <div><Label>Cidade</Label><Input value={form.city} onChange={(e) => set("city", e.target.value)} /></div>
               <div className="sm:col-span-2"><Label>Endereço</Label><Input value={form.address} onChange={(e) => set("address", e.target.value)} /></div>
               <div><Label>Número</Label><Input value={form.number} onChange={(e) => set("number", e.target.value)} /></div>
