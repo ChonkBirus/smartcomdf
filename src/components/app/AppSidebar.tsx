@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Package, Users, Boxes, FileText,
   DollarSign, HeartHandshake, Wrench, BarChart3, Settings, Shield, ShieldCheck, Lock,
-  Building2, ShoppingCart, Sparkles, Briefcase, Bot, LifeBuoy,
+  Building2, ShoppingCart, Sparkles, Briefcase, Bot, LifeBuoy, Wallet,
 } from "lucide-react";
 
 import {
@@ -48,7 +48,7 @@ const groups: { label: string; items: Item[] }[] = [
   {
     label: "Gestão",
     items: [
-      { title: "Financeiro", url: "/financial", icon: DollarSign, module: "financial", feature: "financial" },
+      { title: "Financeiro", url: "/finance", icon: Wallet, module: "finance" },
       { title: "CRM", url: "/crm", icon: HeartHandshake, module: "crm", feature: "crm" },
       { title: "Ordens de Serviço", url: "/service-orders", icon: Wrench, module: "service_orders", feature: "service_orders" },
       { title: "Minhas OS", url: "/service-orders/my", icon: Wrench, module: "service_orders", feature: "service_orders" },
