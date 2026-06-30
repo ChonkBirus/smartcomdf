@@ -97,8 +97,23 @@ export function BankStatementReconciliationPanel() {
         },
       });
     },
-    onSuccess: () => {
-      toast.success("Lançamento financeiro criado e conciliado.");
+    onSuccess: (res: any) => {
+      if (res?.already_existed) {
+        const finId = res?.financial_transaction_id;
+        toast.warning("Já existe um lançamento para esta linha do extrato.", {
+          description: "Nenhum duplicado foi criado.",
+          action: finId
+            ? {
+                label: "Ver lançamento",
+                onClick: () => {
+                  window.location.href = `/finance?transaction=${finId}`;
+                },
+              }
+            : undefined,
+        });
+      } else {
+        toast.success("Lançamento financeiro criado e conciliado.");
+      }
       refresh();
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao criar lançamento."),
