@@ -1249,6 +1249,71 @@ export type Database = {
           },
         ]
       }
+      company_cost_settings: {
+        Row: {
+          allocation_method: string
+          company_id: string
+          created_at: string
+          default_card_fee_rate: number
+          default_commission_rate: number
+          default_desired_margin_rate: number
+          default_fixed_cost_allocation_rate: number
+          default_operational_cost_rate: number
+          default_tax_rate: number
+          default_warranty_reserve_rate: number
+          expected_monthly_revenue: number | null
+          expected_monthly_sales_count: number | null
+          id: string
+          monthly_fixed_costs_total: number
+          monthly_operational_costs_total: number
+          updated_at: string
+        }
+        Insert: {
+          allocation_method?: string
+          company_id: string
+          created_at?: string
+          default_card_fee_rate?: number
+          default_commission_rate?: number
+          default_desired_margin_rate?: number
+          default_fixed_cost_allocation_rate?: number
+          default_operational_cost_rate?: number
+          default_tax_rate?: number
+          default_warranty_reserve_rate?: number
+          expected_monthly_revenue?: number | null
+          expected_monthly_sales_count?: number | null
+          id?: string
+          monthly_fixed_costs_total?: number
+          monthly_operational_costs_total?: number
+          updated_at?: string
+        }
+        Update: {
+          allocation_method?: string
+          company_id?: string
+          created_at?: string
+          default_card_fee_rate?: number
+          default_commission_rate?: number
+          default_desired_margin_rate?: number
+          default_fixed_cost_allocation_rate?: number
+          default_operational_cost_rate?: number
+          default_tax_rate?: number
+          default_warranty_reserve_rate?: number
+          expected_monthly_revenue?: number | null
+          expected_monthly_sales_count?: number | null
+          id?: string
+          monthly_fixed_costs_total?: number
+          monthly_operational_costs_total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_cost_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_settings: {
         Row: {
           company_id: string
@@ -2774,6 +2839,96 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      pricing_simulations: {
+        Row: {
+          additional_costs: number
+          applied_to_item: boolean
+          card_fee_rate: number
+          commission_rate: number
+          company_id: string
+          cost_price: number
+          created_at: string
+          current_price: number | null
+          desired_margin_rate: number
+          estimated_margin_rate: number
+          estimated_profit: number
+          fixed_cost_allocation_rate: number
+          id: string
+          item_id: string | null
+          item_name: string
+          markup_multiplier: number
+          markup_percentage: number
+          operational_cost_rate: number
+          suggested_price: number
+          tax_rate: number
+          user_id: string | null
+          warranty_reserve_rate: number
+        }
+        Insert: {
+          additional_costs?: number
+          applied_to_item?: boolean
+          card_fee_rate?: number
+          commission_rate?: number
+          company_id: string
+          cost_price?: number
+          created_at?: string
+          current_price?: number | null
+          desired_margin_rate?: number
+          estimated_margin_rate?: number
+          estimated_profit?: number
+          fixed_cost_allocation_rate?: number
+          id?: string
+          item_id?: string | null
+          item_name: string
+          markup_multiplier?: number
+          markup_percentage?: number
+          operational_cost_rate?: number
+          suggested_price?: number
+          tax_rate?: number
+          user_id?: string | null
+          warranty_reserve_rate?: number
+        }
+        Update: {
+          additional_costs?: number
+          applied_to_item?: boolean
+          card_fee_rate?: number
+          commission_rate?: number
+          company_id?: string
+          cost_price?: number
+          created_at?: string
+          current_price?: number | null
+          desired_margin_rate?: number
+          estimated_margin_rate?: number
+          estimated_profit?: number
+          fixed_cost_allocation_rate?: number
+          id?: string
+          item_id?: string | null
+          item_name?: string
+          markup_multiplier?: number
+          markup_percentage?: number
+          operational_cost_rate?: number
+          suggested_price?: number
+          tax_rate?: number
+          user_id?: string | null
+          warranty_reserve_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_simulations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_simulations_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_import_jobs: {
         Row: {

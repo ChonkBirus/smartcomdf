@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plus, Wallet, TrendingUp, TrendingDown, AlertTriangle, Calendar, CheckCircle2, XCircle, Trash2, Pencil } from "lucide-react";
+import { Plus, Wallet, TrendingUp, TrendingDown, AlertTriangle, Calendar, CheckCircle2, XCircle, Trash2, Pencil, Settings2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -480,6 +481,11 @@ export function FinancePage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <FinanceFilters preset={preset} onChange={setPreset} custom={custom} onCustom={setCustom} />
+          <Button asChild variant="outline">
+            <Link to="/finance/pricing/settings">
+              <Settings2 className="mr-1 h-4 w-4" /> Custos & Precificação
+            </Link>
+          </Button>
           <Button onClick={() => setSheet({ open: true, type: "INCOME" })}>
             <Plus className="mr-1 h-4 w-4" /> Entrada
           </Button>
