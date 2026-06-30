@@ -226,6 +226,23 @@ export function CustomerImportDialog({
           ))}
         </div>
 
+        {busy && (
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              {parsing
+                ? "Processando arquivo..."
+                : validateMutation.isPending
+                  ? "Validando linhas no servidor..."
+                  : "Importando clientes — não feche esta janela..."}
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div className="h-full w-1/3 animate-[progress_1.2s_ease-in-out_infinite] rounded-full bg-primary" style={{ animation: "progress-indeterminate 1.2s ease-in-out infinite" }} />
+            </div>
+            <style>{`@keyframes progress-indeterminate{0%{margin-left:-33%}100%{margin-left:100%}}`}</style>
+          </div>
+        )}
+
         {/* STEP: UPLOAD */}
         {step === "upload" && (
           <div className="space-y-4">
