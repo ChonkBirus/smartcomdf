@@ -300,7 +300,11 @@ function TransactionTable({ rows, onChanged, highlightId }: { rows: FinancialTra
               {rows.map((t) => {
                 const eff = effStatus(t);
                 return (
-                  <TableRow key={t.id}>
+                  <TableRow
+                    key={t.id}
+                    ref={(el) => { rowRefs.current[t.id] = el; }}
+                    className={highlightId === t.id ? "bg-primary/10 ring-2 ring-primary ring-inset transition-colors" : undefined}
+                  >
                     <TableCell className="whitespace-nowrap">{t.due_date ?? "—"}</TableCell>
                     <TableCell>
                       <div className="font-medium">{t.description}</div>
