@@ -49,6 +49,14 @@ export function BankStatementReconciliationPanel() {
     queryFn: () => listFn({ data: { status, minScore: 50, limit: 100 } }),
   });
 
+  useEffect(() => {
+    if (!highlightBankId) return;
+    const el = rowRefs.current[highlightBankId];
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    const t = setTimeout(() => setHighlightBankId(null), 4500);
+    return () => clearTimeout(t);
+  }, [highlightBankId, q.data]);
+
   const refresh = () =>
     qc.invalidateQueries({ queryKey: ["bank-statement-suggestions"] });
 
