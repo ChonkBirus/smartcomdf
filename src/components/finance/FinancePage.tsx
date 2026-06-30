@@ -27,6 +27,7 @@ import {
 } from "@/lib/finance.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
 import { FinancialHealthScoreCard, FinancialHealthPage } from "@/components/finance/FinancialHealthPage";
+import { FinanceAgentChat } from "@/components/finance/FinanceAgentChat";
 
 const BRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -506,6 +507,7 @@ export function FinancePage() {
           <TabsTrigger value="receivables">A Receber</TabsTrigger>
           <TabsTrigger value="payables">A Pagar</TabsTrigger>
           <TabsTrigger value="categories">Categorias</TabsTrigger>
+          <TabsTrigger value="agent">Agente IA</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4 space-y-4">
@@ -542,6 +544,9 @@ export function FinancePage() {
         </TabsContent>
         <TabsContent value="categories" className="mt-4">
           <CategoriesManager />
+        </TabsContent>
+        <TabsContent value="agent" className="mt-4">
+          <FinanceAgentChat />
         </TabsContent>
       </Tabs>
 
