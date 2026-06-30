@@ -151,7 +151,7 @@ export const Route = createFileRoute("/api/finance-agent/chat")({
         } catch { /* RPC opcional */ }
 
         const snapshot: Snapshot = {
-          empresa: { id: companyId, nome: company?.name ?? null },
+          empresa: { id: companyId, nome: companyName },
           periodo: { de: iso(from), ate: iso(today) },
           caixa_periodo: { entradas: incomeTotal, saidas: expenseTotal, saldo: incomeTotal - expenseTotal },
           contas_a_receber: { aberto_total: recvOpen, vencidas_qtd: recvOverdueQty, vencidas_total: recvOverdueAmt },
