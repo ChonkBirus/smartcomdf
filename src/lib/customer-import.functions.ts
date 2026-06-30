@@ -6,6 +6,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const HEADER_ALIASES: Record<string, string> = {
   // type
   "tipo": "customer_type",
+  "tipo cliente": "customer_type",
+  "tipo_cliente": "customer_type",
   "tipo de cliente": "customer_type",
   "pessoa": "customer_type",
   "pessoa fisica": "customer_type",
@@ -14,6 +16,8 @@ const HEADER_ALIASES: Record<string, string> = {
   "nome": "name",
   "nome do cliente": "name",
   "cliente": "name",
+  "nome razao social": "name",
+  "nome_razao_social": "name",
   "razao social": "corporate_name",
   "razão social": "corporate_name",
   "nome fantasia": "trade_name",
@@ -61,12 +65,18 @@ const HEADER_ALIASES: Record<string, string> = {
   "referência": "addr_reference",
   // contact extra
   "contato": "contact_name",
+  "contato nome": "contact_name",
+  "contato_nome": "contact_name",
   "nome do contato": "contact_name",
   "responsavel": "contact_name",
   "responsável": "contact_name",
   "cargo": "contact_role",
+  "contato telefone": "contact_phone",
+  "contato_telefone": "contact_phone",
   "telefone do contato": "contact_phone",
   "whatsapp do contato": "contact_whatsapp",
+  "contato email": "contact_email",
+  "contato_email": "contact_email",
   "email do contato": "contact_email",
   "e-mail do contato": "contact_email",
   // tags
@@ -135,6 +145,14 @@ export function suggestMapping(headers: string[]): Record<string, TargetField> {
 
 function onlyDigits(v: any): string {
   return String(v ?? "").replace(/\D/g, "");
+}
+
+function normText(v: any): string {
+  return String(v ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
 }
 
 function isValidEmail(v: string): boolean {
