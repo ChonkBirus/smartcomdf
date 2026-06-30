@@ -60,8 +60,10 @@ export function ProductPricingSuggestion({
   onApply: (price: number) => void;
 }) {
   const { has } = usePermissions();
-  const canView = has("finance.pricing.view");
-  const canApply = has("finance.apply_suggested_price");
+  const canViewCosts = has("finance.view_costs");
+  const canViewPricing = has("finance.pricing.view");
+  const canView = canViewPricing && canViewCosts;
+  const canApply = canView && has("finance.apply_suggested_price");
 
   const [open, setOpen] = useState(false);
   const [rates, setRates] = useState<Rates>(EMPTY_RATES);
