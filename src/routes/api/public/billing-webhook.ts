@@ -29,6 +29,7 @@ export const Route = createFileRoute("/api/public/billing-webhook")({
 
         const token = request.headers.get("asaas-access-token");
         if (!tokensMatch(token, expected)) {
+          console.warn("[ASAAS WEBHOOK] invalid token");
           return new Response("Unauthorized", { status: 401 });
         }
 
