@@ -260,7 +260,40 @@ export const createFinancialFromStatementTransaction = createServerFn({ method: 
     const { data: b } = await sb.from("bank_statement_transactions")
       .select("*").eq("id", data.bankStatementTransactionId).eq("company_id", companyId).maybeSingle();
     if (!b) throw new Error("Lançamento bancário não encontrado.");
-    if (b.reconciliation_status === "RECONCILED") throw new Error("Já conciliado.");
+
+    // Idempotência: se já existe lançamento vinculado a esta linha do extrato,
+    // não criar duplicata — retornar o existente.
+    if (b.reconciled_financial_transaction_id) {
+      return {
+        ok: true,
+        financial_transaction_id: b.reconciled_financial_transaction_id,
+        already_existed: true,
+      };
+    }
+    if (b.reconciliation_status === "RECONCILED") {
+      return { ok: true, financial_transaction_id: null, already_existed: true };
+    }
+
+    // Defesa adicional: reconciliação confirmada existente para esta linha.
+    const { data: existingRec } = await sb.from("bank_reconciliations")
+      .select("financial_transaction_id")
+      .eq("company_id", companyId)
+      .eq("bank_transaction_id", b.id)
+      .eq("status", "CONFIRMED")
+      .maybeSingle();
+    if (existingRec?.financial_transaction_id) {
+      await sb.from("bank_statement_transactions")
+        .update({
+          reconciliation_status: "RECONCILED",
+          reconciled_financial_transaction_id: existingRec.financial_transaction_id,
+        })
+        .eq("id", b.id);
+      return {
+        ok: true,
+        financial_transaction_id: existingRec.financial_transaction_id,
+        already_existed: true,
+      };
+    }
 
     const type = b.type === "CREDIT" ? "INCOME" : "EXPENSE";
     const amount = Math.abs(Number(b.amount));
