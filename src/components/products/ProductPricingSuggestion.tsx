@@ -146,16 +146,6 @@ export function ProductPricingSuggestion({
 
   if (!canView) {
     const reason = missingMessage("Sugestão de preço indisponível");
-    toast.success(`Preço sugerido aplicado: ${BRL(result.suggested_price)}`);
-    setOpen(false);
-  }
-
-  if (!canView) {
-    const missing = [
-      !canViewPricing && "finance.pricing.view",
-      !canViewCosts && "finance.view_costs",
-    ].filter(Boolean).join(" e ");
-    const reason = `Você não tem permissão para usar a sugestão de preço (faltando: ${missing}). Peça ao responsável financeiro.`;
     return (
       <Button
         type="button"
