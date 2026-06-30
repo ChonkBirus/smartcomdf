@@ -43,6 +43,7 @@ import { Route as AuthenticatedAssistantRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as ApiPublicOpenFinanceWebhookRouteImport } from './routes/api/public/open-finance-webhook'
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing-webhook'
 import { Route as ApiFinanceAgentChatRouteImport } from './routes/api/finance-agent.chat'
 import { Route as ApiAssistantChatRouteImport } from './routes/api/assistant.chat'
@@ -248,6 +249,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const ApiPublicOpenFinanceWebhookRoute =
+  ApiPublicOpenFinanceWebhookRouteImport.update({
+    id: '/api/public/open-finance-webhook',
+    path: '/api/public/open-finance-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicBillingWebhookRoute = ApiPublicBillingWebhookRouteImport.update({
   id: '/api/public/billing-webhook',
   path: '/api/public/billing-webhook',
@@ -487,6 +494,7 @@ export interface FileRoutesByFullPath {
   '/api/assistant/chat': typeof ApiAssistantChatRoute
   '/api/finance-agent/chat': typeof ApiFinanceAgentChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
+  '/api/public/open-finance-webhook': typeof ApiPublicOpenFinanceWebhookRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/admin/pilot-detail/$id': typeof AuthenticatedAdminPilotDetailIdRoute
@@ -551,6 +559,7 @@ export interface FileRoutesByTo {
   '/api/assistant/chat': typeof ApiAssistantChatRoute
   '/api/finance-agent/chat': typeof ApiFinanceAgentChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
+  '/api/public/open-finance-webhook': typeof ApiPublicOpenFinanceWebhookRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/admin/pilot-detail/$id': typeof AuthenticatedAdminPilotDetailIdRoute
@@ -619,6 +628,7 @@ export interface FileRoutesById {
   '/api/assistant/chat': typeof ApiAssistantChatRoute
   '/api/finance-agent/chat': typeof ApiFinanceAgentChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
+  '/api/public/open-finance-webhook': typeof ApiPublicOpenFinanceWebhookRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/admin/pilot-detail/$id': typeof AuthenticatedAdminPilotDetailIdRoute
@@ -687,6 +697,7 @@ export interface FileRouteTypes {
     | '/api/assistant/chat'
     | '/api/finance-agent/chat'
     | '/api/public/billing-webhook'
+    | '/api/public/open-finance-webhook'
     | '/admin/'
     | '/settings/'
     | '/admin/pilot-detail/$id'
@@ -751,6 +762,7 @@ export interface FileRouteTypes {
     | '/api/assistant/chat'
     | '/api/finance-agent/chat'
     | '/api/public/billing-webhook'
+    | '/api/public/open-finance-webhook'
     | '/admin'
     | '/settings'
     | '/admin/pilot-detail/$id'
@@ -818,6 +830,7 @@ export interface FileRouteTypes {
     | '/api/assistant/chat'
     | '/api/finance-agent/chat'
     | '/api/public/billing-webhook'
+    | '/api/public/open-finance-webhook'
     | '/_authenticated/admin/'
     | '/_authenticated/settings/'
     | '/_authenticated/admin/pilot-detail/$id'
@@ -841,6 +854,7 @@ export interface RootRouteChildren {
   ApiAssistantChatRoute: typeof ApiAssistantChatRoute
   ApiFinanceAgentChatRoute: typeof ApiFinanceAgentChatRoute
   ApiPublicBillingWebhookRoute: typeof ApiPublicBillingWebhookRoute
+  ApiPublicOpenFinanceWebhookRoute: typeof ApiPublicOpenFinanceWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
@@ -1083,6 +1097,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/api/public/open-finance-webhook': {
+      id: '/api/public/open-finance-webhook'
+      path: '/api/public/open-finance-webhook'
+      fullPath: '/api/public/open-finance-webhook'
+      preLoaderRoute: typeof ApiPublicOpenFinanceWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/billing-webhook': {
       id: '/api/public/billing-webhook'
@@ -1474,6 +1495,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAssistantChatRoute: ApiAssistantChatRoute,
   ApiFinanceAgentChatRoute: ApiFinanceAgentChatRoute,
   ApiPublicBillingWebhookRoute: ApiPublicBillingWebhookRoute,
+  ApiPublicOpenFinanceWebhookRoute: ApiPublicOpenFinanceWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
