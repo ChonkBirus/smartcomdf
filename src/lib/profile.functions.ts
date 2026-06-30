@@ -25,14 +25,31 @@ export const updateMyProfile = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+const optStr = (max: number) =>
+  z.preprocess(
+    (v) => (v == null || v === "" ? "" : String(v)),
+    z.string().trim().max(max),
+  ).optional().or(z.literal(""));
+
 const companySchema = z.object({
   corporate_name: z.string().trim().min(2).max(150),
-  trade_name: z.string().trim().max(150).optional().or(z.literal("")),
-  cnpj: z.string().trim().max(20).optional().or(z.literal("")),
-  phone: z.string().trim().max(20).optional().or(z.literal("")),
-  whatsapp: z.string().trim().max(20).optional().or(z.literal("")),
-  email: z.string().trim().email().max(255).optional().or(z.literal("")),
-  logo_url: z.string().trim().max(500).optional().or(z.literal("")),
+  trade_name: optStr(150),
+  cnpj: optStr(20),
+  phone: optStr(20),
+  whatsapp: optStr(20),
+  email: z.preprocess(
+    (v) => (v == null ? "" : String(v).trim()),
+    z.union([z.literal(""), z.string().email().max(255)]),
+  ).optional(),
+  logo_url: optStr(500),
+  zipcode: optStr(20),
+  street: optStr(200),
+  number: optStr(20),
+  complement: optStr(200),
+  district: optStr(120),
+  city: optStr(120),
+  state: optStr(2),
+  country: optStr(2),
 });
 
 export const updateMyCompany = createServerFn({ method: "POST" })
@@ -52,21 +69,31 @@ export const updateMyCompany = createServerFn({ method: "POST" })
       throw new Error("Apenas o proprietário pode editar a empresa.");
     }
 
+    const nz = (v: string | undefined | null) => (v && v.trim() ? v.trim() : null);
     const { error } = await supabase
       .from("companies")
       .update({
         corporate_name: data.corporate_name,
-        trade_name: data.trade_name || null,
-        cnpj: data.cnpj || null,
-        phone: data.phone || null,
-        whatsapp: data.whatsapp || null,
-        email: data.email || null,
-        logo_url: data.logo_url || null,
-      })
+        trade_name: nz(data.trade_name),
+        cnpj: nz(data.cnpj),
+        phone: nz(data.phone),
+        whatsapp: nz(data.whatsapp),
+        email: nz(data.email),
+        logo_url: nz(data.logo_url),
+        zipcode: nz(data.zipcode),
+        street: nz(data.street),
+        number: nz(data.number),
+        complement: nz(data.complement),
+        district: nz(data.district),
+        city: nz(data.city),
+        state: nz(data.state),
+        country: nz(data.country) ?? "BR",
+      } as any)
       .eq("id", me.company_id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 
 export const getSignedImageUrl = createServerFn({ method: "POST" })
