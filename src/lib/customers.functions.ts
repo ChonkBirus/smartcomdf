@@ -263,20 +263,22 @@ const addressSchema = z.object({
 
 const contactSchema = z.object({
   id: z.string().uuid().optional(),
-  name: z.string().trim().min(1, "Nome é obrigatório.").max(150),
+  name: z.preprocess((v) => (v == null ? "" : v), z.string().trim().max(150)).default(""),
   role: nstr(100),
   email: z.preprocess(
-    (v) => (v === null || v === undefined || v === "" ? undefined : v),
-    z.string().trim().email("Informe um e-mail válido.").max(200),
-  ).optional(),
+    (v) => {
+      if (v === null || v === undefined) return undefined;
+      const s = String(v).trim();
+      return s === "" ? undefined : s;
+    },
+    z.string().email("Informe um e-mail válido.").max(200).optional(),
+  ).optional().nullable(),
   phone: nstr(30),
   whatsapp: nstr(30),
   is_primary: z.boolean().default(false),
   active: z.boolean().default(true),
-}).refine((c) => (c.phone && c.phone.length > 0) || (c.whatsapp && c.whatsapp.length > 0), {
-  message: "Informe telefone ou WhatsApp.",
-  path: ["phone"],
 });
+
 
 const customerSchema = z.object({
   id: z.string().uuid().optional(),
