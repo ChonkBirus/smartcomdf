@@ -241,7 +241,12 @@ export function CustomerImportDialog({
   });
 
   const confirmMutation = useMutation({
-    mutationFn: () => confirmFn({ data: { job_id: jobId!, create_tags: createTags } }),
+    mutationFn: () => {
+      if (!companyId) {
+        throw new Error("Não foi possível identificar a empresa ativa. Recarregue a página e tente novamente.");
+      }
+      return confirmFn({ data: { job_id: jobId!, create_tags: createTags } });
+    },
     onMutate: () => {
       if (!companyId) {
         console.error("[CUSTOMER IMPORT] companyId", companyId);
@@ -287,6 +292,8 @@ export function CustomerImportDialog({
 
 
   const busy = parsing || validateMutation.isPending || confirmMutation.isPending;
+  const previewRows = rowsQuery.data ?? [];
+  const previewLoading = step === "preview" && rowsQuery.isLoading;
 
   return (
     <Dialog
@@ -470,6 +477,12 @@ export function CustomerImportDialog({
               </Select>
             </div>
 
+            {previewLoading && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" /> Carregando prévia...
+              </div>
+            )}
+
             <ScrollArea className="h-[320px] rounded-md border">
               <table className="w-full text-xs">
                 <thead className="sticky top-0 bg-muted/60 text-left">
@@ -487,7 +500,7 @@ export function CustomerImportDialog({
                   </tr>
                 </thead>
                 <tbody>
-                  {(rowsQuery.data ?? []).map((r: any) => (
+                  {previewRows.map((r: any) => (
                     <tr key={r.id} className="border-t">
                       <td className="px-2 py-1.5">{r.row_number}</td>
                       <td className="px-2 py-1.5">{r.mapped_data?.customer_type ?? "—"}</td>
@@ -519,10 +532,10 @@ export function CustomerImportDialog({
               <AlertDescription className="text-xs space-y-1">
                 <div>Total de linhas: {validation.total}</div>
                 <div>
-                  Clientes novos: {(rowsQuery.data ?? []).filter((r: any) => r.action === "CREATE").length}
+                  Clientes novos: {previewRows.filter((r: any) => r.action === "CREATE").length}
                 </div>
                 <div>
-                  Clientes atualizados: {(rowsQuery.data ?? []).filter((r: any) => r.action === "UPDATE").length}
+                  Clientes atualizados: {previewRows.filter((r: any) => r.action === "UPDATE").length}
                 </div>
                 <div>Linhas com erro: {validation.invalid}</div>
                 <div>Endereços a criar: {validation.addresses_to_create}</div>
@@ -588,7 +601,7 @@ export function CustomerImportDialog({
               <Button variant="outline" onClick={() => setStep("mapping")}>
                 Voltar
               </Button>
-              <Button onClick={() => confirmMutation.mutate()} disabled={!validation || validation.valid === 0 || confirmMutation.isPending}>
+              <Button onClick={() => confirmMutation.mutate()} disabled={!validation || validation.valid === 0 || previewLoading || confirmMutation.isPending}>
                 {confirmMutation.isPending && <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />}
                 Importar clientes válidos
               </Button>
