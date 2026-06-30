@@ -53,7 +53,7 @@ function Dashboard() {
   }, [companyContext.data, companyId, metrics.data, metrics.error]);
 
   const data = metrics.data ?? emptyDashboardMetrics;
-  const openServiceOrders = data.serviceOrders.scheduled + data.serviceOrders.inProgress + data.serviceOrders.overdue;
+  const openServiceOrders = Math.max(0, (data.serviceOrders.total ?? 0) - (data.serviceOrders.completed ?? 0));
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -140,7 +140,7 @@ function Dashboard() {
         </>
       )}
 
-      {showStock && (
+      {showStock && !!companyId && !metrics.isError && (
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
           <KpiCard title="Itens sem estoque" value={String(data.stock.outOfStock ?? 0)} icon={<PackageX className="h-5 w-5" />} />
           <KpiCard title="Abaixo do mínimo" value={String(data.stock.lowStock ?? 0)} icon={<AlertTriangle className="h-5 w-5" />} />
