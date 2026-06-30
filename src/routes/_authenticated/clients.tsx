@@ -70,8 +70,8 @@ function ClientsPage() {
   const [importOpen, setImportOpen] = useState(false);
 
   const companyId = useCompanyId();
-  const { can, isOwner, isSuperAdmin } = usePermissions();
-  const canImportCustomers = can("clients", "import");
+  const { can, has, isOwner, isSuperAdmin } = usePermissions();
+  const canImportCustomers = can("clients", "import") || has("customers.import");
   const userRole = isSuperAdmin ? "super_admin" : isOwner ? "owner" : "member";
   const fetchList = useServerFn(listCustomers);
   const fetchTags = useServerFn(listCustomerTags);
