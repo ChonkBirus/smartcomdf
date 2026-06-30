@@ -223,11 +223,14 @@ export const listBankAccountsForImport = createServerFn({ method: "GET" })
     const cid = await getCompanyId(context.supabase, context.userId);
     const { data, error } = await context.supabase
       .from("financial_bank_accounts")
-      .select("id, name")
+      .select("id, bank_name, account_name")
       .eq("company_id", cid)
       .eq("active", true)
-      .order("name");
+      .order("bank_name");
     if (error) throw new Error(error.message);
-    return (data ?? []) as Array<{ id: string; name: string }>;
+    return ((data ?? []) as Array<{ id: string; bank_name: string; account_name: string | null }>).map((a) => ({
+      id: a.id,
+      name: a.account_name ? `${a.bank_name} — ${a.account_name}` : a.bank_name,
+    }));
   });
 
