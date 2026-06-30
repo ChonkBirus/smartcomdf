@@ -263,20 +263,22 @@ const addressSchema = z.object({
 
 const contactSchema = z.object({
   id: z.string().uuid().optional(),
-  name: z.string().trim().min(1, "Nome é obrigatório.").max(150),
+  name: z.preprocess((v) => (v == null ? "" : v), z.string().trim().max(150)).default(""),
   role: nstr(100),
   email: z.preprocess(
-    (v) => (v === null || v === undefined || v === "" ? undefined : v),
-    z.string().trim().email("Informe um e-mail válido.").max(200),
-  ).optional(),
+    (v) => {
+      if (v === null || v === undefined) return undefined;
+      const s = String(v).trim();
+      return s === "" ? undefined : s;
+    },
+    z.string().email("Informe um e-mail válido.").max(200).optional(),
+  ).optional().nullable(),
   phone: nstr(30),
   whatsapp: nstr(30),
   is_primary: z.boolean().default(false),
   active: z.boolean().default(true),
-}).refine((c) => (c.phone && c.phone.length > 0) || (c.whatsapp && c.whatsapp.length > 0), {
-  message: "Informe telefone ou WhatsApp.",
-  path: ["phone"],
 });
+
 
 const customerSchema = z.object({
   id: z.string().uuid().optional(),
@@ -572,11 +574,26 @@ export const saveCustomer = createServerFn({ method: "POST" })
       if (errA) throw new Error(errA.message);
     }
 
-    // Contacts: replace strategy
+    // Contacts: replace strategy (filter out fully empty rows; require a name when other data is present)
     await sb.from("customer_contacts").delete().eq("customer_id", customerId);
-    if (data.contacts.length > 0) {
-      const hasPrimary = data.contacts.some((c) => c.is_primary);
-      const rows = data.contacts.map((c, idx) => ({
+    const cleanContacts = (data.contacts ?? [])
+      .map((c) => ({
+        ...c,
+        name: (c.name ?? "").trim(),
+        role: c.role ?? null,
+        email: c.email ?? null,
+        phone: c.phone ?? null,
+        whatsapp: c.whatsapp ?? null,
+      }))
+      .filter((c) => c.name || c.role || c.email || c.phone || c.whatsapp);
+    for (const c of cleanContacts) {
+      if (!c.name) {
+        throw new Error("Contato precisa de um nome quando há outros dados preenchidos.");
+      }
+    }
+    if (cleanContacts.length > 0) {
+      const hasPrimary = cleanContacts.some((c) => c.is_primary);
+      const rows = cleanContacts.map((c, idx) => ({
         company_id: cid,
         customer_id: customerId,
         name: c.name,
@@ -590,6 +607,7 @@ export const saveCustomer = createServerFn({ method: "POST" })
       const { error: errC } = await sb.from("customer_contacts").insert(rows);
       if (errC) throw new Error(errC.message);
     }
+
 
     // Tags: replace strategy
     await sb.from("customer_tag_relations").delete().eq("customer_id", customerId);

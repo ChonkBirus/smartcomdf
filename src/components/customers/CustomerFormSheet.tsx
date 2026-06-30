@@ -23,6 +23,8 @@ import { COUNTRIES, statesFor, isValidEmail } from "@/lib/locations";
 import { CustomerCnpjLookupButton } from "@/components/customers/CustomerCnpjLookupDialog";
 import type { CnpjLookupResultDTO } from "@/lib/cnpj-lookup.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
+import { CepInput } from "@/components/shared/CepInput";
+import type { CepResult } from "@/lib/address-lookup";
 
 type AddrRow = Omit<CustomerAddress, "id" | "company_id" | "customer_id" | "created_at" | "updated_at"> & { id?: string };
 type ContactRow = Omit<CustomerContact, "id" | "company_id" | "customer_id" | "created_at" | "updated_at"> & { id?: string };
@@ -208,9 +210,19 @@ export function CustomerFormSheet({
     if (!form.email.trim()) errs.email = "E-mail é obrigatório.";
     else if (!isValidEmail(form.email)) errs.email = "Informe um e-mail válido.";
     if (!form.phone.trim() && !form.whatsapp.trim()) errs.whatsapp = "Informe WhatsApp ou Telefone.";
-    form.contacts.forEach((c, i) => {
-      if (!c.name?.trim()) errs[`contact_${i}_name`] = "Nome é obrigatório.";
-      if (!c.phone && !c.whatsapp) errs[`contact_${i}_phone`] = "Informe telefone ou WhatsApp.";
+    // Filter out fully empty contacts before validating/sending.
+    const cleanedContacts = form.contacts
+      .map((c) => ({
+        ...c,
+        name: (c.name ?? "").trim(),
+        role: (c.role ?? "").trim() || null,
+        email: (c.email ?? "").trim() || null,
+        phone: (c.phone ?? "").trim() || null,
+        whatsapp: (c.whatsapp ?? "").trim() || null,
+      }))
+      .filter((c) => c.name || c.role || c.email || c.phone || c.whatsapp);
+    cleanedContacts.forEach((c, i) => {
+      if (!c.name) errs[`contact_${i}_name`] = "Nome é obrigatório.";
       if (c.email && !isValidEmail(c.email)) errs[`contact_${i}_email`] = "Informe um e-mail válido.";
     });
     form.addresses.forEach((a, i) => {
@@ -227,8 +239,9 @@ export function CustomerFormSheet({
       toast.error("Verifique os campos destacados.");
       return;
     }
-    mutation.mutate(form);
+    mutation.mutate({ ...form, contacts: cleanedContacts as any });
   }
+
 
   const isCompany = form.customer_type === "COMPANY";
   const docDigits = form.cpf_cnpj.replace(/\D/g, "");
@@ -493,14 +506,39 @@ export function CustomerFormSheet({
                     </div>
                     <div>
                       <Label>CEP *</Label>
-                      <Input value={a.country === "US" ? (a.zipcode ?? "") : maskZip(a.zipcode ?? "")}
-                        aria-invalid={!!errors[`addr_${i}_zipcode`]}
-                        className={errors[`addr_${i}_zipcode`] ? "border-destructive" : ""}
-                        onChange={(e) => {
-                          const next = [...form.addresses]; next[i] = { ...a, zipcode: e.target.value }; set("addresses", next);
-                        }} />
+                      {a.country === "BR" ? (
+                        <CepInput
+                          value={a.zipcode ?? ""}
+                          aria-invalid={!!errors[`addr_${i}_zipcode`]}
+                          className={errors[`addr_${i}_zipcode`] ? "border-destructive" : ""}
+                          onChange={(v: string) => {
+                            const next = [...form.addresses]; next[i] = { ...a, zipcode: v }; set("addresses", next);
+                          }}
+                          onResolve={(r: CepResult) => {
+                            const next = [...form.addresses];
+                            next[i] = {
+                              ...a,
+                              zipcode: r.cep,
+                              street: a.street?.trim() ? a.street : r.street,
+                              district: a.district?.trim() ? a.district : r.district,
+                              city: a.city?.trim() ? a.city : r.city,
+                              state: a.state?.trim() ? a.state : r.state,
+                              complement: a.complement?.trim() ? a.complement : (r.complement ?? a.complement ?? null),
+                            };
+                            set("addresses", next);
+                          }}
+                        />
+                      ) : (
+                        <Input value={a.zipcode ?? ""}
+                          aria-invalid={!!errors[`addr_${i}_zipcode`]}
+                          className={errors[`addr_${i}_zipcode`] ? "border-destructive" : ""}
+                          onChange={(e) => {
+                            const next = [...form.addresses]; next[i] = { ...a, zipcode: e.target.value }; set("addresses", next);
+                          }} />
+                      )}
                       {errors[`addr_${i}_zipcode`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_zipcode`]}</p>}
                     </div>
+
                     <div>
                       <Label>UF *</Label>
                       <Select
