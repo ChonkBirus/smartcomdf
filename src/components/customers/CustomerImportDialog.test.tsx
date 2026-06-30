@@ -86,9 +86,10 @@ describe("CustomerImportDialog — loading/disabled states", () => {
     });
 
     await waitFor(() =>
-      expect(screen.queryByText(/processando arquivo|validando linhas|importando clientes/i)).toBeNull(),
+      expect(
+        screen.queryAllByText(/processando arquivo|validando linhas|importando clientes/i).length,
+      ).toBe(0),
     );
-    // step transicionou para "mapping" — input de upload não está mais montado
     expect(document.querySelector('input[type="file"]')).toBeNull();
   });
 
