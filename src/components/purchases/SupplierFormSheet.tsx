@@ -163,7 +163,24 @@ export function SupplierFormSheet({
           <section className="space-y-3">
             <h3 className="text-sm font-semibold">Endereço</h3>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div><Label>CEP</Label><Input value={form.zipcode} onChange={(e) => set("zipcode", e.target.value)} /></div>
+              <div>
+                <Label>CEP</Label>
+                <CepInput
+                  value={form.zipcode}
+                  onChange={(v: string) => set("zipcode", v)}
+                  onResolve={(r: CepResult) => {
+                    setForm((s) => ({
+                      ...s,
+                      zipcode: r.cep,
+                      address: s.address?.trim() ? s.address : r.street,
+                      district: s.district?.trim() ? s.district : r.district,
+                      city: s.city?.trim() ? s.city : r.city,
+                      state: s.state?.trim() ? s.state : r.state,
+                      complement: s.complement?.trim() ? s.complement : (r.complement ?? s.complement),
+                    }));
+                  }}
+                />
+              </div>
               <div><Label>Cidade</Label><Input value={form.city} onChange={(e) => set("city", e.target.value)} /></div>
               <div className="sm:col-span-2"><Label>Endereço</Label><Input value={form.address} onChange={(e) => set("address", e.target.value)} /></div>
               <div><Label>Número</Label><Input value={form.number} onChange={(e) => set("number", e.target.value)} /></div>
