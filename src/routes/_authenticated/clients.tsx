@@ -135,7 +135,7 @@ function ClientsPage() {
         actions={
           <div className="flex items-center gap-2">
             <Can module="clients" action="import">
-              <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <Button variant="outline" onClick={() => setImportOpen(true)} disabled={importOpen}>
                 <Upload className="mr-1 h-4 w-4" />Importar
               </Button>
             </Can>

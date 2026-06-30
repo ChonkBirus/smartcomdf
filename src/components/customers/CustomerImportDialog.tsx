@@ -186,15 +186,18 @@ export function CustomerImportDialog({
     return targets.includes("cpf_cnpj") && (targets.includes("name") || targets.includes("corporate_name")) && targets.includes("email");
   }, [mapping]);
 
+  const busy = parsing || validateMutation.isPending || confirmMutation.isPending;
+
   return (
     <Dialog
       open={open}
       onOpenChange={(o) => {
+        if (!o && busy) return; // bloqueia fechar durante operação
         onOpenChange(o);
         if (!o) reset();
       }}
     >
-      <DialogContent className="max-w-5xl">
+      <DialogContent className="max-w-5xl" onPointerDownOutside={(e) => busy && e.preventDefault()} onEscapeKeyDown={(e) => busy && e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Importar clientes</DialogTitle>
           <DialogDescription>
@@ -222,6 +225,23 @@ export function CustomerImportDialog({
             </div>
           ))}
         </div>
+
+        {busy && (
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              {parsing
+                ? "Processando arquivo..."
+                : validateMutation.isPending
+                  ? "Validando linhas no servidor..."
+                  : "Importando clientes — não feche esta janela..."}
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div className="h-full w-1/3 animate-[progress_1.2s_ease-in-out_infinite] rounded-full bg-primary" style={{ animation: "progress-indeterminate 1.2s ease-in-out infinite" }} />
+            </div>
+            <style>{`@keyframes progress-indeterminate{0%{margin-left:-33%}100%{margin-left:100%}}`}</style>
+          </div>
+        )}
 
         {/* STEP: UPLOAD */}
         {step === "upload" && (
@@ -437,13 +457,13 @@ export function CustomerImportDialog({
 
         <DialogFooter>
           {step === "upload" && (
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
               Cancelar
             </Button>
           )}
           {step === "mapping" && (
             <>
-              <Button variant="outline" onClick={() => setStep("upload")}>
+              <Button variant="outline" onClick={() => setStep("upload")} disabled={busy}>
                 Voltar
               </Button>
               <Button onClick={() => validateMutation.mutate()} disabled={!mappingReady || validateMutation.isPending}>
@@ -464,7 +484,7 @@ export function CustomerImportDialog({
           )}
           {step === "confirm" && (
             <>
-              <Button variant="outline" onClick={() => setStep("preview")}>
+              <Button variant="outline" onClick={() => setStep("preview")} disabled={busy}>
                 Voltar
               </Button>
               <Button onClick={() => confirmMutation.mutate()} disabled={confirmMutation.isPending}>
