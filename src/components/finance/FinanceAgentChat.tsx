@@ -103,9 +103,13 @@ export function FinanceAgentChat() {
                   {isUser ? (
                     <p className="whitespace-pre-wrap">{text}</p>
                   ) : (
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <ReactMarkdown>{text || "…"}</ReactMarkdown>
-                    </div>
+                    <div
+                      className="prose prose-sm dark:prose-invert max-w-none"
+                      dangerouslySetInnerHTML={{
+                        __html: marked.parse(text || "…", { async: false }) as string,
+                      }}
+                    />
+
                   )}
                 </div>
               </div>
