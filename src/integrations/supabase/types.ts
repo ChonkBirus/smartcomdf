@@ -273,6 +273,70 @@ export type Database = {
           },
         ]
       }
+      bank_reconciliations: {
+        Row: {
+          bank_transaction_id: string
+          company_id: string
+          confidence_score: number | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          financial_transaction_id: string | null
+          id: string
+          matched_by: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bank_transaction_id: string
+          company_id: string
+          confidence_score?: number | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          financial_transaction_id?: string | null
+          id?: string
+          matched_by?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bank_transaction_id?: string
+          company_id?: string
+          confidence_score?: number | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          financial_transaction_id?: string | null
+          id?: string
+          matched_by?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_reconciliations_bank_transaction_id_fkey"
+            columns: ["bank_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "openfinance_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_reconciliations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_reconciliations_financial_transaction_id_fkey"
+            columns: ["financial_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "financial_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       billing_charges: {
         Row: {
           amount: number
@@ -1963,6 +2027,84 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_bank_accounts: {
+        Row: {
+          account_name: string | null
+          account_number_masked: string | null
+          account_type: string | null
+          active: boolean
+          agency: string | null
+          balance: number
+          bank_code: string | null
+          bank_name: string
+          company_id: string
+          consent_status: string | null
+          created_at: string
+          currency: string
+          id: string
+          last_sync_at: string | null
+          openfinance_connection_id: string | null
+          provider: string
+          provider_account_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_name?: string | null
+          account_number_masked?: string | null
+          account_type?: string | null
+          active?: boolean
+          agency?: string | null
+          balance?: number
+          bank_code?: string | null
+          bank_name: string
+          company_id: string
+          consent_status?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          last_sync_at?: string | null
+          openfinance_connection_id?: string | null
+          provider?: string
+          provider_account_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string | null
+          account_number_masked?: string | null
+          account_type?: string | null
+          active?: boolean
+          agency?: string | null
+          balance?: number
+          bank_code?: string | null
+          bank_name?: string
+          company_id?: string
+          consent_status?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          last_sync_at?: string | null
+          openfinance_connection_id?: string | null
+          provider?: string
+          provider_account_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_bank_accounts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_bank_accounts_openfinance_connection_id_fkey"
+            columns: ["openfinance_connection_id"]
+            isOneToOne: false
+            referencedRelation: "openfinance_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_categories: {
         Row: {
           active: boolean
@@ -2027,6 +2169,7 @@ export type Database = {
           due_date: string | null
           id: string
           notes: string | null
+          openfinance_transaction_id: string | null
           origin: string
           paid_at: string | null
           payment_method: string | null
@@ -2051,6 +2194,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           notes?: string | null
+          openfinance_transaction_id?: string | null
           origin?: string
           paid_at?: string | null
           payment_method?: string | null
@@ -2075,6 +2219,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           notes?: string | null
+          openfinance_transaction_id?: string | null
           origin?: string
           paid_at?: string | null
           payment_method?: string | null
@@ -2591,6 +2736,204 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      openfinance_connections: {
+        Row: {
+          company_id: string
+          consent_expires_at: string | null
+          consent_id: string | null
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          id: string
+          last_sync_at: string | null
+          provider: string
+          provider_connection_id: string | null
+          provider_item_id: string | null
+          revoked_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          consent_expires_at?: string | null
+          consent_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          last_sync_at?: string | null
+          provider: string
+          provider_connection_id?: string | null
+          provider_item_id?: string | null
+          revoked_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          consent_expires_at?: string | null
+          consent_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          last_sync_at?: string | null
+          provider?: string
+          provider_connection_id?: string | null
+          provider_item_id?: string | null
+          revoked_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "openfinance_connections_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      openfinance_transactions: {
+        Row: {
+          amount: number
+          bank_account_id: string | null
+          category_suggestion: string | null
+          company_id: string
+          connection_id: string | null
+          created_at: string
+          description: string
+          id: string
+          ignore_reason: string | null
+          provider: string
+          provider_transaction_id: string
+          raw_payload: Json | null
+          reconciled_transaction_id: string | null
+          reconciliation_status: string
+          transaction_date: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          bank_account_id?: string | null
+          category_suggestion?: string | null
+          company_id: string
+          connection_id?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          ignore_reason?: string | null
+          provider: string
+          provider_transaction_id: string
+          raw_payload?: Json | null
+          reconciled_transaction_id?: string | null
+          reconciliation_status?: string
+          transaction_date: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bank_account_id?: string | null
+          category_suggestion?: string | null
+          company_id?: string
+          connection_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          ignore_reason?: string | null
+          provider?: string
+          provider_transaction_id?: string
+          raw_payload?: Json | null
+          reconciled_transaction_id?: string | null
+          reconciliation_status?: string
+          transaction_date?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "openfinance_transactions_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "financial_bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "openfinance_transactions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "openfinance_transactions_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "openfinance_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      openfinance_webhook_events: {
+        Row: {
+          company_id: string | null
+          connection_id: string | null
+          created_at: string
+          error_message: string | null
+          event_id: string | null
+          event_type: string | null
+          id: string
+          payload: Json
+          processed_at: string | null
+          provider: string
+          status: string
+        }
+        Insert: {
+          company_id?: string | null
+          connection_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          event_id?: string | null
+          event_type?: string | null
+          id?: string
+          payload: Json
+          processed_at?: string | null
+          provider: string
+          status?: string
+        }
+        Update: {
+          company_id?: string | null
+          connection_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          event_id?: string | null
+          event_type?: string | null
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          provider?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "openfinance_webhook_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "openfinance_webhook_events_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "openfinance_connections"
             referencedColumns: ["id"]
           },
         ]
