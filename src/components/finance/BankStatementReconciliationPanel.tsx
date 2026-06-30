@@ -184,8 +184,20 @@ export function BankStatementReconciliationPanel() {
                 </div>
 
                 {row.candidates.length === 0 ? (
-                  <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
-                    Nenhum lançamento financeiro suficientemente próximo. Crie um novo a partir desta linha pelo módulo financeiro.
+                  <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-dashed p-3">
+                    <div className="text-xs text-muted-foreground">
+                      Nenhum lançamento financeiro próximo encontrado.
+                    </div>
+                    {row.bankTransaction.reconciliation_status !== "RECONCILED" && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={createMut.isPending}
+                        onClick={() => createMut.mutate(row.bankTransaction)}
+                      >
+                        <Plus className="mr-1.5 h-4 w-4" /> Criar lançamento
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <div className="divide-y rounded-md border">
