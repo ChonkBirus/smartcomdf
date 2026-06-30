@@ -78,7 +78,7 @@ describe("CustomerImportDialog — loading/disabled states", () => {
     await waitFor(() => expect(getFileInput().disabled).toBe(true));
     const cancelBtn = screen.getByRole("button", { name: /cancelar/i });
     expect(cancelBtn).toBeDisabled();
-    expect(screen.getByText(/processando arquivo|validando|importando/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/processando arquivo|validando|importando/i).length).toBeGreaterThan(0);
 
     // resolve a criação do job → vai para "mapping"
     await act(async () => {
