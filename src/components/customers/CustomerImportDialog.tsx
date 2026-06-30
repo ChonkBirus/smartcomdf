@@ -164,9 +164,11 @@ export function CustomerImportDialog({
     mutationFn: () => validateFn({ data: { job_id: jobId!, mapping } }),
     onSuccess: (data) => {
       setValidation(data);
+      setFilter("all");
       setStep("preview");
+      toast.success(`Validação concluída: ${data.valid} válidas, ${data.invalid} com erro.`);
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao validar importação."),
   });
 
   const confirmMutation = useMutation({
@@ -174,8 +176,9 @@ export function CustomerImportDialog({
     onSuccess: (data) => {
       setResult(data);
       setStep("done");
+      toast.success(`Importação concluída: ${data.created} criados, ${data.updated} atualizados.`);
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao confirmar importação."),
   });
 
   const mappingReady = useMemo(() => {
