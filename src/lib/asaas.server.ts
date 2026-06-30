@@ -55,6 +55,9 @@ function getEnv() {
     env === "production"
       ? "https://api.asaas.com/v3"
       : "https://sandbox.asaas.com/api/v3";
+  if (env === "production" && apiKey.includes("sandbox")) {
+    console.warn("[ASAAS] WARNING: production env but sandbox-looking key");
+  }
   return { apiKey, baseUrl, env };
 }
 
