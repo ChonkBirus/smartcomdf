@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { CheckCircle2, EyeOff, Loader2, Sparkles, Undo2 } from "lucide-react";
+import { CheckCircle2, EyeOff, Loader2, Plus, Sparkles, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,8 +15,10 @@ import {
   confirmStatementReconciliation,
   ignoreStatementTransaction,
   undoStatementReconciliation,
+  createFinancialFromStatementTransaction,
   type StatementSuggestion,
 } from "@/lib/bank-statement-reconciliation.functions";
+import { suggestCategoryForDescription } from "@/lib/bank-statement-categorize.functions";
 
 const BRL = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
