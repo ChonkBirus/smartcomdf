@@ -2,6 +2,18 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Download, TrendingUp, TrendingDown, Wallet, AlertTriangle, FileBarChart } from "lucide-react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -189,7 +201,58 @@ export function FinanceReportsPage({ filters }: { filters: Filters }) {
         <CategoryTable title="Saídas por categoria" rows={r?.expenseByCategory ?? []} />
       </div>
 
+      {r?.monthly && r.monthly.length > 0 && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card>
+            <CardContent className="p-0">
+              <div className="border-b px-4 py-3">
+                <h3 className="text-sm font-semibold">Entradas vs Saídas por mês</h3>
+              </div>
+              <div className="h-64 p-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={r.monthly}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                    <Tooltip formatter={(v: number) => BRL(v)} />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <Bar dataKey="income" name="Entradas" fill="hsl(var(--success, 142 76% 36%))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="expense" name="Saídas" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-0">
+              <div className="border-b px-4 py-3">
+                <h3 className="text-sm font-semibold">Saldo por período</h3>
+              </div>
+              <div className="h-64 p-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={r.monthly}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                    <Tooltip formatter={(v: number) => BRL(v)} />
+                    <Line
+                      type="monotone"
+                      dataKey="balance"
+                      name="Saldo"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <Card>
+
         <CardContent className="p-0">
           <div className="border-b px-4 py-3">
             <h3 className="text-sm font-semibold">Resumo mensal</h3>
