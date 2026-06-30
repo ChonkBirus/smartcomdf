@@ -208,9 +208,19 @@ export function CustomerFormSheet({
     if (!form.email.trim()) errs.email = "E-mail é obrigatório.";
     else if (!isValidEmail(form.email)) errs.email = "Informe um e-mail válido.";
     if (!form.phone.trim() && !form.whatsapp.trim()) errs.whatsapp = "Informe WhatsApp ou Telefone.";
-    form.contacts.forEach((c, i) => {
-      if (!c.name?.trim()) errs[`contact_${i}_name`] = "Nome é obrigatório.";
-      if (!c.phone && !c.whatsapp) errs[`contact_${i}_phone`] = "Informe telefone ou WhatsApp.";
+    // Filter out fully empty contacts before validating/sending.
+    const cleanedContacts = form.contacts
+      .map((c) => ({
+        ...c,
+        name: (c.name ?? "").trim(),
+        role: (c.role ?? "").trim() || null,
+        email: (c.email ?? "").trim() || null,
+        phone: (c.phone ?? "").trim() || null,
+        whatsapp: (c.whatsapp ?? "").trim() || null,
+      }))
+      .filter((c) => c.name || c.role || c.email || c.phone || c.whatsapp);
+    cleanedContacts.forEach((c, i) => {
+      if (!c.name) errs[`contact_${i}_name`] = "Nome é obrigatório.";
       if (c.email && !isValidEmail(c.email)) errs[`contact_${i}_email`] = "Informe um e-mail válido.";
     });
     form.addresses.forEach((a, i) => {
@@ -227,8 +237,9 @@ export function CustomerFormSheet({
       toast.error("Verifique os campos destacados.");
       return;
     }
-    mutation.mutate(form);
+    mutation.mutate({ ...form, contacts: cleanedContacts as any });
   }
+
 
   const isCompany = form.customer_type === "COMPANY";
   const docDigits = form.cpf_cnpj.replace(/\D/g, "");
