@@ -5,6 +5,16 @@ import { cn } from "@/lib/utils";
 
 marked.setOptions({ gfm: true, breaks: true });
 
+const UNSAFE_URI = /^\s*(javascript|data|vbscript):/i;
+DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+  if (node.nodeType !== 1) return;
+  const el = node as Element;
+  for (const attr of ["href", "src", "xlink:href"]) {
+    const v = el.getAttribute(attr);
+    if (v && UNSAFE_URI.test(v)) el.removeAttribute(attr);
+  }
+});
+
 interface MarkdownRendererProps {
   content: string;
   className?: string;
@@ -16,7 +26,6 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
     return DOMPurify.sanitize(raw, {
       FORBID_TAGS: ["style", "script", "iframe", "object", "embed", "form", "svg", "math"],
       FORBID_ATTR: ["style", "onerror", "onload", "onclick", "onmouseover", "onfocus"],
-      ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel|ftp):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
     });
   }, [content]);
 
