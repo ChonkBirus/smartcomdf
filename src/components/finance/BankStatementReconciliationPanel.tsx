@@ -167,8 +167,18 @@ export function BankStatementReconciliationPanel() {
         />
       ) : (
         <div className="space-y-3">
-          {q.data.map((row: StatementSuggestion) => (
-            <Card key={row.bankTransaction.id}>
+          {q.data.map((row: StatementSuggestion) => {
+            const isHighlighted = highlightBankId === row.bankTransaction.id;
+            return (
+            <Card
+              key={row.bankTransaction.id}
+              ref={(el) => { rowRefs.current[row.bankTransaction.id] = el; }}
+              className={
+                isHighlighted
+                  ? "ring-2 ring-primary ring-offset-2 transition-shadow"
+                  : undefined
+              }
+            >
               <CardContent className="space-y-3 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
