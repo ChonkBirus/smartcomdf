@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CustomerFormSheet } from "@/components/customers/CustomerFormSheet";
 import { CustomerHistorySheet } from "@/components/customers/CustomerHistorySheet";
+import { CustomerFinancialSummary } from "@/components/finance/CustomerFinancialSummary";
 import { getCustomer } from "@/lib/customers.functions";
 import { toast } from "sonner";
 
@@ -216,6 +217,8 @@ function CustomerDetailsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <CustomerFinancialSummary customerId={c.id} />
 
       <CustomerFormSheet open={editOpen} onOpenChange={setEditOpen} customerId={c.id} />
       <CustomerHistorySheet open={historyOpen} onOpenChange={setHistoryOpen}
