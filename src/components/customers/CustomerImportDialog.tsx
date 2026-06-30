@@ -457,13 +457,13 @@ export function CustomerImportDialog({
 
         <DialogFooter>
           {step === "upload" && (
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
               Cancelar
             </Button>
           )}
           {step === "mapping" && (
             <>
-              <Button variant="outline" onClick={() => setStep("upload")}>
+              <Button variant="outline" onClick={() => setStep("upload")} disabled={busy}>
                 Voltar
               </Button>
               <Button onClick={() => validateMutation.mutate()} disabled={!mappingReady || validateMutation.isPending}>
