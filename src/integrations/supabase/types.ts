@@ -1898,6 +1898,189 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_categories: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          parent_id: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          parent_id?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          parent_id?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_categories_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "financial_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_transactions: {
+        Row: {
+          amount: number
+          category_id: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          deleted_at: string | null
+          description: string
+          due_date: string | null
+          id: string
+          notes: string | null
+          origin: string
+          paid_at: string | null
+          payment_method: string | null
+          project_id: string | null
+          purchase_id: string | null
+          quote_id: string | null
+          service_order_id: string | null
+          status: string
+          supplier_id: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category_id?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          deleted_at?: string | null
+          description: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          origin?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          project_id?: string | null
+          purchase_id?: string | null
+          quote_id?: string | null
+          service_order_id?: string | null
+          status?: string
+          supplier_id?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          deleted_at?: string | null
+          description?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          origin?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          project_id?: string | null
+          purchase_id?: string | null
+          quote_id?: string | null
+          service_order_id?: string | null
+          status?: string
+          supplier_id?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "financial_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transactions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transactions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transactions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transactions_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transactions_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transactions_service_order_id_fkey"
+            columns: ["service_order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transactions_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       item_images: {
         Row: {
           company_id: string
@@ -6027,6 +6210,10 @@ export type Database = {
         Returns: undefined
       }
       remove_project_team_member: { Args: { _id: string }; Returns: undefined }
+      seed_default_financial_categories: {
+        Args: { _company_id: string }
+        Returns: undefined
+      }
       service_order_execute_transition: {
         Args: {
           _action: string
