@@ -507,6 +507,7 @@ export function FinancePage() {
           <TabsTrigger value="receivables">A Receber</TabsTrigger>
           <TabsTrigger value="payables">A Pagar</TabsTrigger>
           <TabsTrigger value="categories">Categorias</TabsTrigger>
+          <TabsTrigger value="agent">Agente IA</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4 space-y-4">
