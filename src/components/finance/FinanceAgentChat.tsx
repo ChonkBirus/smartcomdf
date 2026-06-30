@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
-import ReactMarkdown from "react-markdown";
+import { marked } from "marked";
 import { Send, Sparkles, Loader2, StopCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -103,9 +103,13 @@ export function FinanceAgentChat() {
                   {isUser ? (
                     <p className="whitespace-pre-wrap">{text}</p>
                   ) : (
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <ReactMarkdown>{text || "…"}</ReactMarkdown>
-                    </div>
+                    <div
+                      className="prose prose-sm dark:prose-invert max-w-none"
+                      dangerouslySetInnerHTML={{
+                        __html: marked.parse(text || "…", { async: false }) as string,
+                      }}
+                    />
+
                   )}
                 </div>
               </div>
