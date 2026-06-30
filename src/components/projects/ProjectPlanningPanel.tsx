@@ -27,6 +27,7 @@ import {
   checkProjectMaterials, markReadyForOS, listCompanyUsers,
   type MaterialCheckStatus,
 } from "@/lib/project-planning.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 const PRIORITY_LABEL: Record<string, string> = {
   LOW: "Baixa", NORMAL: "Normal", HIGH: "Alta", URGENT: "Urgente",
@@ -64,16 +65,19 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
   const removeMemberFn = useServerFn(removeTeamMember);
   const checkFn = useServerFn(checkProjectMaterials);
   const readyFn = useServerFn(markReadyForOS);
+  const companyId = useCompanyId();
 
   const locked = project.status === "CANCELLED" || project.status === "COMPLETED";
 
   const planQuery = useQuery({
-    queryKey: ["project-planning", project.id],
+    queryKey: ["project-planning", companyId, project.id],
     queryFn: () => fetchPlanning({ data: { project_id: project.id } }),
+    enabled: !!companyId,
   });
   const usersQuery = useQuery({
-    queryKey: ["company-users"],
+    queryKey: ["company-users", companyId],
     queryFn: () => fetchUsers(),
+    enabled: !!companyId,
   });
 
   const [form, setForm] = useState({

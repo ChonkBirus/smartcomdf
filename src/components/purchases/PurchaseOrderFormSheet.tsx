@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { listSuppliers } from "@/lib/suppliers.functions";
 import { listStockItems } from "@/lib/stock.functions";
 import { getPurchaseOrder, savePurchaseOrder } from "@/lib/purchases.functions";
+import { useCompanyId } from "@/hooks/use-company-id";
 
 type Line = { id?: string; item_id: string; quantity: number; unit_cost: number };
 
@@ -24,6 +25,7 @@ export function PurchaseOrderFormSheet({
   const save = useServerFn(savePurchaseOrder);
   const fetchSuppliers = useServerFn(listSuppliers);
   const fetchItems = useServerFn(listStockItems);
+  const companyId = useCompanyId();
 
   const [supplierId, setSupplierId] = useState("");
   const [issueDate, setIssueDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -32,19 +34,19 @@ export function PurchaseOrderFormSheet({
   const [lines, setLines] = useState<Line[]>([]);
 
   const { data: suppliers } = useQuery({
-    queryKey: ["suppliers", "active"],
+    queryKey: ["suppliers", companyId, "active"],
     queryFn: () => fetchSuppliers({ data: { active: true } }),
-    enabled: open,
+    enabled: open && !!companyId,
   });
   const { data: items } = useQuery({
-    queryKey: ["stock_items"],
+    queryKey: ["stock_items", companyId],
     queryFn: () => fetchItems(),
-    enabled: open,
+    enabled: open && !!companyId,
   });
   const { data: existing } = useQuery({
-    queryKey: ["po", orderId],
+    queryKey: ["po", companyId, orderId],
     queryFn: () => fetchOne({ data: { id: orderId! } }),
-    enabled: !!orderId && open,
+    enabled: !!orderId && open && !!companyId,
   });
 
   useEffect(() => {
