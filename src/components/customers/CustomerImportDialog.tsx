@@ -601,7 +601,7 @@ export function CustomerImportDialog({
               <Button variant="outline" onClick={() => setStep("upload")} disabled={busy}>
                 Voltar
               </Button>
-              <Button onClick={() => validateMutation.mutate()} disabled={!mappingReady || validateMutation.isPending}>
+              <Button onClick={() => validateMutation.mutate()} disabled={!mappingReady || busy}>
                 {validateMutation.isPending && <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />}
                 Validar
               </Button>
