@@ -190,22 +190,22 @@ function Dashboard() {
         <Card className="card-elevated">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <Activity className="h-4 w-4 text-primary" /> Status do sistema
+              <Activity className="h-4 w-4 text-primary" /> Atividade recente
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-2 text-sm sm:grid-cols-3">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Banco de dados</span>
-              <span className="text-success font-medium">Operacional</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Autenticação</span>
-              <span className="text-success font-medium">Operacional</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Armazenamento</span>
-              <span className="text-success font-medium">Operacional</span>
-            </div>
+          <CardContent className="space-y-3 text-sm">
+            {(data.recentActivity ?? []).length === 0 ? (
+              <p className="text-muted-foreground">Nenhuma atividade real registrada para esta empresa.</p>
+            ) : (
+              (data.recentActivity ?? []).map((activity) => (
+                <div key={activity.id} className="flex flex-col gap-1 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <span>{activity.label}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {activity.created_at ? new Date(activity.created_at).toLocaleString("pt-BR") : "—"}
+                  </span>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
       </div>
