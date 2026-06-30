@@ -216,3 +216,18 @@ export const listBankStatementTransactions = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return (rows ?? []) as BankStatementTransaction[];
   });
+
+export const listBankAccountsForImport = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const cid = await getCompanyId(context.supabase, context.userId);
+    const { data, error } = await context.supabase
+      .from("financial_bank_accounts")
+      .select("id, name")
+      .eq("company_id", cid)
+      .eq("active", true)
+      .order("name");
+    if (error) throw new Error(error.message);
+    return (data ?? []) as Array<{ id: string; name: string }>;
+  });
+
