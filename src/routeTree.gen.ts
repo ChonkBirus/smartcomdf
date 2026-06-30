@@ -71,6 +71,7 @@ import { Route as AuthenticatedAdminCouponsRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminBillingRouteImport } from './routes/_authenticated/admin.billing'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as AuthenticatedServiceOrdersIdMobileRouteImport } from './routes/_authenticated/service-orders_.$id.mobile'
+import { Route as AuthenticatedFinancePricingSettingsRouteImport } from './routes/_authenticated/finance.pricing.settings'
 import { Route as AuthenticatedAdminPilotDetailIdRouteImport } from './routes/_authenticated/admin.pilot-detail.$id'
 
 const TermsRoute = TermsRouteImport.update({
@@ -408,6 +409,12 @@ const AuthenticatedServiceOrdersIdMobileRoute =
     path: '/mobile',
     getParentRoute: () => AuthenticatedServiceOrdersIdRoute,
   } as any)
+const AuthenticatedFinancePricingSettingsRoute =
+  AuthenticatedFinancePricingSettingsRouteImport.update({
+    id: '/pricing/settings',
+    path: '/pricing/settings',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
 const AuthenticatedAdminPilotDetailIdRoute =
   AuthenticatedAdminPilotDetailIdRouteImport.update({
     id: '/pilot-detail/$id',
@@ -428,7 +435,7 @@ export interface FileRoutesByFullPath {
   '/clients': typeof AuthenticatedClientsRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/finance': typeof AuthenticatedFinanceRoute
+  '/finance': typeof AuthenticatedFinanceRouteWithChildren
   '/financial': typeof AuthenticatedFinancialRoute
   '/help': typeof AuthenticatedHelpRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -476,6 +483,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/admin/pilot-detail/$id': typeof AuthenticatedAdminPilotDetailIdRoute
+  '/finance/pricing/settings': typeof AuthenticatedFinancePricingSettingsRoute
   '/service-orders/$id/mobile': typeof AuthenticatedServiceOrdersIdMobileRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
@@ -491,7 +499,7 @@ export interface FileRoutesByTo {
   '/clients': typeof AuthenticatedClientsRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/finance': typeof AuthenticatedFinanceRoute
+  '/finance': typeof AuthenticatedFinanceRouteWithChildren
   '/financial': typeof AuthenticatedFinancialRoute
   '/help': typeof AuthenticatedHelpRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -538,6 +546,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/admin/pilot-detail/$id': typeof AuthenticatedAdminPilotDetailIdRoute
+  '/finance/pricing/settings': typeof AuthenticatedFinancePricingSettingsRoute
   '/service-orders/$id/mobile': typeof AuthenticatedServiceOrdersIdMobileRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
@@ -556,7 +565,7 @@ export interface FileRoutesById {
   '/_authenticated/clients': typeof AuthenticatedClientsRoute
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/finance': typeof AuthenticatedFinanceRoute
+  '/_authenticated/finance': typeof AuthenticatedFinanceRouteWithChildren
   '/_authenticated/financial': typeof AuthenticatedFinancialRoute
   '/_authenticated/help': typeof AuthenticatedHelpRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
@@ -604,6 +613,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/admin/pilot-detail/$id': typeof AuthenticatedAdminPilotDetailIdRoute
+  '/_authenticated/finance/pricing/settings': typeof AuthenticatedFinancePricingSettingsRoute
   '/_authenticated/service-orders_/$id/mobile': typeof AuthenticatedServiceOrdersIdMobileRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
@@ -670,6 +680,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/settings/'
     | '/admin/pilot-detail/$id'
+    | '/finance/pricing/settings'
     | '/service-orders/$id/mobile'
     | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
@@ -732,6 +743,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/settings'
     | '/admin/pilot-detail/$id'
+    | '/finance/pricing/settings'
     | '/service-orders/$id/mobile'
     | '/lovable/email/queue/process'
   id:
@@ -797,6 +809,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/settings/'
     | '/_authenticated/admin/pilot-detail/$id'
+    | '/_authenticated/finance/pricing/settings'
     | '/_authenticated/service-orders_/$id/mobile'
     | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
@@ -1254,6 +1267,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedServiceOrdersIdMobileRouteImport
       parentRoute: typeof AuthenticatedServiceOrdersIdRoute
     }
+    '/_authenticated/finance/pricing/settings': {
+      id: '/_authenticated/finance/pricing/settings'
+      path: '/pricing/settings'
+      fullPath: '/finance/pricing/settings'
+      preLoaderRoute: typeof AuthenticatedFinancePricingSettingsRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
     '/_authenticated/admin/pilot-detail/$id': {
       id: '/_authenticated/admin/pilot-detail/$id'
       path: '/pilot-detail/$id'
@@ -1296,6 +1316,18 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
+interface AuthenticatedFinanceRouteChildren {
+  AuthenticatedFinancePricingSettingsRoute: typeof AuthenticatedFinancePricingSettingsRoute
+}
+
+const AuthenticatedFinanceRouteChildren: AuthenticatedFinanceRouteChildren = {
+  AuthenticatedFinancePricingSettingsRoute:
+    AuthenticatedFinancePricingSettingsRoute,
+}
+
+const AuthenticatedFinanceRouteWithChildren =
+  AuthenticatedFinanceRoute._addFileChildren(AuthenticatedFinanceRouteChildren)
 
 interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsAuditRoute: typeof AuthenticatedSettingsAuditRoute
@@ -1345,7 +1377,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
+  AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRouteWithChildren
   AuthenticatedFinancialRoute: typeof AuthenticatedFinancialRoute
   AuthenticatedHelpRoute: typeof AuthenticatedHelpRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
@@ -1377,7 +1409,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientsRoute: AuthenticatedClientsRoute,
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
+  AuthenticatedFinanceRoute: AuthenticatedFinanceRouteWithChildren,
   AuthenticatedFinancialRoute: AuthenticatedFinancialRoute,
   AuthenticatedHelpRoute: AuthenticatedHelpRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
