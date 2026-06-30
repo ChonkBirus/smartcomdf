@@ -48,7 +48,8 @@ const groups: { label: string; items: Item[] }[] = [
   {
     label: "Gestão",
     items: [
-      { title: "Financeiro", url: "/financial", icon: DollarSign, module: "financial", feature: "financial" },
+      { title: "Financeiro", url: "/finance", icon: Wallet, module: "finance" },
+      { title: "Financeiro (legado)", url: "/financial", icon: DollarSign, module: "financial", feature: "financial" },
       { title: "CRM", url: "/crm", icon: HeartHandshake, module: "crm", feature: "crm" },
       { title: "Ordens de Serviço", url: "/service-orders", icon: Wrench, module: "service_orders", feature: "service_orders" },
       { title: "Minhas OS", url: "/service-orders/my", icon: Wrench, module: "service_orders", feature: "service_orders" },
