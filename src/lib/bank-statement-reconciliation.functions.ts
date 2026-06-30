@@ -115,8 +115,8 @@ export const listStatementSuggestions = createServerFn({ method: "POST" })
             tier: tierFor(s),
           };
         })
-        .filter((c) => c.score >= data.minScore)
-        .sort((a, b) => b.score - a.score)
+        .filter((c: StatementMatchCandidate) => c.score >= data.minScore)
+        .sort((a: StatementMatchCandidate, b: StatementMatchCandidate) => b.score - a.score)
         .slice(0, 3);
 
       result.push({
