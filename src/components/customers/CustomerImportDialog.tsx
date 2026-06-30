@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
@@ -31,6 +31,48 @@ import {
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ACCEPT = ".xls,.xlsx,.csv";
+
+const TEMPLATE_HEADERS = [
+  "tipo_cliente",
+  "nome_razao_social",
+  "nome_fantasia",
+  "cpf_cnpj",
+  "telefone",
+  "email",
+  "cep",
+  "endereco",
+  "numero",
+  "complemento",
+  "bairro",
+  "cidade",
+  "uf",
+  "contato_nome",
+  "contato_telefone",
+  "contato_email",
+  "observacoes",
+];
+
+const TEMPLATE_ROWS = [
+  ["PF", "João da Silva", "", "12345678900", "61999999999", "joao@email.com", "70000000", "Quadra Teste", "10", "", "Asa Sul", "Brasília", "DF", "João", "61999999999", "", "Cliente exemplo PF"],
+  ["PJ", "Empresa Teste LTDA", "Empresa Teste", "11222333000181", "6133333333", "contato@empresa.com", "70000000", "Quadra Comercial", "20", "Sala 1", "Asa Norte", "Brasília", "DF", "Maria", "61988888888", "", "Cliente exemplo PJ"],
+];
+
+function csvCell(value: string) {
+  return `"${String(value ?? "").replace(/"/g, '""')}"`;
+}
+
+function downloadTemplateCsv() {
+  const csv = [TEMPLATE_HEADERS, ...TEMPLATE_ROWS].map((row) => row.map(csvCell).join(",")).join("\n");
+  const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "modelo-importacao-clientes.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 type Step = "upload" | "mapping" | "preview" | "confirm" | "done";
 
