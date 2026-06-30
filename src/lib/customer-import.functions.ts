@@ -569,7 +569,10 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
 
     // Check permission
     const { data: canConfirm } = await sb.rpc("has_permission", { _slug: "clients.import.confirm" });
-    if (canConfirm === false) throw new Error("Sem permissão para confirmar importação.");
+    if (canConfirm === false) {
+      const { data: canImport } = await sb.rpc("has_permission", { _slug: "clients.import" });
+      if (canImport === false) throw new Error("Você não tem permissão para importar clientes.");
+    }
 
     const { data: job, error: jobErr } = await sb
       .from("customer_import_jobs")
@@ -632,7 +635,7 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
           name: m.name,
           corporate_name: m.corporate_name ?? null,
           trade_name: m.trade_name ?? null,
-          cpf_cnpj: m.cpf_cnpj,
+          cpf_cnpj: m.cpf_cnpj ?? "",
           state_registration: m.state_registration ?? null,
           municipal_registration: m.municipal_registration ?? null,
           email: m.email ?? null,
@@ -643,6 +646,8 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
           notes: m.notes ?? null,
           active: true,
         };
+        console.log("[CUSTOMER IMPORT] companyId", company_id);
+        console.log("[CUSTOMER IMPORT] insert payload", payload);
 
         let customerId: string | null = r.matched_customer_id ?? null;
         if (r.action === "UPDATE" && customerId) {
@@ -652,6 +657,7 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
             .eq("id", customerId)
             .eq("company_id", company_id);
           if (upErr) {
+            console.error("[CUSTOMER IMPORT] insert error", upErr);
             await sb
               .from("customer_import_rows")
               .update({ status: "INVALID", validation_errors: [upErr.message] })
@@ -667,6 +673,7 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
             .select("id")
             .single();
           if (insErr || !ins) {
+            console.error("[CUSTOMER IMPORT] insert error", insErr);
             await sb
               .from("customer_import_rows")
               .update({
@@ -700,6 +707,10 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
             reference: m.addr_reference ?? null,
             is_primary: true,
           });
+          if (addrErr) {
+            console.error("[CUSTOMER IMPORT] insert error", addrErr);
+            throw new Error(`Falha ao criar endereço da linha ${r.row_number}: ${addrErr.message}`);
+          }
           if (!addrErr) {
             addrCount++;
             await logAudit(sb, "customer_addresses", "create_by_import", customerId, null);
@@ -718,6 +729,10 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
             whatsapp: m.contact_whatsapp ? onlyDigits(m.contact_whatsapp) : null,
             is_primary: true,
           });
+          if (cErr) {
+            console.error("[CUSTOMER IMPORT] insert error", cErr);
+            throw new Error(`Falha ao criar contato da linha ${r.row_number}: ${cErr.message}`);
+          }
           if (!cErr) {
             contactCount++;
             await logAudit(sb, "customer_contacts", "create_by_import", customerId, null);
@@ -777,7 +792,9 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
         });
       } catch {}
 
-      return { created, updated, skipped, addresses: addrCount, contacts: contactCount };
+      const result = { created, updated, skipped, addresses: addrCount, contacts: contactCount };
+      console.log("[CUSTOMER IMPORT] insert result", result);
+      return result;
     } catch (e: any) {
       await sb
         .from("customer_import_jobs")
