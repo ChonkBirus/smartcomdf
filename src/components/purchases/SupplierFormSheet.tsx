@@ -122,11 +122,34 @@ export function SupplierFormSheet({
               </div>
               <div>
                 <Label>CPF/CNPJ *</Label>
-                <Input value={form.cpf_cnpj} onChange={(e) => set("cpf_cnpj", e.target.value)} required />
+                <div className="flex gap-2">
+                  <Input value={form.cpf_cnpj} onChange={(e) => set("cpf_cnpj", e.target.value)} required />
+                  <CustomerCnpjLookupButton
+                    cnpj={form.cpf_cnpj}
+                    hasExistingData={!!(form.corporate_name || form.address || form.zipcode)}
+                    onApply={(r: CnpjLookupResultDTO) => {
+                      setForm((s) => ({
+                        ...s,
+                        corporate_name: r.corporate_name || s.corporate_name,
+                        trade_name: r.trade_name || s.trade_name,
+                        email: r.email || s.email,
+                        phone: r.phone || s.phone,
+                        zipcode: r.zipcode || s.zipcode,
+                        address: r.address || s.address,
+                        number: r.number || s.number,
+                        complement: r.complement || s.complement,
+                        district: r.district || s.district,
+                        city: r.city || s.city,
+                        state: r.state || s.state,
+                      }));
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </section>
           <Separator />
+
           <section className="space-y-3">
             <h3 className="text-sm font-semibold">Contato</h3>
             <div className="grid gap-3 sm:grid-cols-2">
