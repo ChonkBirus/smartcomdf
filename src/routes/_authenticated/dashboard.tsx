@@ -140,7 +140,7 @@ function Dashboard() {
         </>
       )}
 
-      {showStock && !!companyId && !metrics.isError && (
+      {showStock && !!companyId && !metrics.isLoading && !metrics.isError && (
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
           <KpiCard title="Itens sem estoque" value={String(data.stock.outOfStock ?? 0)} icon={<PackageX className="h-5 w-5" />} />
           <KpiCard title="Abaixo do mínimo" value={String(data.stock.lowStock ?? 0)} icon={<AlertTriangle className="h-5 w-5" />} />
