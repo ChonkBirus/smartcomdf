@@ -564,19 +564,19 @@ export function FinancePage() {
         </TabsContent>
 
         <TabsContent value="cashflow" className="mt-4">
-          <TransactionTable rows={cashflow.data ?? []} onChanged={invalidateAll} />
+          <TransactionTable rows={cashflow.data ?? []} onChanged={invalidateAll} highlightId={highlightTxId} />
         </TabsContent>
         <TabsContent value="income" className="mt-4">
-          <TransactionTable rows={incomes.data ?? []} onChanged={invalidateAll} />
+          <TransactionTable rows={incomes.data ?? []} onChanged={invalidateAll} highlightId={highlightTxId} />
         </TabsContent>
         <TabsContent value="expense" className="mt-4">
-          <TransactionTable rows={expenses.data ?? []} onChanged={invalidateAll} />
+          <TransactionTable rows={expenses.data ?? []} onChanged={invalidateAll} highlightId={highlightTxId} />
         </TabsContent>
         <TabsContent value="receivables" className="mt-4">
-          <TransactionTable rows={(incomes.data ?? []).filter((t) => t.status !== "RECONCILED")} onChanged={invalidateAll} />
+          <TransactionTable rows={(incomes.data ?? []).filter((t) => t.status !== "RECONCILED")} onChanged={invalidateAll} highlightId={highlightTxId} />
         </TabsContent>
         <TabsContent value="payables" className="mt-4">
-          <TransactionTable rows={(expenses.data ?? []).filter((t) => t.status !== "RECONCILED")} onChanged={invalidateAll} />
+          <TransactionTable rows={(expenses.data ?? []).filter((t) => t.status !== "RECONCILED")} onChanged={invalidateAll} highlightId={highlightTxId} />
         </TabsContent>
         <TabsContent value="categories" className="mt-4">
           <CategoriesManager />
