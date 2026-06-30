@@ -481,6 +481,11 @@ export function FinancePage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <FinanceFilters preset={preset} onChange={setPreset} custom={custom} onCustom={setCustom} />
+          <Button asChild variant="outline">
+            <Link to="/finance/pricing/settings">
+              <Settings2 className="mr-1 h-4 w-4" /> Custos & Precificação
+            </Link>
+          </Button>
           <Button onClick={() => setSheet({ open: true, type: "INCOME" })}>
             <Plus className="mr-1 h-4 w-4" /> Entrada
           </Button>
