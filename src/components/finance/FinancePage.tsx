@@ -508,6 +508,8 @@ export function FinancePage() {
           <TabsTrigger value="payables">A Pagar</TabsTrigger>
           <TabsTrigger value="categories">Categorias</TabsTrigger>
           <TabsTrigger value="agent">Agente IA</TabsTrigger>
+          <TabsTrigger value="open-finance">Open Finance</TabsTrigger>
+          <TabsTrigger value="reconciliation">Conciliação</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4 space-y-4">
@@ -547,6 +549,12 @@ export function FinancePage() {
         </TabsContent>
         <TabsContent value="agent" className="mt-4">
           <FinanceAgentChat />
+        </TabsContent>
+        <TabsContent value="open-finance" className="mt-4">
+          <OpenFinancePage />
+        </TabsContent>
+        <TabsContent value="reconciliation" className="mt-4">
+          <BankReconciliationPage />
         </TabsContent>
       </Tabs>
 
