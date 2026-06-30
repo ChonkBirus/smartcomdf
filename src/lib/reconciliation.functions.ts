@@ -111,8 +111,8 @@ export const listReconciliationSuggestions = createServerFn({ method: "POST" })
             tier: tierFor(s),
           };
         })
-        .filter((c) => c.score >= data.minScore)
-        .sort((a, b) => b.score - a.score)
+        .filter((c: { score: number }) => c.score >= data.minScore)
+        .sort((a: { score: number }, b: { score: number }) => b.score - a.score)
         .slice(0, 3);
 
       suggestions.push({
