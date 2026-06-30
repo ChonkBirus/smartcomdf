@@ -1,0 +1,27 @@
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getProjectFinancialSummary } from "@/lib/finance-integrations.functions";
+import { usePermissions } from "@/lib/permissions";
+import { FinancialSummaryCard } from "./FinancialSummaryCard";
+
+export function ProjectFinancialSummary({ projectId }: { projectId: string }) {
+  const { has } = usePermissions();
+  const fn = useServerFn(getProjectFinancialSummary);
+  const canView = has("finance.view") || has("finance.manage");
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["finance", "summary", "project", projectId],
+    queryFn: () => fn({ data: { project_id: projectId } }),
+    enabled: canView,
+  });
+
+  if (!canView) return null;
+  return (
+    <FinancialSummaryCard
+      summary={data}
+      loading={isLoading}
+      title="Financeiro do projeto"
+      emptyHint="Nenhum lançamento financeiro vinculado a este projeto."
+    />
+  );
+}
