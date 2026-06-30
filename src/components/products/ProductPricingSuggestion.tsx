@@ -131,7 +131,28 @@ export function ProductPricingSuggestion({
     setOpen(false);
   }
 
-  if (!canView) return null;
+  if (!canView) {
+    const missing = [
+      !canViewPricing && "finance.pricing.view",
+      !canViewCosts && "finance.view_costs",
+    ].filter(Boolean).join(" e ");
+    const reason = `Você não tem permissão para usar a sugestão de preço (faltando: ${missing}). Peça ao responsável financeiro.`;
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled
+        title={reason}
+        aria-label={reason}
+        onClick={() => toast.info(reason)}
+        className="gap-2 pointer-events-auto opacity-60"
+      >
+        <Calculator className="h-4 w-4" />
+        Sugerir preço
+      </Button>
+    );
+  }
 
   return (
     <>
