@@ -41,6 +41,16 @@ export function BankStatementReconciliationPanel() {
   const suggestCatFn = useServerFn(suggestCategoryForDescription);
 
   const [status, setStatus] = useState<StatusFilter>("PENDING");
+  const [highlightBankId, setHighlightBankId] = useState<string | null>(null);
+  const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    if (!highlightBankId) return;
+    const el = rowRefs.current[highlightBankId];
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    const t = setTimeout(() => setHighlightBankId(null), 4500);
+    return () => clearTimeout(t);
+  }, [highlightBankId, q.data]);
 
   const q = useQuery({
     queryKey: ["bank-statement-suggestions", status],
