@@ -17,7 +17,7 @@ export type BankStatementImport = {
   error_message: string | null;
   created_at: string;
   updated_at: string;
-  bank_account?: { id: string; name: string } | null;
+  bank_account?: { id: string; bank_name: string; account_name: string | null } | null;
 };
 
 export type BankStatementTransaction = {
