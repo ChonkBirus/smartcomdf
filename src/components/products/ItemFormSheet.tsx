@@ -22,6 +22,7 @@ import {
   type ProductUnit,
 } from "@/lib/products.functions";
 import { ImageUploader, type ItemImage } from "./ImageUploader";
+import { ProductPricingSuggestion } from "./ProductPricingSuggestion";
 
 const UNITS: { value: ProductUnit; label: string }[] = [
   { value: "UN", label: "UN — Unidade" },
