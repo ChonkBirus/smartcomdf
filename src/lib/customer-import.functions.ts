@@ -347,20 +347,22 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
       const errors: string[] = [];
 
       const doc = String(m.cpf_cnpj ?? "");
-      const type = detectType(m.customer_type, doc);
-      if (!type) errors.push("Tipo de cliente não identificado (informe CPF, CNPJ ou tipo).");
-      else m.customer_type = type;
+      const type = detectType(m.customer_type, doc) ?? "INDIVIDUAL";
+      m.customer_type = type;
 
       const displayName = type === "COMPANY" ? (m.corporate_name ?? m.name) : (m.name ?? m.corporate_name);
       if (!displayName) errors.push("Nome ou Razão Social obrigatório.");
       else m.name = displayName;
 
-      if (!doc) errors.push("CPF/CNPJ obrigatório.");
-      else if (type === "INDIVIDUAL" && doc.length !== 11) errors.push("CPF deve ter 11 dígitos.");
-      else if (type === "COMPANY" && doc.length !== 14) errors.push("CNPJ deve ter 14 dígitos.");
+      // CPF/CNPJ é opcional — quando informado, valida tamanho
+      if (doc) {
+        if (type === "INDIVIDUAL" && doc.length !== 11) errors.push("CPF deve ter 11 dígitos.");
+        else if (type === "COMPANY" && doc.length !== 14) errors.push("CNPJ deve ter 14 dígitos.");
+      }
 
-      if (!m.email) errors.push("E-mail é obrigatório.");
-      else if (!isValidEmail(String(m.email))) errors.push("Informe um e-mail válido.");
+      // E-mail é opcional — quando informado, valida formato
+      if (m.email && !isValidEmail(String(m.email))) errors.push("Informe um e-mail válido.");
+
 
       if (m.addr_state) {
         const country = (m.addr_country ?? "Brasil").toString().toLowerCase();

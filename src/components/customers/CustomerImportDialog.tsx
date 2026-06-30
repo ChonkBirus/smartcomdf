@@ -183,8 +183,10 @@ export function CustomerImportDialog({
 
   const mappingReady = useMemo(() => {
     const targets = Object.values(mapping);
-    return targets.includes("cpf_cnpj") && (targets.includes("name") || targets.includes("corporate_name")) && targets.includes("email");
+    // Apenas Nome ou Razão Social é obrigatório. CPF/CNPJ e e-mail são opcionais.
+    return targets.includes("name") || targets.includes("corporate_name");
   }, [mapping]);
+
 
   const busy = parsing || validateMutation.isPending || confirmMutation.isPending;
 
@@ -319,8 +321,9 @@ export function CustomerImportDialog({
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  Mapeie ao menos "CPF/CNPJ", "Nome ou Razão Social" e "E-mail" para continuar.
+                  Mapeie ao menos "Nome" ou "Razão Social" para continuar. CPF/CNPJ e e-mail são opcionais.
                 </AlertDescription>
+
               </Alert>
             )}
           </div>
