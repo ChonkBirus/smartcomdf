@@ -129,7 +129,7 @@ function AlertCard({ a }: { a: FinancialHealthResult["alerts"][number] }) {
           <p className="text-xs"><strong>Ação recomendada:</strong> {a.recommendation}</p>
           {a.actionLink && (
             <Button asChild size="sm" variant="outline" className="mt-2">
-              <Link to={a.actionLink}>{a.actionLabel ?? "Ver"} <ChevronRight className="h-3 w-3" /></Link>
+              <Link to={a.actionLink as never}>{a.actionLabel ?? "Ver"} <ChevronRight className="h-3 w-3" /></Link>
             </Button>
           )}
         </div>
