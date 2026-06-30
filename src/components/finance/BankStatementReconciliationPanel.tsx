@@ -100,23 +100,27 @@ export function BankStatementReconciliationPanel() {
     mutationFn: async (row: StatementSuggestion["bankTransaction"]) => {
       const type = row.type === "CREDIT" ? "INCOME" : "EXPENSE";
       const cat = await suggestCatFn({ data: { description: row.description, type } }).catch(() => null);
-      return createFinFn({
+      const res = await createFinFn({
         data: {
           bankStatementTransactionId: row.id,
           categoryId: cat?.categoryId ?? null,
         },
       });
+      return { res, bankId: row.id };
     },
-    onSuccess: (res: any) => {
+    onSuccess: ({ res, bankId }: any) => {
       if (res?.already_existed) {
         const finId = res?.financial_transaction_id;
+        // Destacar a linha do extrato e levar o usuário até ela.
+        setStatus("RECONCILED");
+        setHighlightBankId(bankId);
         toast.warning("Já existe um lançamento para esta linha do extrato.", {
-          description: "Nenhum duplicado foi criado.",
+          description: "Nenhum duplicado foi criado. Clique para ver o lançamento.",
           action: finId
             ? {
                 label: "Ver lançamento",
                 onClick: () => {
-                  window.location.href = `/finance?transaction=${finId}`;
+                  window.location.href = `/finance?transaction=${finId}#highlight`;
                 },
               }
             : undefined,
