@@ -360,8 +360,16 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
       rememberExisting(existingWhats);
     }
     if (names.size) {
-      const { data: existingByCustomerName } = await sb.from("customers").select(customerSelect).eq("company_id", company_id).is("deleted_at", null).in("name", [...names]);
-      rememberExisting(existingByCustomerName);
+      const { data: possibleByName } = await sb
+        .from("customers")
+        .select(customerSelect)
+        .eq("company_id", company_id)
+        .is("deleted_at", null);
+      rememberExisting(
+        (possibleByName ?? []).filter(
+          (c: any) => names.has(normText(c.name)) || names.has(normText(c.corporate_name)),
+        ),
+      );
     }
 
     // Duplicates within file.
