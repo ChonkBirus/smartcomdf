@@ -37,6 +37,8 @@ export function BankStatementReconciliationPanel() {
   const confirmFn = useServerFn(confirmStatementReconciliation);
   const ignoreFn = useServerFn(ignoreStatementTransaction);
   const undoFn = useServerFn(undoStatementReconciliation);
+  const createFinFn = useServerFn(createFinancialFromStatementTransaction);
+  const suggestCatFn = useServerFn(suggestCategoryForDescription);
 
   const [status, setStatus] = useState<StatusFilter>("PENDING");
 
@@ -82,6 +84,24 @@ export function BankStatementReconciliationPanel() {
       refresh();
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao desfazer."),
+  });
+
+  const createMut = useMutation({
+    mutationFn: async (row: StatementSuggestion["bankTransaction"]) => {
+      const type = row.type === "CREDIT" ? "INCOME" : "EXPENSE";
+      const cat = await suggestCatFn({ data: { description: row.description, type } }).catch(() => null);
+      return createFinFn({
+        data: {
+          bankStatementTransactionId: row.id,
+          categoryId: cat?.categoryId ?? null,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Lançamento financeiro criado e conciliado.");
+      refresh();
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao criar lançamento."),
   });
 
   return (
