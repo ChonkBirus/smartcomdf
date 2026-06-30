@@ -297,11 +297,11 @@ export function CustomerImportDialog({
         if (!o) reset();
       }}
     >
-      <DialogContent className="max-w-5xl" onPointerDownOutside={(e) => busy && e.preventDefault()} onEscapeKeyDown={(e) => busy && e.preventDefault()}>
+      <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto" onPointerDownOutside={(e) => busy && e.preventDefault()} onEscapeKeyDown={(e) => busy && e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Importar clientes</DialogTitle>
           <DialogDescription>
-            Importe sua base de clientes (PF e PJ) por arquivos XLS, XLSX ou CSV (até 10 MB).
+            Envie uma planilha CSV ou XLSX com seus clientes.
           </DialogDescription>
         </DialogHeader>
 
@@ -346,16 +346,25 @@ export function CustomerImportDialog({
         {/* STEP: UPLOAD */}
         {step === "upload" && (
           <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-card p-3">
+              <div className="text-sm">
+                <div className="font-medium">Modelo de importação</div>
+                <div className="text-xs text-muted-foreground">Baixe um CSV real com as colunas aceitas.</div>
+              </div>
+              <Button type="button" variant="outline" onClick={downloadTemplateCsv} disabled={busy}>
+                Baixar modelo CSV
+              </Button>
+            </div>
             <label className="flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-border bg-muted/40 p-10 cursor-pointer hover:bg-muted/60">
               <Upload className="h-8 w-8 text-muted-foreground" />
               <div className="text-center">
                 <div className="font-medium">Selecione um arquivo</div>
-                <div className="text-xs text-muted-foreground">XLS, XLSX ou CSV — até 10 MB</div>
+                <div className="text-xs text-muted-foreground">CSV ou XLSX — até 10 MB</div>
               </div>
               <Input
                 type="file"
                 accept={ACCEPT}
-                className="hidden"
+                className="max-w-sm cursor-pointer bg-background"
                 disabled={parsing}
                 onChange={(e) => {
                   const f = e.target.files?.[0];
@@ -430,9 +439,10 @@ export function CustomerImportDialog({
         {/* STEP: PREVIEW */}
         {step === "preview" && validation && (
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-6">
               <Stat label="Total" value={validation.total} />
               <Stat label="Válidas" value={validation.valid} tone="ok" />
+              <Stat label="Duplicados" value={validation.duplicates ?? 0} />
               <Stat label="Com erro" value={validation.invalid} tone={validation.invalid ? "err" : undefined} />
               <Stat label="Endereços" value={validation.addresses_to_create} />
               <Stat label="Contatos" value={validation.contacts_to_create} />
@@ -468,12 +478,12 @@ export function CustomerImportDialog({
                     <th className="px-2 py-1.5">Tipo</th>
                     <th className="px-2 py-1.5">Nome / Razão Social</th>
                     <th className="px-2 py-1.5">CPF/CNPJ</th>
+                    <th className="px-2 py-1.5">Telefone</th>
                     <th className="px-2 py-1.5">E-mail</th>
-                    <th className="px-2 py-1.5">WhatsApp</th>
                     <th className="px-2 py-1.5">Cidade</th>
                     <th className="px-2 py-1.5">UF</th>
-                    <th className="px-2 py-1.5">Ação</th>
-                    <th className="px-2 py-1.5">Erros</th>
+                    <th className="px-2 py-1.5">Status</th>
+                    <th className="px-2 py-1.5">Erro</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -485,12 +495,12 @@ export function CustomerImportDialog({
                         {r.mapped_data?.corporate_name ?? r.mapped_data?.name ?? "—"}
                       </td>
                       <td className="px-2 py-1.5 font-mono">{r.mapped_data?.cpf_cnpj ?? "—"}</td>
+                      <td className="px-2 py-1.5">{r.mapped_data?.phone ?? r.mapped_data?.whatsapp ?? "—"}</td>
                       <td className="px-2 py-1.5">{r.mapped_data?.email ?? "—"}</td>
-                      <td className="px-2 py-1.5">{r.mapped_data?.whatsapp ?? "—"}</td>
                       <td className="px-2 py-1.5">{r.mapped_data?.addr_city ?? "—"}</td>
                       <td className="px-2 py-1.5">{r.mapped_data?.addr_state ?? "—"}</td>
                       <td className="px-2 py-1.5">
-                        <ActionBadge action={r.action} />
+                        <ImportStatusBadge action={r.action} />
                       </td>
                       <td className="px-2 py-1.5 text-destructive">{(r.validation_errors ?? []).join("; ")}</td>
                     </tr>
@@ -578,8 +588,9 @@ export function CustomerImportDialog({
               <Button variant="outline" onClick={() => setStep("mapping")}>
                 Voltar
               </Button>
-              <Button onClick={() => setStep("confirm")} disabled={!validation || validation.valid === 0}>
-                Continuar
+              <Button onClick={() => confirmMutation.mutate()} disabled={!validation || validation.valid === 0 || confirmMutation.isPending}>
+                {confirmMutation.isPending && <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />}
+                Importar clientes válidos
               </Button>
             </>
           )}
