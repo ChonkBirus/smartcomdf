@@ -16,6 +16,12 @@ import { getMyContext } from "@/lib/account.functions";
 import { updateMyCompany, getSignedImageUrl } from "@/lib/profile.functions";
 import { getCompanyPix, saveCompanyPix } from "@/lib/quote-payments.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
+import { CepInput } from "@/components/shared/CepInput";
+import type { CepResult } from "@/lib/address-lookup";
+import { CustomerCnpjLookupButton } from "@/components/customers/CustomerCnpjLookupDialog";
+import type { CnpjLookupResultDTO } from "@/lib/cnpj-lookup.functions";
+import { statesFor } from "@/lib/locations";
+
 
 export const Route = createFileRoute("/_authenticated/settings/company")({
   component: CompanyPage,
