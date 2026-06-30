@@ -29,6 +29,7 @@ export const Route = createFileRoute("/api/public/billing-webhook")({
 
         const token = request.headers.get("asaas-access-token");
         if (!tokensMatch(token, expected)) {
+          console.warn("[ASAAS WEBHOOK] invalid token");
           return new Response("Unauthorized", { status: 401 });
         }
 
@@ -43,7 +44,16 @@ export const Route = createFileRoute("/api/public/billing-webhook")({
         const eventType: string = payload?.event ?? "UNKNOWN";
         const eventId: string | null = payload?.id ?? null;
         const payment = payload?.payment ?? null;
-        const providerObjectId: string | null = payment?.id ?? null;
+        const subscription = payload?.subscription ?? null;
+        const providerObjectId: string | null =
+          payment?.id ?? subscription?.id ?? null;
+
+        console.log("[ASAAS WEBHOOK] event received", {
+          eventType,
+          eventId,
+          paymentId: payment?.id ?? null,
+          subscriptionId: subscription?.id ?? null,
+        });
 
         const { supabaseAdmin } = await import(
           "@/integrations/supabase/client.server"
@@ -58,6 +68,7 @@ export const Route = createFileRoute("/api/public/billing-webhook")({
             .eq("event_id", eventId)
             .maybeSingle();
           if (existing && existing.status === "PROCESSED") {
+            console.log("[ASAAS WEBHOOK] duplicate ignored", { eventId });
             return Response.json({ ok: true, deduped: true });
           }
         }
@@ -94,7 +105,20 @@ export const Route = createFileRoute("/api/public/billing-webhook")({
                 null,
               raw: payment,
             });
+          } else if (
+            subscription?.id &&
+            eventType.startsWith("SUBSCRIPTION_")
+          ) {
+            const { applySubscriptionEvent } = await import(
+              "@/lib/billing-webhook.server"
+            );
+            await applySubscriptionEvent(supabaseAdmin, {
+              providerSubscriptionId: subscription.id,
+              eventType,
+              raw: subscription,
+            });
           }
+
 
           await supabaseAdmin
             .from("billing_webhook_events")
