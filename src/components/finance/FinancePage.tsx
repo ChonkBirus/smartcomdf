@@ -246,11 +246,18 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
   );
 }
 
-function TransactionTable({ rows, onChanged }: { rows: FinancialTransaction[]; onChanged: () => void }) {
+function TransactionTable({ rows, onChanged, highlightId }: { rows: FinancialTransaction[]; onChanged: () => void; highlightId?: string | null }) {
   const markPaid = useServerFn(markTransactionAsPaid);
   const cancelFn = useServerFn(cancelFinancialTransaction);
   const delFn = useServerFn(softDeleteFinancialTransaction);
   const [editing, setEditing] = useState<FinancialTransaction | null>(null);
+  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+
+  useEffect(() => {
+    if (!highlightId) return;
+    const el = rowRefs.current[highlightId];
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightId, rows]);
 
   const act = useMutation({
     mutationFn: async ({ kind, id }: { kind: "paid" | "cancel" | "delete"; id: string }) => {
