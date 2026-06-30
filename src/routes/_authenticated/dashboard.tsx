@@ -198,6 +198,7 @@ function Dashboard() {
         <SubscriptionCard />
       </div>
 
+      {companyId && !metrics.isLoading && !metrics.isError && (
       <div className="mt-6">
         <Card className="card-elevated">
           <CardHeader>
@@ -221,6 +222,7 @@ function Dashboard() {
           </CardContent>
         </Card>
       </div>
+      )}
     </div>
   );
 }
