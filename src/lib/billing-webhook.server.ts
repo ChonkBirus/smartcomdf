@@ -139,6 +139,21 @@ export async function applyChargeStatus(
         "Identificamos uma cobrança em atraso. Regularize para evitar a suspensão.",
       type: "BILLING",
     });
+  } else if (ASAAS_REFUSED_STATUSES.has(input.status)) {
+    await insertSubscriptionEvent(admin, {
+      subscription_id: subscriptionId,
+      company_id: charge.company_id,
+      event_type: "PAYMENT_REFUSED",
+      from_status: null,
+      to_status: null,
+      metadata: { charge_id: charge.id, asaas_status: input.status },
+    });
+    await insertNotificationForOwners(admin, charge.company_id, {
+      title: "Pagamento recusado",
+      message:
+        "O pagamento foi recusado pela operadora. Atualize seus dados de pagamento.",
+      type: "BILLING",
+    });
   } else if (ASAAS_CANCELED_STATUSES.has(input.status)) {
     await admin
       .from("subscriptions")
@@ -161,6 +176,56 @@ export async function applyChargeStatus(
 
   return { matched: true, subscription: true };
 }
+
+// Handle SUBSCRIPTION_* events from Asaas (lifecycle updates without a payment object).
+export async function applySubscriptionEvent(
+  admin: AnyClient,
+  input: {
+    providerSubscriptionId: string;
+    eventType: string;
+    raw?: Record<string, unknown> | null;
+  },
+) {
+  const { data: sub } = await admin
+    .from("subscriptions")
+    .select("id, company_id, status")
+    .eq("provider_subscription_id", input.providerSubscriptionId)
+    .maybeSingle();
+  if (!sub) {
+    console.warn(
+      "[billing-webhook] subscription not found",
+      input.providerSubscriptionId,
+    );
+    return { matched: false };
+  }
+
+  let patch: Record<string, unknown> | null = null;
+  let toStatus: string | null = null;
+  if (input.eventType === "SUBSCRIPTION_INACTIVATED") {
+    patch = { status: "PAST_DUE", active: false };
+    toStatus = "PAST_DUE";
+  } else if (input.eventType === "SUBSCRIPTION_DELETED") {
+    patch = {
+      status: "CANCELED",
+      active: false,
+      canceled_at: new Date().toISOString(),
+    };
+    toStatus = "CANCELED";
+  }
+  if (patch) {
+    await admin.from("subscriptions").update(patch).eq("id", sub.id);
+  }
+  await insertSubscriptionEvent(admin, {
+    subscription_id: sub.id,
+    company_id: sub.company_id,
+    event_type: input.eventType,
+    from_status: sub.status ?? null,
+    to_status: toStatus,
+    metadata: { provider_subscription_id: input.providerSubscriptionId },
+  });
+  return { matched: true };
+}
+
 
 async function insertSubscriptionEvent(
   admin: AnyClient,
