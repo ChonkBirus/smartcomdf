@@ -136,10 +136,16 @@ export function ProductPricingSuggestion({
   function handleApply() {
     if (!result?.ok) return;
     if (!canApply) {
-      toast.error("Sem permissão para aplicar preço sugerido.");
+      toast.error(missingMessage("Sem permissão para aplicar"));
       return;
     }
     onApply(result.suggested_price);
+    toast.success(`Preço sugerido aplicado: ${BRL(result.suggested_price)}`);
+    setOpen(false);
+  }
+
+  if (!canView) {
+    const reason = missingMessage("Sugestão de preço indisponível");
     toast.success(`Preço sugerido aplicado: ${BRL(result.suggested_price)}`);
     setOpen(false);
   }
