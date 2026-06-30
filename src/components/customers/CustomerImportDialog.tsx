@@ -622,14 +622,8 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: "ok
   );
 }
 
-function ActionBadge({ action }: { action: string }) {
-  const variant: any =
-    action === "CREATE"
-      ? "default"
-      : action === "UPDATE"
-        ? "secondary"
-        : action === "SKIP"
-          ? "outline"
-          : "destructive";
-  return <Badge variant={variant}>{action}</Badge>;
+function ImportStatusBadge({ action }: { action: string }) {
+  const variant: any = action === "CREATE" ? "default" : action === "SKIP" ? "secondary" : "destructive";
+  const label = action === "CREATE" ? "Válido" : action === "SKIP" ? "Duplicado" : "Erro";
+  return <Badge variant={variant}>{label}</Badge>;
 }
