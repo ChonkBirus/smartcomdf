@@ -26,6 +26,7 @@ import {
   type FinancialTransaction, type FinancialCategory, type FinTxType, type FinTxStatus,
 } from "@/lib/finance.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
+import { FinancialHealthScoreCard, FinancialHealthPage } from "@/components/finance/FinancialHealthPage";
 
 const BRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
