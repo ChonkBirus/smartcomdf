@@ -545,6 +545,9 @@ export function FinancePage() {
         <TabsContent value="categories" className="mt-4">
           <CategoriesManager />
         </TabsContent>
+        <TabsContent value="agent" className="mt-4">
+          <FinanceAgentChat />
+        </TabsContent>
       </Tabs>
 
       <TransactionFormSheet
