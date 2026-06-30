@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
 import {
-  Users, Package, FileText, DollarSign, TrendingUp, Activity,
-  PackageX, AlertTriangle, Boxes, CheckCircle2, Clock, PercentCircle,
+  Users, FileText, DollarSign, TrendingUp, Activity,
+  PackageX, AlertTriangle, Boxes, CheckCircle2, PercentCircle,
   FolderKanban, Wrench, Wallet, BarChart3,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
