@@ -431,7 +431,7 @@ export function FinancePage() {
   // Seed default categories once per company session.
   useQuery({
     queryKey: ["fin-seed", companyId],
-    queryFn: () => ensureFn({ data: {} as any }),
+    queryFn: () => ensureFn(),
     enabled: !!companyId,
     staleTime: Infinity,
   });
