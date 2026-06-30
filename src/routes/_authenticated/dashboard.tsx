@@ -52,7 +52,19 @@ function Dashboard() {
     if (metrics.error) console.error("[DASHBOARD ERROR]", metrics.error);
   }, [companyContext.data, companyId, metrics.data, metrics.error]);
 
-  const data = metrics.data ?? emptyDashboardMetrics;
+  const rawData = metrics.data;
+  const data = {
+    customers: { ...emptyDashboardMetrics.customers, ...(rawData?.customers ?? {}) },
+    quotes: { ...emptyDashboardMetrics.quotes, ...(rawData?.quotes ?? {}) },
+    projects: { ...emptyDashboardMetrics.projects, ...(rawData?.projects ?? {}) },
+    serviceOrders: { ...emptyDashboardMetrics.serviceOrders, ...(rawData?.serviceOrders ?? {}) },
+    stock: { ...emptyDashboardMetrics.stock, ...(rawData?.stock ?? {}) },
+    payments: { ...emptyDashboardMetrics.payments, ...(rawData?.payments ?? {}) },
+    recentActivity: rawData?.recentActivity ?? emptyDashboardMetrics.recentActivity,
+    charts: {
+      quotesByStatus: rawData?.charts?.quotesByStatus ?? emptyDashboardMetrics.charts.quotesByStatus,
+    },
+  };
   const openServiceOrders = Math.max(0, (data.serviceOrders.total ?? 0) - (data.serviceOrders.completed ?? 0));
 
   return (
