@@ -153,6 +153,7 @@ export function CustomerImportDialog({
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [parsing, setParsing] = useState(false);
+  const [processingLabel, setProcessingLabel] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [headers, setHeaders] = useState<string[]>([]);
   const [mapping, setMapping] = useState<Record<string, TargetField>>({});
@@ -182,6 +183,7 @@ export function CustomerImportDialog({
     setMapping({});
     setValidation(null);
     setResult(null);
+    setProcessingLabel(null);
   };
 
   const handleFile = async (f: File) => {
@@ -201,6 +203,7 @@ export function CustomerImportDialog({
     }
     setFile(f);
     setParsing(true);
+    setProcessingLabel("Processando arquivo...");
     try {
       const { headers: h, rows } = await parseFile(f);
       console.log("[CUSTOMER IMPORT] parsed rows", rows);
@@ -217,6 +220,7 @@ export function CustomerImportDialog({
       const initialTargets = Object.values(initialMapping);
       if (initialTargets.includes("name") || initialTargets.includes("corporate_name")) {
         setStep("mapping");
+        setProcessingLabel("Validando linhas no servidor...");
         const validationData = await validateFn({ data: { job_id: res.job_id, mapping: initialMapping } });
         console.log("[CUSTOMER IMPORT] validation result", validationData);
         setValidation(validationData);
@@ -231,6 +235,7 @@ export function CustomerImportDialog({
       toast.error(e.message ?? "Falha ao processar arquivo.");
     } finally {
       setParsing(false);
+      setProcessingLabel(null);
     }
   };
 
@@ -344,7 +349,7 @@ export function CustomerImportDialog({
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Loader2 className="h-3 w-3 animate-spin" />
               {parsing
-                ? "Processando arquivo..."
+                ? processingLabel ?? "Processando arquivo..."
                 : validateMutation.isPending
                   ? "Validando linhas no servidor..."
                   : "Importando clientes — não feche esta janela..."}
@@ -386,7 +391,7 @@ export function CustomerImportDialog({
               />
               {parsing && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Loader2 className="h-3 w-3 animate-spin" /> Processando arquivo...
+                  <Loader2 className="h-3 w-3 animate-spin" /> {processingLabel ?? "Processando arquivo..."}
                 </div>
               )}
               {file && !parsing && (
