@@ -127,7 +127,7 @@ export const listBrands = createServerFn({ method: "GET" })
 const brandSchema = z.object({
   id: z.string().uuid().optional(),
   name: z.string().trim().min(1, "Nome obrigatório").max(120),
-  description: z.string().trim().max(500).optional().or(z.literal("")),
+  description: z.string().trim().max(500).nullish().or(z.literal("")),
   active: z.boolean().default(true),
 });
 
