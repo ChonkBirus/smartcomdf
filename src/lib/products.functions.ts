@@ -59,7 +59,7 @@ export const listCategories = createServerFn({ method: "GET" })
 const categorySchema = z.object({
   id: z.string().uuid().optional(),
   name: z.string().trim().min(1, "Nome obrigatório").max(120),
-  description: z.string().trim().max(500).optional().or(z.literal("")),
+  description: z.string().trim().max(500).nullish().or(z.literal("")),
   category_type: z.enum(["PRODUCT", "SERVICE", "BOTH"]).default("BOTH"),
   active: z.boolean().default(true),
 });
@@ -127,7 +127,7 @@ export const listBrands = createServerFn({ method: "GET" })
 const brandSchema = z.object({
   id: z.string().uuid().optional(),
   name: z.string().trim().min(1, "Nome obrigatório").max(120),
-  description: z.string().trim().max(500).optional().or(z.literal("")),
+  description: z.string().trim().max(500).nullish().or(z.literal("")),
   active: z.boolean().default(true),
 });
 
@@ -344,7 +344,7 @@ const itemSchema = z.object({
   id: z.string().uuid().optional(),
   item_type: z.enum(["PRODUCT", "SERVICE"]).default("PRODUCT"),
   name: z.string().trim().min(1, "Nome obrigatório").max(200),
-  description: z.string().trim().max(2000).optional().or(z.literal("")),
+  description: z.string().trim().max(2000).nullish().or(z.literal("")),
   sku: z.string().trim().max(80).optional().or(z.literal("")),
   barcode: z.string().trim().max(80).optional().or(z.literal("")),
   category_id: z.string().uuid("Categoria obrigatória"),
