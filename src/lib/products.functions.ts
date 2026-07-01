@@ -78,7 +78,7 @@ export const saveCategory = createServerFn({ method: "POST" })
     const company_id = await getCompanyId(supabase, context.userId);
     const payload: any = {
       name: data.name,
-      description: data.description || null,
+      description: normalizeDescription(data.description),
       category_type: data.category_type,
       active: data.active,
       company_id,
@@ -143,7 +143,7 @@ export const saveBrand = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const company_id = await getCompanyId(sb, context.userId);
-    const payload: any = { name: data.name, description: data.description || null, active: data.active, company_id };
+    const payload: any = { name: data.name, description: normalizeDescription(data.description), active: data.active, company_id };
     if (data.id) {
       const { data: row, error } = await sb.from("brands").update(payload).eq("id", data.id).select("*").single();
       if (error) throw new Error(error.message);
@@ -382,7 +382,7 @@ export const saveItem = createServerFn({ method: "POST" })
     const payload: any = {
       item_type: data.item_type,
       name: data.name,
-      description: data.description || null,
+      description: normalizeDescription(data.description),
       sku: data.sku ? data.sku.trim() : null,
       barcode: isService ? null : data.barcode || null,
       category_id: data.category_id,
