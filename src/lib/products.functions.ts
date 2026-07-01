@@ -16,6 +16,12 @@ async function getCompanyId(supabase: any, userId: string): Promise<string> {
   return data.company_id as string;
 }
 
+function normalizeDescription(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  const trimmed = String(value).trim();
+  return trimmed.length === 0 ? null : trimmed;
+}
+
 async function signImageUrl(supabase: any, path: string | null | undefined): Promise<string | null> {
   if (!path) return null;
   const { data } = await supabase.storage.from("product-images").createSignedUrl(path, SIGNED_TTL);
