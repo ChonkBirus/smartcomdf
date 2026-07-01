@@ -59,7 +59,7 @@ export const listCategories = createServerFn({ method: "GET" })
 const categorySchema = z.object({
   id: z.string().uuid().optional(),
   name: z.string().trim().min(1, "Nome obrigatório").max(120),
-  description: z.string().trim().max(500).optional().or(z.literal("")),
+  description: z.string().trim().max(500).nullish().or(z.literal("")),
   category_type: z.enum(["PRODUCT", "SERVICE", "BOTH"]).default("BOTH"),
   active: z.boolean().default(true),
 });
