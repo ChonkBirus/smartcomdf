@@ -673,7 +673,7 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
           phone: m.phone ?? null,
           whatsapp: m.whatsapp ? onlyDigits(m.whatsapp) : null,
           customer_origin: m.customer_origin ?? null,
-          customer_status: m.customer_status ?? "ACTIVE",
+          customer_status: normalizeCustomerStatus(m.customer_status) ?? "ACTIVE",
           notes: m.notes ?? null,
           active: true,
         };
