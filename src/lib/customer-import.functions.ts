@@ -159,6 +159,19 @@ function isValidEmail(v: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
 
+const CUSTOMER_STATUS_VALUES = new Set(["ACTIVE", "INACTIVE", "LEAD", "BLOCKED"]);
+function normalizeCustomerStatus(v: any): "ACTIVE" | "INACTIVE" | "LEAD" | "BLOCKED" | null {
+  if (v == null || v === "") return null;
+  const t = String(v).normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+  if (!t) return null;
+  if (CUSTOMER_STATUS_VALUES.has(t.toUpperCase())) return t.toUpperCase() as any;
+  if (t.startsWith("ativ")) return "ACTIVE";
+  if (t.startsWith("inativ") || t === "desativado" || t === "desativada") return "INACTIVE";
+  if (t.startsWith("lead") || t === "prospect" || t === "prospecto") return "LEAD";
+  if (t.startsWith("bloq") || t === "blocked") return "BLOCKED";
+  return null;
+}
+
 function detectType(rawTipo: any, doc: string): "INDIVIDUAL" | "COMPANY" | null {
   if (rawTipo) {
     const t = String(rawTipo).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -660,7 +673,7 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
           phone: m.phone ?? null,
           whatsapp: m.whatsapp ? onlyDigits(m.whatsapp) : null,
           customer_origin: m.customer_origin ?? null,
-          customer_status: m.customer_status ?? "ACTIVE",
+          customer_status: normalizeCustomerStatus(m.customer_status) ?? "ACTIVE",
           notes: m.notes ?? null,
           active: true,
         };
