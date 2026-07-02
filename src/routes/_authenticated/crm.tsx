@@ -26,6 +26,7 @@ function CrmPage() {
           <PageHeader
             title="CRM"
             description="Funil de vendas e relacionamento no estilo Kanban."
+            tourKey="crm"
           />
 
           <Tabs defaultValue="board" className="w-full">

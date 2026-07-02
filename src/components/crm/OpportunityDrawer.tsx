@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { FileText, Link2, Trash2, Check, Circle, Plus } from "lucide-react";
+import { FileText, Link2, Trash2, Check, Circle, Plus, UserPlus } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import {
   addOpportunityActivity,
   addOpportunityNote,
   completeActivity,
+  convertLeadToCustomer,
   convertOpportunityToQuote,
   deleteActivity,
   deleteOpportunity,
@@ -29,6 +30,10 @@ import {
   searchCustomersLite,
   updateOpportunity,
 } from "@/lib/crm.functions";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -47,6 +52,7 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
   const remove = useServerFn(deleteOpportunity);
   const linkCustomer = useServerFn(linkOpportunityCustomer);
   const convertToQuote = useServerFn(convertOpportunityToQuote);
+  const convertToCustomer = useServerFn(convertLeadToCustomer);
 
   const { data, isLoading } = useQuery({
     queryKey: ["crm", "opportunity", opportunityId],
@@ -137,6 +143,24 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
     onError: (e: any) => toast.error(e?.message ?? "Erro ao gerar orçamento."),
   });
 
+  const [dupOpen, setDupOpen] = useState(false);
+  const [dupList, setDupList] = useState<any[]>([]);
+
+  const convertCust = useMutation({
+    mutationFn: async (force?: boolean) =>
+      await convertToCustomer({ data: { opportunity_id: opportunityId!, force: !!force } }),
+    onSuccess: (r: any) => {
+      if (r.duplicates?.length > 0 && !r.customer_id) {
+        setDupList(r.duplicates);
+        setDupOpen(true);
+        return;
+      }
+      toast.success(r.already ? "Já havia cliente vinculado." : "Cliente criado a partir do lead.");
+      invalidateAll();
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Erro ao converter em cliente."),
+  });
+
   return (
     <Sheet open={!!opportunityId} onOpenChange={onOpenChange}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
@@ -162,16 +186,77 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
             </div>
 
             <div className="mt-3 flex flex-wrap gap-2">
+              {!form.customer_id && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => convertCust.mutate(false)}
+                  disabled={convertCust.isPending}
+                >
+                  <UserPlus className="mr-1 h-4 w-4" />
+                  {convertCust.isPending ? "Convertendo…" : "Converter em cliente"}
+                </Button>
+              )}
               <Button
                 size="sm"
                 onClick={() => convert.mutate()}
                 disabled={convert.isPending || !form.customer_id}
-                title={!form.customer_id ? "Vincule um cliente na aba Cliente." : ""}
+                title={!form.customer_id ? "Vincule ou converta em cliente primeiro." : ""}
               >
                 <FileText className="mr-1 h-4 w-4" />
                 {convert.isPending ? "Gerando…" : "Gerar orçamento"}
               </Button>
             </div>
+
+            <AlertDialog open={dupOpen} onOpenChange={setDupOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Cliente possivelmente já cadastrado</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Encontramos {dupList.length} cliente(s) parecido(s). Vincule a um existente para evitar duplicidade.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <ul className="max-h-64 space-y-2 overflow-y-auto">
+                  {dupList.map((c) => (
+                    <li key={c.id} className="rounded-md border p-2 text-sm">
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <div className="font-medium">{c.label}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {[c.cpf_cnpj, c.email, c.phone].filter(Boolean).join(" · ")}
+                          </div>
+                          <div className="mt-1 text-xs text-primary">
+                            Coincide por: {c.reasons.join(", ")}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            linkCust.mutate(c.id);
+                            setDupOpen(false);
+                          }}
+                        >
+                          Vincular
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      setDupOpen(false);
+                      convertCust.mutate(true);
+                    }}
+                  >
+                    Criar novo mesmo assim
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
 
             <Tabs defaultValue="info" className="mt-4">
               <TabsList>

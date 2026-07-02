@@ -113,4 +113,22 @@ export const TOURS: Record<string, TourDefinition> = {
       { title: "Alterar plano", body: "Upgrade ou downgrade respeitando seu ciclo." },
     ],
   },
+  crm: {
+    key: "crm",
+    name: "Como usar o CRM",
+    description: "Do primeiro lead ao pós-venda: acompanhe o fluxo comercial completo.",
+    steps: [
+      { title: "O que é o CRM", body: "O CRM ajuda sua empresa a acompanhar leads, propostas, visitas, follow-ups e clientes para não perder oportunidades de venda.", route: "/crm", module: "crm" },
+      { title: "Pipeline", body: "O pipeline mostra em qual etapa cada oportunidade está — do primeiro contato ao fechamento.", module: "crm" },
+      { title: "Criar um lead", body: "Clique em 'Novo lead' e preencha nome, telefone, serviço de interesse e próxima ação. CPF/CNPJ não é obrigatório.", module: "crm" },
+      { title: "Mover a oportunidade", body: "Arraste o card conforme a negociação avança: contato → visita → proposta → negociação → ganho ou perdido.", module: "crm" },
+      { title: "Follow-up", body: "Registre a próxima ação e a data de retorno. O sistema destaca atividades atrasadas.", module: "crm" },
+      { title: "Converter em cliente", body: "Na oportunidade, use 'Converter em cliente' para criar o cadastro sem digitar de novo. Duplicados são detectados automaticamente.", module: "crm" },
+      { title: "Criar orçamento pelo CRM", body: "Com cliente vinculado, clique em 'Gerar orçamento'. O orçamento fica ligado ao CRM e à oportunidade.", module: "crm" },
+      { title: "Ganho ou perdido", body: "Marque a oportunidade como ganha ao fechar a venda ou como perdida, informando o motivo.", module: "crm" },
+      { title: "Projeto e OS", body: "Oportunidades ganhas geram projeto e ordem de serviço para a execução técnica.", module: "crm" },
+      { title: "Pós-venda", body: "Após concluir a OS, retorne ao cliente para confirmar satisfação e identificar novas oportunidades.", module: "crm" },
+      { title: "Relatórios", body: "Use a aba Relatórios para ver origem dos leads, conversão, ganhos e motivos de perda.", module: "crm" },
+    ],
+  },
 };
