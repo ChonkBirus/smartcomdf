@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CrmBoard } from "@/components/crm/CrmBoard";
 import { CrmReportsPanel } from "@/components/crm/CrmReportsPanel";
-import { ModuleHelpButton } from "@/components/onboarding/ModuleHelpButton";
 import { getCrmOverview } from "@/lib/crm.functions";
 
 export const Route = createFileRoute("/_authenticated/crm")({
