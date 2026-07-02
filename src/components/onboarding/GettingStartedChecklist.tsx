@@ -60,26 +60,30 @@ export function GettingStartedChecklist() {
   const total = ITEMS.length;
   const allDone = status && done === total;
 
-  // Persist auto-completion when all steps are done
-  const shouldMarkComplete = allDone && progress?.status !== "COMPLETED";
   const completeMutation = useMutation({
     mutationFn: () => upsertProgress({ data: { tourKey: TOUR_KEY, status: "COMPLETED", currentStep: total } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["onboarding_progress", TOUR_KEY] }),
   });
-  if (shouldMarkComplete && !completeMutation.isPending) completeMutation.mutate();
-
-  // Persist progress step count as it changes
-  const shouldSyncStep =
-    status && !allDone && progress?.status !== "SKIPPED" && (progress?.current_step ?? -1) !== done;
   const stepMutation = useMutation({
-    mutationFn: () => upsertProgress({ data: { tourKey: TOUR_KEY, status: "IN_PROGRESS", currentStep: done } }),
+    mutationFn: (step: number) => upsertProgress({ data: { tourKey: TOUR_KEY, status: "IN_PROGRESS", currentStep: step } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["onboarding_progress", TOUR_KEY] }),
   });
-  if (shouldSyncStep && !stepMutation.isPending) stepMutation.mutate();
+
+  useEffect(() => {
+    if (!status || progress === undefined) return;
+    if (progress?.status === "SKIPPED") return;
+    if (allDone) {
+      if (progress?.status !== "COMPLETED" && !completeMutation.isPending) completeMutation.mutate();
+    } else if ((progress?.current_step ?? -1) !== done && !stepMutation.isPending) {
+      stepMutation.mutate(done);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, progress, done, allDone]);
 
   const hidden = progress?.status === "SKIPPED" || progress?.status === "COMPLETED";
   if (hidden) return null;
   if (allDone && !isLoading) return null;
+
 
 
   return (
