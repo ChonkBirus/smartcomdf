@@ -1790,6 +1790,7 @@ export type Database = {
           quote_id: string | null
           service_interest: string | null
           service_order_id: string | null
+          sort_order: number
           source: Database["public"]["Enums"]["crm_source"] | null
           stage_id: string
           tags: string[]
@@ -1826,6 +1827,7 @@ export type Database = {
           quote_id?: string | null
           service_interest?: string | null
           service_order_id?: string | null
+          sort_order?: number
           source?: Database["public"]["Enums"]["crm_source"] | null
           stage_id: string
           tags?: string[]
@@ -1862,6 +1864,7 @@ export type Database = {
           quote_id?: string | null
           service_interest?: string | null
           service_order_id?: string | null
+          sort_order?: number
           source?: Database["public"]["Enums"]["crm_source"] | null
           stage_id?: string
           tags?: string[]
