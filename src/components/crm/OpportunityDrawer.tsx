@@ -17,6 +17,7 @@ import {
   addOpportunityActivity,
   addOpportunityNote,
   completeActivity,
+  convertLeadToCustomer,
   convertOpportunityToQuote,
   deleteActivity,
   deleteOpportunity,
@@ -29,6 +30,10 @@ import {
   searchCustomersLite,
   updateOpportunity,
 } from "@/lib/crm.functions";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 type Props = {
