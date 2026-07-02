@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { getCrmReports } from "@/lib/crm.functions";
 import { buildCrmReportCsv } from "@/lib/crm-reports-csv";
@@ -25,6 +25,7 @@ const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", curren
 export function CrmReportsPanel() {
   const fn = useServerFn(getCrmReports);
   const [days, setDays] = useState(30);
+  const [exporting, setExporting] = useState(false);
   const { data, isLoading, error } = useQuery({
     queryKey: ["crm", "reports", days],
     queryFn: () => fn({ data: { days } }),
@@ -35,18 +36,31 @@ export function CrmReportsPanel() {
   if (error) return <p className="text-sm text-destructive">{(error as Error).message}</p>;
   if (!data) return null;
 
-  const handleExport = () => {
-    const hasData =
-      data.bySource.length > 0 || data.byAssigned.length > 0 || data.lostReasons.length > 0;
-    if (!hasData) {
-      toast.info("Nenhum dado no período selecionado para exportar.");
-      return;
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    const toastId = toast.loading("Gerando CSV do relatório…");
+    try {
+      const hasData =
+        data.bySource.length > 0 || data.byAssigned.length > 0 || data.lostReasons.length > 0;
+      if (!hasData) {
+        toast.info("Nenhum dado no período selecionado para exportar.", { id: toastId });
+        return;
+      }
+      // Yield to the event loop so the loading UI paints before heavy work.
+      await new Promise((r) => setTimeout(r, 0));
+      const csv = buildCrmReportCsv(data, days);
+      const stamp = new Date().toISOString().slice(0, 10);
+      downloadCsv(`crm-relatorio-${days}d-${stamp}.csv`, csv);
+      toast.success("CSV exportado com sucesso.", { id: toastId });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Falha ao gerar CSV.";
+      toast.error(`Erro ao exportar CSV: ${message}`, { id: toastId });
+    } finally {
+      setExporting(false);
     }
-    const csv = buildCrmReportCsv(data, days);
-    const stamp = new Date().toISOString().slice(0, 10);
-    downloadCsv(`crm-relatorio-${days}d-${stamp}.csv`, csv);
-    toast.success("CSV exportado com sucesso.");
   };
+
 
 
 
@@ -57,8 +71,13 @@ export function CrmReportsPanel() {
           Período: últimos <span className="font-medium text-foreground">{days}</span> dias
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="mr-2 h-4 w-4" /> Exportar CSV
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting} aria-busy={exporting}>
+            {exporting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
+            {exporting ? "Exportando…" : "Exportar CSV"}
           </Button>
           <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
             <SelectTrigger className="h-9 w-[160px]"><SelectValue /></SelectTrigger>
