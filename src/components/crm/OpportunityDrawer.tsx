@@ -19,6 +19,7 @@ import {
   completeActivity,
   convertLeadToCustomer,
   convertOpportunityToQuote,
+  getOpportunityQuoteStatus,
   deleteActivity,
   deleteOpportunity,
   deleteOpportunityNote,
