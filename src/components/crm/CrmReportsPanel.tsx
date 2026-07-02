@@ -25,6 +25,7 @@ const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", curren
 export function CrmReportsPanel() {
   const fn = useServerFn(getCrmReports);
   const [days, setDays] = useState(30);
+  const [exporting, setExporting] = useState(false);
   const { data, isLoading, error } = useQuery({
     queryKey: ["crm", "reports", days],
     queryFn: () => fn({ data: { days } }),
