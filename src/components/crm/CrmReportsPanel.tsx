@@ -26,6 +26,7 @@ export function CrmReportsPanel() {
   const fn = useServerFn(getCrmReports);
   const [days, setDays] = useState(30);
   const [exporting, setExporting] = useState(false);
+  const exportingRef = useRef(false);
   const { data, isLoading, error } = useQuery({
     queryKey: ["crm", "reports", days],
     queryFn: () => fn({ data: { days } }),
