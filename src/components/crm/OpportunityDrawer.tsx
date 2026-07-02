@@ -52,6 +52,7 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
   const remove = useServerFn(deleteOpportunity);
   const linkCustomer = useServerFn(linkOpportunityCustomer);
   const convertToQuote = useServerFn(convertOpportunityToQuote);
+  const convertToCustomer = useServerFn(convertLeadToCustomer);
 
   const { data, isLoading } = useQuery({
     queryKey: ["crm", "opportunity", opportunityId],
