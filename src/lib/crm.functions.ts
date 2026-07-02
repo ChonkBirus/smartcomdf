@@ -58,9 +58,12 @@ export type CrmOpportunity = {
   next_follow_up_at: string | null;
   tags: string[];
   notes: string | null;
+  lost_reason: string | null;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 };
+
 
 async function getCompanyId(supabase: any, userId: string): Promise<string> {
   const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
