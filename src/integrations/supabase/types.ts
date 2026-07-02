@@ -5004,6 +5004,7 @@ export type Database = {
           issue_date: string
           items_subtotal: number
           labor_cost: number
+          opportunity_id: string | null
           payment_approved_at: string | null
           payment_status: string
           payment_terms: string | null
@@ -5048,6 +5049,7 @@ export type Database = {
           issue_date?: string
           items_subtotal?: number
           labor_cost?: number
+          opportunity_id?: string | null
           payment_approved_at?: string | null
           payment_status?: string
           payment_terms?: string | null
@@ -5092,6 +5094,7 @@ export type Database = {
           issue_date?: string
           items_subtotal?: number
           labor_cost?: number
+          opportunity_id?: string | null
           payment_approved_at?: string | null
           payment_status?: string
           payment_terms?: string | null
@@ -5119,6 +5122,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "crm_opportunities"
             referencedColumns: ["id"]
           },
         ]
