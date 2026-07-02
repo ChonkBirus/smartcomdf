@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { CustomerFormSheet } from "@/components/customers/CustomerFormSheet";
 import { CustomerHistorySheet } from "@/components/customers/CustomerHistorySheet";
 import { CustomerFinancialSummary } from "@/components/finance/CustomerFinancialSummary";
+import { CustomerCommercialHistory } from "@/components/crm/CustomerCommercialHistory";
 import { getCustomer } from "@/lib/customers.functions";
 import { toast } from "sonner";
 
