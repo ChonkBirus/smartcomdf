@@ -85,10 +85,12 @@ export type GettingStartedStatus = {
   hasCustomer: boolean;
   hasProduct: boolean;
   hasCompanyData: boolean;
+  hasCrmOpportunity: boolean;
   hasQuote: boolean;
   hasQuotePdf: boolean;
   hasQuoteSent: boolean;
   hasQuoteApproved: boolean;
+  hasCrmWon: boolean;
   hasServiceOrder: boolean;
 };
 
@@ -98,8 +100,9 @@ export const getGettingStartedStatus = createServerFn({ method: "GET" })
     const companyId = await getCompanyId(context.supabase, context.userId);
     const empty: GettingStartedStatus = {
       hasCustomer: false, hasProduct: false, hasCompanyData: false,
+      hasCrmOpportunity: false,
       hasQuote: false, hasQuotePdf: false, hasQuoteSent: false,
-      hasQuoteApproved: false, hasServiceOrder: false,
+      hasQuoteApproved: false, hasCrmWon: false, hasServiceOrder: false,
     };
     if (!companyId) return empty;
 
@@ -111,11 +114,13 @@ export const getGettingStartedStatus = createServerFn({ method: "GET" })
     };
 
 
-    const [hasCustomer, hasProduct, hasQuote, hasServiceOrder] = await Promise.all([
+    const [hasCustomer, hasProduct, hasQuote, hasServiceOrder, hasCrmOpportunity, hasCrmWon] = await Promise.all([
       count("customers"),
       count("items"),
       count("quotes"),
       count("service_orders"),
+      count("crm_opportunities"),
+      count("crm_opportunities", { status: "WON" }),
     ]);
 
     const { data: company } = await context.supabase
@@ -134,6 +139,9 @@ export const getGettingStartedStatus = createServerFn({ method: "GET" })
 
     return {
       hasCustomer, hasProduct, hasCompanyData,
-      hasQuote, hasQuotePdf, hasQuoteSent, hasQuoteApproved, hasServiceOrder,
+      hasCrmOpportunity,
+      hasQuote, hasQuotePdf, hasQuoteSent, hasQuoteApproved,
+      hasCrmWon, hasServiceOrder,
     };
   });
+
