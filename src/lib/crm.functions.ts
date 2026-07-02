@@ -750,7 +750,7 @@ export const getOpportunityQuoteStatus = createServerFn({ method: "POST" })
     if (!opp?.quote_id) return null;
     const { data: q } = await sb
       .from("quotes")
-      .select("id, quote_number, status, total, issue_date, valid_until, accepted_at, rejected_at")
+      .select("id, quote_number, status, total_amount, issue_date, valid_until, accepted_at")
       .eq("id", opp.quote_id)
       .eq("company_id", companyId)
       .maybeSingle();
