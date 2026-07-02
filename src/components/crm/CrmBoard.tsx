@@ -111,19 +111,32 @@ export function CrmBoard() {
     return m;
   }, [data]);
 
+  const snapshotRef = useRef<Record<string, string[]> | null>(null);
+  const rollback = (message: string) => {
+    if (snapshotRef.current) {
+      setLocalOrders(snapshotRef.current);
+      snapshotRef.current = null;
+    }
+    toast.error(message);
+  };
+
   const moveMutation = useMutation({
     mutationFn: async (v: { id: string; stage_id: string; sort_order?: number; lost_reason?: string }) =>
       await move({ data: v }),
-    onError: (e: any) => toast.error(e?.message ?? "Erro ao mover lead."),
+    onError: (e: any) => rollback(e?.message ?? "Erro ao mover lead."),
+    onSuccess: () => { snapshotRef.current = null; },
     onSettled: () => qc.invalidateQueries({ queryKey: ["crm"] }),
   });
 
   const reorderMutation = useMutation({
     mutationFn: async (v: { stage_id: string; ordered_ids: string[] }) =>
       await reorder({ data: v }),
-    onError: (e: any) => toast.error(e?.message ?? "Erro ao reordenar."),
+    onError: (e: any) => rollback(e?.message ?? "Erro ao reordenar."),
+    onSuccess: () => { snapshotRef.current = null; },
     onSettled: () => qc.invalidateQueries({ queryKey: ["crm"] }),
   });
+
+  const isPending = moveMutation.isPending || reorderMutation.isPending;
 
   const clearFilters = () => setFilters({ search: "", assigned_to: "", temperature: "" });
   const hasFilters = filters.search || filters.assigned_to || filters.temperature;
