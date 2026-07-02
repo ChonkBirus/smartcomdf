@@ -1063,10 +1063,8 @@ export const convertLeadToCustomer = createServerFn({ method: "POST" })
       facebook: "Facebook", google: "Google", ligacao: "Ligação", visita: "Visita",
       evento: "Evento", outro: "Outro",
     };
-    const typeMap: Record<string, string> = {
-      residencial: "RESIDENTIAL", comercial: "COMMERCIAL", industrial: "INDUSTRIAL",
-      condominio: "CONDOMINIUM", outro: "OTHER",
-    };
+    const typeMap: Record<string, string> = {};
+    void typeMap;
 
     const phoneDigits = onlyDigits(opp.phone);
     const emailNorm = (opp.email ?? "").trim().toLowerCase() || null;
