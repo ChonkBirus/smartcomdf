@@ -703,6 +703,7 @@ export const convertOpportunityToQuote = createServerFn({ method: "POST" })
       .insert({
         company_id: companyId,
         customer_id: opp.customer_id,
+        opportunity_id: data.id,
         quote_number: qNum as string,
         status: "DRAFT",
         title: opp.service_interest || opp.lead_name,
