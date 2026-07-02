@@ -739,3 +739,15 @@ function ActivityList({
     </div>
   );
 }
+
+function QuoteStatusBadge({ status }: { status: string | null | undefined }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    DRAFT: { label: "Rascunho", cls: "bg-muted text-muted-foreground" },
+    SENT: { label: "Enviado", cls: "bg-blue-500/15 text-blue-700 dark:text-blue-300" },
+    APPROVED: { label: "Aprovado", cls: "bg-success text-success-foreground" },
+    REJECTED: { label: "Rejeitado", cls: "bg-destructive text-destructive-foreground" },
+    EXPIRED: { label: "Expirado", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
+  };
+  const s = map[status ?? "DRAFT"] ?? { label: status ?? "—", cls: "bg-muted" };
+  return <Badge className={s.cls}>{s.label}</Badge>;
+}
