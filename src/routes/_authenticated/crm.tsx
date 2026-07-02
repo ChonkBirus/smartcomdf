@@ -32,6 +32,7 @@ function CrmPage() {
             <TabsList>
               <TabsTrigger value="board">Funil</TabsTrigger>
               <TabsTrigger value="overview">Visão geral</TabsTrigger>
+              <TabsTrigger value="reports">Relatórios</TabsTrigger>
             </TabsList>
 
             <TabsContent value="board" className="mt-4">
@@ -40,6 +41,10 @@ function CrmPage() {
 
             <TabsContent value="overview" className="mt-4">
               <OverviewGrid />
+            </TabsContent>
+
+            <TabsContent value="reports" className="mt-4">
+              <CrmReportsPanel />
             </TabsContent>
           </Tabs>
         </div>
