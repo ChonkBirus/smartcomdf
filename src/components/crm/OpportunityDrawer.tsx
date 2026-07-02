@@ -78,6 +78,23 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
     staleTime: 15_000,
   });
 
+  const fetchProjectStatus = useServerFn(getOpportunityProjectStatus);
+  const { data: projectStatus } = useQuery({
+    queryKey: ["crm", "opportunity", opportunityId, "project-status"],
+    queryFn: () => fetchProjectStatus({ data: { opportunity_id: opportunityId! } }),
+    enabled: !!opportunityId,
+    staleTime: 15_000,
+  });
+
+  const fetchSoStatus = useServerFn(getOpportunityServiceOrderStatus);
+  const { data: soStatus } = useQuery({
+    queryKey: ["crm", "opportunity", opportunityId, "so-status"],
+    queryFn: () => fetchSoStatus({ data: { opportunity_id: opportunityId! } }),
+    enabled: !!opportunityId,
+    staleTime: 15_000,
+  });
+
+
   const [form, setForm] = useState<any>(null);
   useEffect(() => {
     if (data?.opportunity) {
