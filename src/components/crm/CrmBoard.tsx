@@ -21,7 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  Plus, Flame, Snowflake, Thermometer, Calendar, User2, Search, X, Settings2,
+  Plus, Flame, Snowflake, Thermometer, Calendar, User2, Search, X, Settings2, Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
