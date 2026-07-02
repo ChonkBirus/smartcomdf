@@ -289,7 +289,14 @@ export const updateOpportunity = createServerFn({ method: "POST" })
 export const moveOpportunityStage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({ id: z.string().uuid(), stage_id: z.string().uuid() }).parse(d),
+    z
+      .object({
+        id: z.string().uuid(),
+        stage_id: z.string().uuid(),
+        sort_order: z.number().int().optional(),
+        lost_reason: z.string().max(500).optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -308,13 +315,16 @@ export const moveOpportunityStage = createServerFn({ method: "POST" })
     if (stage.is_won) {
       patch.won_at = now;
       patch.lost_at = null;
+      patch.lost_reason = null;
     } else if (stage.is_lost) {
       patch.lost_at = now;
       patch.won_at = null;
+      if (data.lost_reason !== undefined) patch.lost_reason = data.lost_reason;
     } else {
       patch.won_at = null;
       patch.lost_at = null;
     }
+    if (typeof data.sort_order === "number") patch.sort_order = data.sort_order;
 
     const { error } = await sb
       .from("crm_opportunities")
@@ -328,12 +338,40 @@ export const moveOpportunityStage = createServerFn({ method: "POST" })
       opportunity_id: data.id,
       event_type: "stage_changed",
       title: `Movido para "${stage.name}"`,
-      metadata: { stage_id: data.stage_id },
+      metadata: { stage_id: data.stage_id, lost_reason: patch.lost_reason ?? null },
       created_by: context.userId,
     });
 
     return { ok: true };
   });
+
+export const reorderOpportunitiesInStage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        stage_id: z.string().uuid(),
+        ordered_ids: z.array(z.string().uuid()).min(1),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    // Assign sort_order = index * 100
+    const updates = data.ordered_ids.map((id, i) =>
+      sb
+        .from("crm_opportunities")
+        .update({ sort_order: (i + 1) * 100, stage_id: data.stage_id })
+        .eq("id", id)
+        .eq("company_id", companyId),
+    );
+    const results = await Promise.all(updates);
+    const err = results.find((r: any) => r.error);
+    if (err?.error) throw new Error(err.error.message);
+    return { ok: true };
+  });
+
 
 export const deleteOpportunity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
