@@ -933,3 +933,273 @@ export const getCrmReports = createServerFn({ method: "GET" })
         .sort((a, b) => b.count - a.count),
     } as CrmReports;
   });
+
+// ============================================================
+// ETAPA 1: Lead → Customer (com anti-duplicidade) + histórico
+// ============================================================
+
+const onlyDigits = (v?: string | null) => (v ?? "").replace(/\D/g, "");
+
+export type DuplicateCustomerCandidate = {
+  id: string;
+  label: string;
+  cpf_cnpj: string | null;
+  phone: string | null;
+  email: string | null;
+  reasons: string[];
+};
+
+async function findCustomerDuplicates(
+  sb: any,
+  companyId: string,
+  input: { name?: string | null; phone?: string | null; email?: string | null; cpf_cnpj?: string | null },
+): Promise<DuplicateCustomerCandidate[]> {
+  const phoneDigits = onlyDigits(input.phone);
+  const cpfDigits = onlyDigits(input.cpf_cnpj);
+  const email = (input.email ?? "").trim().toLowerCase();
+  const name = (input.name ?? "").trim();
+
+  const filters: string[] = [];
+  if (email) filters.push(`email.ilike.${email}`);
+  if (cpfDigits.length >= 11) filters.push(`cpf_cnpj.eq.${cpfDigits}`);
+  if (phoneDigits.length >= 8) {
+    const tail = phoneDigits.slice(-8);
+    filters.push(`phone.ilike.%${tail}%`);
+    filters.push(`whatsapp.ilike.%${tail}%`);
+  }
+
+  if (filters.length === 0) return [];
+
+  const { data: rows } = await sb
+    .from("customers")
+    .select("id, name, trade_name, corporate_name, cpf_cnpj, email, phone, whatsapp")
+    .eq("company_id", companyId)
+    .is("deleted_at", null)
+    .or(filters.join(","))
+    .limit(10);
+
+  const candidates: DuplicateCustomerCandidate[] = [];
+  for (const r of rows ?? []) {
+    const reasons: string[] = [];
+    if (email && (r.email ?? "").toLowerCase() === email) reasons.push("e-mail");
+    if (cpfDigits.length >= 11 && onlyDigits(r.cpf_cnpj) === cpfDigits) reasons.push("CPF/CNPJ");
+    if (phoneDigits.length >= 8) {
+      const tail = phoneDigits.slice(-8);
+      if (onlyDigits(r.phone).endsWith(tail) || onlyDigits(r.whatsapp).endsWith(tail)) reasons.push("telefone");
+    }
+    if (
+      name.length >= 3 &&
+      (r.name ?? "").toLowerCase().includes(name.toLowerCase()) &&
+      phoneDigits.length >= 4 &&
+      (onlyDigits(r.phone).endsWith(phoneDigits.slice(-4)) || onlyDigits(r.whatsapp).endsWith(phoneDigits.slice(-4)))
+    ) {
+      if (!reasons.includes("nome+telefone")) reasons.push("nome+telefone");
+    }
+    if (reasons.length === 0) continue;
+    candidates.push({
+      id: r.id,
+      label: r.trade_name || r.name || r.corporate_name || "—",
+      cpf_cnpj: r.cpf_cnpj,
+      phone: r.phone ?? r.whatsapp,
+      email: r.email,
+      reasons,
+    });
+  }
+  return candidates;
+}
+
+export const checkCustomerDuplicates = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        name: z.string().optional().nullable(),
+        phone: z.string().optional().nullable(),
+        email: z.string().optional().nullable(),
+        cpf_cnpj: z.string().optional().nullable(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    return await findCustomerDuplicates(sb, companyId, data);
+  });
+
+export const convertLeadToCustomer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ opportunity_id: z.string().uuid(), force: z.boolean().optional() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+
+    const { data: opp, error: oErr } = await sb
+      .from("crm_opportunities")
+      .select(
+        "id, customer_id, lead_name, lead_type, company_name, phone, email, customer_type, source, description",
+      )
+      .eq("id", data.opportunity_id)
+      .eq("company_id", companyId)
+      .maybeSingle();
+    if (oErr) throw new Error(oErr.message);
+    if (!opp) throw new Error("Oportunidade não encontrada.");
+    if (opp.customer_id) return { customer_id: opp.customer_id as string, already: true, duplicates: [] };
+
+    if (!data.force) {
+      const dups = await findCustomerDuplicates(sb, companyId, {
+        name: opp.lead_name,
+        phone: opp.phone,
+        email: opp.email,
+      });
+      if (dups.length > 0) {
+        return { customer_id: null, already: false, duplicates: dups };
+      }
+    }
+
+    const originMap: Record<string, string> = {
+      site: "Site", indicacao: "Indicação", whatsapp: "WhatsApp", instagram: "Instagram",
+      facebook: "Facebook", google: "Google", ligacao: "Ligação", visita: "Visita",
+      evento: "Evento", outro: "Outro",
+    };
+    const typeMap: Record<string, string> = {
+      residencial: "RESIDENTIAL", comercial: "COMMERCIAL", industrial: "INDUSTRIAL",
+      condominio: "CONDOMINIUM", outro: "OTHER",
+    };
+
+    const phoneDigits = onlyDigits(opp.phone);
+    const emailNorm = (opp.email ?? "").trim().toLowerCase() || null;
+
+    const insertPayload: any = {
+      company_id: companyId,
+      customer_type: opp.lead_type === "pj" ? "COMPANY" : "INDIVIDUAL",
+      name: opp.lead_type === "pj" ? (opp.company_name || opp.lead_name) : opp.lead_name,
+      corporate_name: opp.lead_type === "pj" ? (opp.company_name || opp.lead_name) : null,
+      trade_name: opp.lead_type === "pj" ? (opp.company_name || null) : null,
+      cpf_cnpj: "",
+      email: emailNorm,
+      phone: phoneDigits || null,
+      whatsapp: phoneDigits || null,
+      customer_status: "ACTIVE",
+      customer_origin: opp.source ? (originMap[opp.source] ?? null) : "CRM",
+      customer_segment: opp.customer_type ? (typeMap[opp.customer_type] ?? null) : null,
+      notes: opp.description ?? null,
+      active: true,
+      created_by: context.userId,
+    };
+
+    const { data: created, error: cErr } = await sb
+      .from("customers")
+      .insert(insertPayload)
+      .select("id")
+      .single();
+    if (cErr) throw new Error(cErr.message);
+
+    await sb
+      .from("crm_opportunities")
+      .update({ customer_id: created.id })
+      .eq("id", opp.id)
+      .eq("company_id", companyId);
+
+    await sb.from("crm_timeline").insert({
+      company_id: companyId,
+      opportunity_id: opp.id,
+      event_type: "customer_created",
+      title: "Lead convertido em cliente",
+      metadata: { customer_id: created.id },
+      created_by: context.userId,
+    });
+
+    return { customer_id: created.id as string, already: false, duplicates: [] as DuplicateCustomerCandidate[] };
+  });
+
+export type CommercialHistoryEvent = {
+  id: string;
+  kind: "opportunity" | "timeline" | "activity";
+  title: string;
+  description: string | null;
+  at: string;
+  opportunity_id: string | null;
+  meta: Record<string, any>;
+};
+
+export const getCustomerCommercialHistory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ customer_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+
+    const { data: opps } = await sb
+      .from("crm_opportunities")
+      .select("id, lead_name, service_interest, estimated_value, stage_id, won_at, lost_at, lost_reason, created_at, quote_id")
+      .eq("company_id", companyId)
+      .eq("customer_id", data.customer_id)
+      .order("created_at", { ascending: false });
+
+    const oppIds = (opps ?? []).map((o: any) => o.id);
+    const events: CommercialHistoryEvent[] = [];
+
+    for (const o of opps ?? []) {
+      events.push({
+        id: `opp-${o.id}`,
+        kind: "opportunity",
+        title: `Oportunidade: ${o.lead_name}`,
+        description: o.service_interest || null,
+        at: o.created_at,
+        opportunity_id: o.id,
+        meta: {
+          estimated_value: Number(o.estimated_value || 0),
+          won_at: o.won_at,
+          lost_at: o.lost_at,
+          lost_reason: o.lost_reason,
+          quote_id: o.quote_id,
+        },
+      });
+    }
+
+    if (oppIds.length > 0) {
+      const { data: tl } = await sb
+        .from("crm_timeline")
+        .select("id, opportunity_id, event_type, title, description, metadata, created_at")
+        .eq("company_id", companyId)
+        .in("opportunity_id", oppIds)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      for (const t of tl ?? []) {
+        events.push({
+          id: `tl-${t.id}`,
+          kind: "timeline",
+          title: t.title,
+          description: t.description ?? null,
+          at: t.created_at,
+          opportunity_id: t.opportunity_id,
+          meta: t.metadata ?? {},
+        });
+      }
+
+      const { data: acts } = await sb
+        .from("crm_activities")
+        .select("id, opportunity_id, activity_type, title, description, due_at, completed_at, created_at")
+        .eq("company_id", companyId)
+        .in("opportunity_id", oppIds)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      for (const a of acts ?? []) {
+        events.push({
+          id: `act-${a.id}`,
+          kind: "activity",
+          title: `${a.activity_type}: ${a.title}`,
+          description: a.description ?? null,
+          at: a.created_at,
+          opportunity_id: a.opportunity_id,
+          meta: { due_at: a.due_at, completed_at: a.completed_at },
+        });
+      }
+    }
+
+    events.sort((a, b) => (a.at < b.at ? 1 : -1));
+    return { opportunities: opps ?? [], events };
+  });
