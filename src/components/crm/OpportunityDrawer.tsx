@@ -826,3 +826,31 @@ function QuoteStatusBadge({ status }: { status: string | null | undefined }) {
   const s = map[status ?? "DRAFT"] ?? { label: status ?? "—", cls: "bg-muted" };
   return <Badge className={s.cls}>{s.label}</Badge>;
 }
+
+function ProjectStatusBadge({ status }: { status: string | null | undefined }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    DRAFT: { label: "Rascunho", cls: "bg-muted text-muted-foreground" },
+    READY_TO_SCHEDULE: { label: "Pronto p/ agendar", cls: "bg-blue-500/15 text-blue-700 dark:text-blue-300" },
+    SCHEDULED: { label: "Agendado", cls: "bg-blue-500/15 text-blue-700 dark:text-blue-300" },
+    IN_PROGRESS: { label: "Em execução", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
+    PAUSED: { label: "Pausado", cls: "bg-muted text-muted-foreground" },
+    COMPLETED: { label: "Concluído", cls: "bg-success text-success-foreground" },
+    CANCELLED: { label: "Cancelado", cls: "bg-destructive text-destructive-foreground" },
+  };
+  const s = map[status ?? "DRAFT"] ?? { label: status ?? "—", cls: "bg-muted" };
+  return <Badge className={s.cls}>{s.label}</Badge>;
+}
+
+function SoStatusBadge({ status }: { status: string | null | undefined }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    DRAFT: { label: "Rascunho", cls: "bg-muted text-muted-foreground" },
+    SCHEDULED: { label: "Agendada", cls: "bg-blue-500/15 text-blue-700 dark:text-blue-300" },
+    IN_PROGRESS: { label: "Em execução", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
+    ON_HOLD: { label: "Pausada", cls: "bg-muted text-muted-foreground" },
+    COMPLETED: { label: "Concluída", cls: "bg-success text-success-foreground" },
+    CLOSED: { label: "Encerrada", cls: "bg-success text-success-foreground" },
+    CANCELLED: { label: "Cancelada", cls: "bg-destructive text-destructive-foreground" },
+  };
+  const s = map[status ?? "DRAFT"] ?? { label: status ?? "—", cls: "bg-muted" };
+  return <Badge className={s.cls}>{s.label}</Badge>;
+}
