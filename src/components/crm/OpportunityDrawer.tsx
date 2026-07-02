@@ -238,6 +238,62 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
               </div>
             )}
 
+            {projectStatus && (
+              <div className="mt-3 rounded-md border bg-muted/40 p-3 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Projeto vinculado</div>
+                    <div className="font-medium">
+                      {projectStatus.project_number} · {projectStatus.title || "—"}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Total {brl(Number(projectStatus.total_amount || 0))}
+                    </div>
+                  </div>
+                  <ProjectStatusBadge status={projectStatus.status} />
+                </div>
+                <Button
+                  size="sm"
+                  variant="link"
+                  className="mt-1 h-auto p-0"
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate({ to: "/projects/$id", params: { id: projectStatus.id } });
+                  }}
+                >
+                  Abrir projeto →
+                </Button>
+              </div>
+            )}
+
+            {soStatus && (
+              <div className="mt-3 rounded-md border bg-muted/40 p-3 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Ordem de serviço vinculada</div>
+                    <div className="font-medium">Nº {soStatus.service_order_number}</div>
+                    {soStatus.scheduled_date && (
+                      <div className="text-xs text-muted-foreground">
+                        Agendada para {new Date(soStatus.scheduled_date).toLocaleDateString("pt-BR")}
+                      </div>
+                    )}
+                  </div>
+                  <SoStatusBadge status={soStatus.status} />
+                </div>
+                <Button
+                  size="sm"
+                  variant="link"
+                  className="mt-1 h-auto p-0"
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate({ to: "/service-orders/$id", params: { id: soStatus.id } });
+                  }}
+                >
+                  Abrir OS →
+                </Button>
+              </div>
+            )}
+
             <div className="mt-3 flex flex-wrap gap-2">
               {!form.customer_id && (
                 <Button
