@@ -186,16 +186,77 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
             </div>
 
             <div className="mt-3 flex flex-wrap gap-2">
+              {!form.customer_id && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => convertCust.mutate(false)}
+                  disabled={convertCust.isPending}
+                >
+                  <UserPlus className="mr-1 h-4 w-4" />
+                  {convertCust.isPending ? "Convertendo…" : "Converter em cliente"}
+                </Button>
+              )}
               <Button
                 size="sm"
                 onClick={() => convert.mutate()}
                 disabled={convert.isPending || !form.customer_id}
-                title={!form.customer_id ? "Vincule um cliente na aba Cliente." : ""}
+                title={!form.customer_id ? "Vincule ou converta em cliente primeiro." : ""}
               >
                 <FileText className="mr-1 h-4 w-4" />
                 {convert.isPending ? "Gerando…" : "Gerar orçamento"}
               </Button>
             </div>
+
+            <AlertDialog open={dupOpen} onOpenChange={setDupOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Cliente possivelmente já cadastrado</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Encontramos {dupList.length} cliente(s) parecido(s). Vincule a um existente para evitar duplicidade.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <ul className="max-h-64 space-y-2 overflow-y-auto">
+                  {dupList.map((c) => (
+                    <li key={c.id} className="rounded-md border p-2 text-sm">
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <div className="font-medium">{c.label}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {[c.cpf_cnpj, c.email, c.phone].filter(Boolean).join(" · ")}
+                          </div>
+                          <div className="mt-1 text-xs text-primary">
+                            Coincide por: {c.reasons.join(", ")}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            linkCust.mutate(c.id);
+                            setDupOpen(false);
+                          }}
+                        >
+                          Vincular
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      setDupOpen(false);
+                      convertCust.mutate(true);
+                    }}
+                  >
+                    Criar novo mesmo assim
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
 
             <Tabs defaultValue="info" className="mt-4">
               <TabsList>
