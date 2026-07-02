@@ -203,18 +203,54 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
                   disabled={convertCust.isPending}
                 >
                   <UserPlus className="mr-1 h-4 w-4" />
+            {quoteStatus && (
+              <div className="mt-3 rounded-md border bg-muted/40 p-3 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Orçamento vinculado</div>
+                    <div className="font-medium">
+                      Nº {quoteStatus.quote_number} · {brl(Number(quoteStatus.total_amount || 0))}
+                    </div>
+                  </div>
+                  <QuoteStatusBadge status={quoteStatus.status} />
+                </div>
+                <Button
+                  size="sm"
+                  variant="link"
+                  className="mt-1 h-auto p-0"
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate({ to: "/quotes/$id", params: { id: quoteStatus.id } });
+                  }}
+                >
+                  Abrir orçamento →
+                </Button>
+              </div>
+            )}
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {!form.customer_id && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => convertCust.mutate(false)}
+                  disabled={convertCust.isPending}
+                >
+                  <UserPlus className="mr-1 h-4 w-4" />
                   {convertCust.isPending ? "Convertendo…" : "Converter em cliente"}
                 </Button>
               )}
-              <Button
-                size="sm"
-                onClick={() => convert.mutate()}
-                disabled={convert.isPending || !form.customer_id}
-                title={!form.customer_id ? "Vincule ou converta em cliente primeiro." : ""}
-              >
-                <FileText className="mr-1 h-4 w-4" />
-                {convert.isPending ? "Gerando…" : "Gerar orçamento"}
-              </Button>
+              {!quoteStatus && (
+                <Button
+                  size="sm"
+                  onClick={() => convert.mutate()}
+                  disabled={convert.isPending || !form.customer_id}
+                  title={!form.customer_id ? "Vincule ou converta em cliente primeiro." : ""}
+                >
+                  <FileText className="mr-1 h-4 w-4" />
+                  {convert.isPending ? "Gerando…" : "Gerar orçamento"}
+                </Button>
+              )}
             </div>
 
             <AlertDialog open={dupOpen} onOpenChange={setDupOpen}>
