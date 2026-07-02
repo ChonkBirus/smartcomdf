@@ -38,7 +38,8 @@ export function CrmReportsPanel() {
   if (!data) return null;
 
   const handleExport = async () => {
-    if (exporting) return;
+    if (exportingRef.current) return;
+    exportingRef.current = true;
     setExporting(true);
     const toastId = toast.loading("Gerando CSV do relatório…");
     try {
@@ -58,6 +59,7 @@ export function CrmReportsPanel() {
       const message = err instanceof Error ? err.message : "Falha ao gerar CSV.";
       toast.error(`Erro ao exportar CSV: ${message}`, { id: toastId });
     } finally {
+      exportingRef.current = false;
       setExporting(false);
     }
   };
