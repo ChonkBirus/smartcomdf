@@ -41,27 +41,56 @@ export function CrmReportsPanel() {
   if (!data) return null;
 
   const handleExport = () => {
+    const hasData =
+      data.bySource.length > 0 || data.byAssigned.length > 0 || data.lostReasons.length > 0;
+    if (!hasData) {
+      toast.info("Nenhum dado no período selecionado para exportar.");
+      return;
+    }
+
+    const fmt = (n: number) =>
+      Number(n ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const periodLabel = `Últimos ${days} dias`;
     const sections: (string | number)[][] = [];
-    sections.push([`Relatório CRM - últimos ${days} dias`]);
+    sections.push([`Relatório CRM - ${periodLabel}`]);
+    sections.push([`Gerado em`, new Date().toLocaleString("pt-BR")]);
     sections.push([]);
+
     sections.push(["Leads por origem"]);
     sections.push(["Origem", "Quantidade", "Valor (R$)"]);
-    data.bySource.forEach((r) => sections.push([r.label, r.count, r.value.toFixed(2)]));
+    if (data.bySource.length === 0) sections.push(["(sem dados)", 0, fmt(0)]);
+    else data.bySource.forEach((r) => sections.push([r.label, r.count, fmt(r.value)]));
+    sections.push([
+      "Total",
+      data.bySource.reduce((s, r) => s + r.count, 0),
+      fmt(data.bySource.reduce((s, r) => s + r.value, 0)),
+    ]);
     sections.push([]);
-    sections.push(["Leads por temperatura"]);
-    sections.push(["Temperatura", "Quantidade", "Valor (R$)"]);
-    data.byTemperature.forEach((r) => sections.push([r.label, r.count, r.value.toFixed(2)]));
-    sections.push([]);
+
     sections.push(["Performance por responsável"]);
     sections.push(["Responsável", "Leads", "Ganhos", "Perdidos", "Valor (R$)"]);
-    data.byAssigned.forEach((r) => sections.push([r.label, r.count, r.won, r.lost, r.value.toFixed(2)]));
+    if (data.byAssigned.length === 0) sections.push(["(sem dados)", 0, 0, 0, fmt(0)]);
+    else data.byAssigned.forEach((r) => sections.push([r.label, r.count, r.won, r.lost, fmt(r.value)]));
+    sections.push([
+      "Total",
+      data.byAssigned.reduce((s, r) => s + r.count, 0),
+      data.byAssigned.reduce((s, r) => s + r.won, 0),
+      data.byAssigned.reduce((s, r) => s + r.lost, 0),
+      fmt(data.byAssigned.reduce((s, r) => s + r.value, 0)),
+    ]);
     sections.push([]);
+
     sections.push(["Motivos de perda"]);
     sections.push(["Motivo", "Ocorrências"]);
-    data.lostReasons.forEach((r) => sections.push([r.reason, r.count]));
+    if (data.lostReasons.length === 0) sections.push(["(sem dados)", 0]);
+    else data.lostReasons.forEach((r) => sections.push([r.reason, r.count]));
+    sections.push(["Total", data.lostReasons.reduce((s, r) => s + r.count, 0)]);
+
     const stamp = new Date().toISOString().slice(0, 10);
     downloadCsv(`crm-relatorio-${days}d-${stamp}.csv`, toCsv(sections));
+    toast.success("CSV exportado com sucesso.");
   };
+
 
   return (
     <div className="space-y-4">
