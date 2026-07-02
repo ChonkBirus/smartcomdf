@@ -1268,3 +1268,239 @@ export const getCustomerCommercialHistory = createServerFn({ method: "POST" })
     events.sort((a, b) => (a.at < b.at ? 1 : -1));
     return { opportunities: opps ?? [], events };
   });
+
+// ============================================================
+// ETAPA 4 — KPIs de dashboard + risco de churn
+// ============================================================
+
+export type CrmDashboardKpis = {
+  pipelineOpen: { count: number; value: number };
+  won30d: { count: number; value: number };
+  lost30d: { count: number };
+  conversion30d: number;
+  avgTicket30d: number;
+  avgCycleDays: number | null;
+  forecast: number;
+  byStage: { stage_id: string; name: string; color: string | null; count: number; value: number }[];
+  byTemperature: { key: string; label: string; count: number; value: number }[];
+};
+
+export const getCrmDashboardKpis = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+
+    const { data: stages } = await sb
+      .from("crm_stages")
+      .select("id, name, color, position, stage_type, is_won, is_lost, pipeline_id, crm_pipelines!inner(company_id)")
+      .eq("crm_pipelines.company_id", companyId)
+      .order("position", { ascending: true });
+    const stageList = (stages ?? []) as any[];
+    const stageMap = new Map<string, any>();
+    for (const s of stageList) stageMap.set(s.id, s);
+
+    const { data: opps } = await sb
+      .from("crm_opportunities")
+      .select("id, stage_id, estimated_value, temperature, won_at, lost_at, created_at")
+      .eq("company_id", companyId)
+      .is("deleted_at", null);
+    const list = (opps ?? []) as any[];
+
+    const now = Date.now();
+    const cutoff = now - 30 * 86400_000;
+    const open = list.filter((o) => !o.won_at && !o.lost_at);
+    const won = list.filter((o) => o.won_at);
+    const won30 = won.filter((o) => new Date(o.won_at).getTime() >= cutoff);
+    const lost30 = list.filter((o) => o.lost_at && new Date(o.lost_at).getTime() >= cutoff);
+    const openValue = open.reduce((s, o) => s + Number(o.estimated_value || 0), 0);
+    const won30Value = won30.reduce((s, o) => s + Number(o.estimated_value || 0), 0);
+    const closed30 = won30.length + lost30.length;
+    const conversion = closed30 > 0 ? (won30.length / closed30) * 100 : 0;
+    const avgTicket = won30.length > 0 ? won30Value / won30.length : 0;
+
+    // Ciclo médio (dias) das ganhas nos últimos 90 dias
+    const won90 = won.filter((o) => (now - new Date(o.won_at).getTime()) <= 90 * 86400_000);
+    const cycleDays = won90.length
+      ? won90.reduce((s, o) => s + (new Date(o.won_at).getTime() - new Date(o.created_at).getTime()), 0)
+        / won90.length / 86400_000
+      : null;
+
+    // Forecast: soma ponderada por temperatura (hot 0.7, warm 0.4, cold 0.1)
+    const TEMP_W: Record<string, number> = { hot: 0.7, warm: 0.4, cold: 0.1 };
+    const forecast = open.reduce(
+      (s, o) => s + Number(o.estimated_value || 0) * (TEMP_W[o.temperature ?? "warm"] ?? 0.3),
+      0,
+    );
+
+    const byStageMap = new Map<string, { count: number; value: number }>();
+    for (const o of open) {
+      const cur = byStageMap.get(o.stage_id) ?? { count: 0, value: 0 };
+      byStageMap.set(o.stage_id, {
+        count: cur.count + 1,
+        value: cur.value + Number(o.estimated_value || 0),
+      });
+    }
+    const byStage = stageList
+      .filter((s) => s.stage_type === "open")
+      .map((s) => ({
+        stage_id: s.id,
+        name: s.name,
+        color: s.color,
+        count: byStageMap.get(s.id)?.count ?? 0,
+        value: byStageMap.get(s.id)?.value ?? 0,
+      }));
+
+    const TEMP_LABELS: Record<string, string> = { cold: "Frio", warm: "Morno", hot: "Quente" };
+    const tempMap = new Map<string, { count: number; value: number }>();
+    for (const o of open) {
+      const k = o.temperature ?? "warm";
+      const cur = tempMap.get(k) ?? { count: 0, value: 0 };
+      tempMap.set(k, { count: cur.count + 1, value: cur.value + Number(o.estimated_value || 0) });
+    }
+    const byTemperature = ["hot", "warm", "cold"].map((k) => ({
+      key: k,
+      label: TEMP_LABELS[k],
+      count: tempMap.get(k)?.count ?? 0,
+      value: tempMap.get(k)?.value ?? 0,
+    }));
+
+    return {
+      pipelineOpen: { count: open.length, value: openValue },
+      won30d: { count: won30.length, value: won30Value },
+      lost30d: { count: lost30.length },
+      conversion30d: conversion,
+      avgTicket30d: avgTicket,
+      avgCycleDays: cycleDays,
+      forecast,
+      byStage,
+      byTemperature,
+    } as CrmDashboardKpis;
+  });
+
+export type CrmChurnRow = {
+  kind: "stalled_open" | "won_no_followup";
+  opportunity_id: string | null;
+  customer_id: string | null;
+  label: string;
+  last_activity_at: string | null;
+  reference_at: string;
+  days_since: number;
+  estimated_value: number;
+  reason: string;
+};
+
+export const getCrmChurnRisk = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({
+      stalledDays: z.number().int().min(3).max(180).optional(),
+      wonSilenceDays: z.number().int().min(30).max(365).optional(),
+    }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const stalledDays = data.stalledDays ?? 14;
+    const wonSilenceDays = data.wonSilenceDays ?? 90;
+    const now = Date.now();
+
+    const { data: opps } = await sb
+      .from("crm_opportunities")
+      .select("id, lead_name, company_name, customer_id, estimated_value, won_at, lost_at, updated_at, created_at, next_follow_up_at")
+      .eq("company_id", companyId)
+      .is("deleted_at", null);
+    const list = (opps ?? []) as any[];
+
+    const rows: CrmChurnRow[] = [];
+
+    // 1. Stalled open — sem atualização há N dias
+    for (const o of list) {
+      if (o.won_at || o.lost_at) continue;
+      const ref = new Date(o.updated_at ?? o.created_at).getTime();
+      const days = Math.floor((now - ref) / 86400_000);
+      if (days >= stalledDays) {
+        rows.push({
+          kind: "stalled_open",
+          opportunity_id: o.id,
+          customer_id: o.customer_id ?? null,
+          label: o.company_name ?? o.lead_name ?? "Sem nome",
+          last_activity_at: o.updated_at,
+          reference_at: o.updated_at ?? o.created_at,
+          days_since: days,
+          estimated_value: Number(o.estimated_value || 0),
+          reason: o.next_follow_up_at && new Date(o.next_follow_up_at).getTime() < now
+            ? `Follow-up vencido há ${Math.floor((now - new Date(o.next_follow_up_at).getTime()) / 86400_000)}d`
+            : `Sem atualização há ${days}d`,
+        });
+      }
+    }
+
+    // 2. Won customers sem novas oportunidades / atividades — risco de churn
+    const wonByCustomer = new Map<string, { lastWon: string; label: string }>();
+    for (const o of list) {
+      if (!o.won_at || !o.customer_id) continue;
+      const prev = wonByCustomer.get(o.customer_id);
+      if (!prev || new Date(o.won_at).getTime() > new Date(prev.lastWon).getTime()) {
+        wonByCustomer.set(o.customer_id, {
+          lastWon: o.won_at,
+          label: o.company_name ?? o.lead_name ?? "Cliente",
+        });
+      }
+    }
+
+    const customerIds = [...wonByCustomer.keys()];
+    if (customerIds.length > 0) {
+      // Última atividade por cliente via crm_activities relacionadas a opps do cliente
+      const oppsByCustomer = new Map<string, string[]>();
+      for (const o of list) {
+        if (!o.customer_id) continue;
+        const arr = oppsByCustomer.get(o.customer_id) ?? [];
+        arr.push(o.id);
+        oppsByCustomer.set(o.customer_id, arr);
+      }
+
+      // Última interação: max(updated_at das opps do cliente)
+      const lastByCustomer = new Map<string, string>();
+      for (const o of list) {
+        if (!o.customer_id) continue;
+        const cur = lastByCustomer.get(o.customer_id);
+        const ts = o.updated_at ?? o.created_at;
+        if (!cur || new Date(ts).getTime() > new Date(cur).getTime()) {
+          lastByCustomer.set(o.customer_id, ts);
+        }
+      }
+
+      // Nome do cliente da tabela customers (mais preciso)
+      const { data: custs } = await sb
+        .from("customers")
+        .select("id, name, trade_name, corporate_name")
+        .eq("company_id", companyId)
+        .in("id", customerIds);
+      const custMap = new Map<string, string>();
+      for (const c of custs ?? []) {
+        custMap.set(c.id, c.trade_name ?? c.name ?? c.corporate_name ?? "Cliente");
+      }
+
+      for (const [cid, info] of wonByCustomer.entries()) {
+        const last = lastByCustomer.get(cid) ?? info.lastWon;
+        const days = Math.floor((now - new Date(last).getTime()) / 86400_000);
+        if (days >= wonSilenceDays) {
+          rows.push({
+            kind: "won_no_followup",
+            opportunity_id: null,
+            customer_id: cid,
+            label: custMap.get(cid) ?? info.label,
+            last_activity_at: last,
+            reference_at: last,
+            days_since: days,
+            estimated_value: 0,
+            reason: `Cliente ganho sem novo contato há ${days}d`,
+          });
+        }
+      }
+    }
+
+    rows.sort((a, b) => b.days_since - a.days_since);
+    return { rows, stalledDays, wonSilenceDays };
+  });
