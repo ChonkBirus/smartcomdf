@@ -794,7 +794,7 @@ export const getOpportunityServiceOrderStatus = createServerFn({ method: "POST" 
     if (!opp?.service_order_id) return null;
     const { data: so } = await sb
       .from("service_orders")
-      .select("id, service_order_number, status, scheduled_start_at, completed_at")
+      .select("id, service_order_number, status, scheduled_date, started_at, completed_at")
       .eq("id", opp.service_order_id)
       .eq("company_id", companyId)
       .maybeSingle();
