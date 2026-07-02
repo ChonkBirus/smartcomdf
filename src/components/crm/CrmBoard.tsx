@@ -203,6 +203,7 @@ export function CrmBoard() {
     targetIndex: number | null,
     lost_reason?: string,
   ) => {
+    snapshotRef.current = localOrders;
     setLocalOrders((prev) => {
       const source = [...(prev[sourceStageId] ?? [])];
       const target = sourceStageId === targetStageId ? source : [...(prev[targetStageId] ?? [])];
