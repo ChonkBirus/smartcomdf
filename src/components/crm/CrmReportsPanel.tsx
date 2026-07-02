@@ -36,18 +36,31 @@ export function CrmReportsPanel() {
   if (error) return <p className="text-sm text-destructive">{(error as Error).message}</p>;
   if (!data) return null;
 
-  const handleExport = () => {
-    const hasData =
-      data.bySource.length > 0 || data.byAssigned.length > 0 || data.lostReasons.length > 0;
-    if (!hasData) {
-      toast.info("Nenhum dado no período selecionado para exportar.");
-      return;
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    const toastId = toast.loading("Gerando CSV do relatório…");
+    try {
+      const hasData =
+        data.bySource.length > 0 || data.byAssigned.length > 0 || data.lostReasons.length > 0;
+      if (!hasData) {
+        toast.info("Nenhum dado no período selecionado para exportar.", { id: toastId });
+        return;
+      }
+      // Yield to the event loop so the loading UI paints before heavy work.
+      await new Promise((r) => setTimeout(r, 0));
+      const csv = buildCrmReportCsv(data, days);
+      const stamp = new Date().toISOString().slice(0, 10);
+      downloadCsv(`crm-relatorio-${days}d-${stamp}.csv`, csv);
+      toast.success("CSV exportado com sucesso.", { id: toastId });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Falha ao gerar CSV.";
+      toast.error(`Erro ao exportar CSV: ${message}`, { id: toastId });
+    } finally {
+      setExporting(false);
     }
-    const csv = buildCrmReportCsv(data, days);
-    const stamp = new Date().toISOString().slice(0, 10);
-    downloadCsv(`crm-relatorio-${days}d-${stamp}.csv`, csv);
-    toast.success("CSV exportado com sucesso.");
   };
+
 
 
 
