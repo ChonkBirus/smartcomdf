@@ -8,6 +8,7 @@ import { FeatureGate } from "@/components/app/FeatureGate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CrmBoard } from "@/components/crm/CrmBoard";
+import { CrmReportsPanel } from "@/components/crm/CrmReportsPanel";
 import { getCrmOverview } from "@/lib/crm.functions";
 
 export const Route = createFileRoute("/_authenticated/crm")({
@@ -31,6 +32,7 @@ function CrmPage() {
             <TabsList>
               <TabsTrigger value="board">Funil</TabsTrigger>
               <TabsTrigger value="overview">Visão geral</TabsTrigger>
+              <TabsTrigger value="reports">Relatórios</TabsTrigger>
             </TabsList>
 
             <TabsContent value="board" className="mt-4">
@@ -39,6 +41,10 @@ function CrmPage() {
 
             <TabsContent value="overview" className="mt-4">
               <OverviewGrid />
+            </TabsContent>
+
+            <TabsContent value="reports" className="mt-4">
+              <CrmReportsPanel />
             </TabsContent>
           </Tabs>
         </div>

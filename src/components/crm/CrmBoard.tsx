@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -8,27 +8,40 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  useDraggable,
   useDroppable,
   closestCorners,
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { Plus, Flame, Snowflake, Thermometer, Calendar, User2, Search, X } from "lucide-react";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
+  Plus, Flame, Snowflake, Thermometer, Calendar, User2, Search, X, Settings2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  getCrmBoard,
-  listCrmTeam,
-  moveOpportunityStage,
-  type CrmOpportunity,
-  type CrmStage,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  getCrmBoard, listCrmTeam, moveOpportunityStage, reorderOpportunitiesInStage,
+  type CrmOpportunity, type CrmStage,
 } from "@/lib/crm.functions";
 import { NewOpportunitySheet } from "./NewOpportunitySheet";
 import { OpportunityDrawer } from "./OpportunityDrawer";
+import { StageManagerDialog } from "./StageManagerDialog";
 import { cn } from "@/lib/utils";
 
 const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -46,11 +59,16 @@ export function CrmBoard() {
   const fetchBoard = useServerFn(getCrmBoard);
   const fetchTeam = useServerFn(listCrmTeam);
   const move = useServerFn(moveOpportunityStage);
+  const reorder = useServerFn(reorderOpportunitiesInStage);
+
   const [openNew, setOpenNew] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [defaultStageId, setDefaultStageId] = useState<string | undefined>(undefined);
   const [dragging, setDragging] = useState<CrmOpportunity | null>(null);
   const [filters, setFilters] = useState<Filters>({ search: "", assigned_to: "", temperature: "" });
+  const [openStages, setOpenStages] = useState(false);
+  const [lossPrompt, setLossPrompt] = useState<{ oppId: string; stageId: string } | null>(null);
+  const [lossReason, setLossReason] = useState("");
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -74,34 +92,36 @@ export function CrmBoard() {
     staleTime: 60_000,
   });
 
-  const oppsByStage = useMemo(() => {
-    const m = new Map<string, CrmOpportunity[]>();
-    for (const o of data?.opportunities ?? []) {
-      if (!m.has(o.stage_id)) m.set(o.stage_id, []);
-      m.get(o.stage_id)!.push(o);
+  // Local ordering per stage to allow optimistic drag-sort within column.
+  const [localOrders, setLocalOrders] = useState<Record<string, string[]>>({});
+  useEffect(() => {
+    if (!data) return;
+    const next: Record<string, string[]> = {};
+    for (const s of data.stages) next[s.id] = [];
+    for (const o of data.opportunities) {
+      if (!next[o.stage_id]) next[o.stage_id] = [];
+      next[o.stage_id].push(o.id);
     }
+    setLocalOrders(next);
+  }, [data]);
+
+  const oppMap = useMemo(() => {
+    const m = new Map<string, CrmOpportunity>();
+    for (const o of data?.opportunities ?? []) m.set(o.id, o);
     return m;
-  }, [data?.opportunities]);
+  }, [data]);
 
   const moveMutation = useMutation({
-    mutationFn: async (v: { id: string; stage_id: string }) => await move({ data: v }),
-    onMutate: async (v) => {
-      await qc.cancelQueries({ queryKey: ["crm"] });
-      const prev = qc.getQueryData<any>(boardKey);
-      if (prev) {
-        qc.setQueryData(boardKey, {
-          ...prev,
-          opportunities: prev.opportunities.map((o: CrmOpportunity) =>
-            o.id === v.id ? { ...o, stage_id: v.stage_id } : o,
-          ),
-        });
-      }
-      return { prev };
-    },
-    onError: (e: any, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(boardKey, ctx.prev);
-      toast.error(e?.message ?? "Erro ao mover lead.");
-    },
+    mutationFn: async (v: { id: string; stage_id: string; sort_order?: number; lost_reason?: string }) =>
+      await move({ data: v }),
+    onError: (e: any) => toast.error(e?.message ?? "Erro ao mover lead."),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["crm"] }),
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: async (v: { stage_id: string; ordered_ids: string[] }) =>
+      await reorder({ data: v }),
+    onError: (e: any) => toast.error(e?.message ?? "Erro ao reordenar."),
     onSettled: () => qc.invalidateQueries({ queryKey: ["crm"] }),
   });
 
@@ -114,20 +134,105 @@ export function CrmBoard() {
 
   const stages = data.stages;
 
+  const findStageOfOpp = (id: string) => {
+    for (const [sid, ids] of Object.entries(localOrders)) {
+      if (ids.includes(id)) return sid;
+    }
+    return oppMap.get(id)?.stage_id ?? null;
+  };
+
   const onDragStart = (e: DragStartEvent) => {
-    const opp = data.opportunities.find((o) => o.id === e.active.id);
+    const opp = oppMap.get(String(e.active.id));
     setDragging(opp ?? null);
   };
+
   const onDragEnd = (e: DragEndEvent) => {
     setDragging(null);
     const oppId = String(e.active.id);
     const overId = e.over?.id ? String(e.over.id) : null;
     if (!overId) return;
-    const targetStageId = overId.startsWith("stage:") ? overId.slice(6) : null;
-    if (!targetStageId) return;
-    const opp = data.opportunities.find((o) => o.id === oppId);
-    if (!opp || opp.stage_id === targetStageId) return;
-    moveMutation.mutate({ id: oppId, stage_id: targetStageId });
+
+    const sourceStageId = findStageOfOpp(oppId);
+    if (!sourceStageId) return;
+
+    let targetStageId = sourceStageId;
+    let targetIndex: number | null = null;
+
+    if (overId.startsWith("stage:")) {
+      targetStageId = overId.slice(6);
+      targetIndex = (localOrders[targetStageId] ?? []).length;
+    } else {
+      // dropped on another opportunity — resolve its stage
+      const overStage = findStageOfOpp(overId);
+      if (!overStage) return;
+      targetStageId = overStage;
+      targetIndex = (localOrders[targetStageId] ?? []).indexOf(overId);
+      if (targetIndex < 0) targetIndex = (localOrders[targetStageId] ?? []).length;
+    }
+
+    const stage = stages.find((s) => s.id === targetStageId);
+    if (!stage) return;
+
+    // Prompt for loss reason when moving into a "lost" stage from a different one.
+    if (stage.is_lost && sourceStageId !== targetStageId) {
+      setLossReason("");
+      setLossPrompt({ oppId, stageId: targetStageId });
+      return;
+    }
+
+    applyMove(oppId, sourceStageId, targetStageId, targetIndex);
+  };
+
+  const applyMove = (
+    oppId: string,
+    sourceStageId: string,
+    targetStageId: string,
+    targetIndex: number | null,
+    lost_reason?: string,
+  ) => {
+    setLocalOrders((prev) => {
+      const source = [...(prev[sourceStageId] ?? [])];
+      const target = sourceStageId === targetStageId ? source : [...(prev[targetStageId] ?? [])];
+      const fromIdx = source.indexOf(oppId);
+      if (fromIdx < 0) return prev;
+      if (sourceStageId === targetStageId) {
+        const moved = arrayMove(source, fromIdx, targetIndex ?? source.length - 1);
+        return { ...prev, [sourceStageId]: moved };
+      }
+      source.splice(fromIdx, 1);
+      const insertAt = targetIndex ?? target.length;
+      target.splice(insertAt, 0, oppId);
+      return { ...prev, [sourceStageId]: source, [targetStageId]: target };
+    });
+
+    const nextIds =
+      sourceStageId === targetStageId
+        ? arrayMove(
+            [...(localOrders[sourceStageId] ?? [])],
+            (localOrders[sourceStageId] ?? []).indexOf(oppId),
+            targetIndex ?? 0,
+          )
+        : (() => {
+            const t = [...(localOrders[targetStageId] ?? [])];
+            const insertAt = targetIndex ?? t.length;
+            t.splice(insertAt, 0, oppId);
+            return t;
+          })();
+    const newIndex = nextIds.indexOf(oppId);
+    const sort_order = (newIndex + 1) * 100;
+
+    // Persist: single move (also handles stage change + lost_reason)
+    moveMutation.mutate({
+      id: oppId,
+      stage_id: targetStageId,
+      sort_order,
+      lost_reason,
+    });
+
+    // If pure intra-column reorder with many items, also send a bulk reorder for stability.
+    if (sourceStageId === targetStageId && nextIds.length > 2) {
+      reorderMutation.mutate({ stage_id: targetStageId, ordered_ids: nextIds });
+    }
   };
 
   return (
@@ -136,9 +241,14 @@ export function CrmBoard() {
         <div className="text-sm text-muted-foreground">
           Funil: <span className="font-medium text-foreground">{data.pipeline.name}</span>
         </div>
-        <Button size="sm" onClick={() => { setDefaultStageId(undefined); setOpenNew(true); }}>
-          <Plus className="mr-1 h-4 w-4" /> Novo lead
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setOpenStages(true)}>
+            <Settings2 className="mr-1 h-4 w-4" /> Estágios
+          </Button>
+          <Button size="sm" onClick={() => { setDefaultStageId(undefined); setOpenNew(true); }}>
+            <Plus className="mr-1 h-4 w-4" /> Novo lead
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-2">
@@ -189,15 +299,19 @@ export function CrmBoard() {
         onDragEnd={onDragEnd}
       >
         <div className="-mx-2 flex snap-x snap-mandatory gap-3 overflow-x-auto px-2 pb-3">
-          {stages.map((stage) => (
-            <StageColumn
-              key={stage.id}
-              stage={stage}
-              opportunities={oppsByStage.get(stage.id) ?? []}
-              onSelect={setSelectedId}
-              onAdd={() => { setDefaultStageId(stage.id); setOpenNew(true); }}
-            />
-          ))}
+          {stages.map((stage) => {
+            const ids = localOrders[stage.id] ?? [];
+            const opps = ids.map((id) => oppMap.get(id)).filter(Boolean) as CrmOpportunity[];
+            return (
+              <StageColumn
+                key={stage.id}
+                stage={stage}
+                opportunities={opps}
+                onSelect={setSelectedId}
+                onAdd={() => { setDefaultStageId(stage.id); setOpenNew(true); }}
+              />
+            );
+          })}
         </div>
         <DragOverlay>
           {dragging && (
@@ -218,6 +332,47 @@ export function CrmBoard() {
         opportunityId={selectedId}
         onOpenChange={(v) => !v && setSelectedId(null)}
       />
+      <StageManagerDialog
+        open={openStages}
+        onOpenChange={setOpenStages}
+        pipelineId={data.pipeline.id}
+      />
+
+      <AlertDialog open={!!lossPrompt} onOpenChange={(v) => !v && setLossPrompt(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Marcar lead como perdido?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Registre o motivo para acompanhar os principais gargalos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea
+            placeholder="Ex.: Preço acima do orçamento, escolheu concorrente…"
+            value={lossReason}
+            onChange={(e) => setLossReason(e.target.value)}
+            rows={3}
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setLossPrompt(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (!lossPrompt) return;
+                const src = findStageOfOpp(lossPrompt.oppId) ?? "";
+                applyMove(
+                  lossPrompt.oppId,
+                  src,
+                  lossPrompt.stageId,
+                  (localOrders[lossPrompt.stageId] ?? []).length,
+                  lossReason.trim() || undefined,
+                );
+                setLossPrompt(null);
+              }}
+            >
+              Confirmar perda
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -263,26 +418,30 @@ function StageColumn({
           </Button>
         </div>
 
-        <div className="space-y-2 min-h-[80px]">
-          {opportunities.length === 0 && (
-            <div className="rounded-md border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
-              Solte um lead aqui
-            </div>
-          )}
-          {opportunities.map((o) => (
-            <DraggableOpportunity key={o.id} opp={o} onOpen={() => onSelect(o.id)} />
-          ))}
-        </div>
+        <SortableContext items={opportunities.map((o) => o.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-2 min-h-[80px]">
+            {opportunities.length === 0 && (
+              <div className="rounded-md border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                Solte um lead aqui
+              </div>
+            )}
+            {opportunities.map((o) => (
+              <SortableOpportunity key={o.id} opp={o} onOpen={() => onSelect(o.id)} />
+            ))}
+          </div>
+        </SortableContext>
       </div>
     </div>
   );
 }
 
-function DraggableOpportunity({ opp, onOpen }: { opp: CrmOpportunity; onOpen: () => void }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: opp.id });
+function SortableOpportunity({ opp, onOpen }: { opp: CrmOpportunity; onOpen: () => void }) {
+  const { attributes, listeners, setNodeRef, isDragging, transform, transition } = useSortable({ id: opp.id });
+  const style = { transform: CSS.Transform.toString(transform), transition };
   return (
     <div
       ref={setNodeRef}
+      style={style}
       {...attributes}
       {...listeners}
       onClick={onOpen}

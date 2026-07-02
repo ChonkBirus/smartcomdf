@@ -58,9 +58,12 @@ export type CrmOpportunity = {
   next_follow_up_at: string | null;
   tags: string[];
   notes: string | null;
+  lost_reason: string | null;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 };
+
 
 async function getCompanyId(supabase: any, userId: string): Promise<string> {
   const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
@@ -128,7 +131,7 @@ export const getCrmBoard = createServerFn({ method: "GET" })
     let q = sb
       .from("crm_opportunities")
       .select(
-        "id, company_id, pipeline_id, stage_id, customer_id, lead_name, lead_type, company_name, phone, email, service_interest, description, estimated_value, temperature, source, customer_type, assigned_to, next_action, next_follow_up_at, tags, notes, created_at, updated_at",
+        "id, company_id, pipeline_id, stage_id, customer_id, lead_name, lead_type, company_name, phone, email, service_interest, description, estimated_value, temperature, source, customer_type, assigned_to, next_action, next_follow_up_at, tags, notes, lost_reason, sort_order, created_at, updated_at",
       )
       .eq("company_id", companyId)
       .eq("pipeline_id", pipeline.id)
@@ -143,8 +146,11 @@ export const getCrmBoard = createServerFn({ method: "GET" })
       );
     }
 
-    const { data: opps, error: oErr } = await q.order("updated_at", { ascending: false });
+    const { data: opps, error: oErr } = await q
+      .order("sort_order", { ascending: true })
+      .order("updated_at", { ascending: false });
     if (oErr) throw new Error(oErr.message);
+
 
     return {
       pipeline,
@@ -283,7 +289,14 @@ export const updateOpportunity = createServerFn({ method: "POST" })
 export const moveOpportunityStage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({ id: z.string().uuid(), stage_id: z.string().uuid() }).parse(d),
+    z
+      .object({
+        id: z.string().uuid(),
+        stage_id: z.string().uuid(),
+        sort_order: z.number().int().optional(),
+        lost_reason: z.string().max(500).optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -302,13 +315,16 @@ export const moveOpportunityStage = createServerFn({ method: "POST" })
     if (stage.is_won) {
       patch.won_at = now;
       patch.lost_at = null;
+      patch.lost_reason = null;
     } else if (stage.is_lost) {
       patch.lost_at = now;
       patch.won_at = null;
+      if (data.lost_reason !== undefined) patch.lost_reason = data.lost_reason;
     } else {
       patch.won_at = null;
       patch.lost_at = null;
     }
+    if (typeof data.sort_order === "number") patch.sort_order = data.sort_order;
 
     const { error } = await sb
       .from("crm_opportunities")
@@ -322,12 +338,40 @@ export const moveOpportunityStage = createServerFn({ method: "POST" })
       opportunity_id: data.id,
       event_type: "stage_changed",
       title: `Movido para "${stage.name}"`,
-      metadata: { stage_id: data.stage_id },
+      metadata: { stage_id: data.stage_id, lost_reason: patch.lost_reason ?? null },
       created_by: context.userId,
     });
 
     return { ok: true };
   });
+
+export const reorderOpportunitiesInStage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        stage_id: z.string().uuid(),
+        ordered_ids: z.array(z.string().uuid()).min(1),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    // Assign sort_order = index * 100
+    const updates = data.ordered_ids.map((id, i) =>
+      sb
+        .from("crm_opportunities")
+        .update({ sort_order: (i + 1) * 100, stage_id: data.stage_id })
+        .eq("id", id)
+        .eq("company_id", companyId),
+    );
+    const results = await Promise.all(updates);
+    const err = results.find((r: any) => r.error);
+    if (err?.error) throw new Error(err.error.message);
+    return { ok: true };
+  });
+
 
 export const deleteOpportunity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -688,4 +732,204 @@ export const convertOpportunityToQuote = createServerFn({ method: "POST" })
     });
 
     return { quote_id: quote.id as string, already: false };
+  });
+
+// ============================================================
+// ETAPA 4: Stage management & reports
+// ============================================================
+
+export const listPipelineStages = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ pipeline_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const { data: rows, error } = await sb
+      .from("crm_stages")
+      .select("id, pipeline_id, name, position, color, stage_type, is_won, is_lost")
+      .eq("pipeline_id", data.pipeline_id)
+      .order("position", { ascending: true });
+    if (error) throw new Error(error.message);
+    // sanity: confirm pipeline belongs to company
+    const { data: pipe } = await sb
+      .from("crm_pipelines").select("id").eq("id", data.pipeline_id).eq("company_id", companyId).maybeSingle();
+    if (!pipe) throw new Error("Funil não encontrado.");
+    return (rows ?? []) as CrmStage[];
+  });
+
+export const createStage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({
+      pipeline_id: z.string().uuid(),
+      name: z.string().min(1).max(80),
+      color: z.string().max(20).optional(),
+      stage_type: z.enum(["open", "won", "lost"]).default("open"),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const { data: pipe } = await sb
+      .from("crm_pipelines").select("id").eq("id", data.pipeline_id).eq("company_id", companyId).maybeSingle();
+    if (!pipe) throw new Error("Funil não encontrado.");
+    const { data: max } = await sb
+      .from("crm_stages").select("position").eq("pipeline_id", data.pipeline_id)
+      .order("position", { ascending: false }).limit(1).maybeSingle();
+    const next = ((max?.position ?? 0) as number) + 1;
+    const { data: row, error } = await sb.from("crm_stages").insert({
+      company_id: companyId,
+      pipeline_id: data.pipeline_id,
+      name: data.name,
+      position: next,
+      color: data.color ?? null,
+      stage_type: data.stage_type,
+      is_won: data.stage_type === "won",
+      is_lost: data.stage_type === "lost",
+    }).select("*").single();
+    if (error) throw new Error(error.message);
+    return row as CrmStage;
+  });
+
+export const updateStage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({
+      id: z.string().uuid(),
+      name: z.string().min(1).max(80).optional(),
+      color: z.string().max(20).nullish(),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const patch: Record<string, any> = {};
+    if (data.name !== undefined) patch.name = data.name;
+    if (data.color !== undefined) patch.color = data.color;
+    const { error } = await sb.from("crm_stages").update(patch).eq("id", data.id).eq("company_id", companyId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteStage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ id: z.string().uuid(), move_to_stage_id: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    if (data.id === data.move_to_stage_id) throw new Error("Selecione um destino diferente.");
+    // Move opportunities to destination stage first
+    const { error: mErr } = await sb
+      .from("crm_opportunities")
+      .update({ stage_id: data.move_to_stage_id })
+      .eq("stage_id", data.id)
+      .eq("company_id", companyId);
+    if (mErr) throw new Error(mErr.message);
+    const { error } = await sb.from("crm_stages").delete().eq("id", data.id).eq("company_id", companyId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const reorderStages = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({
+      pipeline_id: z.string().uuid(),
+      ordered_ids: z.array(z.string().uuid()).min(1),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const results = await Promise.all(
+      data.ordered_ids.map((id, i) =>
+        sb.from("crm_stages").update({ position: i + 1 }).eq("id", id)
+          .eq("pipeline_id", data.pipeline_id).eq("company_id", companyId),
+      ),
+    );
+    const err = results.find((r: any) => r.error);
+    if (err?.error) throw new Error(err.error.message);
+    return { ok: true };
+  });
+
+export type CrmReports = {
+  since: string;
+  bySource: { key: string; label: string; count: number; value: number }[];
+  byAssigned: { key: string; label: string; count: number; value: number; won: number; lost: number }[];
+  byTemperature: { key: string; label: string; count: number; value: number }[];
+  lostReasons: { reason: string; count: number }[];
+};
+
+const SOURCE_LABELS: Record<string, string> = {
+  site: "Site", indicacao: "Indicação", whatsapp: "WhatsApp", instagram: "Instagram",
+  facebook: "Facebook", google: "Google", ligacao: "Ligação", visita: "Visita",
+  evento: "Evento", outro: "Outro",
+};
+const TEMP_LABELS: Record<string, string> = { cold: "Frio", warm: "Morno", hot: "Quente" };
+
+export const getCrmReports = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ days: z.number().int().min(1).max(365).optional() }).parse(d ?? {}))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const days = data.days ?? 30;
+    const since = new Date(Date.now() - days * 86400_000).toISOString();
+
+    const { data: rows, error } = await sb
+      .from("crm_opportunities")
+      .select("id, source, temperature, assigned_to, estimated_value, lost_reason, won_at, lost_at, created_at")
+      .eq("company_id", companyId)
+      .is("deleted_at", null)
+      .gte("created_at", since);
+    if (error) throw new Error(error.message);
+
+    const { data: team } = await sb.from("profiles")
+      .select("id, full_name, email").eq("company_id", companyId);
+    const teamMap = new Map<string, string>();
+    for (const p of team ?? []) teamMap.set(p.id, p.full_name ?? p.email ?? "Sem nome");
+
+    const bySrc = new Map<string, { count: number; value: number }>();
+    const byAssign = new Map<string, { count: number; value: number; won: number; lost: number }>();
+    const byTemp = new Map<string, { count: number; value: number }>();
+    const lostReasons = new Map<string, number>();
+
+    for (const o of rows ?? []) {
+      const val = Number(o.estimated_value ?? 0);
+      const s = o.source ?? "outro";
+      const t = o.temperature ?? "warm";
+      const a = o.assigned_to ?? "unassigned";
+      const cur1 = bySrc.get(s) ?? { count: 0, value: 0 };
+      bySrc.set(s, { count: cur1.count + 1, value: cur1.value + val });
+      const cur2 = byTemp.get(t) ?? { count: 0, value: 0 };
+      byTemp.set(t, { count: cur2.count + 1, value: cur2.value + val });
+      const cur3 = byAssign.get(a) ?? { count: 0, value: 0, won: 0, lost: 0 };
+      byAssign.set(a, {
+        count: cur3.count + 1,
+        value: cur3.value + val,
+        won: cur3.won + (o.won_at ? 1 : 0),
+        lost: cur3.lost + (o.lost_at ? 1 : 0),
+      });
+      if (o.lost_at && o.lost_reason) {
+        lostReasons.set(o.lost_reason, (lostReasons.get(o.lost_reason) ?? 0) + 1);
+      }
+    }
+
+    return {
+      since,
+      bySource: [...bySrc.entries()].map(([k, v]) => ({
+        key: k, label: SOURCE_LABELS[k] ?? k, count: v.count, value: v.value,
+      })).sort((a, b) => b.count - a.count),
+      byAssigned: [...byAssign.entries()].map(([k, v]) => ({
+        key: k, label: k === "unassigned" ? "Sem responsável" : (teamMap.get(k) ?? "—"),
+        count: v.count, value: v.value, won: v.won, lost: v.lost,
+      })).sort((a, b) => b.count - a.count),
+      byTemperature: [...byTemp.entries()].map(([k, v]) => ({
+        key: k, label: TEMP_LABELS[k] ?? k, count: v.count, value: v.value,
+      })),
+      lostReasons: [...lostReasons.entries()].map(([reason, count]) => ({ reason, count }))
+        .sort((a, b) => b.count - a.count),
+    } as CrmReports;
   });
