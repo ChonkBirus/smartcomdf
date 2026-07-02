@@ -89,7 +89,16 @@ async function ensureDefaultPipeline(supabase: any, companyId: string): Promise<
 
 export const getCrmBoard = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ pipeline_id: z.string().uuid().optional() }).parse(d ?? {}))
+  .inputValidator((d) =>
+    z
+      .object({
+        pipeline_id: z.string().uuid().optional(),
+        search: z.string().optional(),
+        assigned_to: z.string().uuid().optional(),
+        temperature: z.enum(["cold", "warm", "hot"]).optional(),
+      })
+      .parse(d ?? {}),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
@@ -116,15 +125,25 @@ export const getCrmBoard = createServerFn({ method: "GET" })
       .order("position", { ascending: true });
     if (sErr) throw new Error(sErr.message);
 
-    const { data: opps, error: oErr } = await sb
+    let q = sb
       .from("crm_opportunities")
       .select(
         "id, company_id, pipeline_id, stage_id, customer_id, lead_name, lead_type, company_name, phone, email, service_interest, description, estimated_value, temperature, source, customer_type, assigned_to, next_action, next_follow_up_at, tags, notes, created_at, updated_at",
       )
       .eq("company_id", companyId)
       .eq("pipeline_id", pipeline.id)
-      .is("deleted_at", null)
-      .order("updated_at", { ascending: false });
+      .is("deleted_at", null);
+
+    if (data.assigned_to) q = q.eq("assigned_to", data.assigned_to);
+    if (data.temperature) q = q.eq("temperature", data.temperature);
+    if (data.search?.trim()) {
+      const s = data.search.trim().replace(/[%,]/g, "");
+      q = q.or(
+        `lead_name.ilike.%${s}%,company_name.ilike.%${s}%,email.ilike.%${s}%,phone.ilike.%${s}%,service_interest.ilike.%${s}%`,
+      );
+    }
+
+    const { data: opps, error: oErr } = await q.order("updated_at", { ascending: false });
     if (oErr) throw new Error(oErr.message);
 
     return {
