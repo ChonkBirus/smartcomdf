@@ -220,6 +220,7 @@ function CustomerDetailsPage() {
       </div>
 
       <CustomerFinancialSummary customerId={c.id} />
+      <CustomerCommercialHistory customerId={c.id} />
 
       <CustomerFormSheet open={editOpen} onOpenChange={setEditOpen} customerId={c.id} />
       <CustomerHistorySheet open={historyOpen} onOpenChange={setHistoryOpen}
