@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +26,7 @@ export function CrmReportsPanel() {
   const fn = useServerFn(getCrmReports);
   const [days, setDays] = useState(30);
   const [exporting, setExporting] = useState(false);
+  const exportingRef = useRef(false);
   const { data, isLoading, error } = useQuery({
     queryKey: ["crm", "reports", days],
     queryFn: () => fn({ data: { days } }),
@@ -37,7 +38,8 @@ export function CrmReportsPanel() {
   if (!data) return null;
 
   const handleExport = async () => {
-    if (exporting) return;
+    if (exportingRef.current) return;
+    exportingRef.current = true;
     setExporting(true);
     const toastId = toast.loading("Gerando CSV do relatório…");
     try {
@@ -57,6 +59,7 @@ export function CrmReportsPanel() {
       const message = err instanceof Error ? err.message : "Falha ao gerar CSV.";
       toast.error(`Erro ao exportar CSV: ${message}`, { id: toastId });
     } finally {
+      exportingRef.current = false;
       setExporting(false);
     }
   };
