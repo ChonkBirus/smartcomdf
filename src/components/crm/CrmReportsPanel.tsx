@@ -71,8 +71,13 @@ export function CrmReportsPanel() {
           Período: últimos <span className="font-medium text-foreground">{days}</span> dias
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="mr-2 h-4 w-4" /> Exportar CSV
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting} aria-busy={exporting}>
+            {exporting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
+            {exporting ? "Exportando…" : "Exportar CSV"}
           </Button>
           <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
             <SelectTrigger className="h-9 w-[160px]"><SelectValue /></SelectTrigger>
