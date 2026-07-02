@@ -393,3 +393,299 @@ export const getCrmOverview = createServerFn({ method: "GET" })
       overdueFollowUps: overdue,
     };
   });
+
+// ============================================================
+// Etapa 3 — Notes, Activities, Customer link, Convert to Quote
+// ============================================================
+
+export type CrmNote = {
+  id: string;
+  opportunity_id: string;
+  note: string;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type CrmActivity = {
+  id: string;
+  opportunity_id: string | null;
+  activity_type: "call" | "whatsapp" | "email" | "meeting" | "visit" | "follow_up" | "note" | "task";
+  title: string;
+  description: string | null;
+  due_at: string | null;
+  completed_at: string | null;
+  status: "pending" | "done" | "cancelled";
+  priority: "low" | "medium" | "high";
+  assigned_to: string | null;
+  created_at: string;
+};
+
+export const listOpportunityNotes = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ opportunity_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const { data: rows, error } = await sb
+      .from("crm_notes")
+      .select("id, opportunity_id, note, created_by, created_at")
+      .eq("company_id", companyId)
+      .eq("opportunity_id", data.opportunity_id)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (rows ?? []) as CrmNote[];
+  });
+
+export const addOpportunityNote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ opportunity_id: z.string().uuid(), note: z.string().trim().min(1) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const { error } = await sb.from("crm_notes").insert({
+      company_id: companyId,
+      opportunity_id: data.opportunity_id,
+      note: data.note,
+      created_by: context.userId,
+    });
+    if (error) throw new Error(error.message);
+    await sb.from("crm_timeline").insert({
+      company_id: companyId,
+      opportunity_id: data.opportunity_id,
+      event_type: "note_added",
+      title: "Nota adicionada",
+      description: data.note.slice(0, 240),
+      created_by: context.userId,
+    });
+    return { ok: true };
+  });
+
+export const deleteOpportunityNote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const { error } = await sb
+      .from("crm_notes")
+      .delete()
+      .eq("id", data.id)
+      .eq("company_id", companyId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const listOpportunityActivities = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ opportunity_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const { data: rows, error } = await sb
+      .from("crm_activities")
+      .select(
+        "id, opportunity_id, activity_type, title, description, due_at, completed_at, status, priority, assigned_to, created_at",
+      )
+      .eq("company_id", companyId)
+      .eq("opportunity_id", data.opportunity_id)
+      .is("deleted_at", null)
+      .order("due_at", { ascending: true, nullsFirst: false });
+    if (error) throw new Error(error.message);
+    return (rows ?? []) as CrmActivity[];
+  });
+
+export const addOpportunityActivity = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        opportunity_id: z.string().uuid(),
+        activity_type: z.enum(["call", "whatsapp", "email", "meeting", "visit", "follow_up", "note", "task"]),
+        title: z.string().trim().min(1),
+        description: z.string().trim().optional().nullable(),
+        due_at: z.string().optional().nullable(),
+        priority: z.enum(["low", "medium", "high"]).default("medium"),
+        assigned_to: z.string().uuid().optional().nullable(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const { error } = await sb.from("crm_activities").insert({
+      company_id: companyId,
+      opportunity_id: data.opportunity_id,
+      activity_type: data.activity_type,
+      title: data.title,
+      description: data.description || null,
+      due_at: data.due_at || null,
+      priority: data.priority,
+      assigned_to: data.assigned_to || null,
+      created_by: context.userId,
+    });
+    if (error) throw new Error(error.message);
+    await sb.from("crm_timeline").insert({
+      company_id: companyId,
+      opportunity_id: data.opportunity_id,
+      event_type: "activity_created",
+      title: `Atividade: ${data.title}`,
+      created_by: context.userId,
+    });
+    return { ok: true };
+  });
+
+export const completeActivity = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ id: z.string().uuid(), done: z.boolean().default(true) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const patch = data.done
+      ? { status: "done", completed_at: new Date().toISOString() }
+      : { status: "pending", completed_at: null };
+    const { error } = await sb
+      .from("crm_activities")
+      .update(patch)
+      .eq("id", data.id)
+      .eq("company_id", companyId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteActivity = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const { error } = await sb
+      .from("crm_activities")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", data.id)
+      .eq("company_id", companyId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const searchCustomersLite = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ search: z.string().optional() }).parse(d ?? {}))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    let q = sb
+      .from("customers")
+      .select("id, name, trade_name, corporate_name, cpf_cnpj, email, phone")
+      .eq("company_id", companyId)
+      .eq("active", true)
+      .is("deleted_at", null)
+      .limit(20)
+      .order("name", { ascending: true });
+    if (data.search?.trim()) {
+      const s = data.search.trim();
+      q = q.or(
+        `name.ilike.%${s}%,trade_name.ilike.%${s}%,corporate_name.ilike.%${s}%,cpf_cnpj.ilike.%${s}%,email.ilike.%${s}%`,
+      );
+    }
+    const { data: rows, error } = await q;
+    if (error) throw new Error(error.message);
+    return (rows ?? []).map((c: any) => ({
+      id: c.id,
+      label: c.trade_name || c.name || c.corporate_name || "—",
+      cpf_cnpj: c.cpf_cnpj,
+      email: c.email,
+      phone: c.phone,
+    }));
+  });
+
+export const linkOpportunityCustomer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ id: z.string().uuid(), customer_id: z.string().uuid().nullable() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const { error } = await sb
+      .from("crm_opportunities")
+      .update({ customer_id: data.customer_id })
+      .eq("id", data.id)
+      .eq("company_id", companyId);
+    if (error) throw new Error(error.message);
+    await sb.from("crm_timeline").insert({
+      company_id: companyId,
+      opportunity_id: data.id,
+      event_type: "customer_linked",
+      title: data.customer_id ? "Cliente vinculado" : "Vínculo de cliente removido",
+      created_by: context.userId,
+    });
+    return { ok: true };
+  });
+
+export const convertOpportunityToQuote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+
+    const { data: opp, error: oErr } = await sb
+      .from("crm_opportunities")
+      .select("id, customer_id, lead_name, service_interest, description, estimated_value, quote_id")
+      .eq("id", data.id)
+      .eq("company_id", companyId)
+      .maybeSingle();
+    if (oErr) throw new Error(oErr.message);
+    if (!opp) throw new Error("Oportunidade não encontrada.");
+    if (opp.quote_id) return { quote_id: opp.quote_id as string, already: true };
+    if (!opp.customer_id) {
+      throw new Error("Vincule um cliente à oportunidade antes de gerar o orçamento.");
+    }
+
+    const { data: qNum, error: nErr } = await sb.rpc("next_quote_number", {
+      _company_id: companyId,
+    });
+    if (nErr) throw new Error(nErr.message);
+
+    const today = new Date().toISOString().slice(0, 10);
+    const validUntil = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+    const { data: quote, error: qErr } = await sb
+      .from("quotes")
+      .insert({
+        company_id: companyId,
+        customer_id: opp.customer_id,
+        quote_number: qNum as string,
+        status: "DRAFT",
+        title: opp.service_interest || opp.lead_name,
+        issue_date: today,
+        valid_until: validUntil,
+        customer_notes: opp.description || null,
+        labor_cost: Number(opp.estimated_value || 0),
+        discount: 0,
+      })
+      .select("id")
+      .single();
+    if (qErr) throw new Error(qErr.message);
+
+    await sb
+      .from("crm_opportunities")
+      .update({ quote_id: quote.id })
+      .eq("id", data.id)
+      .eq("company_id", companyId);
+
+    await sb.from("crm_timeline").insert({
+      company_id: companyId,
+      opportunity_id: data.id,
+      event_type: "quote_created",
+      title: "Orçamento gerado a partir do lead",
+      metadata: { quote_id: quote.id },
+      created_by: context.userId,
+    });
+
+    return { quote_id: quote.id as string, already: false };
+  });
