@@ -143,6 +143,24 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
     onError: (e: any) => toast.error(e?.message ?? "Erro ao gerar orçamento."),
   });
 
+  const [dupOpen, setDupOpen] = useState(false);
+  const [dupList, setDupList] = useState<any[]>([]);
+
+  const convertCust = useMutation({
+    mutationFn: async (force?: boolean) =>
+      await convertToCustomer({ data: { opportunity_id: opportunityId!, force: !!force } }),
+    onSuccess: (r: any) => {
+      if (r.duplicates?.length > 0 && !r.customer_id) {
+        setDupList(r.duplicates);
+        setDupOpen(true);
+        return;
+      }
+      toast.success(r.already ? "Já havia cliente vinculado." : "Cliente criado a partir do lead.");
+      invalidateAll();
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Erro ao converter em cliente."),
+  });
+
   return (
     <Sheet open={!!opportunityId} onOpenChange={onOpenChange}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
