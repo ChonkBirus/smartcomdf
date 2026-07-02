@@ -113,7 +113,7 @@ export function CrmChurnRiskPanel() {
                       <p className="truncate text-xs text-muted-foreground">{r.reason}</p>
                     </div>
                     <Button asChild size="sm" variant="ghost">
-                      <Link to="/customers/$id" params={{ id: r.customer_id ?? "" }}>
+                      <Link to="/clients/$id" params={{ id: r.customer_id ?? "" }}>
                         <ExternalLink className="h-3.5 w-3.5" />
                       </Link>
                     </Button>
