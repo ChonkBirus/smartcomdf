@@ -131,7 +131,7 @@ export const getCrmBoard = createServerFn({ method: "GET" })
     let q = sb
       .from("crm_opportunities")
       .select(
-        "id, company_id, pipeline_id, stage_id, customer_id, lead_name, lead_type, company_name, phone, email, service_interest, description, estimated_value, temperature, source, customer_type, assigned_to, next_action, next_follow_up_at, tags, notes, created_at, updated_at",
+        "id, company_id, pipeline_id, stage_id, customer_id, lead_name, lead_type, company_name, phone, email, service_interest, description, estimated_value, temperature, source, customer_type, assigned_to, next_action, next_follow_up_at, tags, notes, lost_reason, sort_order, created_at, updated_at",
       )
       .eq("company_id", companyId)
       .eq("pipeline_id", pipeline.id)
@@ -146,8 +146,11 @@ export const getCrmBoard = createServerFn({ method: "GET" })
       );
     }
 
-    const { data: opps, error: oErr } = await q.order("updated_at", { ascending: false });
+    const { data: opps, error: oErr } = await q
+      .order("sort_order", { ascending: true })
+      .order("updated_at", { ascending: false });
     if (oErr) throw new Error(oErr.message);
+
 
     return {
       pipeline,
