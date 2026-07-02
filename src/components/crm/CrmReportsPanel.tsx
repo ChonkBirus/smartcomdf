@@ -3,7 +3,27 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 import { getCrmReports } from "@/lib/crm.functions";
+
+function toCsv(rows: (string | number)[][]): string {
+  const esc = (v: string | number) => {
+    const s = String(v ?? "");
+    return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  return rows.map((r) => r.map(esc).join(";")).join("\n");
+}
+
+function downloadCsv(filename: string, csv: string) {
+  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -20,23 +40,52 @@ export function CrmReportsPanel() {
   if (error) return <p className="text-sm text-destructive">{(error as Error).message}</p>;
   if (!data) return null;
 
+  const handleExport = () => {
+    const sections: (string | number)[][] = [];
+    sections.push([`Relatório CRM - últimos ${days} dias`]);
+    sections.push([]);
+    sections.push(["Leads por origem"]);
+    sections.push(["Origem", "Quantidade", "Valor (R$)"]);
+    data.bySource.forEach((r) => sections.push([r.label, r.count, r.value.toFixed(2)]));
+    sections.push([]);
+    sections.push(["Leads por temperatura"]);
+    sections.push(["Temperatura", "Quantidade", "Valor (R$)"]);
+    data.byTemperature.forEach((r) => sections.push([r.label, r.count, r.value.toFixed(2)]));
+    sections.push([]);
+    sections.push(["Performance por responsável"]);
+    sections.push(["Responsável", "Leads", "Ganhos", "Perdidos", "Valor (R$)"]);
+    data.byAssigned.forEach((r) => sections.push([r.label, r.count, r.won, r.lost, r.value.toFixed(2)]));
+    sections.push([]);
+    sections.push(["Motivos de perda"]);
+    sections.push(["Motivo", "Ocorrências"]);
+    data.lostReasons.forEach((r) => sections.push([r.reason, r.count]));
+    const stamp = new Date().toISOString().slice(0, 10);
+    downloadCsv(`crm-relatorio-${days}d-${stamp}.csv`, toCsv(sections));
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-sm text-muted-foreground">
           Período: últimos <span className="font-medium text-foreground">{days}</span> dias
         </div>
-        <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
-          <SelectTrigger className="h-9 w-[160px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7">Últimos 7 dias</SelectItem>
-            <SelectItem value="30">Últimos 30 dias</SelectItem>
-            <SelectItem value="90">Últimos 90 dias</SelectItem>
-            <SelectItem value="180">Últimos 180 dias</SelectItem>
-            <SelectItem value="365">Últimos 365 dias</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleExport}>
+            <Download className="mr-2 h-4 w-4" /> Exportar CSV
+          </Button>
+          <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
+            <SelectTrigger className="h-9 w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">Últimos 7 dias</SelectItem>
+              <SelectItem value="30">Últimos 30 dias</SelectItem>
+              <SelectItem value="90">Últimos 90 dias</SelectItem>
+              <SelectItem value="180">Últimos 180 dias</SelectItem>
+              <SelectItem value="365">Últimos 365 dias</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+
 
       <div className="grid gap-4 md:grid-cols-2">
         <BreakdownCard
