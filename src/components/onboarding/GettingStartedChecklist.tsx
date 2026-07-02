@@ -94,7 +94,7 @@ export function GettingStartedChecklist() {
         </div>
         <button
           aria-label="Ocultar checklist"
-          onClick={() => { localStorage.setItem(HIDE_KEY, "1"); setHidden(true); }}
+          onClick={() => hideMutation.mutate()}
           className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
         >
           <X className="h-4 w-4" />
