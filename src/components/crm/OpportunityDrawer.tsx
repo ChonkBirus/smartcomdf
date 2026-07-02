@@ -19,6 +19,7 @@ import {
   completeActivity,
   convertLeadToCustomer,
   convertOpportunityToQuote,
+  getOpportunityQuoteStatus,
   deleteActivity,
   deleteOpportunity,
   deleteOpportunityNote,
@@ -65,6 +66,14 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
     queryFn: () => fetchTeam(),
     enabled: !!opportunityId,
     staleTime: 60_000,
+  });
+
+  const fetchQuoteStatus = useServerFn(getOpportunityQuoteStatus);
+  const { data: quoteStatus } = useQuery({
+    queryKey: ["crm", "opportunity", opportunityId, "quote-status"],
+    queryFn: () => fetchQuoteStatus({ data: { opportunity_id: opportunityId! } }),
+    enabled: !!opportunityId,
+    staleTime: 15_000,
   });
 
   const [form, setForm] = useState<any>(null);
@@ -185,6 +194,31 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
               </span>
             </div>
 
+            {quoteStatus && (
+              <div className="mt-3 rounded-md border bg-muted/40 p-3 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Orçamento vinculado</div>
+                    <div className="font-medium">
+                      Nº {quoteStatus.quote_number} · {brl(Number(quoteStatus.total_amount || 0))}
+                    </div>
+                  </div>
+                  <QuoteStatusBadge status={quoteStatus.status} />
+                </div>
+                <Button
+                  size="sm"
+                  variant="link"
+                  className="mt-1 h-auto p-0"
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate({ to: "/quotes/$id", params: { id: quoteStatus.id } });
+                  }}
+                >
+                  Abrir orçamento →
+                </Button>
+              </div>
+            )}
+
             <div className="mt-3 flex flex-wrap gap-2">
               {!form.customer_id && (
                 <Button
@@ -197,15 +231,17 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
                   {convertCust.isPending ? "Convertendo…" : "Converter em cliente"}
                 </Button>
               )}
-              <Button
-                size="sm"
-                onClick={() => convert.mutate()}
-                disabled={convert.isPending || !form.customer_id}
-                title={!form.customer_id ? "Vincule ou converta em cliente primeiro." : ""}
-              >
-                <FileText className="mr-1 h-4 w-4" />
-                {convert.isPending ? "Gerando…" : "Gerar orçamento"}
-              </Button>
+              {!quoteStatus && (
+                <Button
+                  size="sm"
+                  onClick={() => convert.mutate()}
+                  disabled={convert.isPending || !form.customer_id}
+                  title={!form.customer_id ? "Vincule ou converta em cliente primeiro." : ""}
+                >
+                  <FileText className="mr-1 h-4 w-4" />
+                  {convert.isPending ? "Gerando…" : "Gerar orçamento"}
+                </Button>
+              )}
             </div>
 
             <AlertDialog open={dupOpen} onOpenChange={setDupOpen}>
@@ -702,4 +738,16 @@ function ActivityList({
       <Separator className="mt-3" />
     </div>
   );
+}
+
+function QuoteStatusBadge({ status }: { status: string | null | undefined }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    DRAFT: { label: "Rascunho", cls: "bg-muted text-muted-foreground" },
+    SENT: { label: "Enviado", cls: "bg-blue-500/15 text-blue-700 dark:text-blue-300" },
+    APPROVED: { label: "Aprovado", cls: "bg-success text-success-foreground" },
+    REJECTED: { label: "Rejeitado", cls: "bg-destructive text-destructive-foreground" },
+    EXPIRED: { label: "Expirado", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
+  };
+  const s = map[status ?? "DRAFT"] ?? { label: status ?? "—", cls: "bg-muted" };
+  return <Badge className={s.cls}>{s.label}</Badge>;
 }

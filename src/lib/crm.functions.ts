@@ -703,6 +703,7 @@ export const convertOpportunityToQuote = createServerFn({ method: "POST" })
       .insert({
         company_id: companyId,
         customer_id: opp.customer_id,
+        opportunity_id: data.id,
         quote_number: qNum as string,
         status: "DRAFT",
         title: opp.service_interest || opp.lead_name,
@@ -732,6 +733,28 @@ export const convertOpportunityToQuote = createServerFn({ method: "POST" })
     });
 
     return { quote_id: quote.id as string, already: false };
+  });
+
+export const getOpportunityQuoteStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ opportunity_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const { data: opp } = await sb
+      .from("crm_opportunities")
+      .select("quote_id")
+      .eq("id", data.opportunity_id)
+      .eq("company_id", companyId)
+      .maybeSingle();
+    if (!opp?.quote_id) return null;
+    const { data: q } = await sb
+      .from("quotes")
+      .select("id, quote_number, status, total_amount, issue_date, valid_until, accepted_at")
+      .eq("id", opp.quote_id)
+      .eq("company_id", companyId)
+      .maybeSingle();
+    return q ?? null;
   });
 
 // ============================================================
