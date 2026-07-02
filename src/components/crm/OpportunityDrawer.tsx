@@ -194,15 +194,6 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
               </span>
             </div>
 
-            <div className="mt-3 flex flex-wrap gap-2">
-              {!form.customer_id && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => convertCust.mutate(false)}
-                  disabled={convertCust.isPending}
-                >
-                  <UserPlus className="mr-1 h-4 w-4" />
             {quoteStatus && (
               <div className="mt-3 rounded-md border bg-muted/40 p-3 text-sm">
                 <div className="flex items-center justify-between gap-2">
