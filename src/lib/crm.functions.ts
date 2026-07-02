@@ -1081,7 +1081,7 @@ export const convertLeadToCustomer = createServerFn({ method: "POST" })
       whatsapp: phoneDigits || null,
       customer_status: "ACTIVE",
       customer_origin: opp.source ? (originMap[opp.source] ?? null) : "CRM",
-      customer_segment: opp.customer_type ? (typeMap[opp.customer_type] ?? null) : null,
+      // customer_segment column not present in schema
       notes: opp.description ?? null,
       active: true,
       created_by: context.userId,
