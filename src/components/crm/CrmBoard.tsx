@@ -336,6 +336,15 @@ export function CrmBoard() {
           )}
         </DragOverlay>
       </DndContext>
+      {isPending && (
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-start justify-center pt-4">
+          <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-border bg-background/90 px-3 py-1.5 text-xs shadow-md backdrop-blur">
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+            Salvando alterações…
+          </div>
+        </div>
+      )}
+      </div>
 
       <NewOpportunitySheet
         open={openNew}
