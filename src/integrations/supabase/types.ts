@@ -4450,6 +4450,7 @@ export type Database = {
           materials_checked_at: string | null
           notes: string | null
           operational_notes: string | null
+          opportunity_id: string | null
           parking_instructions: string | null
           planned_end_date: string | null
           planned_end_time: string | null
@@ -4491,6 +4492,7 @@ export type Database = {
           materials_checked_at?: string | null
           notes?: string | null
           operational_notes?: string | null
+          opportunity_id?: string | null
           parking_instructions?: string | null
           planned_end_date?: string | null
           planned_end_time?: string | null
@@ -4532,6 +4534,7 @@ export type Database = {
           materials_checked_at?: string | null
           notes?: string | null
           operational_notes?: string | null
+          opportunity_id?: string | null
           parking_instructions?: string | null
           planned_end_date?: string | null
           planned_end_time?: string | null
@@ -4577,6 +4580,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "crm_opportunities"
             referencedColumns: ["id"]
           },
           {
@@ -6059,6 +6069,7 @@ export type Database = {
           id: string
           internal_notes: string | null
           issue_found: string | null
+          opportunity_id: string | null
           parking_instructions: string | null
           pending_reason: string | null
           priority: string
@@ -6105,6 +6116,7 @@ export type Database = {
           id?: string
           internal_notes?: string | null
           issue_found?: string | null
+          opportunity_id?: string | null
           parking_instructions?: string | null
           pending_reason?: string | null
           priority?: string
@@ -6151,6 +6163,7 @@ export type Database = {
           id?: string
           internal_notes?: string | null
           issue_found?: string | null
+          opportunity_id?: string | null
           parking_instructions?: string | null
           pending_reason?: string | null
           priority?: string
@@ -6228,6 +6241,13 @@ export type Database = {
             columns: ["execution_started_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "crm_opportunities"
             referencedColumns: ["id"]
           },
           {
@@ -7390,6 +7410,7 @@ export type Database = {
           id: string
           internal_notes: string | null
           issue_found: string | null
+          opportunity_id: string | null
           parking_instructions: string | null
           pending_reason: string | null
           priority: string

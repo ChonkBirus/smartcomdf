@@ -20,6 +20,8 @@ import {
   convertLeadToCustomer,
   convertOpportunityToQuote,
   getOpportunityQuoteStatus,
+  getOpportunityProjectStatus,
+  getOpportunityServiceOrderStatus,
   deleteActivity,
   deleteOpportunity,
   deleteOpportunityNote,
@@ -75,6 +77,23 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
     enabled: !!opportunityId,
     staleTime: 15_000,
   });
+
+  const fetchProjectStatus = useServerFn(getOpportunityProjectStatus);
+  const { data: projectStatus } = useQuery({
+    queryKey: ["crm", "opportunity", opportunityId, "project-status"],
+    queryFn: () => fetchProjectStatus({ data: { opportunity_id: opportunityId! } }),
+    enabled: !!opportunityId,
+    staleTime: 15_000,
+  });
+
+  const fetchSoStatus = useServerFn(getOpportunityServiceOrderStatus);
+  const { data: soStatus } = useQuery({
+    queryKey: ["crm", "opportunity", opportunityId, "so-status"],
+    queryFn: () => fetchSoStatus({ data: { opportunity_id: opportunityId! } }),
+    enabled: !!opportunityId,
+    staleTime: 15_000,
+  });
+
 
   const [form, setForm] = useState<any>(null);
   useEffect(() => {
@@ -215,6 +234,62 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
                   }}
                 >
                   Abrir orçamento →
+                </Button>
+              </div>
+            )}
+
+            {projectStatus && (
+              <div className="mt-3 rounded-md border bg-muted/40 p-3 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Projeto vinculado</div>
+                    <div className="font-medium">
+                      {projectStatus.project_number} · {projectStatus.title || "—"}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Total {brl(Number(projectStatus.total_amount || 0))}
+                    </div>
+                  </div>
+                  <ProjectStatusBadge status={projectStatus.status} />
+                </div>
+                <Button
+                  size="sm"
+                  variant="link"
+                  className="mt-1 h-auto p-0"
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate({ to: "/projects/$id", params: { id: projectStatus.id } });
+                  }}
+                >
+                  Abrir projeto →
+                </Button>
+              </div>
+            )}
+
+            {soStatus && (
+              <div className="mt-3 rounded-md border bg-muted/40 p-3 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Ordem de serviço vinculada</div>
+                    <div className="font-medium">Nº {soStatus.service_order_number}</div>
+                    {soStatus.scheduled_date && (
+                      <div className="text-xs text-muted-foreground">
+                        Agendada para {new Date(soStatus.scheduled_date).toLocaleDateString("pt-BR")}
+                      </div>
+                    )}
+                  </div>
+                  <SoStatusBadge status={soStatus.status} />
+                </div>
+                <Button
+                  size="sm"
+                  variant="link"
+                  className="mt-1 h-auto p-0"
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate({ to: "/service-orders/$id", params: { id: soStatus.id } });
+                  }}
+                >
+                  Abrir OS →
                 </Button>
               </div>
             )}
@@ -747,6 +822,34 @@ function QuoteStatusBadge({ status }: { status: string | null | undefined }) {
     APPROVED: { label: "Aprovado", cls: "bg-success text-success-foreground" },
     REJECTED: { label: "Rejeitado", cls: "bg-destructive text-destructive-foreground" },
     EXPIRED: { label: "Expirado", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
+  };
+  const s = map[status ?? "DRAFT"] ?? { label: status ?? "—", cls: "bg-muted" };
+  return <Badge className={s.cls}>{s.label}</Badge>;
+}
+
+function ProjectStatusBadge({ status }: { status: string | null | undefined }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    DRAFT: { label: "Rascunho", cls: "bg-muted text-muted-foreground" },
+    READY_TO_SCHEDULE: { label: "Pronto p/ agendar", cls: "bg-blue-500/15 text-blue-700 dark:text-blue-300" },
+    SCHEDULED: { label: "Agendado", cls: "bg-blue-500/15 text-blue-700 dark:text-blue-300" },
+    IN_PROGRESS: { label: "Em execução", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
+    PAUSED: { label: "Pausado", cls: "bg-muted text-muted-foreground" },
+    COMPLETED: { label: "Concluído", cls: "bg-success text-success-foreground" },
+    CANCELLED: { label: "Cancelado", cls: "bg-destructive text-destructive-foreground" },
+  };
+  const s = map[status ?? "DRAFT"] ?? { label: status ?? "—", cls: "bg-muted" };
+  return <Badge className={s.cls}>{s.label}</Badge>;
+}
+
+function SoStatusBadge({ status }: { status: string | null | undefined }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    DRAFT: { label: "Rascunho", cls: "bg-muted text-muted-foreground" },
+    SCHEDULED: { label: "Agendada", cls: "bg-blue-500/15 text-blue-700 dark:text-blue-300" },
+    IN_PROGRESS: { label: "Em execução", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
+    ON_HOLD: { label: "Pausada", cls: "bg-muted text-muted-foreground" },
+    COMPLETED: { label: "Concluída", cls: "bg-success text-success-foreground" },
+    CLOSED: { label: "Encerrada", cls: "bg-success text-success-foreground" },
+    CANCELLED: { label: "Cancelada", cls: "bg-destructive text-destructive-foreground" },
   };
   const s = map[status ?? "DRAFT"] ?? { label: status ?? "—", cls: "bg-muted" };
   return <Badge className={s.cls}>{s.label}</Badge>;

@@ -757,6 +757,50 @@ export const getOpportunityQuoteStatus = createServerFn({ method: "POST" })
     return q ?? null;
   });
 
+export const getOpportunityProjectStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ opportunity_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const { data: opp } = await sb
+      .from("crm_opportunities")
+      .select("project_id")
+      .eq("id", data.opportunity_id)
+      .eq("company_id", companyId)
+      .maybeSingle();
+    if (!opp?.project_id) return null;
+    const { data: p } = await sb
+      .from("projects")
+      .select("id, project_number, title, status, total_amount, planned_start_date, planned_end_date, completed_at")
+      .eq("id", opp.project_id)
+      .eq("company_id", companyId)
+      .maybeSingle();
+    return p ?? null;
+  });
+
+export const getOpportunityServiceOrderStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ opportunity_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const companyId = await getCompanyId(sb, context.userId);
+    const { data: opp } = await sb
+      .from("crm_opportunities")
+      .select("service_order_id")
+      .eq("id", data.opportunity_id)
+      .eq("company_id", companyId)
+      .maybeSingle();
+    if (!opp?.service_order_id) return null;
+    const { data: so } = await sb
+      .from("service_orders")
+      .select("id, service_order_number, status, scheduled_date, started_at, completed_at")
+      .eq("id", opp.service_order_id)
+      .eq("company_id", companyId)
+      .maybeSingle();
+    return so ?? null;
+  });
+
 // ============================================================
 // ETAPA 4: Stage management & reports
 // ============================================================
