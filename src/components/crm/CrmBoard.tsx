@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -21,7 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  Plus, Flame, Snowflake, Thermometer, Calendar, User2, Search, X, Settings2,
+  Plus, Flame, Snowflake, Thermometer, Calendar, User2, Search, X, Settings2, Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -111,19 +111,32 @@ export function CrmBoard() {
     return m;
   }, [data]);
 
+  const snapshotRef = useRef<Record<string, string[]> | null>(null);
+  const rollback = (message: string) => {
+    if (snapshotRef.current) {
+      setLocalOrders(snapshotRef.current);
+      snapshotRef.current = null;
+    }
+    toast.error(message);
+  };
+
   const moveMutation = useMutation({
     mutationFn: async (v: { id: string; stage_id: string; sort_order?: number; lost_reason?: string }) =>
       await move({ data: v }),
-    onError: (e: any) => toast.error(e?.message ?? "Erro ao mover lead."),
+    onError: (e: any) => rollback(e?.message ?? "Erro ao mover lead."),
+    onSuccess: () => { snapshotRef.current = null; },
     onSettled: () => qc.invalidateQueries({ queryKey: ["crm"] }),
   });
 
   const reorderMutation = useMutation({
     mutationFn: async (v: { stage_id: string; ordered_ids: string[] }) =>
       await reorder({ data: v }),
-    onError: (e: any) => toast.error(e?.message ?? "Erro ao reordenar."),
+    onError: (e: any) => rollback(e?.message ?? "Erro ao reordenar."),
+    onSuccess: () => { snapshotRef.current = null; },
     onSettled: () => qc.invalidateQueries({ queryKey: ["crm"] }),
   });
+
+  const isPending = moveMutation.isPending || reorderMutation.isPending;
 
   const clearFilters = () => setFilters({ search: "", assigned_to: "", temperature: "" });
   const hasFilters = filters.search || filters.assigned_to || filters.temperature;
@@ -190,6 +203,7 @@ export function CrmBoard() {
     targetIndex: number | null,
     lost_reason?: string,
   ) => {
+    snapshotRef.current = localOrders;
     setLocalOrders((prev) => {
       const source = [...(prev[sourceStageId] ?? [])];
       const target = sourceStageId === targetStageId ? source : [...(prev[targetStageId] ?? [])];
@@ -292,6 +306,7 @@ export function CrmBoard() {
         )}
       </div>
 
+      <div className="relative">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -321,6 +336,15 @@ export function CrmBoard() {
           )}
         </DragOverlay>
       </DndContext>
+      {isPending && (
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-start justify-center pt-4">
+          <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-border bg-background/90 px-3 py-1.5 text-xs shadow-md backdrop-blur">
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+            Salvando alterações…
+          </div>
+        </div>
+      )}
+      </div>
 
       <NewOpportunitySheet
         open={openNew}
