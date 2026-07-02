@@ -68,6 +68,14 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
     staleTime: 60_000,
   });
 
+  const fetchQuoteStatus = useServerFn(getOpportunityQuoteStatus);
+  const { data: quoteStatus } = useQuery({
+    queryKey: ["crm", "opportunity", opportunityId, "quote-status"],
+    queryFn: () => fetchQuoteStatus({ data: { opportunity_id: opportunityId! } }),
+    enabled: !!opportunityId,
+    staleTime: 15_000,
+  });
+
   const [form, setForm] = useState<any>(null);
   useEffect(() => {
     if (data?.opportunity) {
