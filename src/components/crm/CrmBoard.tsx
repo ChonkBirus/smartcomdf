@@ -306,6 +306,7 @@ export function CrmBoard() {
         )}
       </div>
 
+      <div className="relative">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
