@@ -20,6 +20,8 @@ import {
   convertLeadToCustomer,
   convertOpportunityToQuote,
   getOpportunityQuoteStatus,
+  getOpportunityProjectStatus,
+  getOpportunityServiceOrderStatus,
   deleteActivity,
   deleteOpportunity,
   deleteOpportunityNote,
