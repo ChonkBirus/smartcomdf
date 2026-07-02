@@ -1618,6 +1618,452 @@ export type Database = {
           },
         ]
       }
+      crm_activities: {
+        Row: {
+          activity_type: Database["public"]["Enums"]["crm_activity_type"]
+          assigned_to: string | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          deleted_at: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          opportunity_id: string | null
+          priority: Database["public"]["Enums"]["crm_priority"]
+          quote_id: string | null
+          status: Database["public"]["Enums"]["crm_activity_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          activity_type?: Database["public"]["Enums"]["crm_activity_type"]
+          assigned_to?: string | null
+          company_id: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          opportunity_id?: string | null
+          priority?: Database["public"]["Enums"]["crm_priority"]
+          quote_id?: string | null
+          status?: Database["public"]["Enums"]["crm_activity_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          activity_type?: Database["public"]["Enums"]["crm_activity_type"]
+          assigned_to?: string | null
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          opportunity_id?: string | null
+          priority?: Database["public"]["Enums"]["crm_priority"]
+          quote_id?: string | null
+          status?: Database["public"]["Enums"]["crm_activity_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_activities_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_activities_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_activities_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "crm_opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_activities_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_notes: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          id: string
+          note: string
+          opportunity_id: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          id?: string
+          note: string
+          opportunity_id: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          id?: string
+          note?: string
+          opportunity_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_notes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_notes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_notes_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "crm_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_opportunities: {
+        Row: {
+          address: string | null
+          assigned_to: string | null
+          company_id: string
+          company_name: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          customer_type: Database["public"]["Enums"]["crm_customer_type"] | null
+          deleted_at: string | null
+          description: string | null
+          email: string | null
+          estimated_value: number | null
+          id: string
+          lead_name: string
+          lead_type: Database["public"]["Enums"]["crm_lead_type"]
+          lost_at: string | null
+          lost_reason: string | null
+          next_action: string | null
+          next_follow_up_at: string | null
+          notes: string | null
+          phone: string | null
+          pipeline_id: string
+          project_id: string | null
+          quote_id: string | null
+          service_interest: string | null
+          service_order_id: string | null
+          source: Database["public"]["Enums"]["crm_source"] | null
+          stage_id: string
+          tags: string[]
+          temperature: Database["public"]["Enums"]["crm_temperature"]
+          updated_at: string
+          won_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          assigned_to?: string | null
+          company_id: string
+          company_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          customer_type?:
+            | Database["public"]["Enums"]["crm_customer_type"]
+            | null
+          deleted_at?: string | null
+          description?: string | null
+          email?: string | null
+          estimated_value?: number | null
+          id?: string
+          lead_name: string
+          lead_type?: Database["public"]["Enums"]["crm_lead_type"]
+          lost_at?: string | null
+          lost_reason?: string | null
+          next_action?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          pipeline_id: string
+          project_id?: string | null
+          quote_id?: string | null
+          service_interest?: string | null
+          service_order_id?: string | null
+          source?: Database["public"]["Enums"]["crm_source"] | null
+          stage_id: string
+          tags?: string[]
+          temperature?: Database["public"]["Enums"]["crm_temperature"]
+          updated_at?: string
+          won_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          assigned_to?: string | null
+          company_id?: string
+          company_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          customer_type?:
+            | Database["public"]["Enums"]["crm_customer_type"]
+            | null
+          deleted_at?: string | null
+          description?: string | null
+          email?: string | null
+          estimated_value?: number | null
+          id?: string
+          lead_name?: string
+          lead_type?: Database["public"]["Enums"]["crm_lead_type"]
+          lost_at?: string | null
+          lost_reason?: string | null
+          next_action?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          pipeline_id?: string
+          project_id?: string | null
+          quote_id?: string | null
+          service_interest?: string | null
+          service_order_id?: string | null
+          source?: Database["public"]["Enums"]["crm_source"] | null
+          stage_id?: string
+          tags?: string[]
+          temperature?: Database["public"]["Enums"]["crm_temperature"]
+          updated_at?: string
+          won_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_opportunities_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_opportunities_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_opportunities_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "crm_pipelines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_opportunities_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_opportunities_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_opportunities_service_order_id_fkey"
+            columns: ["service_order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_opportunities_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "crm_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_pipelines: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_pipelines_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_stages: {
+        Row: {
+          color: string | null
+          company_id: string
+          created_at: string
+          id: string
+          is_lost: boolean
+          is_won: boolean
+          name: string
+          pipeline_id: string
+          position: number
+          stage_type: Database["public"]["Enums"]["crm_stage_type"]
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          is_lost?: boolean
+          is_won?: boolean
+          name: string
+          pipeline_id: string
+          position?: number
+          stage_type?: Database["public"]["Enums"]["crm_stage_type"]
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_lost?: boolean
+          is_won?: boolean
+          name?: string
+          pipeline_id?: string
+          position?: number
+          stage_type?: Database["public"]["Enums"]["crm_stage_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_stages_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_stages_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "crm_pipelines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_timeline: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          event_type: string
+          id: string
+          metadata: Json
+          opportunity_id: string
+          title: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json
+          opportunity_id: string
+          title: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json
+          opportunity_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_timeline_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_timeline_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "crm_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_addresses: {
         Row: {
           address_type: Database["public"]["Enums"]["customer_address_type"]
@@ -6768,6 +7214,10 @@ export type Database = {
         Args: { _project_id: string }
         Returns: string
       }
+      crm_seed_default_pipeline: {
+        Args: { _company_id: string }
+        Returns: string
+      }
       current_company_id: { Args: never; Returns: string }
       delete_email: {
         Args: { message_id: number; queue_name: string }
@@ -7284,6 +7734,39 @@ export type Database = {
         | "technician"
       category_type: "PRODUCT" | "SERVICE" | "BOTH"
       company_status: "active" | "inactive" | "trial" | "blocked"
+      crm_activity_status: "pending" | "completed" | "overdue" | "cancelled"
+      crm_activity_type:
+        | "call"
+        | "whatsapp"
+        | "email"
+        | "visit"
+        | "meeting"
+        | "proposal_sent"
+        | "follow_up"
+        | "maintenance"
+        | "commercial_return"
+        | "internal_task"
+        | "other"
+      crm_customer_type:
+        | "residencial"
+        | "empresa"
+        | "condominio"
+        | "comercio"
+        | "industria"
+        | "outro"
+      crm_lead_type: "pf" | "pj"
+      crm_priority: "low" | "medium" | "high" | "urgent"
+      crm_source:
+        | "whatsapp"
+        | "instagram"
+        | "indicacao"
+        | "site"
+        | "cliente_antigo"
+        | "google"
+        | "prospeccao"
+        | "outro"
+      crm_stage_type: "open" | "won" | "lost" | "archived"
+      crm_temperature: "cold" | "warm" | "hot" | "urgent"
       customer_address_type: "BILLING" | "INSTALLATION" | "DELIVERY" | "OTHER"
       customer_history_type:
         | "NOTE"
@@ -7466,6 +7949,42 @@ export const Constants = {
       ],
       category_type: ["PRODUCT", "SERVICE", "BOTH"],
       company_status: ["active", "inactive", "trial", "blocked"],
+      crm_activity_status: ["pending", "completed", "overdue", "cancelled"],
+      crm_activity_type: [
+        "call",
+        "whatsapp",
+        "email",
+        "visit",
+        "meeting",
+        "proposal_sent",
+        "follow_up",
+        "maintenance",
+        "commercial_return",
+        "internal_task",
+        "other",
+      ],
+      crm_customer_type: [
+        "residencial",
+        "empresa",
+        "condominio",
+        "comercio",
+        "industria",
+        "outro",
+      ],
+      crm_lead_type: ["pf", "pj"],
+      crm_priority: ["low", "medium", "high", "urgent"],
+      crm_source: [
+        "whatsapp",
+        "instagram",
+        "indicacao",
+        "site",
+        "cliente_antigo",
+        "google",
+        "prospeccao",
+        "outro",
+      ],
+      crm_stage_type: ["open", "won", "lost", "archived"],
+      crm_temperature: ["cold", "warm", "hot", "urgent"],
       customer_address_type: ["BILLING", "INSTALLATION", "DELIVERY", "OTHER"],
       customer_history_type: [
         "NOTE",
