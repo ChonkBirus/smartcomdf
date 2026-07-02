@@ -7,14 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { getCrmReports } from "@/lib/crm.functions";
+import { buildCrmReportCsv } from "@/lib/crm-reports-csv";
 
-function toCsv(rows: (string | number)[][]): string {
-  const esc = (v: string | number) => {
-    const s = String(v ?? "");
-    return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  return rows.map((r) => r.map(esc).join(";")).join("\n");
-}
 
 function downloadCsv(filename: string, csv: string) {
   const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
