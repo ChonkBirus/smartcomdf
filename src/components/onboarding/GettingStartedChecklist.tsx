@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2, Circle, Rocket, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getGettingStartedStatus, type GettingStartedStatus } from "@/lib/onboarding.functions";
+import { getGettingStartedStatus, type GettingStartedStatus, getOnboardingProgress, upsertOnboardingProgress } from "@/lib/onboarding.functions";
 import { cn } from "@/lib/utils";
 
 type Item = {
@@ -29,25 +30,61 @@ const ITEMS: Item[] = [
   { key: "hasServiceOrder", title: "Criar primeira ordem de serviço", description: "Organize a execução com checklist, fotos e relatório.", to: "/service-orders", cta: "Nova OS" },
 ];
 
-
-const HIDE_KEY = "smartcom_checklist_hidden";
+const TOUR_KEY = "getting_started_checklist";
 
 export function GettingStartedChecklist() {
-  const fetch = useServerFn(getGettingStartedStatus);
+  const qc = useQueryClient();
+  const fetchStatus = useServerFn(getGettingStartedStatus);
+  const fetchProgress = useServerFn(getOnboardingProgress);
+  const upsertProgress = useServerFn(upsertOnboardingProgress);
+
   const { data, isLoading } = useQuery({
     queryKey: ["getting_started"],
-    queryFn: () => fetch(),
+    queryFn: () => fetchStatus(),
     staleTime: 60_000,
   });
-  const [hidden, setHidden] = useState(() => typeof window !== "undefined" && localStorage.getItem(HIDE_KEY) === "1");
 
-  if (hidden) return null;
+  const { data: progress } = useQuery({
+    queryKey: ["onboarding_progress", TOUR_KEY],
+    queryFn: () => fetchProgress({ data: { tourKey: TOUR_KEY } }),
+    staleTime: 60_000,
+  });
+
+  const hideMutation = useMutation({
+    mutationFn: () => upsertProgress({ data: { tourKey: TOUR_KEY, status: "SKIPPED" } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["onboarding_progress", TOUR_KEY] }),
+  });
+
   const status = data ?? null;
   const done = status ? ITEMS.filter((i) => status[i.key]).length : 0;
   const total = ITEMS.length;
   const allDone = status && done === total;
 
+  const completeMutation = useMutation({
+    mutationFn: () => upsertProgress({ data: { tourKey: TOUR_KEY, status: "COMPLETED", currentStep: total } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["onboarding_progress", TOUR_KEY] }),
+  });
+  const stepMutation = useMutation({
+    mutationFn: (step: number) => upsertProgress({ data: { tourKey: TOUR_KEY, status: "IN_PROGRESS", currentStep: step } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["onboarding_progress", TOUR_KEY] }),
+  });
+
+  useEffect(() => {
+    if (!status || progress === undefined) return;
+    if (progress?.status === "SKIPPED") return;
+    if (allDone) {
+      if (progress?.status !== "COMPLETED" && !completeMutation.isPending) completeMutation.mutate();
+    } else if ((progress?.current_step ?? -1) !== done && !stepMutation.isPending) {
+      stepMutation.mutate(done);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, progress, done, allDone]);
+
+  const hidden = progress?.status === "SKIPPED" || progress?.status === "COMPLETED";
+  if (hidden) return null;
   if (allDone && !isLoading) return null;
+
+
 
   return (
     <Card className="card-elevated">
@@ -63,7 +100,7 @@ export function GettingStartedChecklist() {
         </div>
         <button
           aria-label="Ocultar checklist"
-          onClick={() => { localStorage.setItem(HIDE_KEY, "1"); setHidden(true); }}
+          onClick={() => hideMutation.mutate()}
           className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
         >
           <X className="h-4 w-4" />
