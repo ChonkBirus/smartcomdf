@@ -57,9 +57,16 @@ export function GettingStartedChecklist() {
   });
 
   const status = data ?? null;
-  const done = status ? ITEMS.filter((i) => status[i.key]).length : 0;
+  const doneCount = status ? ITEMS.filter((i) => status[i.key]).length : 0;
   const total = ITEMS.length;
-  const allDone = status && done === total;
+  const allDone = status ? doneCount === total : false;
+  const isCompleted = progress?.status === "COMPLETED" || allDone;
+  const isSkipped = progress?.status === "SKIPPED";
+  // Effective progress considers persisted current_step so reloads reflect where the user stopped.
+  const effectiveDone = isCompleted
+    ? total
+    : Math.min(total, Math.max(doneCount, progress?.current_step ?? 0));
+  const percent = total > 0 ? Math.round((effectiveDone / total) * 100) : 0;
 
   const completeMutation = useMutation({
     mutationFn: () => upsertProgress({ data: { tourKey: TOUR_KEY, status: "COMPLETED", currentStep: total } }),
@@ -75,15 +82,15 @@ export function GettingStartedChecklist() {
     if (progress?.status === "SKIPPED") return;
     if (allDone) {
       if (progress?.status !== "COMPLETED" && !completeMutation.isPending) completeMutation.mutate();
-    } else if ((progress?.current_step ?? -1) !== done && !stepMutation.isPending) {
-      stepMutation.mutate(done);
+    } else if ((progress?.current_step ?? -1) !== doneCount && !stepMutation.isPending) {
+      stepMutation.mutate(doneCount);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, progress, done, allDone]);
+  }, [status, progress, doneCount, allDone]);
 
-  const hidden = progress?.status === "SKIPPED" || progress?.status === "COMPLETED";
-  if (hidden) return null;
-  if (allDone && !isLoading) return null;
+  if (isSkipped) return null;
+  if (isCompleted && !isLoading) return null;
+
 
 
 
@@ -98,10 +105,11 @@ export function GettingStartedChecklist() {
           {status ? (
             <div className="mt-2 space-y-1.5">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{done} de {total} concluídos</span>
-                <span className="font-medium text-foreground">{Math.round((done / total) * 100)}%</span>
+                <span>{effectiveDone} de {total} concluídos</span>
+                <span className="font-medium text-foreground">{percent}%</span>
               </div>
-              <Progress value={(done / total) * 100} className="h-2" />
+              <Progress value={percent} className="h-2" />
+
             </div>
           ) : (
             <p className="mt-1 text-xs text-muted-foreground">Carregando...</p>
