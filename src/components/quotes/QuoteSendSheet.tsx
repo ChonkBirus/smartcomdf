@@ -527,8 +527,16 @@ export function QuoteSendSheet({
                     {quote.payment_status === "WAITING_PAYMENT" && activePayment && (
                       <div className="mt-3 grid gap-2 sm:grid-cols-2">
                         <Can module="quote_payments" action="send_pix">
-                          <Button onClick={handleSendPixWhatsApp} className="w-full">
-                            <MessageCircle className="mr-1 h-4 w-4" />Enviar Pix WhatsApp
+                          <Button asChild className="w-full">
+                            <a
+                              href={pixWaResult.ok && pixHasKey ? pixWaResult.url : "#"}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={handleSendPixWhatsAppClick}
+                              aria-disabled={!pixWaResult.ok || !pixHasKey}
+                            >
+                              <MessageCircle className="mr-1 h-4 w-4" />Enviar Pix WhatsApp
+                            </a>
                           </Button>
                         </Can>
                         <Button variant="outline" onClick={handleCopyPix} className="w-full">
