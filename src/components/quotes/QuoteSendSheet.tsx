@@ -20,6 +20,7 @@ import {
 
 import { toast } from "sonner";
 import { appUrl } from "@/lib/app-url";
+import { buildCustomerWhatsAppUrl } from "@/lib/whatsapp";
 import {
   getQuote, getQuoteHistory, logQuoteEvent, markQuoteSent,
 } from "@/lib/quotes.functions";
