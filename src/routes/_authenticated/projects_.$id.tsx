@@ -104,10 +104,37 @@ function ProjectDetailPage() {
     onError: (e: any) => toast.error(e?.message ?? "Falha ao cancelar."),
   });
 
+  const setResponsibleFn = useServerFn(updateProjectPlanning);
+  const fetchTeam = useServerFn(listTeam);
+  const [respOpen, setRespOpen] = useState(false);
+  const [respValue, setRespValue] = useState<string>("");
+  const { data: team } = useQuery({
+    queryKey: ["team-members-lite"],
+    queryFn: () => fetchTeam(),
+    enabled: respOpen,
+  });
+  const setRespMut = useMutation({
+    mutationFn: () => setResponsibleFn({
+      data: { id, responsible_user_id: respValue || null },
+    }),
+    onSuccess: () => {
+      toast.success("Responsável atualizado.");
+      qc.invalidateQueries({ queryKey: ["project", id] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      setRespOpen(false);
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao atualizar responsável."),
+  });
+
   if (isLoading) return <div className="p-8 text-center text-muted-foreground">Carregando...</div>;
   if (!data) return <div className="p-8 text-center text-muted-foreground">Projeto não encontrado.</div>;
 
   const { project, customer, address, contact, quote, items } = data;
+  const hasResponsible = !!project.responsible_user_id;
+  const openRespDialog = () => {
+    setRespValue(project.responsible_user_id ?? "");
+    setRespOpen(true);
+  };
 
   const startEdit = () => {
     setForm({
