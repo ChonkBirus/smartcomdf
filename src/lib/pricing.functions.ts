@@ -90,9 +90,9 @@ function n(v: unknown, def = 0): number {
   return Number.isFinite(x) ? x : def;
 }
 
-function round2(x: number): number {
-  return Math.round(x * 100) / 100;
-}
+// Regra única de arredondamento (ver src/lib/rounding.ts).
+import { roundMoney, roundMarkup, roundRate, roundPercent } from "./rounding";
+const round2 = roundMoney;
 
 // ============================================================
 // Core formula — markup por dedução total
@@ -161,10 +161,10 @@ export function computeSuggestedPrice(input: PricingInput): PricingResult {
     deductions_total_rate,
     deductions_without_margin_rate,
     suggested_price,
-    markup_multiplier: Math.round(markup_multiplier * 10000) / 10000,
-    markup_percentage: Math.round(markup_percentage * 100) / 100,
+    markup_multiplier: roundMarkup(markup_multiplier),
+    markup_percentage: roundPercent(markup_percentage),
     estimated_profit,
-    estimated_margin_rate: Math.round(estimated_margin_rate * 10000) / 10000,
+    estimated_margin_rate: roundRate(estimated_margin_rate),
   };
 }
 
