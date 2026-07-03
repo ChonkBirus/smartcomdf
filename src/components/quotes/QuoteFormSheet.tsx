@@ -556,7 +556,7 @@ export function QuoteFormSheet({
                     <div className="w-full space-y-1">
                       <div>
                         Total abaixo do sugerido pelo markup em{" "}
-                        <strong>{totalDiffPct.toFixed(1)}%</strong>.
+                        <strong>{fmtPct(totalDiffPct)}</strong>.
                       </div>
                       <div>
                         Sugerido: <strong>{fmtBRL(suggestedTotal)}</strong> · Atual:{" "}
@@ -564,8 +564,8 @@ export function QuoteFormSheet({
                         <strong>{fmtBRL(totalGap)}</strong>
                       </div>
                       <div>
-                        Margem atual: <strong>{currentMarginPct.toFixed(1)}%</strong> ·
-                        Margem sugerida: <strong>{suggestedMarginPct.toFixed(1)}%</strong>
+                        Margem atual: <strong>{fmtPct(currentMarginPct)}</strong> ·
+                        Margem sugerida: <strong>{fmtPct(suggestedMarginPct)}</strong>
                       </div>
                       <details className="group mt-1">
                         <summary className="cursor-pointer select-none text-[11px] font-medium underline-offset-2 hover:underline">
@@ -592,15 +592,15 @@ export function QuoteFormSheet({
                             <strong>Gap:</strong> total sugerido − total atual ={" "}
                             {fmtBRL(suggestedTotal)} − {fmtBRL(total)} ={" "}
                             <strong>{fmtBRL(totalGap)}</strong> (
-                            {totalDiffPct.toFixed(1)}% do sugerido).
+                            {fmtPct(totalDiffPct)} do sugerido).
                           </div>
                           <div>
                             <strong>Margem %:</strong> (total − custo dos itens) ÷
                             total. Custo dos itens ={" "}
                             <strong>{fmtBRL(totalCost)}</strong>. Atual ={" "}
-                            {fmtBRL(total)} → {currentMarginPct.toFixed(1)}%.
+                            {fmtBRL(total)} → {fmtPct(currentMarginPct)}.
                             Sugerido = {fmtBRL(suggestedTotal)} →{" "}
-                            {suggestedMarginPct.toFixed(1)}%.
+                            {fmtPct(suggestedMarginPct)}.
                           </div>
                         </div>
                       </details>
@@ -862,7 +862,7 @@ function LineRow({
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <div className="flex-1">
             <div className="font-medium">
-              Preço abaixo do sugerido pelo markup ({suggestedDiffPct.toFixed(1)}% menor)
+              Preço abaixo do sugerido pelo markup ({fmtPct(suggestedDiffPct)} menor)
             </div>
             <div className="text-[11px] opacity-90">
               Sugerido: {fmtBRL(suggestedPrice!)} · Atual: {fmtBRL(line.unit_price)}
