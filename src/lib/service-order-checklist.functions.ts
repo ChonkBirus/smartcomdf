@@ -102,11 +102,11 @@ export const updateChecklistItem = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     try {
       await sb.rpc("log_audit", {
-        _entity: "service_order_checklist_items",
+        _module: "service_order_checklist_items",
         _action: "update",
-        _entity_id: data.itemId,
-        _before: before,
-        _after: { ...before, ...patch },
+        _record_id: data.itemId,
+        _old_data: before,
+        _new_data: { ...before, ...patch },
       });
     } catch { /* audit best-effort */ }
     return { ok: true };
@@ -129,11 +129,11 @@ export const deleteChecklistItem = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     try {
       if (before) await sb.rpc("log_audit", {
-        _entity: "service_order_checklist_items",
+        _module: "service_order_checklist_items",
         _action: "delete",
-        _entity_id: data.itemId,
-        _before: before,
-        _after: null,
+        _record_id: data.itemId,
+        _old_data: before,
+        _new_data: null,
       });
     } catch { /* audit best-effort */ }
     return { ok: true };
