@@ -125,25 +125,9 @@ export function QuoteSendSheet({
   const waMessage = useMemo(() => {
     if (!quote) return "";
     if (customMsg.trim()) return customMsg;
-    const total = fmtBRL(quote.total_amount);
-    const lines = [
-      `Olá${customer?.name ? `, ${customer.trade_name || customer.name}` : ""}!`,
-      "",
-      `Segue o orçamento *${quote.quote_number}* para sua avaliação.`,
-      quote.title ? `Referente a: ${quote.title}` : "",
-      "",
-      `*Valor Total da Proposta: ${total}*`,
-      `_Materiais, serviços e mão de obra inclusos._`,
-      quote.valid_until ? `Validade da proposta: ${new Date(quote.valid_until).toLocaleDateString("pt-BR")}` : "",
-      quote.completion_estimate ? `Estimativa de conclusão: ${quote.completion_estimate}` : "",
-      "",
-      `Você pode visualizar e aceitar diretamente neste link:`,
-      publicUrl,
-      "",
-      "Qualquer dúvida estou à disposição.",
-    ].filter(Boolean);
-    return lines.join("\n");
-  }, [quote, customer, publicUrl, customMsg]);
+    return buildQuoteWhatsAppMessage({ quote: quote as any, customer: customer as any });
+  }, [quote, customer, customMsg]);
+
 
   const logMut = useMutation({
     mutationFn: (vars: { quote_id: string; event_type: "sent" | "link_copied" | "whatsapp_sent" | "pdf_downloaded" | "email_sent" | "pix_sent_whatsapp" | "pix_copied"; meta?: Record<string, any> }) =>
