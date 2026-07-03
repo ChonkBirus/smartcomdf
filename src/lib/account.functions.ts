@@ -106,23 +106,7 @@ export const createCompanyForCurrentUser = createServerFn({ method: "POST" })
         .eq("code", code)
         .eq("is_active", true)
         .maybeSingle();
-      if (!coupon) throw new Error("Cupom inválido ou inativo.");
-      const now = new Date();
-      if (coupon.valid_from && new Date(coupon.valid_from) > now)
-        throw new Error("Cupom ainda não está disponível.");
-      if (coupon.valid_until && new Date(coupon.valid_until) < now)
-        throw new Error("Cupom expirado.");
-      if (
-        Array.isArray(coupon.eligible_plan_ids) &&
-        coupon.eligible_plan_ids.length > 0 &&
-        !coupon.eligible_plan_ids.includes(plan.id)
-      )
-        throw new Error("Cupom não aplicável a este plano.");
-      if (
-        coupon.max_redemptions != null &&
-        coupon.redemption_count >= coupon.max_redemptions
-      )
-        throw new Error("Cupom esgotado.");
+      assertCouponEligibleForPlan(coupon, plan.id);
       appliedCoupon = {
         id: coupon.id,
         code: coupon.code,
