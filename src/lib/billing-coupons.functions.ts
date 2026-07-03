@@ -50,8 +50,7 @@ export const validateCoupon = createServerFn({ method: "POST" })
       .select("company_id")
       .eq("id", userId)
       .maybeSingle();
-    const companyId = profile?.company_id;
-    if (!companyId) throw new Error("Empresa não encontrada.");
+    const companyId = profile?.company_id ?? null;
 
     const code = data.code.trim().toUpperCase();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
