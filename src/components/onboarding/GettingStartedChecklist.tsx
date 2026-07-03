@@ -105,10 +105,11 @@ export function GettingStartedChecklist() {
           {status ? (
             <div className="mt-2 space-y-1.5">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{done} de {total} concluídos</span>
-                <span className="font-medium text-foreground">{Math.round((done / total) * 100)}%</span>
+                <span>{effectiveDone} de {total} concluídos</span>
+                <span className="font-medium text-foreground">{percent}%</span>
               </div>
-              <Progress value={(done / total) * 100} className="h-2" />
+              <Progress value={percent} className="h-2" />
+
             </div>
           ) : (
             <p className="mt-1 text-xs text-muted-foreground">Carregando...</p>
