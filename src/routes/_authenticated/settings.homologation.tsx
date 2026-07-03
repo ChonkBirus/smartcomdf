@@ -19,7 +19,7 @@ import {
 import { useCompanyId } from "@/hooks/use-company-id";
 
 export const Route = createFileRoute("/_authenticated/settings/homologation")({
-  head: () => ({ meta: [{ title: "Homologação — SmartCom Pro" }] }),
+  head: () => ({ meta: [{ title: "Homologação — SmartPro" }] }),
   component: HomologationPage,
 });
 

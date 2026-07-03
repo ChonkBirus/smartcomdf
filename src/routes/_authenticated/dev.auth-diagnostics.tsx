@@ -15,7 +15,7 @@ import { APP_BASE_URL, appUrl } from "@/lib/app-url";
 export const Route = createFileRoute("/_authenticated/dev/auth-diagnostics")({
   head: () => ({
     meta: [
-      { title: "Diagnóstico de Auth (DEV) — SmartCom Pro" },
+      { title: "Diagnóstico de Auth (DEV) — SmartPro" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),

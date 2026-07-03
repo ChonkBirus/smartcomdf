@@ -32,7 +32,7 @@ import {
 } from "@/lib/quotes.functions";
 
 export const Route = createFileRoute("/_authenticated/quotes")({
-  head: () => ({ meta: [{ title: "Orçamentos — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Orçamentos — SmartPro" }] }),
   component: () => (
     <PermissionRoute module="quotes">
       <FeatureGate feature="quotes">

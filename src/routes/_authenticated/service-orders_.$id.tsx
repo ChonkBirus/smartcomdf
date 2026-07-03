@@ -31,7 +31,7 @@ import {
 import { ServiceOrderFinancialSummary } from "@/components/finance/ServiceOrderFinancialSummary";
 
 export const Route = createFileRoute("/_authenticated/service-orders_/$id")({
-  head: () => ({ meta: [{ title: "Detalhe da OS — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Detalhe da OS — SmartPro" }] }),
   component: () => (
     <FeatureGate feature="service_orders">
       <PermissionRoute module="service_orders">

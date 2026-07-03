@@ -320,8 +320,8 @@ function ActionDialog({
           {(kind === "suspend" || kind === "reactivate") && (
             <p className="rounded-md border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
               {kind === "suspend"
-                ? "A empresa perderá acesso operacional ao SmartCom Pro. Confirme o motivo para auditoria."
-                : "A empresa voltará a ter acesso ao SmartCom Pro. Confirme o motivo para auditoria."}
+                ? "A empresa perderá acesso operacional ao SmartPro. Confirme o motivo para auditoria."
+                : "A empresa voltará a ter acesso ao SmartPro. Confirme o motivo para auditoria."}
             </p>
           )}
 

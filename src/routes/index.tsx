@@ -16,14 +16,14 @@ const WHATSAPP_NUMBER =
   (import.meta.env.VITE_SUPPORT_WHATSAPP as string | undefined)?.replace(/\D/g, "") ||
   "5511999999999";
 const WHATSAPP_MSG = encodeURIComponent(
-  "Olá! Quero conhecer o SmartCom Pro e testar o sistema para minha empresa de segurança eletrônica."
+  "Olá! Quero conhecer o SmartPro e testar o sistema para minha empresa de segurança eletrônica."
 );
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MSG}`;
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "SmartCom Pro | ERP para empresas de segurança eletrônica" },
+      { title: "SmartPro | ERP para empresas de segurança eletrônica" },
       {
         name: "description",
         content:
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/")({
         content:
           "ERP segurança eletrônica, sistema para CFTV, sistema de ordem de serviço, sistema para empresa de segurança, controle de estoque segurança eletrônica, orçamento segurança eletrônica",
       },
-      { property: "og:title", content: "SmartCom Pro | ERP para empresas de segurança eletrônica" },
+      { property: "og:title", content: "SmartPro | ERP para empresas de segurança eletrônica" },
       {
         property: "og:description",
         content:
@@ -47,7 +47,7 @@ export const Route = createFileRoute("/")({
         content:
           "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/7a404137-d6af-41cb-aa03-3f139ee433fc",
       },
-      { name: "twitter:title", content: "SmartCom Pro | ERP para empresas de segurança eletrônica" },
+      { name: "twitter:title", content: "SmartPro | ERP para empresas de segurança eletrônica" },
       {
         name: "twitter:description",
         content: "Orçamento, estoque, OS, técnico em campo e relatórios com fotos — tudo em um só lugar.",
@@ -65,7 +65,7 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "SoftwareApplication",
-          name: "SmartCom Pro",
+          name: "SmartPro",
           applicationCategory: "BusinessApplication",
           operatingSystem: "Web",
           url: "https://smartcompro.lovable.app/",
@@ -81,7 +81,7 @@ export const Route = createFileRoute("/")({
           "@context": "https://schema.org",
           "@type": "FAQPage",
           mainEntity: [
-            ["Preciso instalar algum programa?", "Não. O SmartCom Pro funciona online, pelo navegador, e foi pensado para uso em computador e celular."],
+            ["Preciso instalar algum programa?", "Não. O SmartPro funciona online, pelo navegador, e foi pensado para uso em computador e celular."],
             ["Serve para empresas pequenas?", "Sim. O Starter é para empresas pequenas começarem com clientes, produtos, estoque e orçamentos."],
             ["O técnico consegue usar pelo celular?", "Sim. A área de OS foi pensada para uso mobile, com checklist, fotos, materiais e finalização técnica."],
             ["O sistema emite nota fiscal?", "A emissão de NFe/NFSe está prevista para fase futura nos planos avançados."],
@@ -159,7 +159,7 @@ function Header() {
           <div className="brand-gradient flex h-9 w-9 items-center justify-center rounded-lg shadow-lg shadow-primary/20">
             <ShieldCheck className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="text-base font-bold tracking-tight">SmartCom Pro</span>
+          <span className="text-base font-bold tracking-tight">SmartPro</span>
         </a>
         <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
           <a href="#features" className="hover:text-foreground">O que faz</a>
@@ -269,7 +269,7 @@ function Hero() {
               <MockCard tone="success" icon={FileText} title="Relatório enviado" sub="Cliente assinou agora" />
             </div>
             <p className="mt-3 text-center text-[11px] text-muted-foreground">
-              Prévia ilustrativa da interface do SmartCom Pro.
+              Prévia ilustrativa da interface do SmartPro.
             </p>
           </div>
 
@@ -487,7 +487,7 @@ function Differentials() {
       <div className="mx-auto max-w-6xl px-4">
         <div className="mx-auto mb-14 max-w-2xl text-center">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
-            <Sparkles className="h-3.5 w-3.5" /> Por que SmartCom Pro
+            <Sparkles className="h-3.5 w-3.5" /> Por que SmartPro
           </span>
           <h2 className="mt-4 text-3xl font-bold tracking-tight md:text-5xl">
             O que nenhum ERP genérico entrega
@@ -572,7 +572,7 @@ function AISection() {
       id="ai"
       eyebrow="Inteligência Artificial"
       title="IA para reduzir cadastro manual e acelerar sua operação."
-      subtitle="O SmartCom Pro usa IA para ler notas, arquivos, produtos e dados operacionais, reduzindo trabalho manual e erros de digitação."
+      subtitle="O SmartPro usa IA para ler notas, arquivos, produtos e dados operacionais, reduzindo trabalho manual e erros de digitação."
     >
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {items.map(([Icon, t]) => (
@@ -776,7 +776,7 @@ function BeforeAfter() {
     ["Cobrança sem histórico", "Assinatura eletrônica e envio ao cliente"],
   ];
   return (
-    <Section eyebrow="Comparação" title="Antes e depois do SmartCom Pro">
+    <Section eyebrow="Comparação" title="Antes e depois do SmartPro">
       <div className="overflow-hidden rounded-xl border border-border/60 bg-card/40">
         <div className="grid grid-cols-2 border-b border-border/60 bg-muted/30">
           <div className="px-4 py-3 text-sm font-semibold text-muted-foreground">Antes</div>
@@ -801,7 +801,7 @@ function BeforeAfter() {
 
 function FAQ() {
   const items = [
-    ["Preciso instalar algum programa?", "Não. O SmartCom Pro funciona online, pelo navegador, e foi pensado para uso em computador e celular."],
+    ["Preciso instalar algum programa?", "Não. O SmartPro funciona online, pelo navegador, e foi pensado para uso em computador e celular."],
     ["Serve para empresas pequenas?", "Sim. O Starter é para empresas pequenas começarem com clientes, produtos, estoque e orçamentos."],
     ["O técnico consegue usar pelo celular?", "Sim. A área de OS foi pensada para uso mobile, com checklist, fotos, materiais e finalização técnica."],
     ["O sistema emite nota fiscal?", "A emissão de NFe/NFSe está prevista para fase futura nos planos avançados."],
@@ -868,7 +868,7 @@ function Footer() {
             <div className="brand-gradient flex h-8 w-8 items-center justify-center rounded-lg">
               <ShieldCheck className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-bold">SmartCom Pro</span>
+            <span className="font-bold">SmartPro</span>
           </div>
           <p className="mt-3 max-w-sm text-sm text-muted-foreground">
             ERP inteligente para segurança eletrônica.
@@ -892,7 +892,7 @@ function Footer() {
         </div>
       </div>
       <div className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} SmartCom Pro. Todos os direitos reservados.
+        © {new Date().getFullYear()} SmartPro. Todos os direitos reservados.
       </div>
     </footer>
   );

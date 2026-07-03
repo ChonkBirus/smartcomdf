@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
 
 export const Route = createFileRoute("/reset-password")({
-  head: () => ({ meta: [{ title: "Nova senha — SecureERP" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({ meta: [{ title: "Nova senha — SmartPro" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: ResetPassword,
 });
 

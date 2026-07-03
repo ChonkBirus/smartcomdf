@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/settings")({
-  head: () => ({ meta: [{ title: "Configurações — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Configurações — SmartPro" }] }),
   component: SettingsLayout,
 });
 

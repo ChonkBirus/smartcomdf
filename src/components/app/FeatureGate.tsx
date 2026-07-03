@@ -135,7 +135,7 @@ const FEATURE_META: Record<string, FeatureMeta> = {
   },
   api_access: {
     label: "Acesso à API",
-    tagline: "Integre o SecureERP a qualquer sistema",
+    tagline: "Integre o SmartPro a qualquer sistema",
     description: "API REST completa com autenticação por token, webhooks e documentação OpenAPI.",
     benefits: [
       "Endpoints REST documentados",
@@ -150,7 +150,7 @@ const FEATURE_META: Record<string, FeatureMeta> = {
     label: "White Label",
     tagline: "Sua marca, nossa plataforma",
     description: "Personalize logo, cores e domínio próprio para revender ou usar com sua identidade visual.",
-    benefits: ["Domínio próprio", "Logo e cores customizadas", "E-mails com sua marca", "Sem menção ao SecureERP"],
+    benefits: ["Domínio próprio", "Logo e cores customizadas", "E-mails com sua marca", "Sem menção ao SmartPro"],
     useCases: ["Consultorias revendendo o ERP", "Holdings com múltiplas marcas"],
     minPlan: "business",
   },

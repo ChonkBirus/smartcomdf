@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { getMyContext } from "@/lib/account.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Super Admin — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Super Admin — SmartPro" }] }),
   component: AdminLayout,
 });
 
@@ -45,7 +45,7 @@ function AdminLayout() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
-      <PageHeader title="Super Admin" description="Painel da plataforma SecureERP." />
+      <PageHeader title="Super Admin" description="Painel da plataforma SmartPro." />
       <nav className="flex gap-1 border-b border-border">
         {tabs.map((t) => (
           <Link

@@ -83,7 +83,7 @@ function tierLabel(t: string): string {
 
 function buildPilotWhatsappMessage(name: string | null) {
   const firstName = (name ?? "").split(/\s+/)[0] || "tudo bem";
-  return `Olá ${firstName}, tudo certo? Estou acompanhando o uso do SmartCom Pro e queria saber se você conseguiu criar seu primeiro orçamento e gerar a proposta em PDF. Posso te ajudar em algum ponto?`;
+  return `Olá ${firstName}, tudo certo? Estou acompanhando o uso do SmartPro e queria saber se você conseguiu criar seu primeiro orçamento e gerar a proposta em PDF. Posso te ajudar em algum ponto?`;
 }
 
 function AdminPilotsPage() {

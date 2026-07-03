@@ -17,7 +17,7 @@ import { StockMovementDialog } from "@/components/stock/StockMovementDialog";
 import { stockOverview } from "@/lib/stock.functions";
 
 export const Route = createFileRoute("/_authenticated/stock")({
-  head: () => ({ meta: [{ title: "Estoque — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Estoque — SmartPro" }] }),
   component: () => (
     <PermissionRoute module="stock">
       <FeatureGate feature="inventory">

@@ -7,7 +7,7 @@ import { findHelpArticle } from "@/lib/help-articles";
 import { StartTourButton } from "@/components/onboarding/ModuleHelpButton";
 
 export const Route = createFileRoute("/_authenticated/help_/$slug")({
-  head: () => ({ meta: [{ title: "Tutorial — SmartCom Pro" }] }),
+  head: () => ({ meta: [{ title: "Tutorial — SmartPro" }] }),
   component: TutorialArticlePage,
 });
 

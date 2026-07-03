@@ -30,7 +30,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settings/subscription")({
-  head: () => ({ meta: [{ title: "Assinatura — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Assinatura — SmartPro" }] }),
   component: SubscriptionPage,
 });
 

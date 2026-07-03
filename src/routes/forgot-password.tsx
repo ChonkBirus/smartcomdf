@@ -14,7 +14,7 @@ import { appUrl } from "@/lib/app-url";
 import { logAuthDev, maskEmail } from "@/lib/auth-dev-log";
 
 export const Route = createFileRoute("/forgot-password")({
-  head: () => ({ meta: [{ title: "Recuperar senha — SecureERP" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({ meta: [{ title: "Recuperar senha — SmartPro" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: ForgotPassword,
 });
 

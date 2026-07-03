@@ -17,7 +17,7 @@ import { formatCurrency, cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
-  head: () => ({ meta: [{ title: "Bem-vindo — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Bem-vindo — SmartPro" }] }),
   component: Onboarding,
 });
 
@@ -102,7 +102,7 @@ function Onboarding() {
       <div className="mb-8 flex items-center gap-3">
         <div className="brand-gradient flex h-10 w-10 items-center justify-center rounded-lg"><ShieldCheck className="h-6 w-6 text-primary-foreground" /></div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Bem-vindo ao SecureERP</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Bem-vindo ao SmartPro</h1>
           <p className="text-sm text-muted-foreground">Vamos configurar sua empresa em poucos passos.</p>
         </div>
       </div>

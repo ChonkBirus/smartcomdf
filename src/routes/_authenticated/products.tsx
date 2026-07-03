@@ -66,7 +66,7 @@ import { ItemBadge } from "@/components/products/ItemBadge";
 import { ProductImportDialog } from "@/components/products/ProductImportDialog";
 
 export const Route = createFileRoute("/_authenticated/products")({
-  head: () => ({ meta: [{ title: "Catálogo — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Catálogo — SmartPro" }] }),
   component: () => (
     <PermissionRoute module="products">
       <FeatureGate feature="products">

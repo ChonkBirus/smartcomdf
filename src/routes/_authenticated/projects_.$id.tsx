@@ -36,7 +36,7 @@ import { ProjectFinancialSummary } from "@/components/finance/ProjectFinancialSu
 import { CreateServiceOrderFromProjectButton } from "@/components/service-orders/CreateServiceOrderFromProjectButton";
 
 export const Route = createFileRoute("/_authenticated/projects_/$id")({
-  head: () => ({ meta: [{ title: "Detalhe do Projeto — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Detalhe do Projeto — SmartPro" }] }),
   component: () => (
     <PermissionRoute module="projects">
       <ProjectDetailPage />

@@ -3,7 +3,7 @@ import { PermissionRoute } from "@/components/app/PermissionRoute";
 import { FinancePage } from "@/components/finance/FinancePage";
 
 export const Route = createFileRoute("/_authenticated/finance")({
-  head: () => ({ meta: [{ title: "Financeiro — SmartCom Pro" }] }),
+  head: () => ({ meta: [{ title: "Financeiro — SmartPro" }] }),
   component: () => (
     <PermissionRoute module="finance">
       <FinancePage />

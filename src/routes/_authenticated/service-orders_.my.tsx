@@ -17,7 +17,7 @@ import {
 } from "@/components/service-orders/TechnicianServiceOrderCard";
 
 export const Route = createFileRoute("/_authenticated/service-orders_/my")({
-  head: () => ({ meta: [{ title: "Minhas Ordens de Serviço — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Minhas Ordens de Serviço — SmartPro" }] }),
   component: () => (
     <FeatureGate feature="service_orders">
       <PermissionRoute module="service_orders">

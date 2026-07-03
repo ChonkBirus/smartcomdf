@@ -19,7 +19,7 @@ export type TourDefinition = {
 export const TOURS: Record<string, TourDefinition> = {
   initial: {
     key: "initial",
-    name: "Primeiros passos no SmartCom Pro",
+    name: "Primeiros passos no SmartPro",
     description: "Conheça o fluxo principal do sistema em poucos minutos.",
     steps: [
       { title: "Dashboard", body: "Aqui você acompanha os principais números da sua operação: clientes, orçamentos, projetos, ordens de serviço e alertas importantes.", route: "/dashboard", module: "dashboard" },

@@ -21,7 +21,7 @@ import { getCustomer } from "@/lib/customers.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/clients_/$id")({
-  head: () => ({ meta: [{ title: "Detalhes do Cliente — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Detalhes do Cliente — SmartPro" }] }),
   component: () => (
     <PermissionRoute module="clients">
       <FeatureGate feature="customers">

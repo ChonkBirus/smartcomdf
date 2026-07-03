@@ -10,7 +10,7 @@ import { ShieldCheck } from "lucide-react";
 import { acceptInvitation } from "@/lib/team.functions";
 
 export const Route = createFileRoute("/invite/$token")({
-  head: () => ({ meta: [{ title: "Convite — SecureERP" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({ meta: [{ title: "Convite — SmartPro" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: InvitePage,
 });
 
@@ -48,7 +48,7 @@ function InvitePage() {
           <div className="brand-gradient mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-md">
             <ShieldCheck className="h-6 w-6 text-primary-foreground" />
           </div>
-          <CardTitle>Convite para o SecureERP</CardTitle>
+          <CardTitle>Convite para o SmartPro</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-center">
           {status === "checking" && <p className="text-sm text-muted-foreground">Verificando convite...</p>}

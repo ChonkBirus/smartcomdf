@@ -214,7 +214,7 @@ export function OpenFinancePage() {
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
             Conecte sua conta empresarial para importar saldos e movimentações bancárias
-            com segurança. O SmartCom Pro nunca pede sua senha bancária — a autorização é
+            com segurança. O SmartPro nunca pede sua senha bancária — a autorização é
             feita no ambiente do provedor Open Finance.
           </p>
           <div className="flex flex-wrap gap-2">

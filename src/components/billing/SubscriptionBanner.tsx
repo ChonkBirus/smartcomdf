@@ -55,7 +55,7 @@ export function SubscriptionBanner({ sub }: { sub: CurrentSubscription | null })
         <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
           <AlertCircle className="h-4 w-4" />
           <span>
-            Sua assinatura está suspensa. Regularize o pagamento para voltar a usar o SmartCom Pro.
+            Sua assinatura está suspensa. Regularize o pagamento para voltar a usar o SmartPro.
           </span>
         </div>
         <RegularizeSubscriptionButton sub={sub} size="sm" label="Regularizar assinatura" />

@@ -14,7 +14,7 @@ import { getMyContext } from "@/lib/account.functions";
 import { updateMyProfile, getSignedImageUrl } from "@/lib/profile.functions";
 
 export const Route = createFileRoute("/_authenticated/profile")({
-  head: () => ({ meta: [{ title: "Meu perfil — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Meu perfil — SmartPro" }] }),
   component: ProfilePage,
 });
 
