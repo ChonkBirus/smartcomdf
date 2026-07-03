@@ -54,6 +54,30 @@ function Onboarding() {
 
   useEffect(() => { if (ctx?.company) navigate({ to: "/dashboard", replace: true }); }, [ctx, navigate]);
 
+  useEffect(() => { setCouponInfo(null); setCouponError(null); }, [planSlug, couponCode]);
+
+  const selectedPlan = plans.find((p) => p.slug === planSlug);
+
+  async function handleValidateCoupon() {
+    const code = couponCode.trim().toUpperCase();
+    if (!code || !selectedPlan) return;
+    setCouponChecking(true);
+    setCouponError(null);
+    setCouponInfo(null);
+    try {
+      const res = await validateCouponFn({
+        data: { code, plan_id: selectedPlan.id, amount: Number(selectedPlan.monthly_price) || 1 },
+      });
+      setCouponInfo(res);
+    } catch (e) {
+      setCouponError((e as Error).message);
+    } finally {
+      setCouponChecking(false);
+    }
+  }
+
+  const couponBlocked = couponCode.trim().length > 0 && !couponInfo;
+
   const form = useForm<FormData>({ resolver: zodResolver(schema), defaultValues: { corporate_name: "", trade_name: "", cnpj: "", phone: "" } });
 
   const mut = useMutation({
