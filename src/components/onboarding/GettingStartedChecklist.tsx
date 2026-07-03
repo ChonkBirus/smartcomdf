@@ -7,6 +7,7 @@ import { CheckCircle2, Circle, Rocket, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getGettingStartedStatus, type GettingStartedStatus, getOnboardingProgress, upsertOnboardingProgress } from "@/lib/onboarding.functions";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
 type Item = {
@@ -89,14 +90,22 @@ export function GettingStartedChecklist() {
   return (
     <Card className="card-elevated">
       <CardHeader className="flex flex-row items-start justify-between gap-3 pb-3">
-        <div>
+        <div className="min-w-0 flex-1">
           <CardTitle className="flex items-center gap-2 text-base">
             <Rocket className="h-4 w-4 text-primary" />
             Primeiros passos
           </CardTitle>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {status ? `${done} de ${total} concluídos` : "Carregando..."}
-          </p>
+          {status ? (
+            <div className="mt-2 space-y-1.5">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>{done} de {total} concluídos</span>
+                <span className="font-medium text-foreground">{Math.round((done / total) * 100)}%</span>
+              </div>
+              <Progress value={(done / total) * 100} className="h-2" />
+            </div>
+          ) : (
+            <p className="mt-1 text-xs text-muted-foreground">Carregando...</p>
+          )}
         </div>
         <button
           aria-label="Ocultar checklist"
