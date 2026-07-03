@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
 import { appUrl } from "@/lib/app-url";
 import { logAuthDev, maskEmail } from "@/lib/auth-dev-log";
+import smartproHorizontal from "@/assets/smartpro-horizontal.png.asset.json";
 
 const REMEMBER_KEY = "secureerp.remember_email";
 
@@ -88,11 +89,8 @@ function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
-        <div className="mb-6 flex flex-col items-center gap-2">
-          <div className="brand-gradient flex h-12 w-12 items-center justify-center rounded-xl">
-            <ShieldCheck className="h-7 w-7 text-primary-foreground" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">SecureERP</h1>
+        <div className="mb-6 flex flex-col items-center gap-3">
+          <img src={smartproHorizontal.url} alt="SmartPro — ERP para Segurança Eletrônica" className="h-20 w-auto object-contain" />
           <p className="text-sm text-muted-foreground">Plataforma para empresas de segurança eletrônica</p>
         </div>
 
