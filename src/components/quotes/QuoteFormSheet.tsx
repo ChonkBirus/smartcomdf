@@ -540,7 +540,7 @@ export function QuoteFormSheet({
                 {totalBelowSuggested && (
                   <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-300">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                    <div className="space-y-1">
+                    <div className="w-full space-y-1">
                       <div>
                         Total abaixo do sugerido pelo markup em{" "}
                         <strong>{totalDiffPct.toFixed(1)}%</strong>.
@@ -554,6 +554,43 @@ export function QuoteFormSheet({
                         Margem atual: <strong>{currentMarginPct.toFixed(1)}%</strong> ·
                         Margem sugerida: <strong>{suggestedMarginPct.toFixed(1)}%</strong>
                       </div>
+                      <details className="group mt-1">
+                        <summary className="cursor-pointer select-none text-[11px] font-medium underline-offset-2 hover:underline">
+                          Como esses valores são calculados?
+                        </summary>
+                        <div className="mt-2 space-y-2 rounded-md bg-amber-500/10 p-2 text-[11px] leading-relaxed text-amber-800 dark:text-amber-200">
+                          <div>
+                            <strong>Preço sugerido por item:</strong> aplica o markup
+                            sobre o custo usando as configurações de precificação da
+                            empresa.
+                            <div className="mt-1 font-mono">
+                              preço = custo ÷ (1 − (impostos + taxas + comissão +
+                              garantia + custos operacionais + rateio fixo + pró-labore
+                              + margem desejada))
+                            </div>
+                          </div>
+                          <div>
+                            <strong>Total sugerido:</strong> soma de{" "}
+                            <em>quantidade × preço sugerido</em> de cada item + mão de
+                            obra − desconto ={" "}
+                            <strong>{fmtBRL(suggestedTotal)}</strong>.
+                          </div>
+                          <div>
+                            <strong>Gap:</strong> total sugerido − total atual ={" "}
+                            {fmtBRL(suggestedTotal)} − {fmtBRL(total)} ={" "}
+                            <strong>{fmtBRL(totalGap)}</strong> (
+                            {totalDiffPct.toFixed(1)}% do sugerido).
+                          </div>
+                          <div>
+                            <strong>Margem %:</strong> (total − custo dos itens) ÷
+                            total. Custo dos itens ={" "}
+                            <strong>{fmtBRL(totalCost)}</strong>. Atual ={" "}
+                            {fmtBRL(total)} → {currentMarginPct.toFixed(1)}%.
+                            Sugerido = {fmtBRL(suggestedTotal)} →{" "}
+                            {suggestedMarginPct.toFixed(1)}%.
+                          </div>
+                        </div>
+                      </details>
                     </div>
                   </div>
                 )}
