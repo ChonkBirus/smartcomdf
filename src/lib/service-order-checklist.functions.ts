@@ -75,6 +75,89 @@ export const addChecklistItem = createServerFn({ method: "POST" })
     return row;
   });
 
+export const updateChecklistItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    itemId: z.string().uuid(),
+    title: z.string().trim().min(1).max(200).optional(),
+    description: z.string().trim().max(500).nullable().optional(),
+    required: z.boolean().optional(),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const { data: before } = await sb
+      .from("service_order_checklist_items")
+      .select("id, title, description, required, service_order_id, company_id")
+      .eq("id", data.itemId)
+      .maybeSingle();
+    if (!before) throw new Error("Item não encontrado.");
+    const patch: any = { updated_at: new Date().toISOString() };
+    if (data.title !== undefined) patch.title = data.title;
+    if (data.description !== undefined) patch.description = data.description;
+    if (data.required !== undefined) patch.required = data.required;
+    const { error } = await sb
+      .from("service_order_checklist_items")
+      .update(patch)
+      .eq("id", data.itemId);
+    if (error) throw new Error(error.message);
+    try {
+      await sb.rpc("log_audit", {
+        _entity: "service_order_checklist_items",
+        _action: "update",
+        _entity_id: data.itemId,
+        _before: before,
+        _after: { ...before, ...patch },
+      });
+    } catch { /* audit best-effort */ }
+    return { ok: true };
+  });
+
+export const deleteChecklistItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ itemId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const { data: before } = await sb
+      .from("service_order_checklist_items")
+      .select("id, title, service_order_id, company_id")
+      .eq("id", data.itemId)
+      .maybeSingle();
+    const { error } = await sb
+      .from("service_order_checklist_items")
+      .delete()
+      .eq("id", data.itemId);
+    if (error) throw new Error(error.message);
+    try {
+      if (before) await sb.rpc("log_audit", {
+        _entity: "service_order_checklist_items",
+        _action: "delete",
+        _entity_id: data.itemId,
+        _before: before,
+        _after: null,
+      });
+    } catch { /* audit best-effort */ }
+    return { ok: true };
+  });
+
+export const reorderChecklistItems = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    serviceOrderId: z.string().uuid(),
+    orderedIds: z.array(z.string().uuid()).min(1),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    for (let i = 0; i < data.orderedIds.length; i++) {
+      const { error } = await sb
+        .from("service_order_checklist_items")
+        .update({ sort_order: i, updated_at: new Date().toISOString() })
+        .eq("id", data.orderedIds[i])
+        .eq("service_order_id", data.serviceOrderId);
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
+  });
+
 export const listPendingRequiredChecklist = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
@@ -84,3 +167,4 @@ export const listPendingRequiredChecklist = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
+
