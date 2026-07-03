@@ -553,6 +553,7 @@ export function QuoteFormSheet({
                   products={products}
                   services={services}
                   canSeeInternal={canSeeInternal}
+                  suggestedPrice={suggestPrice(l.cost_price)}
                   onChange={(patch) => setLine(i, patch)}
                   onPickCatalog={(id) => pickCatalogItem(i, id)}
                   onRemove={() => removeLine(i)}
