@@ -90,12 +90,13 @@
   --chart-5: oklch(0.6 0.22 27);
   --sidebar: oklch(0.98 0 0);
   --sidebar-foreground: oklch(0.22 0.01 250);
-  --sidebar-primary: oklch(0.72 0.18 47);
-  --sidebar-primary-foreground: oklch(0.18 0.01 250);
+  --sidebar-primary: oklch(0.72 0.20 145);
+  --sidebar-primary-foreground: oklch(0.15 0.02 155);
   --sidebar-accent: oklch(0.94 0.005 250);
   --sidebar-accent-foreground: oklch(0.22 0.01 250);
   --sidebar-border: oklch(0.9 0.005 250);
-  --sidebar-ring: oklch(0.72 0.18 47);
+  --sidebar-ring: oklch(0.72 0.20 145);
+
 }
 
 /* Dark theme — Graphite Ink + Electric Ember (2026 B2B SaaS) */
