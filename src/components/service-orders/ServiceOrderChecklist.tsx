@@ -197,21 +197,31 @@ function ChecklistRow({
     setEditOpen(true);
   };
 
+  const pendingRequired = item.required && !item.checked;
+
   return (
-    <li className="p-3 space-y-2">
+    <li className={`p-3 space-y-2 ${pendingRequired ? "bg-warning/5 border-l-2 border-warning" : ""}`}>
       <div className="flex items-start gap-3">
         <Checkbox
           checked={item.checked}
           disabled={!executable || busy}
           onCheckedChange={(v) => onToggle(Boolean(v))}
-          className="mt-1"
+          className={`mt-1 ${pendingRequired ? "border-warning" : ""}`}
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className={`font-medium ${item.checked ? "line-through text-muted-foreground" : ""}`}>
               {item.title}
             </span>
-            {item.required && <Badge variant="outline" className="text-xs">Obrigatório</Badge>}
+            {item.required && (
+              <Badge
+                variant={pendingRequired ? "destructive" : "outline"}
+                className="text-xs inline-flex items-center gap-1"
+              >
+                {pendingRequired && <AlertTriangle className="h-3 w-3 animate-pulse" />}
+                Obrigatório
+              </Badge>
+            )}
             {item.checked && <CheckCircle2 className="h-4 w-4 text-success" />}
           </div>
           {item.description && (
