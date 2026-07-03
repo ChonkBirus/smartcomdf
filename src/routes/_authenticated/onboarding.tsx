@@ -170,6 +170,8 @@ function Onboarding() {
               <p className="mt-1 text-xs text-muted-foreground">
                 Se você recebeu um cupom, informe agora para já entrar com o benefício aplicado.
               </p>
+            </div>
+
 
             <div className="flex justify-between">
               <Button variant="ghost" onClick={() => setStep(2)}>Voltar</Button>
