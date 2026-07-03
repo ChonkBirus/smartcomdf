@@ -20,6 +20,7 @@ import {
 
 import { toast } from "sonner";
 import { appUrl } from "@/lib/app-url";
+import { buildCustomerWhatsAppUrl } from "@/lib/whatsapp";
 import {
   getQuote, getQuoteHistory, logQuoteEvent, markQuoteSent,
 } from "@/lib/quotes.functions";
@@ -220,15 +221,20 @@ export function QuoteSendSheet({
 
 
 
-  function handleWhatsApp() {
-    if (!quote) return;
-    const phone = (customer as any)?.whatsapp || (customer as any)?.phone || "";
-    const digits = phone.replace(/\D/g, "");
-    const base = digits
-      ? `https://wa.me/${digits.startsWith("55") ? digits : `55${digits}`}`
-      : `https://wa.me/`;
-    const url = `${base}?text=${encodeURIComponent(waMessage)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+  const customerPhoneRaw =
+    (customer as any)?.whatsapp || (customer as any)?.phone || "";
+  const waResult = buildCustomerWhatsAppUrl(customerPhoneRaw, waMessage);
+
+  function handleWhatsAppClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    if (!quote) {
+      e.preventDefault();
+      return;
+    }
+    if (!waResult.ok) {
+      e.preventDefault();
+      toast.error(waResult.message);
+      return;
+    }
     logMut.mutate({ quote_id: quoteId!, event_type: "whatsapp_sent" });
     if (quote.status === "DRAFT") sendMut.mutate();
   }
@@ -313,15 +319,25 @@ export function QuoteSendSheet({
     return lines.join("\n");
   }
 
-  function handleSendPixWhatsApp() {
-    if (!quote || !activePayment) return;
-    const phone = (customer as any)?.whatsapp || (customer as any)?.phone || "";
-    const digits = phone.replace(/\D/g, "");
-    const base = digits
-      ? `https://wa.me/${digits.startsWith("55") ? digits : `55${digits}`}`
-      : `https://wa.me/`;
-    const url = `${base}?text=${encodeURIComponent(pixWhatsAppMessage())}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+  const pixMessage = pixWhatsAppMessage();
+  const pixWaResult = buildCustomerWhatsAppUrl(customerPhoneRaw, pixMessage);
+  const pixHasKey = !!(activePayment?.pix_key || companyPix?.pix_key);
+
+  function handleSendPixWhatsAppClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    if (!quote || !activePayment) {
+      e.preventDefault();
+      return;
+    }
+    if (!pixHasKey) {
+      e.preventDefault();
+      toast.error("Configure a chave Pix da empresa antes de enviar.");
+      return;
+    }
+    if (!pixWaResult.ok) {
+      e.preventDefault();
+      toast.error(pixWaResult.message);
+      return;
+    }
     logMut.mutate({ quote_id: quoteId!, event_type: "pix_sent_whatsapp" });
   }
 
@@ -408,8 +424,16 @@ export function QuoteSendSheet({
 
                 <div className="space-y-2">
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <Button onClick={handleWhatsApp} className="w-full min-w-0 justify-center whitespace-nowrap">
-                      <MessageCircle className="mr-1 h-4 w-4 shrink-0" />WhatsApp
+                    <Button asChild className="w-full min-w-0 justify-center whitespace-nowrap">
+                      <a
+                        href={waResult.ok ? waResult.url : "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={handleWhatsAppClick}
+                        aria-disabled={!waResult.ok}
+                      >
+                        <MessageCircle className="mr-1 h-4 w-4 shrink-0" />WhatsApp
+                      </a>
                     </Button>
                     <Button variant="outline" onClick={handleEmail} className="w-full min-w-0 justify-center whitespace-nowrap">
                       <Mail className="mr-1 h-4 w-4 shrink-0" />E-mail
@@ -503,8 +527,16 @@ export function QuoteSendSheet({
                     {quote.payment_status === "WAITING_PAYMENT" && activePayment && (
                       <div className="mt-3 grid gap-2 sm:grid-cols-2">
                         <Can module="quote_payments" action="send_pix">
-                          <Button onClick={handleSendPixWhatsApp} className="w-full">
-                            <MessageCircle className="mr-1 h-4 w-4" />Enviar Pix WhatsApp
+                          <Button asChild className="w-full">
+                            <a
+                              href={pixWaResult.ok && pixHasKey ? pixWaResult.url : "#"}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={handleSendPixWhatsAppClick}
+                              aria-disabled={!pixWaResult.ok || !pixHasKey}
+                            >
+                              <MessageCircle className="mr-1 h-4 w-4" />Enviar Pix WhatsApp
+                            </a>
                           </Button>
                         </Can>
                         <Button variant="outline" onClick={handleCopyPix} className="w-full">
