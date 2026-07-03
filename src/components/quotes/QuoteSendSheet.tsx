@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { toast } from "sonner";
-import { appUrl } from "@/lib/app-url";
+import { publicShareUrl } from "@/lib/app-url";
 import { buildCustomerWhatsAppUrl } from "@/lib/whatsapp";
 import {
   getQuote, getQuoteHistory, logQuoteEvent, markQuoteSent,
@@ -61,9 +61,11 @@ const EVENT_LABEL: Record<string, string> = {
 };
 
 function publicUrlFor(token: string) {
-  // appUrl already handles SSR fallback to official domain
-  return appUrl(`/q/${token}`);
+  // Sempre usar domínio oficial no link enviado ao cliente (WhatsApp/e-mail/PDF),
+  // mesmo quando o app está rodando em preview do Lovable.
+  return publicShareUrl(`/q/${token}`);
 }
+
 
 export function QuoteSendSheet({
   open, onOpenChange, quoteId,
