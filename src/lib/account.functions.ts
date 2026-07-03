@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertCouponEligibleForPlan } from "./coupon-eligibility";
 
 // Returns current user's profile, company and roles
 export const getMyContext = createServerFn({ method: "GET" })
