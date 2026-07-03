@@ -103,7 +103,7 @@ export const createCompanyForCurrentUser = createServerFn({ method: "POST" })
         .from("billing_coupons")
         .select("*")
         .eq("code", code)
-        .eq("active", true)
+        .eq("is_active", true)
         .maybeSingle();
       if (!coupon) throw new Error("Cupom inválido ou inativo.");
       const now = new Date();
