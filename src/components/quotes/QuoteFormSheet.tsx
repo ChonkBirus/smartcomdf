@@ -75,6 +75,7 @@ export function QuoteFormSheet({
   const save = useServerFn(saveQuote);
   const fetchQuoteCustomers = useServerFn(getActiveCustomersForQuote);
   const fetchCatalog = useServerFn(listQuoteCatalog);
+  const fetchCostSettings = useServerFn(getCompanyCostSettings);
 
   const [customerId, setCustomerId] = useState("");
   const [customerOpen, setCustomerOpen] = useState(false);
