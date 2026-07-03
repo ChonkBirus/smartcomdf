@@ -7273,6 +7273,10 @@ export type Database = {
           subscription_id: string
         }[]
       }
+      generate_smart_service_order_checklist: {
+        Args: { _so_id: string }
+        Returns: number
+      }
       get_my_features: { Args: never; Returns: string[] }
       get_my_permissions: { Args: never; Returns: string[] }
       get_pilot_activation: { Args: { _company_id: string }; Returns: Json }
