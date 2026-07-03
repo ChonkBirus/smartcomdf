@@ -84,7 +84,7 @@ export const validateCoupon = createServerFn({ method: "POST" })
       throw new Error("Cupom esgotado.");
     }
 
-    if (coupon.max_redemptions_per_company != null) {
+    if (companyId && coupon.max_redemptions_per_company != null) {
       const { count } = await supabase
         .from("billing_coupon_redemptions")
         .select("id", { count: "exact", head: true })
