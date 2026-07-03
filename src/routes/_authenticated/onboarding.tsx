@@ -188,23 +188,45 @@ function Onboarding() {
             </div>
             <div>
               <Label htmlFor="coupon">Cupom de desconto (opcional)</Label>
-              <Input
-                id="coupon"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                placeholder="Ex.: LANCAMENTO"
-                className="mt-1.5"
-                maxLength={64}
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Se você recebeu um cupom, informe agora para já entrar com o benefício aplicado.
-              </p>
+              <div className="mt-1.5 flex gap-2">
+                <Input
+                  id="coupon"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  placeholder="Ex.: LANCAMENTO"
+                  maxLength={64}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleValidateCoupon}
+                  disabled={!couponCode.trim() || couponChecking}
+                >
+                  {couponChecking ? "Validando..." : "Validar"}
+                </Button>
+              </div>
+              {couponInfo && (
+                <p className="mt-1 text-xs text-emerald-600">
+                  Cupom válido para o plano {selectedPlan?.name}. Desconto: {formatCurrency(couponInfo.discount_amount)} — total: {formatCurrency(couponInfo.final_amount)}.
+                </p>
+              )}
+              {couponError && (
+                <p className="mt-1 text-xs text-destructive">{couponError}</p>
+              )}
+              {!couponInfo && !couponError && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Informe e valide o cupom para o plano selecionado antes de criar a empresa.
+                </p>
+              )}
             </div>
 
 
             <div className="flex justify-between">
               <Button variant="ghost" onClick={() => setStep(2)}>Voltar</Button>
-              <Button onClick={() => mut.mutate(form.getValues())} disabled={mut.isPending}>
+              <Button
+                onClick={() => mut.mutate(form.getValues())}
+                disabled={mut.isPending || couponBlocked}
+              >
                 {mut.isPending ? "Criando..." : "Criar minha empresa"}
               </Button>
             </div>
