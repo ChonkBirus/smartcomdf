@@ -165,6 +165,32 @@ export function QuoteFormSheet({
   const products = useMemo(() => catalogItems.filter((i) => i.item_type === "PRODUCT"), [catalogItems]);
   const services = useMemo(() => catalogItems.filter((i) => i.item_type === "SERVICE"), [catalogItems]);
 
+  const { data: costSettingsData } = useQuery({
+    queryKey: ["company-cost-settings-quote", companyId],
+    queryFn: () => fetchCostSettings(),
+    enabled: open && !!companyId && canSeeInternal,
+    staleTime: 5 * 60 * 1000,
+  });
+  const costSettings = costSettingsData?.settings ?? null;
+
+  const suggestPrice = useMemo(() => {
+    return (cost: number): number | null => {
+      if (!costSettings || !cost || cost <= 0) return null;
+      const r = computeSuggestedPrice({
+        cost_price: cost,
+        tax_rate: costSettings.default_tax_rate,
+        card_fee_rate: costSettings.default_card_fee_rate,
+        commission_rate: costSettings.default_commission_rate,
+        warranty_reserve_rate: costSettings.default_warranty_reserve_rate,
+        operational_cost_rate: costSettings.default_operational_cost_rate,
+        fixed_cost_allocation_rate: costSettings.default_fixed_cost_allocation_rate,
+        pro_labore_rate: costSettings.pro_labore_percent,
+        desired_margin_rate: costSettings.default_desired_margin_rate,
+      });
+      return r.ok ? r.suggested_price : null;
+    };
+  }, [costSettings]);
+
   const { data: existing } = useQuery({
     queryKey: ["quote", quoteId],
     queryFn: () => fetchOne({ data: { id: quoteId! } }),
