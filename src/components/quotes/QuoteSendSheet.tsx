@@ -287,30 +287,16 @@ export function QuoteSendSheet({
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
   });
 
-  function pixWhatsAppMessage(): string {
-    if (!quote || !activePayment) return "";
-    const lines = [
-      `Olá, ${customer?.trade_name || customer?.name || "cliente"}! Tudo bem?`,
-      "",
-      `Seu orçamento *${quote.quote_number}* foi aprovado.`,
-      "",
-      `Para iniciarmos o serviço, segue o Pix referente à entrada de ${quote.down_payment_percent}%:`,
-      `*Valor da entrada: ${fmtBRL(Number(activePayment.amount))}*`,
-      "",
-      activePayment.pix_key ? `Chave Pix: ${activePayment.pix_key}` : (companyPix?.pix_key ? `Chave Pix: ${companyPix.pix_key}` : ""),
-      activePayment.pix_copy_paste ? `Pix Copia e Cola:\n${activePayment.pix_copy_paste}` : "",
-      "",
-      "Após o pagamento, envie o comprovante por aqui.",
-      "",
-      `Valor total da proposta: ${fmtBRL(quote.total_amount)}`,
-      `Saldo restante: ${fmtBRL(quote.remaining_amount)}`,
-      "",
-      "Obrigado!",
-    ].filter(Boolean);
-    return lines.join("\n");
-  }
+  const pixMessage =
+    quote && activePayment
+      ? buildQuotePixWhatsAppMessage({
+          quote: quote as any,
+          customer: customer as any,
+          payment: activePayment as any,
+          companyPixKey: companyPix?.pix_key ?? null,
+        })
+      : "";
 
-  const pixMessage = pixWhatsAppMessage();
   const pixWaResult = buildCustomerWhatsAppUrl(customerPhoneRaw, pixMessage);
   const pixHasKey = !!(activePayment?.pix_key || companyPix?.pix_key);
 
