@@ -149,23 +149,45 @@ export function ServiceOrderChecklist({
 }
 
 
+type EditPatch = { title?: string; description?: string | null; required?: boolean };
+
 function ChecklistRow({
-  item, editable, busy, onToggle,
+  item, executable, editable, busy, isFirst, isLast,
+  onToggle, onSaveEdit, onDelete, onMoveUp, onMoveDown,
 }: {
   item: ChecklistItem;
+  executable: boolean;
   editable: boolean;
   busy: boolean;
+  isFirst: boolean;
+  isLast: boolean;
   onToggle: (checked: boolean, notes?: string) => void;
+  onSaveEdit: (patch: EditPatch) => void;
+  onDelete: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 }) {
   const [notes, setNotes] = useState(item.notes ?? "");
   const [editingNote, setEditingNote] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [confirmDel, setConfirmDel] = useState(false);
+  const [eTitle, setETitle] = useState(item.title);
+  const [eDesc, setEDesc] = useState(item.description ?? "");
+  const [eReq, setEReq] = useState(item.required);
+
+  const openEdit = () => {
+    setETitle(item.title);
+    setEDesc(item.description ?? "");
+    setEReq(item.required);
+    setEditOpen(true);
+  };
 
   return (
     <li className="p-3 space-y-2">
       <div className="flex items-start gap-3">
         <Checkbox
           checked={item.checked}
-          disabled={!editable || busy}
+          disabled={!executable || busy}
           onCheckedChange={(v) => onToggle(Boolean(v))}
           className="mt-1"
         />
@@ -189,7 +211,7 @@ function ChecklistRow({
           {item.notes && !editingNote && (
             <p className="text-xs italic text-muted-foreground mt-1">Obs: {item.notes}</p>
           )}
-          {editable && (
+          {executable && (
             editingNote ? (
               <div className="mt-2 space-y-2">
                 <Textarea
@@ -219,10 +241,92 @@ function ChecklistRow({
             )
           )}
         </div>
+
+        {editable && (
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex gap-1">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={openEdit} disabled={busy} title="Editar">
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"
+                onClick={() => setConfirmDel(true)} disabled={busy} title="Remover">
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+            <div className="flex gap-1">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onMoveUp}
+                disabled={busy || isFirst} title="Mover para cima">
+                <ArrowUp className="h-3.5 w-3.5" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onMoveDown}
+                disabled={busy || isLast} title="Mover para baixo">
+                <ArrowDown className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar item do checklist</DialogTitle>
+            <DialogDescription>Ajuste título, descrição e obrigatoriedade.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Título *</Label>
+              <Input value={eTitle} onChange={(e) => setETitle(e.target.value)} maxLength={200} />
+            </div>
+            <div>
+              <Label>Descrição</Label>
+              <Textarea value={eDesc} onChange={(e) => setEDesc(e.target.value)} rows={3} maxLength={500} />
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={eReq} onCheckedChange={(v) => setEReq(Boolean(v))} />
+              Item obrigatório
+            </label>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancelar</Button>
+            <Button
+              onClick={() => {
+                if (!eTitle.trim()) { toast.error("Informe o título."); return; }
+                onSaveEdit({
+                  title: eTitle.trim(),
+                  description: eDesc.trim() ? eDesc.trim() : null,
+                  required: eReq,
+                });
+                setEditOpen(false);
+              }}
+              disabled={busy}
+            >
+              {busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />} Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={confirmDel} onOpenChange={setConfirmDel}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remover item?</DialogTitle>
+            <DialogDescription>
+              Esta ação remove o item "{item.title}" do checklist desta OS.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDel(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={() => { onDelete(); setConfirmDel(false); }} disabled={busy}>
+              Remover
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </li>
   );
 }
+
 
 function AddItemDialog({
   busy,
