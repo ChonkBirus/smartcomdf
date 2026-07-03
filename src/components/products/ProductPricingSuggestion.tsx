@@ -19,6 +19,7 @@ type Rates = {
   warranty_reserve_rate: string;
   operational_cost_rate: string;
   fixed_cost_allocation_rate: string;
+  pro_labore_rate: string;
   desired_margin_rate: string;
   additional_costs: string;
 };
@@ -30,6 +31,7 @@ const EMPTY_RATES: Rates = {
   warranty_reserve_rate: "",
   operational_cost_rate: "",
   fixed_cost_allocation_rate: "",
+  pro_labore_rate: "5",
   desired_margin_rate: "",
   additional_costs: "0",
 };
