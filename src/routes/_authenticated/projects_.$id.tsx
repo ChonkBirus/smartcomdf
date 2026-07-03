@@ -191,6 +191,40 @@ function ProjectDetailPage() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
+          {!hasResponsible && project.status !== "CANCELLED" && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                Este projeto ainda não possui responsável definido.
+              </div>
+              <Can module="projects" action="edit">
+                <Button size="sm" variant="outline" onClick={openRespDialog}>
+                  <UserCog className="mr-1 h-4 w-4" />Definir responsável
+                </Button>
+              </Can>
+            </div>
+          )}
+
+          <div className="rounded-lg border bg-card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="mb-1 flex items-center gap-2 text-sm font-medium">
+                  <UserCog className="h-4 w-4" />Responsável pelo projeto
+                </div>
+                <p className="text-sm">
+                  {hasResponsible
+                    ? (project.responsible_name ?? "—")
+                    : <span className="text-muted-foreground">Sem responsável</span>}
+                </p>
+              </div>
+              <Can module="projects" action="edit">
+                <Button size="sm" variant="outline" onClick={openRespDialog}>
+                  {hasResponsible ? "Alterar" : "Definir"}
+                </Button>
+              </Can>
+            </div>
+          </div>
+
           <div className="grid gap-4 md:grid-cols-3">
         <div className="rounded-lg border bg-card p-4">
           <div className="mb-2 flex items-center gap-2 text-sm font-medium">
