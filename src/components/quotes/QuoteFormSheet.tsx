@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getActiveCustomersForQuote, type QuoteCustomerOption } from "@/lib/customers.functions";
 import { getQuote, saveQuote, listQuoteCatalog, type QuoteItemKind, type QuoteCatalogItem } from "@/lib/quotes.functions";
+import { getCompanyCostSettings, computeSuggestedPrice } from "@/lib/pricing.functions";
 import { usePermissions } from "@/lib/permissions";
 import { useAuth } from "@/lib/auth-context";
 
