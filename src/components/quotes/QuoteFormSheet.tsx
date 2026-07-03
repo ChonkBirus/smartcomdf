@@ -647,7 +647,7 @@ export function QuoteFormSheet({
 }
 
 function LineRow({
-  line, index, last, products, services, canSeeInternal,
+  line, index, last, products, services, canSeeInternal, suggestedPrice,
   onChange, onPickCatalog, onRemove, onMove,
 }: {
   line: Line;
@@ -656,6 +656,7 @@ function LineRow({
   products: QuoteCatalogItem[];
   services: QuoteCatalogItem[];
   canSeeInternal: boolean;
+  suggestedPrice: number | null;
   onChange: (patch: Partial<Line>) => void;
   onPickCatalog: (id: string) => void;
   onRemove: () => void;
@@ -668,6 +669,15 @@ function LineRow({
   const margin = line.cost_price > 0
     ? (((line.unit_price - line.cost_price) / line.cost_price) * 100)
     : null;
+  const belowSuggested =
+    canSeeInternal &&
+    suggestedPrice !== null &&
+    line.unit_price > 0 &&
+    line.unit_price < suggestedPrice;
+  const suggestedDiffPct =
+    belowSuggested && suggestedPrice
+      ? ((suggestedPrice - line.unit_price) / suggestedPrice) * 100
+      : 0;
 
   return (
     <div className="space-y-2 rounded-md border p-3">
