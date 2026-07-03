@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { createCompanyForCurrentUser, getMyContext } from "@/lib/account.functions";
+import { validateCoupon, type ValidatedCoupon } from "@/lib/billing-coupons.functions";
 import { formatCurrency, cn } from "@/lib/utils";
 import { toast } from "sonner";
 
