@@ -294,24 +294,29 @@ function ChecklistRow({
         {editable && (
           <div className="flex flex-col items-end gap-1">
             <div className="flex gap-1">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={openEdit} disabled={busy} title="Editar">
-                <Pencil className="h-3.5 w-3.5" />
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={openEdit}
+                disabled={busy} title="Editar" aria-label={`Editar item ${item.title}`}>
+                <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
               </Button>
               <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"
-                onClick={() => setConfirmDel(true)} disabled={busy} title="Remover">
-                <Trash2 className="h-3.5 w-3.5" />
+                onClick={() => setConfirmDel(true)} disabled={busy}
+                title="Remover" aria-label={`Remover item ${item.title}`}>
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
               </Button>
             </div>
             <div className="flex gap-1">
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onMoveUp}
-                disabled={busy || isFirst} title="Mover para cima">
-                <ArrowUp className="h-3.5 w-3.5" />
+                disabled={busy || isFirst} title="Mover para cima"
+                aria-label={`Mover ${item.title} para cima`}>
+                <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
               </Button>
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onMoveDown}
-                disabled={busy || isLast} title="Mover para baixo">
-                <ArrowDown className="h-3.5 w-3.5" />
+                disabled={busy || isLast} title="Mover para baixo"
+                aria-label={`Mover ${item.title} para baixo`}>
+                <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
               </Button>
             </div>
+
           </div>
         )}
       </div>
