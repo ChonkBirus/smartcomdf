@@ -1511,6 +1511,8 @@ export type Database = {
           id: string
           monthly_fixed_costs_total: number
           monthly_operational_costs_total: number
+          pro_labore_percent: number
+          pro_labore_value: number | null
           updated_at: string
         }
         Insert: {
@@ -1529,6 +1531,8 @@ export type Database = {
           id?: string
           monthly_fixed_costs_total?: number
           monthly_operational_costs_total?: number
+          pro_labore_percent?: number
+          pro_labore_value?: number | null
           updated_at?: string
         }
         Update: {
@@ -1547,6 +1551,8 @@ export type Database = {
           id?: string
           monthly_fixed_costs_total?: number
           monthly_operational_costs_total?: number
+          pro_labore_percent?: number
+          pro_labore_value?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -1554,6 +1560,50 @@ export type Database = {
             foreignKeyName: "company_cost_settings_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_fixed_costs: {
+        Row: {
+          active: boolean
+          amount: number
+          category: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          amount?: number
+          category?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          amount?: number
+          category?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_fixed_costs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },

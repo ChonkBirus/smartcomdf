@@ -19,6 +19,7 @@ type Rates = {
   warranty_reserve_rate: string;
   operational_cost_rate: string;
   fixed_cost_allocation_rate: string;
+  pro_labore_rate: string;
   desired_margin_rate: string;
   additional_costs: string;
 };
@@ -30,6 +31,7 @@ const EMPTY_RATES: Rates = {
   warranty_reserve_rate: "",
   operational_cost_rate: "",
   fixed_cost_allocation_rate: "",
+  pro_labore_rate: "5",
   desired_margin_rate: "",
   additional_costs: "0",
 };
@@ -104,6 +106,7 @@ export function ProductPricingSuggestion({
             warranty_reserve_rate: rateToPct(s.default_warranty_reserve_rate),
             operational_cost_rate: rateToPct(s.default_operational_cost_rate),
             fixed_cost_allocation_rate: rateToPct(s.default_fixed_cost_allocation_rate),
+            pro_labore_rate: rateToPct(s.pro_labore_percent ?? 0.05),
             desired_margin_rate: rateToPct(s.default_desired_margin_rate),
             additional_costs: "0",
           });
@@ -125,6 +128,7 @@ export function ProductPricingSuggestion({
           warranty_reserve_rate: pctToRate(rates.warranty_reserve_rate),
           operational_cost_rate: pctToRate(rates.operational_cost_rate),
           fixed_cost_allocation_rate: pctToRate(rates.fixed_cost_allocation_rate),
+          pro_labore_rate: pctToRate(rates.pro_labore_rate),
           desired_margin_rate: pctToRate(rates.desired_margin_rate),
           use_company_defaults: false,
         },
@@ -197,7 +201,9 @@ export function ProductPricingSuggestion({
             <PctField label="Reserva garantia (%)" v={rates.warranty_reserve_rate} onChange={(v) => setRates({ ...rates, warranty_reserve_rate: v })} />
             <PctField label="Custo operacional (%)" v={rates.operational_cost_rate} onChange={(v) => setRates({ ...rates, operational_cost_rate: v })} />
             <PctField label="Rateio fixo (%)" v={rates.fixed_cost_allocation_rate} onChange={(v) => setRates({ ...rates, fixed_cost_allocation_rate: v })} />
+            <PctField label="Pró-labore (%)" v={rates.pro_labore_rate} onChange={(v) => setRates({ ...rates, pro_labore_rate: v })} />
             <PctField label="Margem desejada (%)" v={rates.desired_margin_rate} onChange={(v) => setRates({ ...rates, desired_margin_rate: v })} />
+
             <div>
               <Label className="text-xs">Custos adicionais (R$)</Label>
               <Input
