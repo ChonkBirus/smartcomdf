@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Plus, Trash2, ArrowUp, ArrowDown, Check, ChevronsUpDown } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown, Check, ChevronsUpDown, AlertTriangle } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getActiveCustomersForQuote, type QuoteCustomerOption } from "@/lib/customers.functions";
 import { getQuote, saveQuote, listQuoteCatalog, type QuoteItemKind, type QuoteCatalogItem } from "@/lib/quotes.functions";
+import { getCompanyCostSettings, computeSuggestedPrice } from "@/lib/pricing.functions";
 import { usePermissions } from "@/lib/permissions";
 import { useAuth } from "@/lib/auth-context";
 
@@ -74,6 +75,7 @@ export function QuoteFormSheet({
   const save = useServerFn(saveQuote);
   const fetchQuoteCustomers = useServerFn(getActiveCustomersForQuote);
   const fetchCatalog = useServerFn(listQuoteCatalog);
+  const fetchCostSettings = useServerFn(getCompanyCostSettings);
 
   const [customerId, setCustomerId] = useState("");
   const [customerOpen, setCustomerOpen] = useState(false);
@@ -162,6 +164,32 @@ export function QuoteFormSheet({
   const catalogItems = (catalog ?? []) as QuoteCatalogItem[];
   const products = useMemo(() => catalogItems.filter((i) => i.item_type === "PRODUCT"), [catalogItems]);
   const services = useMemo(() => catalogItems.filter((i) => i.item_type === "SERVICE"), [catalogItems]);
+
+  const { data: costSettingsData } = useQuery({
+    queryKey: ["company-cost-settings-quote", companyId],
+    queryFn: () => fetchCostSettings(),
+    enabled: open && !!companyId && canSeeInternal,
+    staleTime: 5 * 60 * 1000,
+  });
+  const costSettings = costSettingsData?.settings ?? null;
+
+  const suggestPrice = useMemo(() => {
+    return (cost: number): number | null => {
+      if (!costSettings || !cost || cost <= 0) return null;
+      const r = computeSuggestedPrice({
+        cost_price: cost,
+        tax_rate: costSettings.default_tax_rate,
+        card_fee_rate: costSettings.default_card_fee_rate,
+        commission_rate: costSettings.default_commission_rate,
+        warranty_reserve_rate: costSettings.default_warranty_reserve_rate,
+        operational_cost_rate: costSettings.default_operational_cost_rate,
+        fixed_cost_allocation_rate: costSettings.default_fixed_cost_allocation_rate,
+        pro_labore_rate: costSettings.pro_labore_percent,
+        desired_margin_rate: costSettings.default_desired_margin_rate,
+      });
+      return r.ok ? r.suggested_price : null;
+    };
+  }, [costSettings]);
 
   const { data: existing } = useQuery({
     queryKey: ["quote", quoteId],
@@ -525,6 +553,7 @@ export function QuoteFormSheet({
                   products={products}
                   services={services}
                   canSeeInternal={canSeeInternal}
+                  suggestedPrice={suggestPrice(l.cost_price)}
                   onChange={(patch) => setLine(i, patch)}
                   onPickCatalog={(id) => pickCatalogItem(i, id)}
                   onRemove={() => removeLine(i)}
@@ -618,7 +647,7 @@ export function QuoteFormSheet({
 }
 
 function LineRow({
-  line, index, last, products, services, canSeeInternal,
+  line, index, last, products, services, canSeeInternal, suggestedPrice,
   onChange, onPickCatalog, onRemove, onMove,
 }: {
   line: Line;
@@ -627,6 +656,7 @@ function LineRow({
   products: QuoteCatalogItem[];
   services: QuoteCatalogItem[];
   canSeeInternal: boolean;
+  suggestedPrice: number | null;
   onChange: (patch: Partial<Line>) => void;
   onPickCatalog: (id: string) => void;
   onRemove: () => void;
@@ -639,6 +669,15 @@ function LineRow({
   const margin = line.cost_price > 0
     ? (((line.unit_price - line.cost_price) / line.cost_price) * 100)
     : null;
+  const belowSuggested =
+    canSeeInternal &&
+    suggestedPrice !== null &&
+    line.unit_price > 0 &&
+    line.unit_price < suggestedPrice;
+  const suggestedDiffPct =
+    belowSuggested && suggestedPrice
+      ? ((suggestedPrice - line.unit_price) / suggestedPrice) * 100
+      : 0;
 
   return (
     <div className="space-y-2 rounded-md border p-3">
@@ -724,9 +763,36 @@ function LineRow({
             onChange={(e) => onChange({ description: e.target.value })} />
         </div>
       </div>
+      {belowSuggested && (
+        <div className="flex items-start gap-2 rounded-md border border-amber-500/50 bg-amber-500/10 p-2 text-xs text-amber-900 dark:text-amber-200">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <div className="flex-1">
+            <div className="font-medium">
+              Preço abaixo do sugerido pelo markup ({suggestedDiffPct.toFixed(1)}% menor)
+            </div>
+            <div className="text-[11px] opacity-90">
+              Sugerido: {fmtBRL(suggestedPrice!)} · Atual: {fmtBRL(line.unit_price)}
+            </div>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-7 px-2 text-[11px]"
+            onClick={() => onChange({ unit_price: suggestedPrice! })}
+          >
+            Aplicar sugerido
+          </Button>
+        </div>
+      )}
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         {canSeeInternal ? (
-          <span>Margem: {margin !== null ? `${margin.toFixed(1)}%` : "—"}</span>
+          <span>
+            Margem: {margin !== null ? `${margin.toFixed(1)}%` : "—"}
+            {suggestedPrice !== null && (
+              <span className="ml-2">· Sugerido: {fmtBRL(suggestedPrice)}</span>
+            )}
+          </span>
         ) : <span />}
         <span className="font-medium text-foreground">
           Subtotal: {fmtBRL(line.quantity * line.unit_price)}
