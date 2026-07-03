@@ -21,6 +21,8 @@ export type CompanyCostSettings = {
   default_operational_cost_rate: number;
   default_fixed_cost_allocation_rate: number;
   default_desired_margin_rate: number;
+  pro_labore_percent: number;
+  pro_labore_value: number | null;
   allocation_method: AllocationMethod;
   created_at: string;
   updated_at: string;
@@ -35,6 +37,7 @@ export type PricingInput = {
   warranty_reserve_rate?: number;
   operational_cost_rate?: number;
   fixed_cost_allocation_rate?: number;
+  pro_labore_rate?: number;
   desired_margin_rate?: number;
 };
 
@@ -49,6 +52,17 @@ export type PricingResult = {
   markup_percentage: number;
   estimated_profit: number;
   estimated_margin_rate: number;
+};
+
+export type CompanyFixedCost = {
+  id: string;
+  company_id: string;
+  name: string;
+  category: string | null;
+  amount: number;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
 };
 
 // ============================================================
@@ -81,7 +95,8 @@ function round2(x: number): number {
 }
 
 // ============================================================
-// Core formula — margin-on-sale-price
+// Core formula — markup por dedução total
+// Equivalente a: Markup = 100 / (100 − (CF + Pró + DV + ML))
 // ============================================================
 export function computeSuggestedPrice(input: PricingInput): PricingResult {
   const cost_base = n(input.cost_price) + n(input.additional_costs);
@@ -92,7 +107,8 @@ export function computeSuggestedPrice(input: PricingInput): PricingResult {
     n(input.commission_rate) +
     n(input.warranty_reserve_rate) +
     n(input.operational_cost_rate) +
-    n(input.fixed_cost_allocation_rate);
+    n(input.fixed_cost_allocation_rate) +
+    n(input.pro_labore_rate);
 
   const desired_margin_rate = n(input.desired_margin_rate);
   const deductions_total_rate = deductions_without_margin_rate + desired_margin_rate;
@@ -111,6 +127,13 @@ export function computeSuggestedPrice(input: PricingInput): PricingResult {
 
   if (cost_base <= 0) {
     return { ...empty, reason: "Informe o preço de custo para calcular." };
+  }
+  if (deductions_total_rate >= 1) {
+    return {
+      ...empty,
+      reason:
+        "Os percentuais de custos, pró-labore e margem somam 100% ou mais. Reduza custos ou margem para calcular o preço.",
+    };
   }
   if (deductions_total_rate >= 0.95) {
     return {
@@ -163,13 +186,13 @@ export const getCompanyCostSettings = createServerFn({ method: "GET" })
 
     if (!data) return { settings: null as CompanyCostSettings | null, canViewCosts };
 
-    // Strip cost totals when user cannot view costs.
     const safe: CompanyCostSettings = { ...(data as CompanyCostSettings) };
     if (!canViewCosts) {
       safe.monthly_fixed_costs_total = 0;
       safe.monthly_operational_costs_total = 0;
       safe.expected_monthly_revenue = null;
       safe.expected_monthly_sales_count = null;
+      safe.pro_labore_value = null;
     }
     return { settings: safe, canViewCosts };
   });
@@ -186,6 +209,8 @@ const upsertSchema = z.object({
   default_operational_cost_rate: z.number().min(0).max(1).default(0),
   default_fixed_cost_allocation_rate: z.number().min(0).max(1).default(0),
   default_desired_margin_rate: z.number().min(0).max(0.95).default(0.3),
+  pro_labore_percent: z.number().min(0).max(1).default(0.05),
+  pro_labore_value: z.number().min(0).nullable().optional(),
   allocation_method: z.enum(["PERCENT_OF_REVENUE", "FIXED_PER_SALE"]).default("PERCENT_OF_REVENUE"),
 });
 
@@ -216,6 +241,7 @@ const calcSchema = z.object({
   warranty_reserve_rate: z.number().optional(),
   operational_cost_rate: z.number().optional(),
   fixed_cost_allocation_rate: z.number().optional(),
+  pro_labore_rate: z.number().optional(),
   desired_margin_rate: z.number().optional(),
   use_company_defaults: z.boolean().optional(),
 });
@@ -252,6 +278,7 @@ export const calculateSuggestedPrice = createServerFn({ method: "POST" })
             data.operational_cost_rate ?? cfg.default_operational_cost_rate ?? 0,
           fixed_cost_allocation_rate:
             data.fixed_cost_allocation_rate ?? cfg.default_fixed_cost_allocation_rate ?? 0,
+          pro_labore_rate: data.pro_labore_rate ?? cfg.pro_labore_percent ?? 0.05,
           desired_margin_rate:
             data.desired_margin_rate ?? cfg.default_desired_margin_rate ?? 0,
         };
@@ -260,4 +287,66 @@ export const calculateSuggestedPrice = createServerFn({ method: "POST" })
 
     const result = computeSuggestedPrice(merged);
     return { result, inputs: merged, usedCompanyDefaults: usedDefaults };
+  });
+
+// ============================================================
+// Company fixed costs — CRUD
+// ============================================================
+export const listCompanyFixedCosts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const cid = await getCompanyId(context.supabase, context.userId);
+    const { data, error } = await context.supabase
+      .from("company_fixed_costs")
+      .select("*")
+      .eq("company_id", cid)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    const items = (data ?? []) as CompanyFixedCost[];
+    const total = items
+      .filter((r) => r.active)
+      .reduce((s, r) => s + Number(r.amount ?? 0), 0);
+    return { items, total: round2(total) };
+  });
+
+const fixedCostSchema = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string().trim().min(1).max(120),
+  category: z.string().trim().max(80).nullable().optional(),
+  amount: z.number().min(0),
+  active: z.boolean().default(true),
+});
+
+export const upsertCompanyFixedCost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => fixedCostSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    if (!(await hasPerm(context.supabase, "finance.manage_cost_settings"))) {
+      throw new Error("Sem permissão para gerenciar custos fixos.");
+    }
+    const cid = await getCompanyId(context.supabase, context.userId);
+    const payload = { ...data, company_id: cid, created_by: context.userId };
+    const q = data.id
+      ? context.supabase.from("company_fixed_costs").update(payload).eq("id", data.id).eq("company_id", cid).select("*").single()
+      : context.supabase.from("company_fixed_costs").insert(payload).select("*").single();
+    const { data: row, error } = await q;
+    if (error) throw error;
+    return row as CompanyFixedCost;
+  });
+
+export const deleteCompanyFixedCost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    if (!(await hasPerm(context.supabase, "finance.manage_cost_settings"))) {
+      throw new Error("Sem permissão para gerenciar custos fixos.");
+    }
+    const cid = await getCompanyId(context.supabase, context.userId);
+    const { error } = await context.supabase
+      .from("company_fixed_costs")
+      .delete()
+      .eq("id", data.id)
+      .eq("company_id", cid);
+    if (error) throw error;
+    return { ok: true };
   });
