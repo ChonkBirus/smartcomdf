@@ -3,8 +3,10 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  ArrowLeft, Briefcase, FileText, Package, MapPin, User2, XCircle, Save,
+  ArrowLeft, Briefcase, FileText, Package, MapPin, User2, XCircle, Save, UserCog, AlertTriangle,
 } from "lucide-react";
+import { updateProjectPlanning } from "@/lib/project-planning.functions";
+import { listTeam } from "@/lib/team.functions";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PermissionRoute, Can } from "@/components/app/PermissionRoute";
 import { Button } from "@/components/ui/button";
@@ -102,10 +104,37 @@ function ProjectDetailPage() {
     onError: (e: any) => toast.error(e?.message ?? "Falha ao cancelar."),
   });
 
+  const setResponsibleFn = useServerFn(updateProjectPlanning);
+  const fetchTeam = useServerFn(listTeam);
+  const [respOpen, setRespOpen] = useState(false);
+  const [respValue, setRespValue] = useState<string>("");
+  const { data: team } = useQuery({
+    queryKey: ["team-members-lite"],
+    queryFn: () => fetchTeam(),
+    enabled: respOpen,
+  });
+  const setRespMut = useMutation({
+    mutationFn: () => setResponsibleFn({
+      data: { id, responsible_user_id: respValue || null },
+    }),
+    onSuccess: () => {
+      toast.success("Responsável atualizado.");
+      qc.invalidateQueries({ queryKey: ["project", id] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      setRespOpen(false);
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao atualizar responsável."),
+  });
+
   if (isLoading) return <div className="p-8 text-center text-muted-foreground">Carregando...</div>;
   if (!data) return <div className="p-8 text-center text-muted-foreground">Projeto não encontrado.</div>;
 
   const { project, customer, address, contact, quote, items } = data;
+  const hasResponsible = !!project.responsible_user_id;
+  const openRespDialog = () => {
+    setRespValue(project.responsible_user_id ?? "");
+    setRespOpen(true);
+  };
 
   const startEdit = () => {
     setForm({
@@ -162,6 +191,40 @@ function ProjectDetailPage() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
+          {!hasResponsible && project.status !== "CANCELLED" && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                Este projeto ainda não possui responsável definido.
+              </div>
+              <Can module="projects" action="edit">
+                <Button size="sm" variant="outline" onClick={openRespDialog}>
+                  <UserCog className="mr-1 h-4 w-4" />Definir responsável
+                </Button>
+              </Can>
+            </div>
+          )}
+
+          <div className="rounded-lg border bg-card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="mb-1 flex items-center gap-2 text-sm font-medium">
+                  <UserCog className="h-4 w-4" />Responsável pelo projeto
+                </div>
+                <p className="text-sm">
+                  {hasResponsible
+                    ? (project.responsible_name ?? "—")
+                    : <span className="text-muted-foreground">Sem responsável</span>}
+                </p>
+              </div>
+              <Can module="projects" action="edit">
+                <Button size="sm" variant="outline" onClick={openRespDialog}>
+                  {hasResponsible ? "Alterar" : "Definir"}
+                </Button>
+              </Can>
+            </div>
+          </div>
+
           <div className="grid gap-4 md:grid-cols-3">
         <div className="rounded-lg border bg-card p-4">
           <div className="mb-2 flex items-center gap-2 text-sm font-medium">
@@ -354,6 +417,41 @@ function ProjectDetailPage() {
               disabled={cancelMut.isPending}
             >
               Confirmar cancelamento
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={respOpen} onOpenChange={setRespOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {hasResponsible ? "Alterar responsável do projeto" : "Definir responsável do projeto"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              O responsável principal é sugerido como técnico ao gerar Ordens de Serviço.
+              Alterar aqui não altera OS já criadas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2 py-2">
+            <Label>Responsável</Label>
+            <Select value={respValue || "__none__"} onValueChange={(v) => setRespValue(v === "__none__" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sem responsável</SelectItem>
+                {(team?.members ?? []).map((m: any) => (
+                  <SelectItem key={m.id} value={m.id}>{m.full_name || m.email}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={setRespMut.isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); setRespMut.mutate(); }}
+              disabled={setRespMut.isPending}
+            >
+              {setRespMut.isPending ? "Salvando..." : "Salvar"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
