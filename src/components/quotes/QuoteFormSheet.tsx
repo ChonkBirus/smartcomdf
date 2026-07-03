@@ -21,6 +21,7 @@ import { getQuote, saveQuote, listQuoteCatalog, type QuoteItemKind, type QuoteCa
 import { getCompanyCostSettings, computeSuggestedPrice } from "@/lib/pricing.functions";
 import { usePermissions } from "@/lib/permissions";
 import { useAuth } from "@/lib/auth-context";
+import { roundMoney, roundPercent } from "@/lib/rounding";
 
 type Line = {
   id?: string;
