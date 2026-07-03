@@ -221,15 +221,20 @@ export function QuoteSendSheet({
 
 
 
-  function handleWhatsApp() {
-    if (!quote) return;
-    const phone = (customer as any)?.whatsapp || (customer as any)?.phone || "";
-    const digits = phone.replace(/\D/g, "");
-    const base = digits
-      ? `https://wa.me/${digits.startsWith("55") ? digits : `55${digits}`}`
-      : `https://wa.me/`;
-    const url = `${base}?text=${encodeURIComponent(waMessage)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+  const customerPhoneRaw =
+    (customer as any)?.whatsapp || (customer as any)?.phone || "";
+  const waResult = buildCustomerWhatsAppUrl(customerPhoneRaw, waMessage);
+
+  function handleWhatsAppClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    if (!quote) {
+      e.preventDefault();
+      return;
+    }
+    if (!waResult.ok) {
+      e.preventDefault();
+      toast.error(waResult.message);
+      return;
+    }
     logMut.mutate({ quote_id: quoteId!, event_type: "whatsapp_sent" });
     if (quote.status === "DRAFT") sendMut.mutate();
   }
