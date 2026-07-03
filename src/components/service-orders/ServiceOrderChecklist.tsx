@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Plus, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
+import {
+  Plus, Loader2, AlertTriangle, CheckCircle2, Pencil, Trash2, ArrowUp, ArrowDown,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -14,8 +16,10 @@ import {
 } from "@/components/ui/dialog";
 import {
   listChecklistItems, toggleChecklistItem, addChecklistItem,
+  updateChecklistItem, deleteChecklistItem, reorderChecklistItems,
   type ChecklistItem,
 } from "@/lib/service-order-checklist.functions";
+
 
 type Status = "DRAFT" | "SCHEDULED" | "IN_PROGRESS" | "PAUSED" | "COMPLETED" | "CANCELLED";
 
