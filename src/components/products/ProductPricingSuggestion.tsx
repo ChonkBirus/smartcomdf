@@ -106,6 +106,7 @@ export function ProductPricingSuggestion({
             warranty_reserve_rate: rateToPct(s.default_warranty_reserve_rate),
             operational_cost_rate: rateToPct(s.default_operational_cost_rate),
             fixed_cost_allocation_rate: rateToPct(s.default_fixed_cost_allocation_rate),
+            pro_labore_rate: rateToPct(s.pro_labore_percent ?? 0.05),
             desired_margin_rate: rateToPct(s.default_desired_margin_rate),
             additional_costs: "0",
           });
