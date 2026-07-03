@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { createCompanyForCurrentUser, getMyContext } from "@/lib/account.functions";
+import { validateCoupon, type ValidatedCoupon } from "@/lib/billing-coupons.functions";
 import { formatCurrency, cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -35,12 +36,16 @@ function Onboarding() {
   const qc = useQueryClient();
   const fetchCtx = useServerFn(getMyContext);
   const createCompany = useServerFn(createCompanyForCurrentUser);
+  const validateCouponFn = useServerFn(validateCoupon);
   const { data: ctx } = useQuery({ queryKey: ["me"], queryFn: () => fetchCtx() });
 
   const [step, setStep] = useState(1);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [planSlug, setPlanSlug] = useState<Plan["slug"]>("starter");
   const [couponCode, setCouponCode] = useState("");
+  const [couponInfo, setCouponInfo] = useState<ValidatedCoupon | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponChecking, setCouponChecking] = useState(false);
 
   useEffect(() => {
     supabase.from("plans").select("id,slug,name,monthly_price,max_users,max_storage_gb").eq("active", true).order("monthly_price")
@@ -48,6 +53,30 @@ function Onboarding() {
   }, []);
 
   useEffect(() => { if (ctx?.company) navigate({ to: "/dashboard", replace: true }); }, [ctx, navigate]);
+
+  useEffect(() => { setCouponInfo(null); setCouponError(null); }, [planSlug, couponCode]);
+
+  const selectedPlan = plans.find((p) => p.slug === planSlug);
+
+  async function handleValidateCoupon() {
+    const code = couponCode.trim().toUpperCase();
+    if (!code || !selectedPlan) return;
+    setCouponChecking(true);
+    setCouponError(null);
+    setCouponInfo(null);
+    try {
+      const res = await validateCouponFn({
+        data: { code, plan_id: selectedPlan.id, amount: Number(selectedPlan.monthly_price) || 1 },
+      });
+      setCouponInfo(res);
+    } catch (e) {
+      setCouponError((e as Error).message);
+    } finally {
+      setCouponChecking(false);
+    }
+  }
+
+  const couponBlocked = couponCode.trim().length > 0 && !couponInfo;
 
   const form = useForm<FormData>({ resolver: zodResolver(schema), defaultValues: { corporate_name: "", trade_name: "", cnpj: "", phone: "" } });
 
@@ -159,23 +188,45 @@ function Onboarding() {
             </div>
             <div>
               <Label htmlFor="coupon">Cupom de desconto (opcional)</Label>
-              <Input
-                id="coupon"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                placeholder="Ex.: LANCAMENTO"
-                className="mt-1.5"
-                maxLength={64}
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Se você recebeu um cupom, informe agora para já entrar com o benefício aplicado.
-              </p>
+              <div className="mt-1.5 flex gap-2">
+                <Input
+                  id="coupon"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  placeholder="Ex.: LANCAMENTO"
+                  maxLength={64}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleValidateCoupon}
+                  disabled={!couponCode.trim() || couponChecking}
+                >
+                  {couponChecking ? "Validando..." : "Validar"}
+                </Button>
+              </div>
+              {couponInfo && (
+                <p className="mt-1 text-xs text-emerald-600">
+                  Cupom válido para o plano {selectedPlan?.name}. Desconto: {formatCurrency(couponInfo.discount_amount)} — total: {formatCurrency(couponInfo.final_amount)}.
+                </p>
+              )}
+              {couponError && (
+                <p className="mt-1 text-xs text-destructive">{couponError}</p>
+              )}
+              {!couponInfo && !couponError && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Informe e valide o cupom para o plano selecionado antes de criar a empresa.
+                </p>
+              )}
             </div>
 
 
             <div className="flex justify-between">
               <Button variant="ghost" onClick={() => setStep(2)}>Voltar</Button>
-              <Button onClick={() => mut.mutate(form.getValues())} disabled={mut.isPending}>
+              <Button
+                onClick={() => mut.mutate(form.getValues())}
+                disabled={mut.isPending || couponBlocked}
+              >
                 {mut.isPending ? "Criando..." : "Criar minha empresa"}
               </Button>
             </div>
