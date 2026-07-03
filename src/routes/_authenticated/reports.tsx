@@ -11,7 +11,7 @@ import { ReportsOverview } from "@/components/reports/ReportsOverview";
 import { ReportTab } from "@/components/reports/ReportTab";
 
 export const Route = createFileRoute("/_authenticated/reports")({
-  head: () => ({ meta: [{ title: "Relatórios — SmartCom Pro" }] }),
+  head: () => ({ meta: [{ title: "Relatórios — SmartPro" }] }),
   component: ReportsPage,
 });
 

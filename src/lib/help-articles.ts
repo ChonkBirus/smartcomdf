@@ -11,12 +11,12 @@ export type HelpArticle = {
 export const HELP_ARTICLES: HelpArticle[] = [
   {
     slug: "primeiros-passos",
-    title: "Primeiros passos no SmartCom Pro",
+    title: "Primeiros passos no SmartPro",
     description: "Conheça o fluxo principal: cliente → orçamento → projeto → OS → relatório final.",
     category: "Primeiros passos",
     tourKey: "initial",
     content: [
-      "O SmartCom Pro organiza toda a operação de uma empresa de segurança eletrônica em um único lugar.",
+      "O SmartPro organiza toda a operação de uma empresa de segurança eletrônica em um único lugar.",
       "Fluxo recomendado: cadastre clientes e produtos → crie um orçamento → envie e acompanhe o aceite → converta em projeto → abra a ordem de serviço → execute e gere o relatório final.",
       "Clique em 'Iniciar tour' para receber a orientação dentro do sistema.",
     ],
@@ -126,7 +126,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
   {
     slug: "faq",
     title: "Perguntas frequentes",
-    description: "Dúvidas comuns sobre o SmartCom Pro.",
+    description: "Dúvidas comuns sobre o SmartPro.",
     category: "FAQ",
     content: [
       "Posso testar antes de pagar? Sim, todo novo usuário começa com 14 dias de teste.",

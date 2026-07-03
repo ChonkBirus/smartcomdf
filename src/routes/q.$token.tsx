@@ -13,7 +13,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/q/$token")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Proposta — SecureERP" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({ meta: [{ title: "Proposta — SmartPro" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: PublicQuotePage,
   notFoundComponent: () => <ErrorView message="Orçamento não encontrado." />,
   errorComponent: ({ error }) => <ErrorView message={error?.message ?? "Erro."} />,
@@ -373,7 +373,7 @@ function PublicQuotePage() {
 
 
         <p className="text-center text-xs text-muted-foreground">
-          Proposta gerada por SecureERP — link seguro com validação por token.
+          Proposta gerada por SmartPro — link seguro com validação por token.
         </p>
       </div>
 

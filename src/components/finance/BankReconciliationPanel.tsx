@@ -37,7 +37,7 @@ export function BankReconciliationPanel() {
         <div>
           <div className="text-base font-semibold">Conciliação bancária</div>
           <div className="text-xs text-muted-foreground">
-            Importe o extrato do banco (OFX, CSV ou XLSX) e o SmartCom Pro casa cada lançamento com seus pagamentos.
+            Importe o extrato do banco (OFX, CSV ou XLSX) e o SmartPro casa cada lançamento com seus pagamentos.
           </div>
         </div>
         <Button onClick={() => setOpen(true)}>

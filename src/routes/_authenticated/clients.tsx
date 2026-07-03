@@ -34,7 +34,7 @@ import {
 } from "@/lib/customers.functions";
 
 export const Route = createFileRoute("/_authenticated/clients")({
-  head: () => ({ meta: [{ title: "Clientes — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Clientes — SmartPro" }] }),
   component: () => (
     <PermissionRoute module="clients">
       <FeatureGate feature="customers">

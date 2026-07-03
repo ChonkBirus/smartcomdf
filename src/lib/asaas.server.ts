@@ -71,7 +71,7 @@ async function asaasFetch<T>(
     headers: {
       "Content-Type": "application/json",
       access_token: apiKey,
-      "User-Agent": "SecureERP/1.0",
+      "User-Agent": "SmartPro/1.0",
       ...(init.headers ?? {}),
     },
   });

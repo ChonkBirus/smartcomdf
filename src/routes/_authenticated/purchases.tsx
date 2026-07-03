@@ -30,7 +30,7 @@ import {
 import { useCompanyId } from "@/hooks/use-company-id";
 
 export const Route = createFileRoute("/_authenticated/purchases")({
-  head: () => ({ meta: [{ title: "Compras — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Compras — SmartPro" }] }),
   component: () => (
     <PermissionRoute module="purchases">
       <FeatureGate feature="purchases">

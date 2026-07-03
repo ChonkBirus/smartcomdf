@@ -20,7 +20,7 @@ import {
 import { listProjects, type ProjectStatus, type ProjectPriority } from "@/lib/projects.functions";
 
 export const Route = createFileRoute("/_authenticated/projects")({
-  head: () => ({ meta: [{ title: "Projetos — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Projetos — SmartPro" }] }),
   component: () => (
     <PermissionRoute module="projects">
       <ProjectsPage />

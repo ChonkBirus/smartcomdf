@@ -20,7 +20,7 @@ import {
 } from "@/lib/pricing.functions";
 
 export const Route = createFileRoute("/_authenticated/finance/pricing/settings")({
-  head: () => ({ meta: [{ title: "Configurações de custos — SmartCom Pro" }] }),
+  head: () => ({ meta: [{ title: "Configurações de custos — SmartPro" }] }),
   component: () => (
     <PermissionRoute module="finance" action="view">
       <CostSettingsPage />

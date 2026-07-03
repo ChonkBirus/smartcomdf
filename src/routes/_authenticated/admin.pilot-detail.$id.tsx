@@ -155,7 +155,7 @@ function PilotDetailPage() {
     const phone = onlyDigits(pilot?.company_whatsapp);
     if (!phone) return null;
     const first = (pilot?.company_name ?? "").split(/\s+/)[0] || "tudo bem";
-    const msg = `Olá ${first}, tudo certo? Estou acompanhando o uso do SmartCom Pro pela sua equipe. Posso te ajudar em algum ponto?`;
+    const msg = `Olá ${first}, tudo certo? Estou acompanhando o uso do SmartPro pela sua equipe. Posso te ajudar em algum ponto?`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
   }, [pilot]);
 

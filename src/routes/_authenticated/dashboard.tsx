@@ -22,7 +22,7 @@ import { useFeatures } from "@/lib/features";
 import { GettingStartedChecklist } from "@/components/onboarding/GettingStartedChecklist";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — SmartCom Pro" }] }),
+  head: () => ({ meta: [{ title: "Dashboard — SmartPro" }] }),
   component: Dashboard,
 });
 

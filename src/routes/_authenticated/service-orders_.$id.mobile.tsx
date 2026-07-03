@@ -25,7 +25,7 @@ import { ServiceOrderStockDeduction } from "@/components/service-orders/ServiceO
 import { ServiceOrderFinalReport } from "@/components/service-orders/ServiceOrderFinalReport";
 
 export const Route = createFileRoute("/_authenticated/service-orders_/$id/mobile")({
-  head: () => ({ meta: [{ title: "OS — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "OS — SmartPro" }] }),
   component: () => (
     <FeatureGate feature="service_orders">
       <PermissionRoute module="service_orders">

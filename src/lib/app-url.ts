@@ -1,5 +1,5 @@
 /**
- * URL base oficial do SmartCom Pro.
+ * URL base oficial do SmartPro.
  * Em runtime no browser usa `window.location.origin` (cobre app.smartcomdf.com.br
  * e o domínio Lovable como fallback). Em SSR usa a constante abaixo.
  */

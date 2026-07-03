@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 
-const SYSTEM_BASE = `Você é o SmartCom Finance IA, agente financeiro do SmartCom Pro.
+const SYSTEM_BASE = `Você é o SmartCom Finance IA, agente financeiro do SmartPro.
 
 REGRAS OBRIGATÓRIAS:
 - Você SÓ pode falar sobre os dados reais da empresa logada, fornecidos no bloco DADOS_DA_EMPRESA abaixo.

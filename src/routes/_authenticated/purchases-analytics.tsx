@@ -23,7 +23,7 @@ import { purchaseAnalytics, type PurchaseAnalyticsRange } from "@/lib/purchases.
 import { useCompanyId } from "@/hooks/use-company-id";
 
 export const Route = createFileRoute("/_authenticated/purchases-analytics")({
-  head: () => ({ meta: [{ title: "Dashboard de Compras — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Dashboard de Compras — SmartPro" }] }),
   component: () => (
     <PermissionRoute module="purchases">
       <FeatureGate feature="purchases">

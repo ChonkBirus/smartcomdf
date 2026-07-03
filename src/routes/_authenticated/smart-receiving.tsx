@@ -25,7 +25,7 @@ import {
 import { useCompanyId } from "@/hooks/use-company-id";
 
 export const Route = createFileRoute("/_authenticated/smart-receiving")({
-  head: () => ({ meta: [{ title: "Recebimento Inteligente — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Recebimento Inteligente — SmartPro" }] }),
   component: () => (
     <PermissionRoute module="smart_receiving">
       <FeatureGate feature="smart_receiving">

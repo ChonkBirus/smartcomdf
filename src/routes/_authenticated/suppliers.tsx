@@ -21,7 +21,7 @@ import { SupplierFormSheet } from "@/components/purchases/SupplierFormSheet";
 import { listSuppliers, deleteSupplier, toggleSupplier, type Supplier } from "@/lib/suppliers.functions";
 
 export const Route = createFileRoute("/_authenticated/suppliers")({
-  head: () => ({ meta: [{ title: "Fornecedores — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Fornecedores — SmartPro" }] }),
   component: () => (
     <PermissionRoute module="suppliers">
       <FeatureGate feature="suppliers">

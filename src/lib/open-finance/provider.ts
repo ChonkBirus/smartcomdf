@@ -1,7 +1,7 @@
 /**
  * Open Finance provider abstraction.
  *
- * The SmartCom Pro Open Finance module is provider-agnostic. Real integrations
+ * The SmartPro Open Finance module is provider-agnostic. Real integrations
  * with Pluggy / Belvo / etc. plug in here. When no provider credentials are
  * configured, `NullProvider` is used: the UI shows a "pending configuration"
  * state and refuses to fabricate fake bank data.

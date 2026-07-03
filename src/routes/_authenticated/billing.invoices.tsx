@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { BillingChargesTable } from "@/components/billing/BillingChargesTable";
 
 export const Route = createFileRoute("/_authenticated/billing/invoices")({
-  head: () => ({ meta: [{ title: "Faturas e Pagamentos — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Faturas e Pagamentos — SmartPro" }] }),
   component: InvoicesPage,
 });
 

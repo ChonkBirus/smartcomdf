@@ -23,7 +23,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/billing/plans")({
-  head: () => ({ meta: [{ title: "Planos — SecureERP" }] }),
+  head: () => ({ meta: [{ title: "Planos — SmartPro" }] }),
   component: PlansPage,
 });
 

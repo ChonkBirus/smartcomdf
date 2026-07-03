@@ -67,11 +67,11 @@ function defaultMessage(ev: DunningEventRow) {
   const name = ev.company_name ?? "cliente";
   switch (ev.trigger_type) {
     case "TRIAL_ENDING":
-      return `Olá ${name}! Seu período de teste do SecureERP termina em breve. Posso te ajudar a escolher o melhor plano?`;
+      return `Olá ${name}! Seu período de teste do SmartPro termina em breve. Posso te ajudar a escolher o melhor plano?`;
     case "TRIAL_EXPIRED":
       return `Olá ${name}, seu trial expirou. Quer reativar com 10% de desconto no primeiro mês?`;
     case "PAYMENT_DUE":
-      return `Olá ${name}, sua fatura do SecureERP vence em ${ev.charge_due_date ?? "breve"} (${fmtBRL(ev.charge_amount)}). Precisa de ajuda para pagar?`;
+      return `Olá ${name}, sua fatura do SmartPro vence em ${ev.charge_due_date ?? "breve"} (${fmtBRL(ev.charge_amount)}). Precisa de ajuda para pagar?`;
     case "PAYMENT_OVERDUE":
       return `Olá ${name}, identificamos pagamento em aberto (${fmtBRL(ev.charge_amount)}, venc. ${ev.charge_due_date}). Podemos regularizar agora?`;
     case "SUBSCRIPTION_SUSPENDED":
@@ -81,7 +81,7 @@ function defaultMessage(ev: DunningEventRow) {
     case "REACTIVATED":
       return `Olá ${name}, que bom ter você de volta! Tudo certo com sua assinatura?`;
     default:
-      return `Olá ${name}, podemos conversar sobre sua assinatura SecureERP?`;
+      return `Olá ${name}, podemos conversar sobre sua assinatura SmartPro?`;
   }
 }
 
@@ -250,7 +250,7 @@ function AdminDunningPage() {
                         <Button asChild size="sm" variant="outline">
                           <a
                             href={`mailto:${ev.company_email}?subject=${encodeURIComponent(
-                              "SecureERP — " + ev.event_code,
+                              "SmartPro — " + ev.event_code,
                             )}&body=${encodeURIComponent(defaultMessage(ev))}`}
                           >
                             <Mail className="h-4 w-4" />

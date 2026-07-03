@@ -63,7 +63,7 @@ function AssistantInner() {
     <div className="mx-auto max-w-7xl">
       <PageHeader
         title="SmartCom IA"
-        description="Copiloto administrativo e operacional do SmartCom Pro."
+        description="Copiloto administrativo e operacional do SmartPro."
       />
       <div className="grid h-[calc(100vh-200px)] gap-4 lg:grid-cols-[260px_1fr]">
         <ConversationSidebar />

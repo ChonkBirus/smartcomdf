@@ -20,7 +20,7 @@ import smartproHorizontal from "@/assets/smartpro-horizontal.png.asset.json";
 const REMEMBER_KEY = "secureerp.remember_email";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Entrar — SecureERP" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({ meta: [{ title: "Entrar — SmartPro" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: AuthPage,
 });
 
