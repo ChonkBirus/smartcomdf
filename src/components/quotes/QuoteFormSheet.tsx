@@ -547,7 +547,12 @@ export function QuoteFormSheet({
                       </div>
                       <div>
                         Sugerido: <strong>{fmtBRL(suggestedTotal)}</strong> · Atual:{" "}
-                        <strong>{fmtBRL(total)}</strong>
+                        <strong>{fmtBRL(total)}</strong> · Gap:{" "}
+                        <strong>{fmtBRL(totalGap)}</strong>
+                      </div>
+                      <div>
+                        Margem atual: <strong>{currentMarginPct.toFixed(1)}%</strong> ·
+                        Margem sugerida: <strong>{suggestedMarginPct.toFixed(1)}%</strong>
                       </div>
                     </div>
                   </div>
