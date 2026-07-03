@@ -763,9 +763,36 @@ function LineRow({
             onChange={(e) => onChange({ description: e.target.value })} />
         </div>
       </div>
+      {belowSuggested && (
+        <div className="flex items-start gap-2 rounded-md border border-amber-500/50 bg-amber-500/10 p-2 text-xs text-amber-900 dark:text-amber-200">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <div className="flex-1">
+            <div className="font-medium">
+              Preço abaixo do sugerido pelo markup ({suggestedDiffPct.toFixed(1)}% menor)
+            </div>
+            <div className="text-[11px] opacity-90">
+              Sugerido: {fmtBRL(suggestedPrice!)} · Atual: {fmtBRL(line.unit_price)}
+            </div>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-7 px-2 text-[11px]"
+            onClick={() => onChange({ unit_price: suggestedPrice! })}
+          >
+            Aplicar sugerido
+          </Button>
+        </div>
+      )}
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         {canSeeInternal ? (
-          <span>Margem: {margin !== null ? `${margin.toFixed(1)}%` : "—"}</span>
+          <span>
+            Margem: {margin !== null ? `${margin.toFixed(1)}%` : "—"}
+            {suggestedPrice !== null && (
+              <span className="ml-2">· Sugerido: {fmtBRL(suggestedPrice)}</span>
+            )}
+          </span>
         ) : <span />}
         <span className="font-medium text-foreground">
           Subtotal: {fmtBRL(line.quantity * line.unit_price)}
