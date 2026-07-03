@@ -40,6 +40,7 @@ function Onboarding() {
   const [step, setStep] = useState(1);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [planSlug, setPlanSlug] = useState<Plan["slug"]>("starter");
+  const [couponCode, setCouponCode] = useState("");
 
   useEffect(() => {
     supabase.from("plans").select("id,slug,name,monthly_price,max_users,max_storage_gb").eq("active", true).order("monthly_price")
@@ -57,7 +58,9 @@ function Onboarding() {
       cnpj: d.cnpj || undefined,
       phone: d.phone || undefined,
       plan_slug: planSlug,
+      coupon_code: couponCode.trim() ? couponCode.trim().toUpperCase() : undefined,
     }}),
+
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["me"] });
       setStep(4);
