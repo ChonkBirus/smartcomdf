@@ -7242,9 +7242,12 @@ export type Database = {
         }
         Returns: Json
       }
-      convert_quote_to_project: { Args: { _quote_id: string }; Returns: string }
+      convert_quote_to_project: {
+        Args: { _quote_id: string; _responsible_user_id?: string }
+        Returns: string
+      }
       create_service_order_from_project: {
-        Args: { _project_id: string }
+        Args: { _assigned_technician_id?: string; _project_id: string }
         Returns: string
       }
       crm_seed_default_pipeline: {
