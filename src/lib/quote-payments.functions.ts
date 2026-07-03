@@ -41,6 +41,70 @@ export const listQuotePayments = createServerFn({ method: "GET" })
     })) as QuotePayment[];
   });
 
+/**
+ * Espelha um `quote_payments` aprovado para `financial_transactions`.
+ * - Se existe recebível `(company_id, quote_id, type=INCOME)` não pago → marca PAID.
+ * - Se não existe → cria já com status PAID.
+ * Idempotente: chamadas repetidas nunca duplicam (garantido também por índice único).
+ * Exportada para permitir teste de regressão.
+ */
+export async function mirrorQuotePaymentToFinancial(
+  sb: any,
+  { paymentId, userId }: { paymentId: string; userId: string },
+): Promise<{ action: "noop" | "updated" | "created" }> {
+  const { data: pay } = await sb
+    .from("quote_payments")
+    .select("quote_id, payment_method, company_id, amount")
+    .eq("id", paymentId)
+    .maybeSingle();
+  if (!pay?.quote_id) return { action: "noop" };
+
+  const nowIso = new Date().toISOString();
+  const { data: row } = await sb
+    .from("financial_transactions")
+    .select("id, status")
+    .eq("company_id", pay.company_id)
+    .eq("quote_id", pay.quote_id)
+    .eq("type", "INCOME")
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (row) {
+    if (row.status === "PAID") return { action: "noop" };
+    await sb.from("financial_transactions").update({
+      status: "PAID",
+      paid_at: nowIso,
+      payment_method: pay.payment_method ?? null,
+    }).eq("id", row.id);
+    return { action: "updated" };
+  }
+
+  const { data: quote } = await sb
+    .from("quotes")
+    .select("customer_id, total_amount, valid_until")
+    .eq("id", pay.quote_id)
+    .eq("company_id", pay.company_id)
+    .maybeSingle();
+  if (!quote) return { action: "noop" };
+
+  const due = quote.valid_until ?? nowIso.slice(0, 10);
+  await sb.from("financial_transactions").insert({
+    company_id: pay.company_id,
+    type: "INCOME",
+    description: "Recebível do orçamento (pagamento aprovado)",
+    amount: Number(quote.total_amount ?? pay.amount ?? 0),
+    due_date: due,
+    paid_at: nowIso,
+    status: "PAID",
+    customer_id: quote.customer_id,
+    quote_id: pay.quote_id,
+    payment_method: pay.payment_method ?? null,
+    origin: "QUOTE",
+    created_by: userId,
+  });
+  return { action: "created" };
+}
+
 export const approveQuotePayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
@@ -58,60 +122,13 @@ export const approveQuotePayment = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     // Best-effort: mirror payment into linked financial receivable.
-    // If a receivable exists → mark PAID. If not → create one already PAID.
-    // The unique index (company_id, quote_id, type=INCOME) prevents duplicates.
     try {
-      const { data: pay } = await sb
-        .from("quote_payments")
-        .select("quote_id, payment_method, company_id, amount")
-        .eq("id", data.id)
-        .maybeSingle();
-      if (pay?.quote_id) {
-        const nowIso = new Date().toISOString();
-        const { data: row } = await sb
-          .from("financial_transactions")
-          .select("id, status")
-          .eq("company_id", pay.company_id)
-          .eq("quote_id", pay.quote_id)
-          .eq("type", "INCOME")
-          .is("deleted_at", null)
-          .maybeSingle();
-        if (row) {
-          if (row.status !== "PAID") {
-            await sb.from("financial_transactions").update({
-              status: "PAID",
-              paid_at: nowIso,
-              payment_method: pay.payment_method ?? null,
-            }).eq("id", row.id);
-          }
-        } else {
-          // Create receivable already paid, based on the quote total.
-          const { data: quote } = await sb
-            .from("quotes")
-            .select("customer_id, total_amount, valid_until")
-            .eq("id", pay.quote_id)
-            .eq("company_id", pay.company_id)
-            .maybeSingle();
-          if (quote) {
-            const due = quote.valid_until ?? nowIso.slice(0, 10);
-            await sb.from("financial_transactions").insert({
-              company_id: pay.company_id,
-              type: "INCOME",
-              description: "Recebível do orçamento (pagamento aprovado)",
-              amount: Number(quote.total_amount ?? pay.amount ?? 0),
-              due_date: due,
-              paid_at: nowIso,
-              status: "PAID",
-              customer_id: quote.customer_id,
-              quote_id: pay.quote_id,
-              payment_method: pay.payment_method ?? null,
-              origin: "QUOTE",
-              created_by: context.userId,
-            });
-          }
-        }
-      }
+      await mirrorQuotePaymentToFinancial(sb, {
+        paymentId: data.id,
+        userId: context.userId,
+      });
     } catch { /* non-blocking */ }
+
 
 
     return { ok: true };
