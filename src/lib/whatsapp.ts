@@ -46,3 +46,90 @@ export function buildCustomerWhatsAppUrl(
   const url = `https://wa.me/${normalized}?text=${encodeURIComponent(message)}`;
   return { ok: true, url, normalizedPhone: normalized };
 }
+
+import { publicShareUrl } from "./app-url";
+
+const fmtBRL = (n: number) =>
+  Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+export type QuoteWaInput = {
+  quote: {
+    quote_number: string;
+    title?: string | null;
+    total_amount: number;
+    valid_until?: string | null;
+    completion_estimate?: string | null;
+    public_token: string;
+  };
+  customer?: { name?: string | null; trade_name?: string | null } | null;
+};
+
+/** Mensagem padrão do WhatsApp para envio da proposta (inclui link público oficial). */
+export function buildQuoteWhatsAppMessage({ quote, customer }: QuoteWaInput): string {
+  const url = publicShareUrl(`/q/${quote.public_token}`);
+  const who = customer?.trade_name || customer?.name;
+  const lines = [
+    `Olá${who ? `, ${who}` : ""}!`,
+    "",
+    `Segue o orçamento *${quote.quote_number}* para sua avaliação.`,
+    quote.title ? `Referente a: ${quote.title}` : "",
+    "",
+    `*Valor Total da Proposta: ${fmtBRL(quote.total_amount)}*`,
+    `_Materiais, serviços e mão de obra inclusos._`,
+    quote.valid_until
+      ? `Validade da proposta: ${new Date(quote.valid_until).toLocaleDateString("pt-BR")}`
+      : "",
+    quote.completion_estimate ? `Estimativa de conclusão: ${quote.completion_estimate}` : "",
+    "",
+    "Você pode visualizar e aceitar diretamente neste link:",
+    url,
+    "",
+    "Qualquer dúvida estou à disposição.",
+  ].filter(Boolean);
+  return lines.join("\n");
+}
+
+export type QuotePixWaInput = {
+  quote: {
+    quote_number: string;
+    total_amount: number;
+    remaining_amount: number;
+    down_payment_percent?: number | null;
+    public_token: string;
+  };
+  customer?: { name?: string | null; trade_name?: string | null } | null;
+  payment: { amount: number; pix_key?: string | null; pix_copy_paste?: string | null };
+  companyPixKey?: string | null;
+};
+
+/** Mensagem padrão do Pix da entrada (inclui link público oficial da proposta). */
+export function buildQuotePixWhatsAppMessage({
+  quote, customer, payment, companyPixKey,
+}: QuotePixWaInput): string {
+  const url = publicShareUrl(`/q/${quote.public_token}`);
+  const who = customer?.trade_name || customer?.name || "cliente";
+  const pixKey = payment.pix_key || companyPixKey || "";
+  const lines = [
+    `Olá, ${who}! Tudo bem?`,
+    "",
+    `Seu orçamento *${quote.quote_number}* foi aprovado.`,
+    "",
+    `Para iniciarmos o serviço, segue o Pix referente à entrada${
+      quote.down_payment_percent ? ` de ${quote.down_payment_percent}%` : ""
+    }:`,
+    `*Valor da entrada: ${fmtBRL(Number(payment.amount))}*`,
+    "",
+    pixKey ? `Chave Pix: ${pixKey}` : "",
+    payment.pix_copy_paste ? `Pix Copia e Cola:\n${payment.pix_copy_paste}` : "",
+    "",
+    "Após o pagamento, envie o comprovante por aqui.",
+    "",
+    `Valor total da proposta: ${fmtBRL(quote.total_amount)}`,
+    `Saldo restante: ${fmtBRL(quote.remaining_amount)}`,
+    `Link da proposta: ${url}`,
+    "",
+    "Obrigado!",
+  ].filter(Boolean);
+  return lines.join("\n");
+}
+

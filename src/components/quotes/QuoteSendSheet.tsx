@@ -20,7 +20,12 @@ import {
 
 import { toast } from "sonner";
 import { publicShareUrl } from "@/lib/app-url";
-import { buildCustomerWhatsAppUrl } from "@/lib/whatsapp";
+import {
+  buildCustomerWhatsAppUrl,
+  buildQuoteWhatsAppMessage,
+  buildQuotePixWhatsAppMessage,
+} from "@/lib/whatsapp";
+
 import {
   getQuote, getQuoteHistory, logQuoteEvent, markQuoteSent,
 } from "@/lib/quotes.functions";
@@ -120,25 +125,9 @@ export function QuoteSendSheet({
   const waMessage = useMemo(() => {
     if (!quote) return "";
     if (customMsg.trim()) return customMsg;
-    const total = fmtBRL(quote.total_amount);
-    const lines = [
-      `Olá${customer?.name ? `, ${customer.trade_name || customer.name}` : ""}!`,
-      "",
-      `Segue o orçamento *${quote.quote_number}* para sua avaliação.`,
-      quote.title ? `Referente a: ${quote.title}` : "",
-      "",
-      `*Valor Total da Proposta: ${total}*`,
-      `_Materiais, serviços e mão de obra inclusos._`,
-      quote.valid_until ? `Validade da proposta: ${new Date(quote.valid_until).toLocaleDateString("pt-BR")}` : "",
-      quote.completion_estimate ? `Estimativa de conclusão: ${quote.completion_estimate}` : "",
-      "",
-      `Você pode visualizar e aceitar diretamente neste link:`,
-      publicUrl,
-      "",
-      "Qualquer dúvida estou à disposição.",
-    ].filter(Boolean);
-    return lines.join("\n");
-  }, [quote, customer, publicUrl, customMsg]);
+    return buildQuoteWhatsAppMessage({ quote: quote as any, customer: customer as any });
+  }, [quote, customer, customMsg]);
+
 
   const logMut = useMutation({
     mutationFn: (vars: { quote_id: string; event_type: "sent" | "link_copied" | "whatsapp_sent" | "pdf_downloaded" | "email_sent" | "pix_sent_whatsapp" | "pix_copied"; meta?: Record<string, any> }) =>
@@ -298,30 +287,16 @@ export function QuoteSendSheet({
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
   });
 
-  function pixWhatsAppMessage(): string {
-    if (!quote || !activePayment) return "";
-    const lines = [
-      `Olá, ${customer?.trade_name || customer?.name || "cliente"}! Tudo bem?`,
-      "",
-      `Seu orçamento *${quote.quote_number}* foi aprovado.`,
-      "",
-      `Para iniciarmos o serviço, segue o Pix referente à entrada de ${quote.down_payment_percent}%:`,
-      `*Valor da entrada: ${fmtBRL(Number(activePayment.amount))}*`,
-      "",
-      activePayment.pix_key ? `Chave Pix: ${activePayment.pix_key}` : (companyPix?.pix_key ? `Chave Pix: ${companyPix.pix_key}` : ""),
-      activePayment.pix_copy_paste ? `Pix Copia e Cola:\n${activePayment.pix_copy_paste}` : "",
-      "",
-      "Após o pagamento, envie o comprovante por aqui.",
-      "",
-      `Valor total da proposta: ${fmtBRL(quote.total_amount)}`,
-      `Saldo restante: ${fmtBRL(quote.remaining_amount)}`,
-      "",
-      "Obrigado!",
-    ].filter(Boolean);
-    return lines.join("\n");
-  }
+  const pixMessage =
+    quote && activePayment
+      ? buildQuotePixWhatsAppMessage({
+          quote: quote as any,
+          customer: customer as any,
+          payment: activePayment as any,
+          companyPixKey: companyPix?.pix_key ?? null,
+        })
+      : "";
 
-  const pixMessage = pixWhatsAppMessage();
   const pixWaResult = buildCustomerWhatsAppUrl(customerPhoneRaw, pixMessage);
   const pixHasKey = !!(activePayment?.pix_key || companyPix?.pix_key);
 
