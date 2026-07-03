@@ -319,15 +319,25 @@ export function QuoteSendSheet({
     return lines.join("\n");
   }
 
-  function handleSendPixWhatsApp() {
-    if (!quote || !activePayment) return;
-    const phone = (customer as any)?.whatsapp || (customer as any)?.phone || "";
-    const digits = phone.replace(/\D/g, "");
-    const base = digits
-      ? `https://wa.me/${digits.startsWith("55") ? digits : `55${digits}`}`
-      : `https://wa.me/`;
-    const url = `${base}?text=${encodeURIComponent(pixWhatsAppMessage())}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+  const pixMessage = pixWhatsAppMessage();
+  const pixWaResult = buildCustomerWhatsAppUrl(customerPhoneRaw, pixMessage);
+  const pixHasKey = !!(activePayment?.pix_key || companyPix?.pix_key);
+
+  function handleSendPixWhatsAppClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    if (!quote || !activePayment) {
+      e.preventDefault();
+      return;
+    }
+    if (!pixHasKey) {
+      e.preventDefault();
+      toast.error("Configure a chave Pix da empresa antes de enviar.");
+      return;
+    }
+    if (!pixWaResult.ok) {
+      e.preventDefault();
+      toast.error(pixWaResult.message);
+      return;
+    }
     logMut.mutate({ quote_id: quoteId!, event_type: "pix_sent_whatsapp" });
   }
 
