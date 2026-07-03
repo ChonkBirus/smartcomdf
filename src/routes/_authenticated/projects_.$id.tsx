@@ -421,6 +421,41 @@ function ProjectDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={respOpen} onOpenChange={setRespOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {hasResponsible ? "Alterar responsável do projeto" : "Definir responsável do projeto"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              O responsável principal é sugerido como técnico ao gerar Ordens de Serviço.
+              Alterar aqui não altera OS já criadas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2 py-2">
+            <Label>Responsável</Label>
+            <Select value={respValue || "__none__"} onValueChange={(v) => setRespValue(v === "__none__" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sem responsável</SelectItem>
+                {(team?.members ?? []).map((m: any) => (
+                  <SelectItem key={m.id} value={m.id}>{m.full_name || m.email}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={setRespMut.isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); setRespMut.mutate(); }}
+              disabled={setRespMut.isPending}
+            >
+              {setRespMut.isPending ? "Salvando..." : "Salvar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
