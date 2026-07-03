@@ -50,10 +50,11 @@ const pctFormatter = new Intl.NumberFormat("pt-BR", {
   minimumFractionDigits: 1,
   maximumFractionDigits: 1,
 });
-const fmtBRL = (n: number) => brlFormatter.format(Number.isFinite(n) ? n : 0);
+// Formatação usa a regra única de arredondamento (src/lib/rounding.ts):
+// R$ com 2 casas half-away-from-zero, % com 1 casa half-away-from-zero.
+const fmtBRL = (n: number) => brlFormatter.format(roundMoney(n));
 // Accepts a ratio in percent points (e.g. 12.5 for 12.5%).
-const fmtPct = (n: number) =>
-  pctFormatter.format((Number.isFinite(n) ? n : 0) / 100);
+const fmtPct = (n: number) => pctFormatter.format(roundPercent(n) / 100);
 
 // Currency input: stores number, displays masked R$ value
 function CurrencyInput({
