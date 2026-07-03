@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 
 import { usePermissions, type ModuleSlug } from "@/lib/permissions";
 import { useFeatures, type FeatureCode } from "@/lib/features";
+import smartproShield from "@/assets/smartpro-shield.jpg.asset.json";
 
 type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; module: ModuleSlug; feature?: FeatureCode };
 
