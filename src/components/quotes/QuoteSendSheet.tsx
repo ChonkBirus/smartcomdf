@@ -414,8 +414,16 @@ export function QuoteSendSheet({
 
                 <div className="space-y-2">
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <Button onClick={handleWhatsApp} className="w-full min-w-0 justify-center whitespace-nowrap">
-                      <MessageCircle className="mr-1 h-4 w-4 shrink-0" />WhatsApp
+                    <Button asChild className="w-full min-w-0 justify-center whitespace-nowrap">
+                      <a
+                        href={waResult.ok ? waResult.url : "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={handleWhatsAppClick}
+                        aria-disabled={!waResult.ok}
+                      >
+                        <MessageCircle className="mr-1 h-4 w-4 shrink-0" />WhatsApp
+                      </a>
                     </Button>
                     <Button variant="outline" onClick={handleEmail} className="w-full min-w-0 justify-center whitespace-nowrap">
                       <Mail className="mr-1 h-4 w-4 shrink-0" />E-mail
