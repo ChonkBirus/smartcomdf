@@ -98,17 +98,32 @@ export function ServiceOrderChecklist({
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando checklist…</p>;
 
   const done = data.filter((i) => i.checked).length;
-  const reqPending = data.filter((i) => i.required && !i.checked).length;
+  const reqTotal = data.filter((i) => i.required).length;
+  const reqDone = data.filter((i) => i.required && i.checked).length;
+  const reqPending = reqTotal - reqDone;
+  const pct = data.length ? Math.round((done / data.length) * 100) : 0;
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-        <span>{done}/{data.length} concluídos</span>
-        {reqPending > 0 && (
-          <span className="inline-flex items-center gap-1 text-warning">
-            <AlertTriangle className="h-3 w-3" /> {reqPending} obrigatório(s) pendente(s)
-          </span>
-        )}
+      <div className="space-y-1">
+        <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+          <span>{done}/{data.length} concluídos {reqTotal > 0 && `· obrigatórios ${reqDone}/${reqTotal}`}</span>
+          {reqPending > 0 ? (
+            <span className="inline-flex items-center gap-1 text-warning font-medium">
+              <AlertTriangle className="h-3 w-3" /> {reqPending} obrigatório(s) pendente(s)
+            </span>
+          ) : reqTotal > 0 ? (
+            <span className="inline-flex items-center gap-1 text-success font-medium">
+              <CheckCircle2 className="h-3 w-3" /> Todos obrigatórios concluídos
+            </span>
+          ) : null}
+        </div>
+        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+          <div
+            className={`h-full transition-all ${reqPending > 0 ? "bg-warning" : "bg-success"}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
       </div>
 
       {data.length === 0 ? (
