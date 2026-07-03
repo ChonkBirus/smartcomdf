@@ -68,11 +68,17 @@ export type ProjectItem = {
 
 export const convertQuoteToProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ quote_id: z.string().uuid() }).parse(d))
+  .inputValidator((d) =>
+    z.object({
+      quote_id: z.string().uuid(),
+      responsible_user_id: z.string().uuid().nullable().optional(),
+    }).parse(d),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { data: pid, error } = await sb.rpc("convert_quote_to_project", {
       _quote_id: data.quote_id,
+      _responsible_user_id: data.responsible_user_id ?? null,
     });
     if (error) throw new Error(error.message);
     return { project_id: pid as string };
