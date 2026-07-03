@@ -36,12 +36,16 @@ function Onboarding() {
   const qc = useQueryClient();
   const fetchCtx = useServerFn(getMyContext);
   const createCompany = useServerFn(createCompanyForCurrentUser);
+  const validateCouponFn = useServerFn(validateCoupon);
   const { data: ctx } = useQuery({ queryKey: ["me"], queryFn: () => fetchCtx() });
 
   const [step, setStep] = useState(1);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [planSlug, setPlanSlug] = useState<Plan["slug"]>("starter");
   const [couponCode, setCouponCode] = useState("");
+  const [couponInfo, setCouponInfo] = useState<ValidatedCoupon | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponChecking, setCouponChecking] = useState(false);
 
   useEffect(() => {
     supabase.from("plans").select("id,slug,name,monthly_price,max_users,max_storage_gb").eq("active", true).order("monthly_price")
