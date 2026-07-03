@@ -157,6 +157,20 @@ function Onboarding() {
               <div className="flex justify-between"><span className="text-muted-foreground">Plano</span><span className="font-medium">{plans.find((p) => p.slug === planSlug)?.name}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Administrador</span><span className="font-medium">{ctx?.profile?.email}</span></div>
             </div>
+            <div>
+              <Label htmlFor="coupon">Cupom de desconto (opcional)</Label>
+              <Input
+                id="coupon"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                placeholder="Ex.: LANCAMENTO"
+                className="mt-1.5"
+                maxLength={64}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Se você recebeu um cupom, informe agora para já entrar com o benefício aplicado.
+              </p>
+
             <div className="flex justify-between">
               <Button variant="ghost" onClick={() => setStep(2)}>Voltar</Button>
               <Button onClick={() => mut.mutate(form.getValues())} disabled={mut.isPending}>
