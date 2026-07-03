@@ -252,6 +252,24 @@ export function QuoteFormSheet({
     () => Math.max(0, subtotal + laborCost - discount),
     [subtotal, laborCost, discount],
   );
+  const suggestedItemsSubtotal = useMemo(() => {
+    if (!canSeeInternal || !costSettings) return 0;
+    return lines.reduce((s, l) => {
+      const sug = suggestPrice(l.cost_price);
+      const price = sug && sug > 0 ? sug : l.unit_price;
+      return s + l.quantity * price;
+    }, 0);
+  }, [lines, suggestPrice, canSeeInternal, costSettings]);
+  const suggestedTotal = useMemo(
+    () => Math.max(0, suggestedItemsSubtotal + laborCost - discount),
+    [suggestedItemsSubtotal, laborCost, discount],
+  );
+  const totalBelowSuggested =
+    canSeeInternal && suggestedItemsSubtotal > 0 && total < suggestedTotal;
+  const totalDiffPct =
+    totalBelowSuggested && suggestedTotal > 0
+      ? ((suggestedTotal - total) / suggestedTotal) * 100
+      : 0;
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -513,6 +531,21 @@ export function QuoteFormSheet({
                 <p className="mt-1 text-xs text-muted-foreground">
                   Valor total com materiais, serviços e mão de obra inclusos.
                 </p>
+                {totalBelowSuggested && (
+                  <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-300">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <div className="space-y-1">
+                      <div>
+                        Total abaixo do sugerido pelo markup em{" "}
+                        <strong>{totalDiffPct.toFixed(1)}%</strong>.
+                      </div>
+                      <div>
+                        Sugerido: <strong>{fmtBRL(suggestedTotal)}</strong> · Atual:{" "}
+                        <strong>{fmtBRL(total)}</strong>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
