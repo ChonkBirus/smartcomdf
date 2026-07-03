@@ -18,3 +18,15 @@ export function appUrl(path = "/"): string {
   const p = path.startsWith("/") ? path : `/${path}`;
   return `${base}${p}`;
 }
+
+/**
+ * URL pública canônica (para links compartilhados com clientes: WhatsApp,
+ * e-mail, PDF). Sempre usa o domínio oficial APP_BASE_URL, mesmo quando
+ * o app está rodando em preview do Lovable.
+ */
+export function publicShareUrl(path = "/"): string {
+  const base = APP_BASE_URL.replace(/\/+$/, "");
+  const p = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${p}`;
+}
+
