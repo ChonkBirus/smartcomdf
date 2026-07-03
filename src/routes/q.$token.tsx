@@ -337,18 +337,20 @@ function PublicQuotePage() {
               >
                 <CheckCircle2 className="mr-1 h-4 w-4" />Copiar Pix
               </Button>
-              {company.whatsapp && (
-                <Button
-                  onClick={() => {
-                    const digits = String(company.whatsapp).replace(/\D/g, "");
-                    const num = digits.startsWith("55") ? digits : `55${digits}`;
-                    const msg = `Olá! Acabei de aceitar o orçamento ${quote.quote_number}. Gostaria de finalizar o pagamento da entrada de ${fmtBRL(Number(data.payment?.amount ?? 0))}.`;
-                    window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
-                  }}
-                >
-                  <MessageCircle className="mr-1 h-4 w-4" />Enviar Pix WhatsApp
-                </Button>
-              )}
+              {company.whatsapp && (() => {
+                const digits = String(company.whatsapp).replace(/\D/g, "");
+                const num = digits.startsWith("55") ? digits : `55${digits}`;
+                const msg = `Olá! Acabei de aceitar o orçamento ${quote.quote_number}. Gostaria de finalizar o pagamento da entrada de ${fmtBRL(Number(data.payment?.amount ?? 0))}.`;
+                const url = `https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
+                return (
+                  <Button asChild>
+                    <a href={url} target="_blank" rel="noopener noreferrer">
+                      <MessageCircle className="mr-1 h-4 w-4" />Enviar Pix WhatsApp
+                    </a>
+                  </Button>
+                );
+              })()}
+
             </div>
           </div>
         )}
