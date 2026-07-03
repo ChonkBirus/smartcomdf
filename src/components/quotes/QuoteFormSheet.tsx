@@ -266,10 +266,16 @@ export function QuoteFormSheet({
   );
   const totalBelowSuggested =
     canSeeInternal && suggestedItemsSubtotal > 0 && total < suggestedTotal;
+  const totalGap = totalBelowSuggested ? suggestedTotal - total : 0;
   const totalDiffPct =
-    totalBelowSuggested && suggestedTotal > 0
-      ? ((suggestedTotal - total) / suggestedTotal) * 100
-      : 0;
+    totalBelowSuggested && suggestedTotal > 0 ? (totalGap / suggestedTotal) * 100 : 0;
+  const totalCost = useMemo(
+    () => lines.reduce((s, l) => s + l.quantity * l.cost_price, 0),
+    [lines],
+  );
+  const currentMarginPct = total > 0 ? ((total - totalCost) / total) * 100 : 0;
+  const suggestedMarginPct =
+    suggestedTotal > 0 ? ((suggestedTotal - totalCost) / suggestedTotal) * 100 : 0;
 
   const mutation = useMutation({
     mutationFn: () =>
