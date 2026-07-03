@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Plus, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
+import {
+  Plus, Loader2, AlertTriangle, CheckCircle2, Pencil, Trash2, ArrowUp, ArrowDown,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -14,8 +16,10 @@ import {
 } from "@/components/ui/dialog";
 import {
   listChecklistItems, toggleChecklistItem, addChecklistItem,
+  updateChecklistItem, deleteChecklistItem, reorderChecklistItems,
   type ChecklistItem,
 } from "@/lib/service-order-checklist.functions";
+
 
 type Status = "DRAFT" | "SCHEDULED" | "IN_PROGRESS" | "PAUSED" | "COMPLETED" | "CANCELLED";
 
@@ -32,13 +36,20 @@ export function ServiceOrderChecklist({
   const fetchFn = useServerFn(listChecklistItems);
   const toggleFn = useServerFn(toggleChecklistItem);
   const addFn = useServerFn(addChecklistItem);
+  const updateFn = useServerFn(updateChecklistItem);
+  const deleteFn = useServerFn(deleteChecklistItem);
+  const reorderFn = useServerFn(reorderChecklistItems);
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["so-checklist", serviceOrderId],
     queryFn: () => fetchFn({ data: { id: serviceOrderId } }),
   });
 
-  const editable = canManage && (status === "IN_PROGRESS" || status === "PAUSED");
+  // Execução (marcar/observação): apenas com OS em andamento.
+  const executable = canManage && (status === "IN_PROGRESS" || status === "PAUSED");
+  // Edição estrutural (título/obrigatório/ordem/remover): permitida enquanto a
+  // OS não está concluída/cancelada (planejamento pré-execução também).
+  const editable = canManage && status !== "COMPLETED" && status !== "CANCELLED";
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["so-checklist", serviceOrderId] });
@@ -57,6 +68,32 @@ export function ServiceOrderChecklist({
     onSuccess: () => { invalidate(); toast.success("Item adicionado."); },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao adicionar item"),
   });
+
+  const update = useMutation({
+    mutationFn: updateFn,
+    onSuccess: () => { invalidate(); toast.success("Item atualizado."); },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao atualizar item"),
+  });
+
+  const remove = useMutation({
+    mutationFn: deleteFn,
+    onSuccess: () => { invalidate(); toast.success("Item removido."); },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao remover item"),
+  });
+
+  const reorder = useMutation({
+    mutationFn: reorderFn,
+    onSuccess: invalidate,
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao reordenar"),
+  });
+
+  const move = (index: number, dir: -1 | 1) => {
+    const next = index + dir;
+    if (next < 0 || next >= data.length) return;
+    const ids = data.map((i) => i.id);
+    [ids[index], ids[next]] = [ids[next], ids[index]];
+    reorder.mutate({ data: { serviceOrderId, orderedIds: ids } });
+  };
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando checklist…</p>;
 
@@ -78,15 +115,22 @@ export function ServiceOrderChecklist({
         <p className="text-sm text-muted-foreground">Sem itens no checklist.</p>
       ) : (
         <ul className="divide-y rounded-md border">
-          {data.map((item) => (
+          {data.map((item, i) => (
             <ChecklistRow
               key={item.id}
               item={item}
+              executable={executable}
               editable={editable}
-              busy={toggle.isPending}
+              busy={toggle.isPending || update.isPending || remove.isPending || reorder.isPending}
+              isFirst={i === 0}
+              isLast={i === data.length - 1}
               onToggle={(checked, notes) =>
                 toggle.mutate({ data: { itemId: item.id, checked, notes } })
               }
+              onSaveEdit={(patch) => update.mutate({ data: { itemId: item.id, ...patch } })}
+              onDelete={() => remove.mutate({ data: { itemId: item.id } })}
+              onMoveUp={() => move(i, -1)}
+              onMoveDown={() => move(i, 1)}
             />
           ))}
         </ul>
@@ -104,23 +148,46 @@ export function ServiceOrderChecklist({
   );
 }
 
+
+type EditPatch = { title?: string; description?: string | null; required?: boolean };
+
 function ChecklistRow({
-  item, editable, busy, onToggle,
+  item, executable, editable, busy, isFirst, isLast,
+  onToggle, onSaveEdit, onDelete, onMoveUp, onMoveDown,
 }: {
   item: ChecklistItem;
+  executable: boolean;
   editable: boolean;
   busy: boolean;
+  isFirst: boolean;
+  isLast: boolean;
   onToggle: (checked: boolean, notes?: string) => void;
+  onSaveEdit: (patch: EditPatch) => void;
+  onDelete: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 }) {
   const [notes, setNotes] = useState(item.notes ?? "");
   const [editingNote, setEditingNote] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [confirmDel, setConfirmDel] = useState(false);
+  const [eTitle, setETitle] = useState(item.title);
+  const [eDesc, setEDesc] = useState(item.description ?? "");
+  const [eReq, setEReq] = useState(item.required);
+
+  const openEdit = () => {
+    setETitle(item.title);
+    setEDesc(item.description ?? "");
+    setEReq(item.required);
+    setEditOpen(true);
+  };
 
   return (
     <li className="p-3 space-y-2">
       <div className="flex items-start gap-3">
         <Checkbox
           checked={item.checked}
-          disabled={!editable || busy}
+          disabled={!executable || busy}
           onCheckedChange={(v) => onToggle(Boolean(v))}
           className="mt-1"
         />
@@ -144,7 +211,7 @@ function ChecklistRow({
           {item.notes && !editingNote && (
             <p className="text-xs italic text-muted-foreground mt-1">Obs: {item.notes}</p>
           )}
-          {editable && (
+          {executable && (
             editingNote ? (
               <div className="mt-2 space-y-2">
                 <Textarea
@@ -174,10 +241,92 @@ function ChecklistRow({
             )
           )}
         </div>
+
+        {editable && (
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex gap-1">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={openEdit} disabled={busy} title="Editar">
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"
+                onClick={() => setConfirmDel(true)} disabled={busy} title="Remover">
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+            <div className="flex gap-1">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onMoveUp}
+                disabled={busy || isFirst} title="Mover para cima">
+                <ArrowUp className="h-3.5 w-3.5" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onMoveDown}
+                disabled={busy || isLast} title="Mover para baixo">
+                <ArrowDown className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar item do checklist</DialogTitle>
+            <DialogDescription>Ajuste título, descrição e obrigatoriedade.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Título *</Label>
+              <Input value={eTitle} onChange={(e) => setETitle(e.target.value)} maxLength={200} />
+            </div>
+            <div>
+              <Label>Descrição</Label>
+              <Textarea value={eDesc} onChange={(e) => setEDesc(e.target.value)} rows={3} maxLength={500} />
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={eReq} onCheckedChange={(v) => setEReq(Boolean(v))} />
+              Item obrigatório
+            </label>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancelar</Button>
+            <Button
+              onClick={() => {
+                if (!eTitle.trim()) { toast.error("Informe o título."); return; }
+                onSaveEdit({
+                  title: eTitle.trim(),
+                  description: eDesc.trim() ? eDesc.trim() : null,
+                  required: eReq,
+                });
+                setEditOpen(false);
+              }}
+              disabled={busy}
+            >
+              {busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />} Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={confirmDel} onOpenChange={setConfirmDel}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remover item?</DialogTitle>
+            <DialogDescription>
+              Esta ação remove o item "{item.title}" do checklist desta OS.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDel(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={() => { onDelete(); setConfirmDel(false); }} disabled={busy}>
+              Remover
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </li>
   );
 }
+
 
 function AddItemDialog({
   busy,
