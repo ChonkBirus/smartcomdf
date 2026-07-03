@@ -90,9 +90,9 @@ function n(v: unknown, def = 0): number {
   return Number.isFinite(x) ? x : def;
 }
 
-function round2(x: number): number {
-  return Math.round(x * 100) / 100;
-}
+// Regra única de arredondamento (ver src/lib/rounding.ts).
+import { roundMoney, roundMarkup, roundRate, roundPercent } from "./rounding";
+const round2 = roundMoney;
 
 // ============================================================
 // Core formula — markup por dedução total
