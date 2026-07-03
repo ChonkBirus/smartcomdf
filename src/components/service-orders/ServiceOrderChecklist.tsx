@@ -98,17 +98,32 @@ export function ServiceOrderChecklist({
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando checklist…</p>;
 
   const done = data.filter((i) => i.checked).length;
-  const reqPending = data.filter((i) => i.required && !i.checked).length;
+  const reqTotal = data.filter((i) => i.required).length;
+  const reqDone = data.filter((i) => i.required && i.checked).length;
+  const reqPending = reqTotal - reqDone;
+  const pct = data.length ? Math.round((done / data.length) * 100) : 0;
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-        <span>{done}/{data.length} concluídos</span>
-        {reqPending > 0 && (
-          <span className="inline-flex items-center gap-1 text-warning">
-            <AlertTriangle className="h-3 w-3" /> {reqPending} obrigatório(s) pendente(s)
-          </span>
-        )}
+      <div className="space-y-1">
+        <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+          <span>{done}/{data.length} concluídos {reqTotal > 0 && `· obrigatórios ${reqDone}/${reqTotal}`}</span>
+          {reqPending > 0 ? (
+            <span className="inline-flex items-center gap-1 text-warning font-medium">
+              <AlertTriangle className="h-3 w-3" /> {reqPending} obrigatório(s) pendente(s)
+            </span>
+          ) : reqTotal > 0 ? (
+            <span className="inline-flex items-center gap-1 text-success font-medium">
+              <CheckCircle2 className="h-3 w-3" /> Todos obrigatórios concluídos
+            </span>
+          ) : null}
+        </div>
+        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+          <div
+            className={`h-full transition-all ${reqPending > 0 ? "bg-warning" : "bg-success"}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
       </div>
 
       {data.length === 0 ? (
@@ -182,21 +197,31 @@ function ChecklistRow({
     setEditOpen(true);
   };
 
+  const pendingRequired = item.required && !item.checked;
+
   return (
-    <li className="p-3 space-y-2">
+    <li className={`p-3 space-y-2 ${pendingRequired ? "bg-warning/5 border-l-2 border-warning" : ""}`}>
       <div className="flex items-start gap-3">
         <Checkbox
           checked={item.checked}
           disabled={!executable || busy}
           onCheckedChange={(v) => onToggle(Boolean(v))}
-          className="mt-1"
+          className={`mt-1 ${pendingRequired ? "border-warning" : ""}`}
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className={`font-medium ${item.checked ? "line-through text-muted-foreground" : ""}`}>
               {item.title}
             </span>
-            {item.required && <Badge variant="outline" className="text-xs">Obrigatório</Badge>}
+            {item.required && (
+              <Badge
+                variant={pendingRequired ? "destructive" : "outline"}
+                className="text-xs inline-flex items-center gap-1"
+              >
+                {pendingRequired && <AlertTriangle className="h-3 w-3 animate-pulse" />}
+                Obrigatório
+              </Badge>
+            )}
             {item.checked && <CheckCircle2 className="h-4 w-4 text-success" />}
           </div>
           {item.description && (
