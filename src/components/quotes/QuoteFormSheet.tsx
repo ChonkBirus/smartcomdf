@@ -39,8 +39,21 @@ const KIND_LABEL: Record<QuoteItemKind, string> = {
 
 const DEFAULT_PAYMENT_TERMS = "50% de entrada e 50% na entrega do serviço.";
 
-const fmtBRL = (n: number) =>
-  n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const brlFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+const pctFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "percent",
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+const fmtBRL = (n: number) => brlFormatter.format(Number.isFinite(n) ? n : 0);
+// Accepts a ratio in percent points (e.g. 12.5 for 12.5%).
+const fmtPct = (n: number) =>
+  pctFormatter.format((Number.isFinite(n) ? n : 0) / 100);
 
 // Currency input: stores number, displays masked R$ value
 function CurrencyInput({
