@@ -207,17 +207,31 @@ function ChecklistRow({
 
   const pendingRequired = item.required && !item.checked;
 
+  const cbId = `chk-${item.id}`;
+  const statusLabel = item.checked
+    ? "Concluído"
+    : item.required
+      ? "Obrigatório, pendente"
+      : "Pendente";
+  const ariaLabel = `${item.title}. ${statusLabel}.`;
+
   return (
-    <li className={`p-3 space-y-2 ${pendingRequired ? "bg-warning/5 border-l-2 border-warning" : ""}`}>
+    <li
+      className={`p-3 space-y-2 ${pendingRequired ? "bg-warning/5 border-l-2 border-warning" : ""}`}
+      aria-current={pendingRequired ? "step" : undefined}
+    >
       <div className="flex items-start gap-3">
         <Checkbox
+          id={cbId}
           checked={item.checked}
           disabled={!executable || busy}
           onCheckedChange={(v) => onToggle(Boolean(v))}
-          className={`mt-1 ${pendingRequired ? "border-warning" : ""}`}
+          className={`mt-1 ${pendingRequired ? "border-warning data-[state=unchecked]:border-warning" : ""}`}
+          aria-label={ariaLabel}
+          aria-required={item.required}
         />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
+          <label htmlFor={cbId} className="flex items-center gap-2 flex-wrap cursor-pointer">
             <span className={`font-medium ${item.checked ? "line-through text-muted-foreground" : ""}`}>
               {item.title}
             </span>
@@ -226,12 +240,14 @@ function ChecklistRow({
                 variant={pendingRequired ? "destructive" : "outline"}
                 className="text-xs inline-flex items-center gap-1"
               >
-                {pendingRequired && <AlertTriangle className="h-3 w-3 animate-pulse" />}
-                Obrigatório
+                {pendingRequired && <AlertTriangle className="h-3 w-3 animate-pulse" aria-hidden="true" />}
+                <span aria-hidden="true">Obrigatório</span>
+                <span className="sr-only">{pendingRequired ? "Obrigatório pendente" : "Obrigatório concluído"}</span>
               </Badge>
             )}
-            {item.checked && <CheckCircle2 className="h-4 w-4 text-success" />}
-          </div>
+            {item.checked && <CheckCircle2 className="h-4 w-4 text-success" aria-hidden="true" />}
+          </label>
+
           {item.description && (
             <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
           )}
