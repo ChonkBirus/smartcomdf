@@ -201,7 +201,9 @@ export function ProductPricingSuggestion({
             <PctField label="Reserva garantia (%)" v={rates.warranty_reserve_rate} onChange={(v) => setRates({ ...rates, warranty_reserve_rate: v })} />
             <PctField label="Custo operacional (%)" v={rates.operational_cost_rate} onChange={(v) => setRates({ ...rates, operational_cost_rate: v })} />
             <PctField label="Rateio fixo (%)" v={rates.fixed_cost_allocation_rate} onChange={(v) => setRates({ ...rates, fixed_cost_allocation_rate: v })} />
+            <PctField label="Pró-labore (%)" v={rates.pro_labore_rate} onChange={(v) => setRates({ ...rates, pro_labore_rate: v })} />
             <PctField label="Margem desejada (%)" v={rates.desired_margin_rate} onChange={(v) => setRates({ ...rates, desired_margin_rate: v })} />
+
             <div>
               <Label className="text-xs">Custos adicionais (R$)</Label>
               <Input
