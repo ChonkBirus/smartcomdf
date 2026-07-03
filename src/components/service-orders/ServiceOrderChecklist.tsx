@@ -104,21 +104,28 @@ export function ServiceOrderChecklist({
   const pct = data.length ? Math.round((done / data.length) * 100) : 0;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" role="region" aria-label="Checklist da ordem de serviço">
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
           <span>{done}/{data.length} concluídos {reqTotal > 0 && `· obrigatórios ${reqDone}/${reqTotal}`}</span>
           {reqPending > 0 ? (
-            <span className="inline-flex items-center gap-1 text-warning font-medium">
-              <AlertTriangle className="h-3 w-3" /> {reqPending} obrigatório(s) pendente(s)
+            <span className="inline-flex items-center gap-1 text-warning font-medium" role="status">
+              <AlertTriangle className="h-3 w-3" aria-hidden="true" /> {reqPending} obrigatório(s) pendente(s)
             </span>
           ) : reqTotal > 0 ? (
-            <span className="inline-flex items-center gap-1 text-success font-medium">
-              <CheckCircle2 className="h-3 w-3" /> Todos obrigatórios concluídos
+            <span className="inline-flex items-center gap-1 text-success font-medium" role="status">
+              <CheckCircle2 className="h-3 w-3" aria-hidden="true" /> Todos obrigatórios concluídos
             </span>
           ) : null}
         </div>
-        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+        <div
+          className="h-1.5 w-full rounded-full bg-muted overflow-hidden"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={pct}
+          aria-label={`Progresso do checklist: ${pct}%`}
+        >
           <div
             className={`h-full transition-all ${reqPending > 0 ? "bg-warning" : "bg-success"}`}
             style={{ width: `${pct}%` }}
@@ -129,7 +136,7 @@ export function ServiceOrderChecklist({
       {data.length === 0 ? (
         <p className="text-sm text-muted-foreground">Sem itens no checklist.</p>
       ) : (
-        <ul className="divide-y rounded-md border">
+        <ul className="divide-y rounded-md border" aria-label="Itens do checklist">
           {data.map((item, i) => (
             <ChecklistRow
               key={item.id}
@@ -150,6 +157,7 @@ export function ServiceOrderChecklist({
           ))}
         </ul>
       )}
+
 
       {editable && (
         <AddItemDialog
@@ -199,17 +207,31 @@ function ChecklistRow({
 
   const pendingRequired = item.required && !item.checked;
 
+  const cbId = `chk-${item.id}`;
+  const statusLabel = item.checked
+    ? "Concluído"
+    : item.required
+      ? "Obrigatório, pendente"
+      : "Pendente";
+  const ariaLabel = `${item.title}. ${statusLabel}.`;
+
   return (
-    <li className={`p-3 space-y-2 ${pendingRequired ? "bg-warning/5 border-l-2 border-warning" : ""}`}>
+    <li
+      className={`p-3 space-y-2 ${pendingRequired ? "bg-warning/5 border-l-2 border-warning" : ""}`}
+      aria-current={pendingRequired ? "step" : undefined}
+    >
       <div className="flex items-start gap-3">
         <Checkbox
+          id={cbId}
           checked={item.checked}
           disabled={!executable || busy}
           onCheckedChange={(v) => onToggle(Boolean(v))}
-          className={`mt-1 ${pendingRequired ? "border-warning" : ""}`}
+          className={`mt-1 ${pendingRequired ? "border-warning data-[state=unchecked]:border-warning" : ""}`}
+          aria-label={ariaLabel}
+          aria-required={item.required}
         />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
+          <label htmlFor={cbId} className="flex items-center gap-2 flex-wrap cursor-pointer">
             <span className={`font-medium ${item.checked ? "line-through text-muted-foreground" : ""}`}>
               {item.title}
             </span>
@@ -218,12 +240,14 @@ function ChecklistRow({
                 variant={pendingRequired ? "destructive" : "outline"}
                 className="text-xs inline-flex items-center gap-1"
               >
-                {pendingRequired && <AlertTriangle className="h-3 w-3 animate-pulse" />}
-                Obrigatório
+                {pendingRequired && <AlertTriangle className="h-3 w-3 animate-pulse" aria-hidden="true" />}
+                <span aria-hidden="true">Obrigatório</span>
+                <span className="sr-only">{pendingRequired ? "Obrigatório pendente" : "Obrigatório concluído"}</span>
               </Badge>
             )}
-            {item.checked && <CheckCircle2 className="h-4 w-4 text-success" />}
-          </div>
+            {item.checked && <CheckCircle2 className="h-4 w-4 text-success" aria-hidden="true" />}
+          </label>
+
           {item.description && (
             <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
           )}
@@ -270,24 +294,29 @@ function ChecklistRow({
         {editable && (
           <div className="flex flex-col items-end gap-1">
             <div className="flex gap-1">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={openEdit} disabled={busy} title="Editar">
-                <Pencil className="h-3.5 w-3.5" />
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={openEdit}
+                disabled={busy} title="Editar" aria-label={`Editar item ${item.title}`}>
+                <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
               </Button>
               <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"
-                onClick={() => setConfirmDel(true)} disabled={busy} title="Remover">
-                <Trash2 className="h-3.5 w-3.5" />
+                onClick={() => setConfirmDel(true)} disabled={busy}
+                title="Remover" aria-label={`Remover item ${item.title}`}>
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
               </Button>
             </div>
             <div className="flex gap-1">
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onMoveUp}
-                disabled={busy || isFirst} title="Mover para cima">
-                <ArrowUp className="h-3.5 w-3.5" />
+                disabled={busy || isFirst} title="Mover para cima"
+                aria-label={`Mover ${item.title} para cima`}>
+                <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
               </Button>
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onMoveDown}
-                disabled={busy || isLast} title="Mover para baixo">
-                <ArrowDown className="h-3.5 w-3.5" />
+                disabled={busy || isLast} title="Mover para baixo"
+                aria-label={`Mover ${item.title} para baixo`}>
+                <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
               </Button>
             </div>
+
           </div>
         )}
       </div>
