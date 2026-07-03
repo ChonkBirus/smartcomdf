@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { toast } from "sonner";
-import { appUrl } from "@/lib/app-url";
+import { publicShareUrl } from "@/lib/app-url";
 import { buildCustomerWhatsAppUrl } from "@/lib/whatsapp";
 import {
   getQuote, getQuoteHistory, logQuoteEvent, markQuoteSent,
