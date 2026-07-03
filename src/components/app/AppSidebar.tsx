@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 
 import { usePermissions, type ModuleSlug } from "@/lib/permissions";
 import { useFeatures, type FeatureCode } from "@/lib/features";
-import smartproShield from "@/assets/smartpro-shield.jpg.asset.json";
+
 
 type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; module: ModuleSlug; feature?: FeatureCode };
 
@@ -79,13 +79,7 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-3">
-          <img src={smartproShield.url} alt="SmartPro" className="h-8 w-8 rounded-md object-contain" />
-          {!collapsed && (
-            <div className="flex flex-col leading-tight">
-              <span className="text-sm font-bold tracking-tight">SmartPro</span>
-              <span className="text-nano uppercase text-muted-foreground">Segurança Eletrônica</span>
-            </div>
-          )}
+          <img src={collapsed ? "/brand/smart-pro-logo-icon.png" : "/brand/smart-pro-logo-horizontal.png"} alt="Logo SmartPro" className={collapsed ? "h-8 w-8 rounded-md object-contain" : "h-9 w-auto object-contain"} />
         </div>
       </SidebarHeader>
       <SidebarContent>
