@@ -350,3 +350,238 @@ export const deleteCompanyFixedCost = createServerFn({ method: "POST" })
     if (error) throw error;
     return { ok: true };
   });
+
+// ============================================================
+// Sync total de custos fixos + taxa de alocação
+// ============================================================
+export const syncFixedCostsTotal = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    if (!(await hasPerm(context.supabase, "finance.manage_cost_settings"))) {
+      throw new Error("Sem permissão.");
+    }
+    const cid = await getCompanyId(context.supabase, context.userId);
+
+    const { data: costs } = await context.supabase
+      .from("company_fixed_costs")
+      .select("amount, active")
+      .eq("company_id", cid);
+    const total = round2(
+      (costs ?? []).filter((r: any) => r.active).reduce((s: number, r: any) => s + Number(r.amount ?? 0), 0),
+    );
+
+    const { data: cfg } = await context.supabase
+      .from("company_cost_settings")
+      .select("*")
+      .eq("company_id", cid)
+      .maybeSingle();
+
+    const revenue = Number(cfg?.expected_monthly_revenue ?? 0);
+    const alloc = revenue > 0 ? roundRate(total / revenue) : 0;
+    const proValue = Number(cfg?.pro_labore_value ?? 0);
+    const proPercent = proValue > 0 && revenue > 0 ? roundRate(proValue / revenue) : Number(cfg?.pro_labore_percent ?? 0.05);
+
+    const payload = {
+      company_id: cid,
+      monthly_fixed_costs_total: total,
+      monthly_operational_costs_total: Number(cfg?.monthly_operational_costs_total ?? 0),
+      expected_monthly_revenue: cfg?.expected_monthly_revenue ?? null,
+      expected_monthly_sales_count: cfg?.expected_monthly_sales_count ?? null,
+      default_tax_rate: Number(cfg?.default_tax_rate ?? 0),
+      default_card_fee_rate: Number(cfg?.default_card_fee_rate ?? 0),
+      default_commission_rate: Number(cfg?.default_commission_rate ?? 0),
+      default_warranty_reserve_rate: Number(cfg?.default_warranty_reserve_rate ?? 0),
+      default_operational_cost_rate: Number(cfg?.default_operational_cost_rate ?? 0),
+      default_fixed_cost_allocation_rate: alloc,
+      default_desired_margin_rate: Number(cfg?.default_desired_margin_rate ?? 0.15),
+      pro_labore_percent: proPercent,
+      pro_labore_value: cfg?.pro_labore_value ?? null,
+      allocation_method: cfg?.allocation_method ?? "PERCENT_OF_REVENUE",
+    };
+
+    const { data: row, error } = await context.supabase
+      .from("company_cost_settings")
+      .upsert(payload, { onConflict: "company_id" })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return { settings: row as CompanyCostSettings, total, allocation_rate: alloc };
+  });
+
+// ============================================================
+// Simulator persistence + apply
+// ============================================================
+export type PricingSimulation = {
+  id: string;
+  item_id: string | null;
+  item_name: string;
+  cost_price: number;
+  additional_costs: number;
+  suggested_price: number;
+  current_price: number | null;
+  markup_multiplier: number;
+  markup_percentage: number;
+  estimated_margin_rate: number;
+  estimated_profit: number;
+  applied_to_item: boolean;
+  created_at: string;
+};
+
+const saveSimSchema = z.object({
+  item_id: z.string().uuid().nullable().optional(),
+  item_name: z.string().trim().min(1).max(200),
+  cost_price: z.number().min(0),
+  additional_costs: z.number().min(0).default(0),
+  tax_rate: z.number().min(0).max(1).default(0),
+  card_fee_rate: z.number().min(0).max(1).default(0),
+  commission_rate: z.number().min(0).max(1).default(0),
+  warranty_reserve_rate: z.number().min(0).max(1).default(0),
+  operational_cost_rate: z.number().min(0).max(1).default(0),
+  fixed_cost_allocation_rate: z.number().min(0).max(1).default(0),
+  pro_labore_rate: z.number().min(0).max(1).default(0),
+  desired_margin_rate: z.number().min(0).max(0.95).default(0),
+  current_price: z.number().min(0).nullable().optional(),
+});
+
+export const saveSimulation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => saveSimSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    if (!(await hasPerm(context.supabase, "finance.pricing.manage"))) {
+      throw new Error("Sem permissão para salvar simulação.");
+    }
+    const cid = await getCompanyId(context.supabase, context.userId);
+
+    const result = computeSuggestedPrice({
+      cost_price: data.cost_price,
+      additional_costs: data.additional_costs,
+      tax_rate: data.tax_rate,
+      card_fee_rate: data.card_fee_rate,
+      commission_rate: data.commission_rate,
+      warranty_reserve_rate: data.warranty_reserve_rate,
+      operational_cost_rate: data.operational_cost_rate,
+      fixed_cost_allocation_rate: data.fixed_cost_allocation_rate,
+      pro_labore_rate: data.pro_labore_rate,
+      desired_margin_rate: data.desired_margin_rate,
+    });
+    if (!result.ok) throw new Error(result.reason ?? "Cálculo inválido.");
+
+    // fixed_cost_allocation_rate no schema DB inclui pró-labore agregado
+    const cfAlloc = data.fixed_cost_allocation_rate + data.pro_labore_rate;
+
+    const payload = {
+      company_id: cid,
+      user_id: context.userId,
+      item_id: data.item_id ?? null,
+      item_name: data.item_name,
+      cost_price: data.cost_price,
+      additional_costs: data.additional_costs,
+      tax_rate: data.tax_rate,
+      card_fee_rate: data.card_fee_rate,
+      commission_rate: data.commission_rate,
+      warranty_reserve_rate: data.warranty_reserve_rate,
+      operational_cost_rate: data.operational_cost_rate,
+      fixed_cost_allocation_rate: cfAlloc,
+      desired_margin_rate: data.desired_margin_rate,
+      suggested_price: result.suggested_price,
+      current_price: data.current_price ?? null,
+      estimated_profit: result.estimated_profit,
+      estimated_margin_rate: result.estimated_margin_rate,
+      markup_multiplier: result.markup_multiplier,
+      markup_percentage: result.markup_percentage,
+      applied_to_item: false,
+    };
+    const { data: row, error } = await context.supabase
+      .from("pricing_simulations")
+      .insert(payload)
+      .select("*")
+      .single();
+    if (error) throw error;
+    return row as any;
+  });
+
+export const listRecentSimulations = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ limit: z.number().int().min(1).max(50).default(10) }).parse(d))
+  .handler(async ({ data, context }) => {
+    if (!(await hasPerm(context.supabase, "finance.pricing.view"))) {
+      throw new Error("Sem permissão.");
+    }
+    const cid = await getCompanyId(context.supabase, context.userId);
+    const { data: rows, error } = await context.supabase
+      .from("pricing_simulations")
+      .select("id, item_id, item_name, cost_price, additional_costs, suggested_price, current_price, markup_multiplier, markup_percentage, estimated_margin_rate, estimated_profit, applied_to_item, created_at")
+      .eq("company_id", cid)
+      .order("created_at", { ascending: false })
+      .limit(data.limit);
+    if (error) throw error;
+    return (rows ?? []) as PricingSimulation[];
+  });
+
+export const applySimulationToItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ simulation_id: z.string().uuid(), item_id: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    if (!(await hasPerm(context.supabase, "finance.apply_suggested_price"))
+      && !(await hasPerm(context.supabase, "finance.pricing.manage"))) {
+      throw new Error("Sem permissão para aplicar preço no produto.");
+    }
+    const cid = await getCompanyId(context.supabase, context.userId);
+
+    const { data: sim, error: se } = await context.supabase
+      .from("pricing_simulations")
+      .select("id, company_id, suggested_price")
+      .eq("id", data.simulation_id)
+      .eq("company_id", cid)
+      .maybeSingle();
+    if (se) throw se;
+    if (!sim) throw new Error("Simulação não encontrada.");
+
+    const { data: item, error: ie } = await context.supabase
+      .from("items")
+      .select("id, company_id")
+      .eq("id", data.item_id)
+      .eq("company_id", cid)
+      .maybeSingle();
+    if (ie) throw ie;
+    if (!item) throw new Error("Produto não encontrado nesta empresa.");
+
+    const { error: ue } = await context.supabase
+      .from("items")
+      .update({ sale_price: sim.suggested_price })
+      .eq("id", data.item_id)
+      .eq("company_id", cid);
+    if (ue) throw ue;
+
+    await context.supabase
+      .from("pricing_simulations")
+      .update({ applied_to_item: true, item_id: data.item_id })
+      .eq("id", data.simulation_id)
+      .eq("company_id", cid);
+
+    return { ok: true, sale_price: Number(sim.suggested_price) };
+  });
+
+export const listItemsForPricing = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ search: z.string().trim().max(120).optional() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    if (!(await hasPerm(context.supabase, "finance.pricing.view"))) {
+      throw new Error("Sem permissão.");
+    }
+    const cid = await getCompanyId(context.supabase, context.userId);
+    let q = context.supabase
+      .from("items")
+      .select("id, name, cost_price, sale_price")
+      .eq("company_id", cid)
+      .order("name", { ascending: true })
+      .limit(50);
+    if (data.search) q = q.ilike("name", `%${data.search}%`);
+    const { data: rows, error } = await q;
+    if (error) throw error;
+    return (rows ?? []) as Array<{ id: string; name: string; cost_price: number | null; sale_price: number | null }>;
+  });
