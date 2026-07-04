@@ -140,15 +140,15 @@ export function ComparisonPage() {
 
   const setPreset = (p: Preset) => {
     if (p === "custom") {
-      navigate({ search: (prev) => ({ ...prev, preset: "custom", aFrom: range.aFrom, aTo: range.aTo, bFrom: range.bFrom, bTo: range.bTo }) });
+      navigate({ search: { preset: "custom", aFrom: range.aFrom, aTo: range.aTo, bFrom: range.bFrom, bTo: range.bTo } });
       return;
     }
     const r = resolvePreset(p)!;
-    navigate({ search: () => ({ preset: p, aFrom: r.aFrom, aTo: r.aTo, bFrom: r.bFrom, bTo: r.bTo }) });
+    navigate({ search: { preset: p, aFrom: r.aFrom, aTo: r.aTo, bFrom: r.bFrom, bTo: r.bTo } });
   };
 
   const updateCustom = (field: "aFrom" | "aTo" | "bFrom" | "bTo", value: string) => {
-    navigate({ search: (prev) => ({ ...prev, preset: "custom", [field]: value, aFrom: prev.aFrom ?? range.aFrom, aTo: prev.aTo ?? range.aTo, bFrom: prev.bFrom ?? range.bFrom, bTo: prev.bTo ?? range.bTo }) });
+    navigate({ search: { preset: "custom", aFrom: range.aFrom, aTo: range.aTo, bFrom: range.bFrom, bTo: range.bTo, [field]: value } });
   };
 
   const data = q.data;
