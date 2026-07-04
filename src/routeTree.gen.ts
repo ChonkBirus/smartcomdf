@@ -58,6 +58,7 @@ import { Route as AuthenticatedServiceOrdersIdRouteImport } from './routes/_auth
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects_.$id'
 import { Route as AuthenticatedHelpSlugRouteImport } from './routes/_authenticated/help_.$slug'
 import { Route as AuthenticatedFinanceTransactionsRouteImport } from './routes/_authenticated/finance.transactions'
+import { Route as AuthenticatedFinanceReceivablesRouteImport } from './routes/_authenticated/finance.receivables'
 import { Route as AuthenticatedFinanceDashboardRouteImport } from './routes/_authenticated/finance.dashboard'
 import { Route as AuthenticatedDevAuthDiagnosticsRouteImport } from './routes/_authenticated/dev.auth-diagnostics'
 import { Route as AuthenticatedClientsIdRouteImport } from './routes/_authenticated/clients_.$id'
@@ -336,6 +337,12 @@ const AuthenticatedFinanceTransactionsRoute =
     path: '/transactions',
     getParentRoute: () => AuthenticatedFinanceRoute,
   } as any)
+const AuthenticatedFinanceReceivablesRoute =
+  AuthenticatedFinanceReceivablesRouteImport.update({
+    id: '/receivables',
+    path: '/receivables',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
 const AuthenticatedFinanceDashboardRoute =
   AuthenticatedFinanceDashboardRouteImport.update({
     id: '/dashboard',
@@ -496,6 +503,7 @@ export interface FileRoutesByFullPath {
   '/clients/$id': typeof AuthenticatedClientsIdRoute
   '/dev/auth-diagnostics': typeof AuthenticatedDevAuthDiagnosticsRoute
   '/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
+  '/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
   '/finance/transactions': typeof AuthenticatedFinanceTransactionsRoute
   '/help/$slug': typeof AuthenticatedHelpSlugRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
@@ -563,6 +571,7 @@ export interface FileRoutesByTo {
   '/clients/$id': typeof AuthenticatedClientsIdRoute
   '/dev/auth-diagnostics': typeof AuthenticatedDevAuthDiagnosticsRoute
   '/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
+  '/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
   '/finance/transactions': typeof AuthenticatedFinanceTransactionsRoute
   '/help/$slug': typeof AuthenticatedHelpSlugRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
@@ -634,6 +643,7 @@ export interface FileRoutesById {
   '/_authenticated/clients_/$id': typeof AuthenticatedClientsIdRoute
   '/_authenticated/dev/auth-diagnostics': typeof AuthenticatedDevAuthDiagnosticsRoute
   '/_authenticated/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
+  '/_authenticated/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
   '/_authenticated/finance/transactions': typeof AuthenticatedFinanceTransactionsRoute
   '/_authenticated/help_/$slug': typeof AuthenticatedHelpSlugRoute
   '/_authenticated/projects_/$id': typeof AuthenticatedProjectsIdRoute
@@ -705,6 +715,7 @@ export interface FileRouteTypes {
     | '/clients/$id'
     | '/dev/auth-diagnostics'
     | '/finance/dashboard'
+    | '/finance/receivables'
     | '/finance/transactions'
     | '/help/$slug'
     | '/projects/$id'
@@ -772,6 +783,7 @@ export interface FileRouteTypes {
     | '/clients/$id'
     | '/dev/auth-diagnostics'
     | '/finance/dashboard'
+    | '/finance/receivables'
     | '/finance/transactions'
     | '/help/$slug'
     | '/projects/$id'
@@ -842,6 +854,7 @@ export interface FileRouteTypes {
     | '/_authenticated/clients_/$id'
     | '/_authenticated/dev/auth-diagnostics'
     | '/_authenticated/finance/dashboard'
+    | '/_authenticated/finance/receivables'
     | '/_authenticated/finance/transactions'
     | '/_authenticated/help_/$slug'
     | '/_authenticated/projects_/$id'
@@ -1229,6 +1242,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFinanceTransactionsRouteImport
       parentRoute: typeof AuthenticatedFinanceRoute
     }
+    '/_authenticated/finance/receivables': {
+      id: '/_authenticated/finance/receivables'
+      path: '/receivables'
+      fullPath: '/finance/receivables'
+      preLoaderRoute: typeof AuthenticatedFinanceReceivablesRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
     '/_authenticated/finance/dashboard': {
       id: '/_authenticated/finance/dashboard'
       path: '/dashboard'
@@ -1400,12 +1420,14 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedFinanceRouteChildren {
   AuthenticatedFinanceDashboardRoute: typeof AuthenticatedFinanceDashboardRoute
+  AuthenticatedFinanceReceivablesRoute: typeof AuthenticatedFinanceReceivablesRoute
   AuthenticatedFinanceTransactionsRoute: typeof AuthenticatedFinanceTransactionsRoute
   AuthenticatedFinancePricingSettingsRoute: typeof AuthenticatedFinancePricingSettingsRoute
 }
 
 const AuthenticatedFinanceRouteChildren: AuthenticatedFinanceRouteChildren = {
   AuthenticatedFinanceDashboardRoute: AuthenticatedFinanceDashboardRoute,
+  AuthenticatedFinanceReceivablesRoute: AuthenticatedFinanceReceivablesRoute,
   AuthenticatedFinanceTransactionsRoute: AuthenticatedFinanceTransactionsRoute,
   AuthenticatedFinancePricingSettingsRoute:
     AuthenticatedFinancePricingSettingsRoute,
