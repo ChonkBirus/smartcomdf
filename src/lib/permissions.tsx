@@ -13,7 +13,7 @@ export type PermissionAction =
   | "manage_material_usage" | "override_required_checklist"
   | "collect_signature" | "generate_final_report" | "send_final_report"
   | "download_final_report" | "deduct_stock" | "view_public_report_link"
-  | "view_costs" | "pricing.view" | "pricing.manage"
+  | "view_costs" | "pricing.view" | "pricing.manage" | "planning.manage"
   | "apply_suggested_price" | "manage_cost_settings";
 export type ModuleSlug =
   | "dashboard"
