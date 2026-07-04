@@ -439,7 +439,7 @@ function CategoriesManager() {
   );
 }
 
-export function FinancePage() {
+export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string } = {}) {
   const companyId = useCompanyId();
   const qc = useQueryClient();
   const [preset, setPreset] = useState<Preset>("month");
