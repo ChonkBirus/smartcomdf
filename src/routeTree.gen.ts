@@ -57,6 +57,7 @@ import { Route as AuthenticatedServiceOrdersMyRouteImport } from './routes/_auth
 import { Route as AuthenticatedServiceOrdersIdRouteImport } from './routes/_authenticated/service-orders_.$id'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects_.$id'
 import { Route as AuthenticatedHelpSlugRouteImport } from './routes/_authenticated/help_.$slug'
+import { Route as AuthenticatedFinanceDashboardRouteImport } from './routes/_authenticated/finance.dashboard'
 import { Route as AuthenticatedDevAuthDiagnosticsRouteImport } from './routes/_authenticated/dev.auth-diagnostics'
 import { Route as AuthenticatedClientsIdRouteImport } from './routes/_authenticated/clients_.$id'
 import { Route as AuthenticatedBillingPlansRouteImport } from './routes/_authenticated/billing.plans'
@@ -328,6 +329,12 @@ const AuthenticatedHelpSlugRoute = AuthenticatedHelpSlugRouteImport.update({
   path: '/help/$slug',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFinanceDashboardRoute =
+  AuthenticatedFinanceDashboardRouteImport.update({
+    id: '/dashboard',
+    path: '/dashboard',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
 const AuthenticatedDevAuthDiagnosticsRoute =
   AuthenticatedDevAuthDiagnosticsRouteImport.update({
     id: '/dev/auth-diagnostics',
@@ -481,6 +488,7 @@ export interface FileRoutesByFullPath {
   '/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
   '/dev/auth-diagnostics': typeof AuthenticatedDevAuthDiagnosticsRoute
+  '/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
   '/help/$slug': typeof AuthenticatedHelpSlugRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/service-orders/$id': typeof AuthenticatedServiceOrdersIdRouteWithChildren
@@ -546,6 +554,7 @@ export interface FileRoutesByTo {
   '/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
   '/dev/auth-diagnostics': typeof AuthenticatedDevAuthDiagnosticsRoute
+  '/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
   '/help/$slug': typeof AuthenticatedHelpSlugRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/service-orders/$id': typeof AuthenticatedServiceOrdersIdRouteWithChildren
@@ -615,6 +624,7 @@ export interface FileRoutesById {
   '/_authenticated/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/_authenticated/clients_/$id': typeof AuthenticatedClientsIdRoute
   '/_authenticated/dev/auth-diagnostics': typeof AuthenticatedDevAuthDiagnosticsRoute
+  '/_authenticated/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
   '/_authenticated/help_/$slug': typeof AuthenticatedHelpSlugRoute
   '/_authenticated/projects_/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/service-orders_/$id': typeof AuthenticatedServiceOrdersIdRouteWithChildren
@@ -684,6 +694,7 @@ export interface FileRouteTypes {
     | '/billing/plans'
     | '/clients/$id'
     | '/dev/auth-diagnostics'
+    | '/finance/dashboard'
     | '/help/$slug'
     | '/projects/$id'
     | '/service-orders/$id'
@@ -749,6 +760,7 @@ export interface FileRouteTypes {
     | '/billing/plans'
     | '/clients/$id'
     | '/dev/auth-diagnostics'
+    | '/finance/dashboard'
     | '/help/$slug'
     | '/projects/$id'
     | '/service-orders/$id'
@@ -817,6 +829,7 @@ export interface FileRouteTypes {
     | '/_authenticated/billing/plans'
     | '/_authenticated/clients_/$id'
     | '/_authenticated/dev/auth-diagnostics'
+    | '/_authenticated/finance/dashboard'
     | '/_authenticated/help_/$slug'
     | '/_authenticated/projects_/$id'
     | '/_authenticated/service-orders_/$id'
@@ -1196,6 +1209,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHelpSlugRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/finance/dashboard': {
+      id: '/_authenticated/finance/dashboard'
+      path: '/dashboard'
+      fullPath: '/finance/dashboard'
+      preLoaderRoute: typeof AuthenticatedFinanceDashboardRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
     '/_authenticated/dev/auth-diagnostics': {
       id: '/_authenticated/dev/auth-diagnostics'
       path: '/dev/auth-diagnostics'
@@ -1359,10 +1379,12 @@ const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedFinanceRouteChildren {
+  AuthenticatedFinanceDashboardRoute: typeof AuthenticatedFinanceDashboardRoute
   AuthenticatedFinancePricingSettingsRoute: typeof AuthenticatedFinancePricingSettingsRoute
 }
 
 const AuthenticatedFinanceRouteChildren: AuthenticatedFinanceRouteChildren = {
+  AuthenticatedFinanceDashboardRoute: AuthenticatedFinanceDashboardRoute,
   AuthenticatedFinancePricingSettingsRoute:
     AuthenticatedFinancePricingSettingsRoute,
 }
