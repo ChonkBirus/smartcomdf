@@ -62,6 +62,7 @@ import { Route as AuthenticatedFinanceSettingsRouteImport } from './routes/_auth
 import { Route as AuthenticatedFinanceReportsRouteImport } from './routes/_authenticated/finance.reports'
 import { Route as AuthenticatedFinanceReceivablesRouteImport } from './routes/_authenticated/finance.receivables'
 import { Route as AuthenticatedFinancePricingRouteImport } from './routes/_authenticated/finance.pricing'
+import { Route as AuthenticatedFinancePlanningRouteImport } from './routes/_authenticated/finance.planning'
 import { Route as AuthenticatedFinancePayablesRouteImport } from './routes/_authenticated/finance.payables'
 import { Route as AuthenticatedFinanceDashboardRouteImport } from './routes/_authenticated/finance.dashboard'
 import { Route as AuthenticatedFinanceCostsRouteImport } from './routes/_authenticated/finance.costs'
@@ -367,6 +368,12 @@ const AuthenticatedFinancePricingRoute =
     path: '/pricing',
     getParentRoute: () => AuthenticatedFinanceRoute,
   } as any)
+const AuthenticatedFinancePlanningRoute =
+  AuthenticatedFinancePlanningRouteImport.update({
+    id: '/planning',
+    path: '/planning',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
 const AuthenticatedFinancePayablesRoute =
   AuthenticatedFinancePayablesRouteImport.update({
     id: '/payables',
@@ -548,6 +555,7 @@ export interface FileRoutesByFullPath {
   '/finance/costs': typeof AuthenticatedFinanceCostsRoute
   '/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
   '/finance/payables': typeof AuthenticatedFinancePayablesRoute
+  '/finance/planning': typeof AuthenticatedFinancePlanningRoute
   '/finance/pricing': typeof AuthenticatedFinancePricingRouteWithChildren
   '/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
   '/finance/reports': typeof AuthenticatedFinanceReportsRoute
@@ -622,6 +630,7 @@ export interface FileRoutesByTo {
   '/finance/costs': typeof AuthenticatedFinanceCostsRoute
   '/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
   '/finance/payables': typeof AuthenticatedFinancePayablesRoute
+  '/finance/planning': typeof AuthenticatedFinancePlanningRoute
   '/finance/pricing': typeof AuthenticatedFinancePricingRouteWithChildren
   '/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
   '/finance/reports': typeof AuthenticatedFinanceReportsRoute
@@ -700,6 +709,7 @@ export interface FileRoutesById {
   '/_authenticated/finance/costs': typeof AuthenticatedFinanceCostsRoute
   '/_authenticated/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
   '/_authenticated/finance/payables': typeof AuthenticatedFinancePayablesRoute
+  '/_authenticated/finance/planning': typeof AuthenticatedFinancePlanningRoute
   '/_authenticated/finance/pricing': typeof AuthenticatedFinancePricingRouteWithChildren
   '/_authenticated/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
   '/_authenticated/finance/reports': typeof AuthenticatedFinanceReportsRoute
@@ -778,6 +788,7 @@ export interface FileRouteTypes {
     | '/finance/costs'
     | '/finance/dashboard'
     | '/finance/payables'
+    | '/finance/planning'
     | '/finance/pricing'
     | '/finance/receivables'
     | '/finance/reports'
@@ -852,6 +863,7 @@ export interface FileRouteTypes {
     | '/finance/costs'
     | '/finance/dashboard'
     | '/finance/payables'
+    | '/finance/planning'
     | '/finance/pricing'
     | '/finance/receivables'
     | '/finance/reports'
@@ -929,6 +941,7 @@ export interface FileRouteTypes {
     | '/_authenticated/finance/costs'
     | '/_authenticated/finance/dashboard'
     | '/_authenticated/finance/payables'
+    | '/_authenticated/finance/planning'
     | '/_authenticated/finance/pricing'
     | '/_authenticated/finance/receivables'
     | '/_authenticated/finance/reports'
@@ -1348,6 +1361,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFinancePricingRouteImport
       parentRoute: typeof AuthenticatedFinanceRoute
     }
+    '/_authenticated/finance/planning': {
+      id: '/_authenticated/finance/planning'
+      path: '/planning'
+      fullPath: '/finance/planning'
+      preLoaderRoute: typeof AuthenticatedFinancePlanningRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
     '/_authenticated/finance/payables': {
       id: '/_authenticated/finance/payables'
       path: '/payables'
@@ -1558,6 +1578,7 @@ interface AuthenticatedFinanceRouteChildren {
   AuthenticatedFinanceCostsRoute: typeof AuthenticatedFinanceCostsRoute
   AuthenticatedFinanceDashboardRoute: typeof AuthenticatedFinanceDashboardRoute
   AuthenticatedFinancePayablesRoute: typeof AuthenticatedFinancePayablesRoute
+  AuthenticatedFinancePlanningRoute: typeof AuthenticatedFinancePlanningRoute
   AuthenticatedFinancePricingRoute: typeof AuthenticatedFinancePricingRouteWithChildren
   AuthenticatedFinanceReceivablesRoute: typeof AuthenticatedFinanceReceivablesRoute
   AuthenticatedFinanceReportsRoute: typeof AuthenticatedFinanceReportsRoute
@@ -1570,6 +1591,7 @@ const AuthenticatedFinanceRouteChildren: AuthenticatedFinanceRouteChildren = {
   AuthenticatedFinanceCostsRoute: AuthenticatedFinanceCostsRoute,
   AuthenticatedFinanceDashboardRoute: AuthenticatedFinanceDashboardRoute,
   AuthenticatedFinancePayablesRoute: AuthenticatedFinancePayablesRoute,
+  AuthenticatedFinancePlanningRoute: AuthenticatedFinancePlanningRoute,
   AuthenticatedFinancePricingRoute:
     AuthenticatedFinancePricingRouteWithChildren,
   AuthenticatedFinanceReceivablesRoute: AuthenticatedFinanceReceivablesRoute,
