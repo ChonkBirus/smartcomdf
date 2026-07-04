@@ -61,6 +61,7 @@ import { Route as AuthenticatedFinanceTransactionsRouteImport } from './routes/_
 import { Route as AuthenticatedFinanceSettingsRouteImport } from './routes/_authenticated/finance.settings'
 import { Route as AuthenticatedFinanceReportsRouteImport } from './routes/_authenticated/finance.reports'
 import { Route as AuthenticatedFinanceReceivablesRouteImport } from './routes/_authenticated/finance.receivables'
+import { Route as AuthenticatedFinancePricingRouteImport } from './routes/_authenticated/finance.pricing'
 import { Route as AuthenticatedFinancePayablesRouteImport } from './routes/_authenticated/finance.payables'
 import { Route as AuthenticatedFinanceDashboardRouteImport } from './routes/_authenticated/finance.dashboard'
 import { Route as AuthenticatedFinanceCostsRouteImport } from './routes/_authenticated/finance.costs'
@@ -359,6 +360,12 @@ const AuthenticatedFinanceReceivablesRoute =
     path: '/receivables',
     getParentRoute: () => AuthenticatedFinanceRoute,
   } as any)
+const AuthenticatedFinancePricingRoute =
+  AuthenticatedFinancePricingRouteImport.update({
+    id: '/pricing',
+    path: '/pricing',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
 const AuthenticatedFinancePayablesRoute =
   AuthenticatedFinancePayablesRouteImport.update({
     id: '/payables',
@@ -473,9 +480,9 @@ const AuthenticatedServiceOrdersIdMobileRoute =
   } as any)
 const AuthenticatedFinancePricingSettingsRoute =
   AuthenticatedFinancePricingSettingsRouteImport.update({
-    id: '/pricing/settings',
-    path: '/pricing/settings',
-    getParentRoute: () => AuthenticatedFinanceRoute,
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedFinancePricingRoute,
   } as any)
 const AuthenticatedAdminPilotDetailIdRoute =
   AuthenticatedAdminPilotDetailIdRouteImport.update({
@@ -533,6 +540,7 @@ export interface FileRoutesByFullPath {
   '/finance/costs': typeof AuthenticatedFinanceCostsRoute
   '/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
   '/finance/payables': typeof AuthenticatedFinancePayablesRoute
+  '/finance/pricing': typeof AuthenticatedFinancePricingRouteWithChildren
   '/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
   '/finance/reports': typeof AuthenticatedFinanceReportsRoute
   '/finance/settings': typeof AuthenticatedFinanceSettingsRoute
@@ -605,6 +613,7 @@ export interface FileRoutesByTo {
   '/finance/costs': typeof AuthenticatedFinanceCostsRoute
   '/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
   '/finance/payables': typeof AuthenticatedFinancePayablesRoute
+  '/finance/pricing': typeof AuthenticatedFinancePricingRouteWithChildren
   '/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
   '/finance/reports': typeof AuthenticatedFinanceReportsRoute
   '/finance/settings': typeof AuthenticatedFinanceSettingsRoute
@@ -681,6 +690,7 @@ export interface FileRoutesById {
   '/_authenticated/finance/costs': typeof AuthenticatedFinanceCostsRoute
   '/_authenticated/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
   '/_authenticated/finance/payables': typeof AuthenticatedFinancePayablesRoute
+  '/_authenticated/finance/pricing': typeof AuthenticatedFinancePricingRouteWithChildren
   '/_authenticated/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
   '/_authenticated/finance/reports': typeof AuthenticatedFinanceReportsRoute
   '/_authenticated/finance/settings': typeof AuthenticatedFinanceSettingsRoute
@@ -757,6 +767,7 @@ export interface FileRouteTypes {
     | '/finance/costs'
     | '/finance/dashboard'
     | '/finance/payables'
+    | '/finance/pricing'
     | '/finance/receivables'
     | '/finance/reports'
     | '/finance/settings'
@@ -829,6 +840,7 @@ export interface FileRouteTypes {
     | '/finance/costs'
     | '/finance/dashboard'
     | '/finance/payables'
+    | '/finance/pricing'
     | '/finance/receivables'
     | '/finance/reports'
     | '/finance/settings'
@@ -904,6 +916,7 @@ export interface FileRouteTypes {
     | '/_authenticated/finance/costs'
     | '/_authenticated/finance/dashboard'
     | '/_authenticated/finance/payables'
+    | '/_authenticated/finance/pricing'
     | '/_authenticated/finance/receivables'
     | '/_authenticated/finance/reports'
     | '/_authenticated/finance/settings'
@@ -1315,6 +1328,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFinanceReceivablesRouteImport
       parentRoute: typeof AuthenticatedFinanceRoute
     }
+    '/_authenticated/finance/pricing': {
+      id: '/_authenticated/finance/pricing'
+      path: '/pricing'
+      fullPath: '/finance/pricing'
+      preLoaderRoute: typeof AuthenticatedFinancePricingRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
     '/_authenticated/finance/payables': {
       id: '/_authenticated/finance/payables'
       path: '/payables'
@@ -1450,10 +1470,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/finance/pricing/settings': {
       id: '/_authenticated/finance/pricing/settings'
-      path: '/pricing/settings'
+      path: '/settings'
       fullPath: '/finance/pricing/settings'
       preLoaderRoute: typeof AuthenticatedFinancePricingSettingsRouteImport
-      parentRoute: typeof AuthenticatedFinanceRoute
+      parentRoute: typeof AuthenticatedFinancePricingRoute
     }
     '/_authenticated/admin/pilot-detail/$id': {
       id: '/_authenticated/admin/pilot-detail/$id'
@@ -1498,27 +1518,42 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedFinancePricingRouteChildren {
+  AuthenticatedFinancePricingSettingsRoute: typeof AuthenticatedFinancePricingSettingsRoute
+}
+
+const AuthenticatedFinancePricingRouteChildren: AuthenticatedFinancePricingRouteChildren =
+  {
+    AuthenticatedFinancePricingSettingsRoute:
+      AuthenticatedFinancePricingSettingsRoute,
+  }
+
+const AuthenticatedFinancePricingRouteWithChildren =
+  AuthenticatedFinancePricingRoute._addFileChildren(
+    AuthenticatedFinancePricingRouteChildren,
+  )
+
 interface AuthenticatedFinanceRouteChildren {
   AuthenticatedFinanceCostsRoute: typeof AuthenticatedFinanceCostsRoute
   AuthenticatedFinanceDashboardRoute: typeof AuthenticatedFinanceDashboardRoute
   AuthenticatedFinancePayablesRoute: typeof AuthenticatedFinancePayablesRoute
+  AuthenticatedFinancePricingRoute: typeof AuthenticatedFinancePricingRouteWithChildren
   AuthenticatedFinanceReceivablesRoute: typeof AuthenticatedFinanceReceivablesRoute
   AuthenticatedFinanceReportsRoute: typeof AuthenticatedFinanceReportsRoute
   AuthenticatedFinanceSettingsRoute: typeof AuthenticatedFinanceSettingsRoute
   AuthenticatedFinanceTransactionsRoute: typeof AuthenticatedFinanceTransactionsRoute
-  AuthenticatedFinancePricingSettingsRoute: typeof AuthenticatedFinancePricingSettingsRoute
 }
 
 const AuthenticatedFinanceRouteChildren: AuthenticatedFinanceRouteChildren = {
   AuthenticatedFinanceCostsRoute: AuthenticatedFinanceCostsRoute,
   AuthenticatedFinanceDashboardRoute: AuthenticatedFinanceDashboardRoute,
   AuthenticatedFinancePayablesRoute: AuthenticatedFinancePayablesRoute,
+  AuthenticatedFinancePricingRoute:
+    AuthenticatedFinancePricingRouteWithChildren,
   AuthenticatedFinanceReceivablesRoute: AuthenticatedFinanceReceivablesRoute,
   AuthenticatedFinanceReportsRoute: AuthenticatedFinanceReportsRoute,
   AuthenticatedFinanceSettingsRoute: AuthenticatedFinanceSettingsRoute,
   AuthenticatedFinanceTransactionsRoute: AuthenticatedFinanceTransactionsRoute,
-  AuthenticatedFinancePricingSettingsRoute:
-    AuthenticatedFinancePricingSettingsRoute,
 }
 
 const AuthenticatedFinanceRouteWithChildren =
