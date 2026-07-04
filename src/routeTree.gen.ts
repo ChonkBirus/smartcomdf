@@ -65,6 +65,7 @@ import { Route as AuthenticatedFinancePricingRouteImport } from './routes/_authe
 import { Route as AuthenticatedFinancePayablesRouteImport } from './routes/_authenticated/finance.payables'
 import { Route as AuthenticatedFinanceDashboardRouteImport } from './routes/_authenticated/finance.dashboard'
 import { Route as AuthenticatedFinanceCostsRouteImport } from './routes/_authenticated/finance.costs'
+import { Route as AuthenticatedFinanceComparisonRouteImport } from './routes/_authenticated/finance.comparison'
 import { Route as AuthenticatedDevAuthDiagnosticsRouteImport } from './routes/_authenticated/dev.auth-diagnostics'
 import { Route as AuthenticatedClientsIdRouteImport } from './routes/_authenticated/clients_.$id'
 import { Route as AuthenticatedBillingPlansRouteImport } from './routes/_authenticated/billing.plans'
@@ -384,6 +385,12 @@ const AuthenticatedFinanceCostsRoute =
     path: '/costs',
     getParentRoute: () => AuthenticatedFinanceRoute,
   } as any)
+const AuthenticatedFinanceComparisonRoute =
+  AuthenticatedFinanceComparisonRouteImport.update({
+    id: '/comparison',
+    path: '/comparison',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
 const AuthenticatedDevAuthDiagnosticsRoute =
   AuthenticatedDevAuthDiagnosticsRouteImport.update({
     id: '/dev/auth-diagnostics',
@@ -537,6 +544,7 @@ export interface FileRoutesByFullPath {
   '/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
   '/dev/auth-diagnostics': typeof AuthenticatedDevAuthDiagnosticsRoute
+  '/finance/comparison': typeof AuthenticatedFinanceComparisonRoute
   '/finance/costs': typeof AuthenticatedFinanceCostsRoute
   '/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
   '/finance/payables': typeof AuthenticatedFinancePayablesRoute
@@ -610,6 +618,7 @@ export interface FileRoutesByTo {
   '/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
   '/dev/auth-diagnostics': typeof AuthenticatedDevAuthDiagnosticsRoute
+  '/finance/comparison': typeof AuthenticatedFinanceComparisonRoute
   '/finance/costs': typeof AuthenticatedFinanceCostsRoute
   '/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
   '/finance/payables': typeof AuthenticatedFinancePayablesRoute
@@ -687,6 +696,7 @@ export interface FileRoutesById {
   '/_authenticated/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/_authenticated/clients_/$id': typeof AuthenticatedClientsIdRoute
   '/_authenticated/dev/auth-diagnostics': typeof AuthenticatedDevAuthDiagnosticsRoute
+  '/_authenticated/finance/comparison': typeof AuthenticatedFinanceComparisonRoute
   '/_authenticated/finance/costs': typeof AuthenticatedFinanceCostsRoute
   '/_authenticated/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
   '/_authenticated/finance/payables': typeof AuthenticatedFinancePayablesRoute
@@ -764,6 +774,7 @@ export interface FileRouteTypes {
     | '/billing/plans'
     | '/clients/$id'
     | '/dev/auth-diagnostics'
+    | '/finance/comparison'
     | '/finance/costs'
     | '/finance/dashboard'
     | '/finance/payables'
@@ -837,6 +848,7 @@ export interface FileRouteTypes {
     | '/billing/plans'
     | '/clients/$id'
     | '/dev/auth-diagnostics'
+    | '/finance/comparison'
     | '/finance/costs'
     | '/finance/dashboard'
     | '/finance/payables'
@@ -913,6 +925,7 @@ export interface FileRouteTypes {
     | '/_authenticated/billing/plans'
     | '/_authenticated/clients_/$id'
     | '/_authenticated/dev/auth-diagnostics'
+    | '/_authenticated/finance/comparison'
     | '/_authenticated/finance/costs'
     | '/_authenticated/finance/dashboard'
     | '/_authenticated/finance/payables'
@@ -1356,6 +1369,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFinanceCostsRouteImport
       parentRoute: typeof AuthenticatedFinanceRoute
     }
+    '/_authenticated/finance/comparison': {
+      id: '/_authenticated/finance/comparison'
+      path: '/comparison'
+      fullPath: '/finance/comparison'
+      preLoaderRoute: typeof AuthenticatedFinanceComparisonRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
     '/_authenticated/dev/auth-diagnostics': {
       id: '/_authenticated/dev/auth-diagnostics'
       path: '/dev/auth-diagnostics'
@@ -1534,6 +1554,7 @@ const AuthenticatedFinancePricingRouteWithChildren =
   )
 
 interface AuthenticatedFinanceRouteChildren {
+  AuthenticatedFinanceComparisonRoute: typeof AuthenticatedFinanceComparisonRoute
   AuthenticatedFinanceCostsRoute: typeof AuthenticatedFinanceCostsRoute
   AuthenticatedFinanceDashboardRoute: typeof AuthenticatedFinanceDashboardRoute
   AuthenticatedFinancePayablesRoute: typeof AuthenticatedFinancePayablesRoute
@@ -1545,6 +1566,7 @@ interface AuthenticatedFinanceRouteChildren {
 }
 
 const AuthenticatedFinanceRouteChildren: AuthenticatedFinanceRouteChildren = {
+  AuthenticatedFinanceComparisonRoute: AuthenticatedFinanceComparisonRoute,
   AuthenticatedFinanceCostsRoute: AuthenticatedFinanceCostsRoute,
   AuthenticatedFinanceDashboardRoute: AuthenticatedFinanceDashboardRoute,
   AuthenticatedFinancePayablesRoute: AuthenticatedFinancePayablesRoute,
