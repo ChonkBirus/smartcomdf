@@ -58,6 +58,7 @@ import { Route as AuthenticatedServiceOrdersIdRouteImport } from './routes/_auth
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects_.$id'
 import { Route as AuthenticatedHelpSlugRouteImport } from './routes/_authenticated/help_.$slug'
 import { Route as AuthenticatedFinanceTransactionsRouteImport } from './routes/_authenticated/finance.transactions'
+import { Route as AuthenticatedFinanceReportsRouteImport } from './routes/_authenticated/finance.reports'
 import { Route as AuthenticatedFinanceReceivablesRouteImport } from './routes/_authenticated/finance.receivables'
 import { Route as AuthenticatedFinancePayablesRouteImport } from './routes/_authenticated/finance.payables'
 import { Route as AuthenticatedFinanceDashboardRouteImport } from './routes/_authenticated/finance.dashboard'
@@ -338,6 +339,12 @@ const AuthenticatedFinanceTransactionsRoute =
     path: '/transactions',
     getParentRoute: () => AuthenticatedFinanceRoute,
   } as any)
+const AuthenticatedFinanceReportsRoute =
+  AuthenticatedFinanceReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
 const AuthenticatedFinanceReceivablesRoute =
   AuthenticatedFinanceReceivablesRouteImport.update({
     id: '/receivables',
@@ -512,6 +519,7 @@ export interface FileRoutesByFullPath {
   '/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
   '/finance/payables': typeof AuthenticatedFinancePayablesRoute
   '/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
+  '/finance/reports': typeof AuthenticatedFinanceReportsRoute
   '/finance/transactions': typeof AuthenticatedFinanceTransactionsRoute
   '/help/$slug': typeof AuthenticatedHelpSlugRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
@@ -581,6 +589,7 @@ export interface FileRoutesByTo {
   '/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
   '/finance/payables': typeof AuthenticatedFinancePayablesRoute
   '/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
+  '/finance/reports': typeof AuthenticatedFinanceReportsRoute
   '/finance/transactions': typeof AuthenticatedFinanceTransactionsRoute
   '/help/$slug': typeof AuthenticatedHelpSlugRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
@@ -654,6 +663,7 @@ export interface FileRoutesById {
   '/_authenticated/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
   '/_authenticated/finance/payables': typeof AuthenticatedFinancePayablesRoute
   '/_authenticated/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
+  '/_authenticated/finance/reports': typeof AuthenticatedFinanceReportsRoute
   '/_authenticated/finance/transactions': typeof AuthenticatedFinanceTransactionsRoute
   '/_authenticated/help_/$slug': typeof AuthenticatedHelpSlugRoute
   '/_authenticated/projects_/$id': typeof AuthenticatedProjectsIdRoute
@@ -727,6 +737,7 @@ export interface FileRouteTypes {
     | '/finance/dashboard'
     | '/finance/payables'
     | '/finance/receivables'
+    | '/finance/reports'
     | '/finance/transactions'
     | '/help/$slug'
     | '/projects/$id'
@@ -796,6 +807,7 @@ export interface FileRouteTypes {
     | '/finance/dashboard'
     | '/finance/payables'
     | '/finance/receivables'
+    | '/finance/reports'
     | '/finance/transactions'
     | '/help/$slug'
     | '/projects/$id'
@@ -868,6 +880,7 @@ export interface FileRouteTypes {
     | '/_authenticated/finance/dashboard'
     | '/_authenticated/finance/payables'
     | '/_authenticated/finance/receivables'
+    | '/_authenticated/finance/reports'
     | '/_authenticated/finance/transactions'
     | '/_authenticated/help_/$slug'
     | '/_authenticated/projects_/$id'
@@ -1255,6 +1268,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFinanceTransactionsRouteImport
       parentRoute: typeof AuthenticatedFinanceRoute
     }
+    '/_authenticated/finance/reports': {
+      id: '/_authenticated/finance/reports'
+      path: '/reports'
+      fullPath: '/finance/reports'
+      preLoaderRoute: typeof AuthenticatedFinanceReportsRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
     '/_authenticated/finance/receivables': {
       id: '/_authenticated/finance/receivables'
       path: '/receivables'
@@ -1442,6 +1462,7 @@ interface AuthenticatedFinanceRouteChildren {
   AuthenticatedFinanceDashboardRoute: typeof AuthenticatedFinanceDashboardRoute
   AuthenticatedFinancePayablesRoute: typeof AuthenticatedFinancePayablesRoute
   AuthenticatedFinanceReceivablesRoute: typeof AuthenticatedFinanceReceivablesRoute
+  AuthenticatedFinanceReportsRoute: typeof AuthenticatedFinanceReportsRoute
   AuthenticatedFinanceTransactionsRoute: typeof AuthenticatedFinanceTransactionsRoute
   AuthenticatedFinancePricingSettingsRoute: typeof AuthenticatedFinancePricingSettingsRoute
 }
@@ -1450,6 +1471,7 @@ const AuthenticatedFinanceRouteChildren: AuthenticatedFinanceRouteChildren = {
   AuthenticatedFinanceDashboardRoute: AuthenticatedFinanceDashboardRoute,
   AuthenticatedFinancePayablesRoute: AuthenticatedFinancePayablesRoute,
   AuthenticatedFinanceReceivablesRoute: AuthenticatedFinanceReceivablesRoute,
+  AuthenticatedFinanceReportsRoute: AuthenticatedFinanceReportsRoute,
   AuthenticatedFinanceTransactionsRoute: AuthenticatedFinanceTransactionsRoute,
   AuthenticatedFinancePricingSettingsRoute:
     AuthenticatedFinancePricingSettingsRoute,
