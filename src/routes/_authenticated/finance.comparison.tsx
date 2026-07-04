@@ -1,24 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { GitCompare } from "lucide-react";
+import { z } from "zod";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { PermissionRoute } from "@/components/app/PermissionRoute";
-import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState } from "@/components/app/EmptyState";
+import { ComparisonPage } from "@/components/finance/ComparisonPage";
+
+const searchSchema = z.object({
+  preset: fallback(z.enum(["this_month", "this_year", "last_30", "last_90", "custom"]), "this_month").default("this_month"),
+  aFrom: fallback(z.string().optional(), undefined),
+  aTo: fallback(z.string().optional(), undefined),
+  bFrom: fallback(z.string().optional(), undefined),
+  bTo: fallback(z.string().optional(), undefined),
+});
 
 export const Route = createFileRoute("/_authenticated/finance/comparison")({
   head: () => ({ meta: [{ title: "Comparativo financeiro — SmartPro" }] }),
+  validateSearch: zodValidator(searchSchema),
   component: () => (
-    <PermissionRoute module="finance">
-      <div className="mx-auto max-w-7xl">
-        <PageHeader
-          title="Comparativo financeiro"
-          description="Compare receitas, despesas, lucro e margem entre períodos, projetos ou centros de custo."
-        />
-        <EmptyState
-          icon={<GitCompare className="h-6 w-6" />}
-          title="Em construção (ETAPA 3)"
-          description="Selecione dois períodos, centros de custo ou projetos para comparar seus resultados. Este módulo será liberado na próxima etapa."
-        />
-      </div>
+    <PermissionRoute module="finance" action="view">
+      <ComparisonPage />
     </PermissionRoute>
   ),
 });
