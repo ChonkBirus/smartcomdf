@@ -49,9 +49,24 @@ const groups: { label: string; items: Item[] }[] = [
     ],
   },
   {
+    label: "Financeiro",
+    items: [
+      { title: "Painel financeiro", url: "/finance/dashboard", icon: Wallet, module: "finance" },
+      { title: "Movimentações", url: "/finance/transactions", icon: ArrowLeftRight, module: "finance" },
+      { title: "Contas a receber", url: "/finance/receivables", icon: ArrowDownCircle, module: "finance" },
+      { title: "Contas a pagar", url: "/finance/payables", icon: ArrowUpCircle, module: "finance" },
+      { title: "Custos da empresa", url: "/finance/costs", icon: Calculator, module: "finance" },
+      { title: "Precificação", url: "/finance/pricing", icon: Percent, module: "finance" },
+      { title: "Comparativo", url: "/finance/comparison", icon: GitCompare, module: "finance" },
+      { title: "Planejamento", url: "/finance/planning", icon: Target, module: "finance" },
+      { title: "Turbinador de lucros", url: "/finance/profit-booster", icon: Rocket, module: "finance" },
+      { title: "Relatórios financeiros", url: "/finance/reports", icon: BarChart3, module: "finance" },
+      { title: "Configurações", url: "/finance/settings", icon: Settings2, module: "finance" },
+    ],
+  },
+  {
     label: "Gestão",
     items: [
-      { title: "Financeiro", url: "/finance", icon: Wallet, module: "finance" },
       { title: "CRM", url: "/crm", icon: HeartHandshake, module: "crm", feature: "crm" },
       { title: "Ordens de Serviço", url: "/service-orders", icon: Wrench, module: "service_orders", feature: "service_orders" },
       { title: "Minhas OS", url: "/service-orders/my", icon: Wrench, module: "service_orders", feature: "service_orders" },
