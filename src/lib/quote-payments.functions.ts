@@ -120,17 +120,8 @@ export const approveQuotePayment = createServerFn({ method: "POST" })
       _note: data.note ?? null,
     });
     if (error) throw new Error(error.message);
-
-    // Best-effort: mirror payment into linked financial receivable.
-    try {
-      await mirrorQuotePaymentToFinancial(sb, {
-        paymentId: data.id,
-        userId: context.userId,
-      });
-    } catch { /* non-blocking */ }
-
-
-
+    // O RPC agora espelha atomicamente para financial_transactions
+    // (SECURITY DEFINER + índice único parcial garantem idempotência).
     return { ok: true };
   });
 
