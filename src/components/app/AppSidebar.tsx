@@ -1,8 +1,10 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Package, Users, Boxes, FileText,
-  DollarSign, HeartHandshake, Wrench, BarChart3, Settings, Shield, ShieldCheck, Lock,
+  HeartHandshake, Wrench, BarChart3, Settings, Shield, Lock,
   Building2, ShoppingCart, Sparkles, Briefcase, Bot, LifeBuoy, Wallet,
+  ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Calculator, Percent,
+  GitCompare, Target, Rocket, Settings2,
 } from "lucide-react";
 
 import {
