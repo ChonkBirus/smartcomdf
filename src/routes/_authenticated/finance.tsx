@@ -1,12 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PermissionRoute } from "@/components/app/PermissionRoute";
-import { FinancePage } from "@/components/finance/FinancePage";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/finance")({
-  head: () => ({ meta: [{ title: "Financeiro — SmartPro" }] }),
-  component: () => (
-    <PermissionRoute module="finance">
-      <FinancePage />
-    </PermissionRoute>
-  ),
+  beforeLoad: () => {
+    throw redirect({ to: "/finance/dashboard" });
+  },
 });

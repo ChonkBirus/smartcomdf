@@ -439,7 +439,7 @@ function CategoriesManager() {
   );
 }
 
-export function FinancePage() {
+export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string } = {}) {
   const companyId = useCompanyId();
   const qc = useQueryClient();
   const [preset, setPreset] = useState<Preset>("month");
@@ -491,7 +491,7 @@ export function FinancePage() {
   const o = overview.data;
 
   const [highlightTxId, setHighlightTxId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<string>("overview");
+  const [activeTab, setActiveTab] = useState<string>(defaultTab);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

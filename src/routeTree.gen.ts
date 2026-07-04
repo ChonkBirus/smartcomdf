@@ -57,6 +57,17 @@ import { Route as AuthenticatedServiceOrdersMyRouteImport } from './routes/_auth
 import { Route as AuthenticatedServiceOrdersIdRouteImport } from './routes/_authenticated/service-orders_.$id'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects_.$id'
 import { Route as AuthenticatedHelpSlugRouteImport } from './routes/_authenticated/help_.$slug'
+import { Route as AuthenticatedFinanceTransactionsRouteImport } from './routes/_authenticated/finance.transactions'
+import { Route as AuthenticatedFinanceSettingsRouteImport } from './routes/_authenticated/finance.settings'
+import { Route as AuthenticatedFinanceReportsRouteImport } from './routes/_authenticated/finance.reports'
+import { Route as AuthenticatedFinanceReceivablesRouteImport } from './routes/_authenticated/finance.receivables'
+import { Route as AuthenticatedFinanceProfitBoosterRouteImport } from './routes/_authenticated/finance.profit-booster'
+import { Route as AuthenticatedFinancePricingRouteImport } from './routes/_authenticated/finance.pricing'
+import { Route as AuthenticatedFinancePlanningRouteImport } from './routes/_authenticated/finance.planning'
+import { Route as AuthenticatedFinancePayablesRouteImport } from './routes/_authenticated/finance.payables'
+import { Route as AuthenticatedFinanceDashboardRouteImport } from './routes/_authenticated/finance.dashboard'
+import { Route as AuthenticatedFinanceCostsRouteImport } from './routes/_authenticated/finance.costs'
+import { Route as AuthenticatedFinanceComparisonRouteImport } from './routes/_authenticated/finance.comparison'
 import { Route as AuthenticatedDevAuthDiagnosticsRouteImport } from './routes/_authenticated/dev.auth-diagnostics'
 import { Route as AuthenticatedClientsIdRouteImport } from './routes/_authenticated/clients_.$id'
 import { Route as AuthenticatedBillingPlansRouteImport } from './routes/_authenticated/billing.plans'
@@ -328,6 +339,72 @@ const AuthenticatedHelpSlugRoute = AuthenticatedHelpSlugRouteImport.update({
   path: '/help/$slug',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFinanceTransactionsRoute =
+  AuthenticatedFinanceTransactionsRouteImport.update({
+    id: '/transactions',
+    path: '/transactions',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
+const AuthenticatedFinanceSettingsRoute =
+  AuthenticatedFinanceSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
+const AuthenticatedFinanceReportsRoute =
+  AuthenticatedFinanceReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
+const AuthenticatedFinanceReceivablesRoute =
+  AuthenticatedFinanceReceivablesRouteImport.update({
+    id: '/receivables',
+    path: '/receivables',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
+const AuthenticatedFinanceProfitBoosterRoute =
+  AuthenticatedFinanceProfitBoosterRouteImport.update({
+    id: '/profit-booster',
+    path: '/profit-booster',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
+const AuthenticatedFinancePricingRoute =
+  AuthenticatedFinancePricingRouteImport.update({
+    id: '/pricing',
+    path: '/pricing',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
+const AuthenticatedFinancePlanningRoute =
+  AuthenticatedFinancePlanningRouteImport.update({
+    id: '/planning',
+    path: '/planning',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
+const AuthenticatedFinancePayablesRoute =
+  AuthenticatedFinancePayablesRouteImport.update({
+    id: '/payables',
+    path: '/payables',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
+const AuthenticatedFinanceDashboardRoute =
+  AuthenticatedFinanceDashboardRouteImport.update({
+    id: '/dashboard',
+    path: '/dashboard',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
+const AuthenticatedFinanceCostsRoute =
+  AuthenticatedFinanceCostsRouteImport.update({
+    id: '/costs',
+    path: '/costs',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
+const AuthenticatedFinanceComparisonRoute =
+  AuthenticatedFinanceComparisonRouteImport.update({
+    id: '/comparison',
+    path: '/comparison',
+    getParentRoute: () => AuthenticatedFinanceRoute,
+  } as any)
 const AuthenticatedDevAuthDiagnosticsRoute =
   AuthenticatedDevAuthDiagnosticsRouteImport.update({
     id: '/dev/auth-diagnostics',
@@ -424,9 +501,9 @@ const AuthenticatedServiceOrdersIdMobileRoute =
   } as any)
 const AuthenticatedFinancePricingSettingsRoute =
   AuthenticatedFinancePricingSettingsRouteImport.update({
-    id: '/pricing/settings',
-    path: '/pricing/settings',
-    getParentRoute: () => AuthenticatedFinanceRoute,
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedFinancePricingRoute,
   } as any)
 const AuthenticatedAdminPilotDetailIdRoute =
   AuthenticatedAdminPilotDetailIdRouteImport.update({
@@ -481,6 +558,17 @@ export interface FileRoutesByFullPath {
   '/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
   '/dev/auth-diagnostics': typeof AuthenticatedDevAuthDiagnosticsRoute
+  '/finance/comparison': typeof AuthenticatedFinanceComparisonRoute
+  '/finance/costs': typeof AuthenticatedFinanceCostsRoute
+  '/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
+  '/finance/payables': typeof AuthenticatedFinancePayablesRoute
+  '/finance/planning': typeof AuthenticatedFinancePlanningRoute
+  '/finance/pricing': typeof AuthenticatedFinancePricingRouteWithChildren
+  '/finance/profit-booster': typeof AuthenticatedFinanceProfitBoosterRoute
+  '/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
+  '/finance/reports': typeof AuthenticatedFinanceReportsRoute
+  '/finance/settings': typeof AuthenticatedFinanceSettingsRoute
+  '/finance/transactions': typeof AuthenticatedFinanceTransactionsRoute
   '/help/$slug': typeof AuthenticatedHelpSlugRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/service-orders/$id': typeof AuthenticatedServiceOrdersIdRouteWithChildren
@@ -546,6 +634,17 @@ export interface FileRoutesByTo {
   '/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/clients/$id': typeof AuthenticatedClientsIdRoute
   '/dev/auth-diagnostics': typeof AuthenticatedDevAuthDiagnosticsRoute
+  '/finance/comparison': typeof AuthenticatedFinanceComparisonRoute
+  '/finance/costs': typeof AuthenticatedFinanceCostsRoute
+  '/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
+  '/finance/payables': typeof AuthenticatedFinancePayablesRoute
+  '/finance/planning': typeof AuthenticatedFinancePlanningRoute
+  '/finance/pricing': typeof AuthenticatedFinancePricingRouteWithChildren
+  '/finance/profit-booster': typeof AuthenticatedFinanceProfitBoosterRoute
+  '/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
+  '/finance/reports': typeof AuthenticatedFinanceReportsRoute
+  '/finance/settings': typeof AuthenticatedFinanceSettingsRoute
+  '/finance/transactions': typeof AuthenticatedFinanceTransactionsRoute
   '/help/$slug': typeof AuthenticatedHelpSlugRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/service-orders/$id': typeof AuthenticatedServiceOrdersIdRouteWithChildren
@@ -615,6 +714,17 @@ export interface FileRoutesById {
   '/_authenticated/billing/plans': typeof AuthenticatedBillingPlansRoute
   '/_authenticated/clients_/$id': typeof AuthenticatedClientsIdRoute
   '/_authenticated/dev/auth-diagnostics': typeof AuthenticatedDevAuthDiagnosticsRoute
+  '/_authenticated/finance/comparison': typeof AuthenticatedFinanceComparisonRoute
+  '/_authenticated/finance/costs': typeof AuthenticatedFinanceCostsRoute
+  '/_authenticated/finance/dashboard': typeof AuthenticatedFinanceDashboardRoute
+  '/_authenticated/finance/payables': typeof AuthenticatedFinancePayablesRoute
+  '/_authenticated/finance/planning': typeof AuthenticatedFinancePlanningRoute
+  '/_authenticated/finance/pricing': typeof AuthenticatedFinancePricingRouteWithChildren
+  '/_authenticated/finance/profit-booster': typeof AuthenticatedFinanceProfitBoosterRoute
+  '/_authenticated/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
+  '/_authenticated/finance/reports': typeof AuthenticatedFinanceReportsRoute
+  '/_authenticated/finance/settings': typeof AuthenticatedFinanceSettingsRoute
+  '/_authenticated/finance/transactions': typeof AuthenticatedFinanceTransactionsRoute
   '/_authenticated/help_/$slug': typeof AuthenticatedHelpSlugRoute
   '/_authenticated/projects_/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/service-orders_/$id': typeof AuthenticatedServiceOrdersIdRouteWithChildren
@@ -684,6 +794,17 @@ export interface FileRouteTypes {
     | '/billing/plans'
     | '/clients/$id'
     | '/dev/auth-diagnostics'
+    | '/finance/comparison'
+    | '/finance/costs'
+    | '/finance/dashboard'
+    | '/finance/payables'
+    | '/finance/planning'
+    | '/finance/pricing'
+    | '/finance/profit-booster'
+    | '/finance/receivables'
+    | '/finance/reports'
+    | '/finance/settings'
+    | '/finance/transactions'
     | '/help/$slug'
     | '/projects/$id'
     | '/service-orders/$id'
@@ -749,6 +870,17 @@ export interface FileRouteTypes {
     | '/billing/plans'
     | '/clients/$id'
     | '/dev/auth-diagnostics'
+    | '/finance/comparison'
+    | '/finance/costs'
+    | '/finance/dashboard'
+    | '/finance/payables'
+    | '/finance/planning'
+    | '/finance/pricing'
+    | '/finance/profit-booster'
+    | '/finance/receivables'
+    | '/finance/reports'
+    | '/finance/settings'
+    | '/finance/transactions'
     | '/help/$slug'
     | '/projects/$id'
     | '/service-orders/$id'
@@ -817,6 +949,17 @@ export interface FileRouteTypes {
     | '/_authenticated/billing/plans'
     | '/_authenticated/clients_/$id'
     | '/_authenticated/dev/auth-diagnostics'
+    | '/_authenticated/finance/comparison'
+    | '/_authenticated/finance/costs'
+    | '/_authenticated/finance/dashboard'
+    | '/_authenticated/finance/payables'
+    | '/_authenticated/finance/planning'
+    | '/_authenticated/finance/pricing'
+    | '/_authenticated/finance/profit-booster'
+    | '/_authenticated/finance/receivables'
+    | '/_authenticated/finance/reports'
+    | '/_authenticated/finance/settings'
+    | '/_authenticated/finance/transactions'
     | '/_authenticated/help_/$slug'
     | '/_authenticated/projects_/$id'
     | '/_authenticated/service-orders_/$id'
@@ -1196,6 +1339,83 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHelpSlugRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/finance/transactions': {
+      id: '/_authenticated/finance/transactions'
+      path: '/transactions'
+      fullPath: '/finance/transactions'
+      preLoaderRoute: typeof AuthenticatedFinanceTransactionsRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
+    '/_authenticated/finance/settings': {
+      id: '/_authenticated/finance/settings'
+      path: '/settings'
+      fullPath: '/finance/settings'
+      preLoaderRoute: typeof AuthenticatedFinanceSettingsRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
+    '/_authenticated/finance/reports': {
+      id: '/_authenticated/finance/reports'
+      path: '/reports'
+      fullPath: '/finance/reports'
+      preLoaderRoute: typeof AuthenticatedFinanceReportsRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
+    '/_authenticated/finance/receivables': {
+      id: '/_authenticated/finance/receivables'
+      path: '/receivables'
+      fullPath: '/finance/receivables'
+      preLoaderRoute: typeof AuthenticatedFinanceReceivablesRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
+    '/_authenticated/finance/profit-booster': {
+      id: '/_authenticated/finance/profit-booster'
+      path: '/profit-booster'
+      fullPath: '/finance/profit-booster'
+      preLoaderRoute: typeof AuthenticatedFinanceProfitBoosterRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
+    '/_authenticated/finance/pricing': {
+      id: '/_authenticated/finance/pricing'
+      path: '/pricing'
+      fullPath: '/finance/pricing'
+      preLoaderRoute: typeof AuthenticatedFinancePricingRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
+    '/_authenticated/finance/planning': {
+      id: '/_authenticated/finance/planning'
+      path: '/planning'
+      fullPath: '/finance/planning'
+      preLoaderRoute: typeof AuthenticatedFinancePlanningRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
+    '/_authenticated/finance/payables': {
+      id: '/_authenticated/finance/payables'
+      path: '/payables'
+      fullPath: '/finance/payables'
+      preLoaderRoute: typeof AuthenticatedFinancePayablesRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
+    '/_authenticated/finance/dashboard': {
+      id: '/_authenticated/finance/dashboard'
+      path: '/dashboard'
+      fullPath: '/finance/dashboard'
+      preLoaderRoute: typeof AuthenticatedFinanceDashboardRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
+    '/_authenticated/finance/costs': {
+      id: '/_authenticated/finance/costs'
+      path: '/costs'
+      fullPath: '/finance/costs'
+      preLoaderRoute: typeof AuthenticatedFinanceCostsRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
+    '/_authenticated/finance/comparison': {
+      id: '/_authenticated/finance/comparison'
+      path: '/comparison'
+      fullPath: '/finance/comparison'
+      preLoaderRoute: typeof AuthenticatedFinanceComparisonRouteImport
+      parentRoute: typeof AuthenticatedFinanceRoute
+    }
     '/_authenticated/dev/auth-diagnostics': {
       id: '/_authenticated/dev/auth-diagnostics'
       path: '/dev/auth-diagnostics'
@@ -1310,10 +1530,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/finance/pricing/settings': {
       id: '/_authenticated/finance/pricing/settings'
-      path: '/pricing/settings'
+      path: '/settings'
       fullPath: '/finance/pricing/settings'
       preLoaderRoute: typeof AuthenticatedFinancePricingSettingsRouteImport
-      parentRoute: typeof AuthenticatedFinanceRoute
+      parentRoute: typeof AuthenticatedFinancePricingRoute
     }
     '/_authenticated/admin/pilot-detail/$id': {
       id: '/_authenticated/admin/pilot-detail/$id'
@@ -1358,13 +1578,49 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
-interface AuthenticatedFinanceRouteChildren {
+interface AuthenticatedFinancePricingRouteChildren {
   AuthenticatedFinancePricingSettingsRoute: typeof AuthenticatedFinancePricingSettingsRoute
 }
 
+const AuthenticatedFinancePricingRouteChildren: AuthenticatedFinancePricingRouteChildren =
+  {
+    AuthenticatedFinancePricingSettingsRoute:
+      AuthenticatedFinancePricingSettingsRoute,
+  }
+
+const AuthenticatedFinancePricingRouteWithChildren =
+  AuthenticatedFinancePricingRoute._addFileChildren(
+    AuthenticatedFinancePricingRouteChildren,
+  )
+
+interface AuthenticatedFinanceRouteChildren {
+  AuthenticatedFinanceComparisonRoute: typeof AuthenticatedFinanceComparisonRoute
+  AuthenticatedFinanceCostsRoute: typeof AuthenticatedFinanceCostsRoute
+  AuthenticatedFinanceDashboardRoute: typeof AuthenticatedFinanceDashboardRoute
+  AuthenticatedFinancePayablesRoute: typeof AuthenticatedFinancePayablesRoute
+  AuthenticatedFinancePlanningRoute: typeof AuthenticatedFinancePlanningRoute
+  AuthenticatedFinancePricingRoute: typeof AuthenticatedFinancePricingRouteWithChildren
+  AuthenticatedFinanceProfitBoosterRoute: typeof AuthenticatedFinanceProfitBoosterRoute
+  AuthenticatedFinanceReceivablesRoute: typeof AuthenticatedFinanceReceivablesRoute
+  AuthenticatedFinanceReportsRoute: typeof AuthenticatedFinanceReportsRoute
+  AuthenticatedFinanceSettingsRoute: typeof AuthenticatedFinanceSettingsRoute
+  AuthenticatedFinanceTransactionsRoute: typeof AuthenticatedFinanceTransactionsRoute
+}
+
 const AuthenticatedFinanceRouteChildren: AuthenticatedFinanceRouteChildren = {
-  AuthenticatedFinancePricingSettingsRoute:
-    AuthenticatedFinancePricingSettingsRoute,
+  AuthenticatedFinanceComparisonRoute: AuthenticatedFinanceComparisonRoute,
+  AuthenticatedFinanceCostsRoute: AuthenticatedFinanceCostsRoute,
+  AuthenticatedFinanceDashboardRoute: AuthenticatedFinanceDashboardRoute,
+  AuthenticatedFinancePayablesRoute: AuthenticatedFinancePayablesRoute,
+  AuthenticatedFinancePlanningRoute: AuthenticatedFinancePlanningRoute,
+  AuthenticatedFinancePricingRoute:
+    AuthenticatedFinancePricingRouteWithChildren,
+  AuthenticatedFinanceProfitBoosterRoute:
+    AuthenticatedFinanceProfitBoosterRoute,
+  AuthenticatedFinanceReceivablesRoute: AuthenticatedFinanceReceivablesRoute,
+  AuthenticatedFinanceReportsRoute: AuthenticatedFinanceReportsRoute,
+  AuthenticatedFinanceSettingsRoute: AuthenticatedFinanceSettingsRoute,
+  AuthenticatedFinanceTransactionsRoute: AuthenticatedFinanceTransactionsRoute,
 }
 
 const AuthenticatedFinanceRouteWithChildren =
@@ -1501,13 +1757,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
