@@ -11,21 +11,17 @@ async function getCompanyId(supabase: any, userId: string): Promise<string> {
 }
 
 async function assertPermission(supabase: any, userId: string, slug: string) {
-  // super_admin / owner bypass
-  const { data: profile } = await supabase.from("profiles").select("is_super_admin, company_id").eq("id", userId).maybeSingle();
-  if (profile?.is_super_admin) return;
   const { data: roles } = await supabase
     .from("profile_roles")
     .select("roles!inner(slug)")
     .eq("profile_id", userId);
   const roleSlugs = (roles ?? []).map((r: any) => r.roles?.slug).filter(Boolean);
-  if (roleSlugs.includes("owner")) return;
-  // check role_permissions
+  if (roleSlugs.includes("super_admin") || roleSlugs.includes("owner")) return;
   const { data: perm } = await supabase.from("permissions").select("id").eq("slug", slug).maybeSingle();
   if (!perm?.id) throw new Error("Permissão não configurada.");
   const { data: rp } = await supabase
     .from("role_permissions")
-    .select("role_id, roles!inner(slug)")
+    .select("roles!inner(slug)")
     .eq("permission_id", perm.id);
   const allowed = (rp ?? []).some((r: any) => roleSlugs.includes(r.roles?.slug));
   if (!allowed) throw new Error("Sem permissão.");
