@@ -2707,6 +2707,62 @@ export type Database = {
         }
         Relationships: []
       }
+      finance_monthly_plans: {
+        Row: {
+          cash_min: number | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          expense_cap: number | null
+          id: string
+          margin_goal_pct: number | null
+          month: number
+          notes: string | null
+          profit_goal: number | null
+          revenue_goal: number | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          cash_min?: number | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          expense_cap?: number | null
+          id?: string
+          margin_goal_pct?: number | null
+          month: number
+          notes?: string | null
+          profit_goal?: number | null
+          revenue_goal?: number | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          cash_min?: number | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          expense_cap?: number | null
+          id?: string
+          margin_goal_pct?: number | null
+          month?: number
+          notes?: string | null
+          profit_goal?: number | null
+          revenue_goal?: number | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_monthly_plans_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_bank_accounts: {
         Row: {
           account_name: string | null
