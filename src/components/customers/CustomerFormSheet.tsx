@@ -675,11 +675,14 @@ export function CustomerFormSheet({
                     </div>
                   </div>
                   <div className="grid gap-2 sm:grid-cols-2">
-                    <div><Label>Cargo/Função</Label><Input value={c.role ?? ""} onChange={(e) => {
-                      const next = [...form.contacts]; next[i] = { ...c, role: e.target.value }; set("contacts", next);
-                    }} /></div>
                     <div>
-                      <Label>E-mail</Label>
+                      <LabelWithHelp label="Cargo/Função" help="Cargo do contato. Ex.: síndico, gerente, comprador." />
+                      <Input value={c.role ?? ""} onChange={(e) => {
+                        const next = [...form.contacts]; next[i] = { ...c, role: e.target.value }; set("contacts", next);
+                      }} />
+                    </div>
+                    <div>
+                      <LabelWithHelp label="E-mail" help="E-mail deste contato específico." />
                       <Input value={c.email ?? ""}
                         aria-invalid={!!errors[`contact_${i}_email`]}
                         className={errors[`contact_${i}_email`] ? "border-destructive" : ""}
@@ -689,7 +692,7 @@ export function CustomerFormSheet({
                       {errors[`contact_${i}_email`] && <p className="mt-1 text-xs text-destructive">{errors[`contact_${i}_email`]}</p>}
                     </div>
                     <div>
-                      <Label>Telefone *</Label>
+                      <LabelWithHelp label="Telefone *" help="Telefone deste contato para ligações." />
                       <Input value={maskPhone(c.phone ?? "")}
                         aria-invalid={!!errors[`contact_${i}_phone`]}
                         className={errors[`contact_${i}_phone`] ? "border-destructive" : ""}
@@ -699,7 +702,7 @@ export function CustomerFormSheet({
                       {errors[`contact_${i}_phone`] && <p className="mt-1 text-xs text-destructive">{errors[`contact_${i}_phone`]}</p>}
                     </div>
                     <div>
-                      <Label>WhatsApp *</Label>
+                      <LabelWithHelp label="WhatsApp *" help="WhatsApp deste contato para envio de orçamentos e mensagens." />
                       <Input value={maskPhone(c.whatsapp ?? "")}
                         aria-invalid={!!errors[`contact_${i}_phone`]}
                         className={errors[`contact_${i}_phone`] ? "border-destructive" : ""}
