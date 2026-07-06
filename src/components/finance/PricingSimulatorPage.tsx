@@ -446,14 +446,19 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </div>
   );
 }
-function PctField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function PctField({ label, help, value, onChange }: { label: string; help?: React.ReactNode; value: string; onChange: (v: string) => void }) {
   return (
     <div className="space-y-1">
-      <Label className="text-xs text-muted-foreground">{label} (%)</Label>
+      {help ? (
+        <LabelWithHelp label={`${label} (%)`} help={help} />
+      ) : (
+        <Label className="text-xs text-muted-foreground">{label} (%)</Label>
+      )}
       <Input type="number" min={0} max={100} step="0.01" value={value} onChange={(e) => onChange(e.target.value)} />
     </div>
   );
 }
+
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md border p-3">
