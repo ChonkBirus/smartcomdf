@@ -201,16 +201,16 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
         </SheetHeader>
         <div className="mt-4 space-y-3">
           <div>
-            <Label>Descrição</Label>
+            <LabelWithHelp label="Descrição" help="O que foi este lançamento? Ex.: Instalação cliente João." />
             <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Ex.: Instalação cliente João" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Valor (R$)</Label>
+              <LabelWithHelp label="Valor (R$)" help="Quanto entrou ou saiu. Use vírgula ou ponto para os centavos." />
               <Input inputMode="decimal" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="0,00" />
             </div>
             <div>
-              <Label>Categoria</Label>
+              <LabelWithHelp label="Categoria financeira" help="Classifique para entender onde a empresa ganha e gasta dinheiro." />
               <Select value={form.category_id} onValueChange={(v) => setForm({ ...form, category_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
@@ -219,13 +219,33 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
               </Select>
             </div>
           </div>
+          <div>
+            <LabelWithHelp label="Conta financeira" help="De onde o dinheiro saiu ou entrou: carteira, banco, caixa. Cadastre em Configurações → Contas financeiras." />
+            <Select
+              value={form.bank_account_id || "__none__"}
+              onValueChange={(v) => setForm({ ...form, bank_account_id: v === "__none__" ? "" : v })}
+            >
+              <SelectTrigger><SelectValue placeholder="Sem conta definida" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sem conta definida</SelectItem>
+                {(accs.data ?? []).map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.account_name ? `${a.bank_name} — ${a.account_name}` : a.bank_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Vencimento</Label>
+              <LabelWithHelp label="Vencimento" help="Data prevista para pagar ou receber." />
               <Input type="date" value={form.due_date ?? ""} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
             </div>
             <div>
-              <Label>{type === "INCOME" ? "Recebido em" : "Pago em"}</Label>
+              <LabelWithHelp
+                label={type === "INCOME" ? "Recebido em" : "Pago em"}
+                help="Data em que o dinheiro realmente saiu ou entrou."
+              />
               <Input type="date" value={form.paid_at ?? ""} onChange={(e) => setForm({ ...form, paid_at: e.target.value })} />
             </div>
           </div>
@@ -250,6 +270,7 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
             <Label>Observações</Label>
             <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} />
           </div>
+
           <Button className="w-full" onClick={() => submitting.mutate()} disabled={!form.description || !form.amount || submitting.isPending}>
             {submitting.isPending ? "Salvando…" : "Salvar"}
           </Button>
