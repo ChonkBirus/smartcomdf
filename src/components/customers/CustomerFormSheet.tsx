@@ -649,7 +649,7 @@ export function CustomerFormSheet({
                 <div key={i} className="space-y-2 rounded-md border p-3">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <Label>Nome *</Label>
+                      <LabelWithHelp label="Nome *" help="Nome da pessoa de contato desta empresa/cliente." />
                       <Input value={c.name}
                         aria-invalid={!!errors[`contact_${i}_name`]}
                         className={errors[`contact_${i}_name`] ? "border-destructive" : ""}
