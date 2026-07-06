@@ -620,7 +620,7 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
           <TransactionTable rows={(expenses.data ?? []).filter((t) => t.status !== "RECONCILED")} onChanged={invalidateAll} highlightId={highlightTxId} />
         </TabsContent>
         <TabsContent value="categories" className="mt-4">
-          <CategoriesManager />
+          <ChartOfAccountsPage />
         </TabsContent>
         <TabsContent value="accounts" className="mt-4">
           <BankAccountsManager />
