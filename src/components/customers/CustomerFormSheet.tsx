@@ -580,7 +580,7 @@ export function CustomerFormSheet({
                       {errors[`addr_${i}_state`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_state`]}</p>}
                     </div>
                     <div className="sm:col-span-2">
-                      <Label>Rua *</Label>
+                      <LabelWithHelp label="Rua *" help="Nome da rua, avenida ou logradouro." />
                       <Input value={a.street ?? ""}
                         aria-invalid={!!errors[`addr_${i}_street`]}
                         className={errors[`addr_${i}_street`] ? "border-destructive" : ""}
