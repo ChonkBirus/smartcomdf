@@ -343,7 +343,7 @@ export function ItemFormSheet({
             </Section>
 
             <Section title="Comercial">
-              <Field label="Preço de custo (R$)">
+              <Field label="Preço de custo (R$)" help="Quanto você paga pelo item (custo de compra). Base para calcular o markup.">
                 <Input
                   type="number"
                   min={0}
