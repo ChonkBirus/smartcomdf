@@ -356,16 +356,24 @@ function ItemsPage() {
                 >
                   Nome <SortIcon k="name" />
                 </th>
-                <th className="px-3 py-2 text-left">Tipo</th>
-                <th className="px-3 py-2 text-left">Categoria</th>
+                <th className="px-3 py-2 text-left">
+                  <span className="inline-flex items-center gap-1">Tipo <FieldHelp>Produto (item físico com estoque) ou Serviço (mão de obra, não controla estoque).</FieldHelp></span>
+                </th>
+                <th className="px-3 py-2 text-left">
+                  <span className="inline-flex items-center gap-1">Categoria <FieldHelp>Agrupamento do item para busca e relatórios.</FieldHelp></span>
+                </th>
                 <th
                   className="cursor-pointer px-3 py-2 text-right hover:text-foreground"
                   onClick={() => handleSort("sale_price")}
                 >
-                  Preço <SortIcon k="sale_price" />
+                  <span className="inline-flex items-center gap-1">Preço <SortIcon k="sale_price" /> <FieldHelp>Preço de venda ao cliente. Clique no cabeçalho para ordenar.</FieldHelp></span>
                 </th>
-                <th className="px-3 py-2 text-center">Estoque</th>
-                <th className="px-3 py-2 text-center">Status</th>
+                <th className="px-3 py-2 text-center">
+                  <span className="inline-flex items-center gap-1">Estoque <FieldHelp>"Controlado" significa que o sistema desconta a quantidade ao vender.</FieldHelp></span>
+                </th>
+                <th className="px-3 py-2 text-center">
+                  <span className="inline-flex items-center gap-1">Status <FieldHelp>Ativo aparece em orçamentos; Inativo fica oculto (histórico preservado).</FieldHelp></span>
+                </th>
                 <th className="px-3 py-2 text-center">Ações</th>
               </tr>
             </thead>
