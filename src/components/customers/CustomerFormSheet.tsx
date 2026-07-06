@@ -413,11 +413,11 @@ export function CustomerFormSheet({
                 {isCompany && (
                   <>
                     <div>
-                      <Label>Inscrição estadual</Label>
+                      <LabelWithHelp label="Inscrição estadual" help="Registro da empresa na receita estadual. Deixe vazio se isento." />
                       <Input value={form.state_registration} onChange={(e) => set("state_registration", e.target.value)} />
                     </div>
                     <div>
-                      <Label>Inscrição municipal</Label>
+                      <LabelWithHelp label="Inscrição municipal" help="Registro da empresa na prefeitura, usado para nota de serviço." />
                       <Input value={form.municipal_registration} onChange={(e) => set("municipal_registration", e.target.value)} />
                     </div>
                   </>
@@ -427,7 +427,7 @@ export function CustomerFormSheet({
               <Separator />
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <Label>E-mail *</Label>
+                  <LabelWithHelp label="E-mail *" help="Usado para enviar orçamentos, cobranças e comunicados." />
                   <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)}
                     aria-invalid={!!errors.email}
                     className={errors.email ? "border-destructive" : ""} />
@@ -436,19 +436,22 @@ export function CustomerFormSheet({
                     : <p className="mt-1 text-xs text-muted-foreground">Este campo é obrigatório.</p>}
                 </div>
                 <div>
-                  <Label>Telefone</Label>
+                  <LabelWithHelp label="Telefone" help="Telefone fixo ou celular para ligações." />
                   <Input value={maskPhone(form.phone)} onChange={(e) => set("phone", e.target.value)}
                     aria-invalid={!!errors.whatsapp}
                     className={errors.whatsapp ? "border-destructive" : ""} />
                 </div>
                 <div>
-                  <Label>WhatsApp *</Label>
+                  <LabelWithHelp label="WhatsApp *" help="Número usado para enviar orçamentos e mensagens pelo WhatsApp. Informe WhatsApp ou telefone." />
                   <Input value={maskPhone(form.whatsapp)} onChange={(e) => set("whatsapp", e.target.value)}
                     aria-invalid={!!errors.whatsapp}
                     className={errors.whatsapp ? "border-destructive" : ""} />
                   {errors.whatsapp && <p className="mt-1 text-xs text-destructive">{errors.whatsapp}</p>}
                 </div>
-                <div><Label>Origem</Label><Input value={form.customer_origin} onChange={(e) => set("customer_origin", e.target.value)} placeholder="Indicação, site, Instagram..." /></div>
+                <div>
+                  <LabelWithHelp label="Origem" help="Como este cliente chegou até você. Ajuda a saber quais canais funcionam." />
+                  <Input value={form.customer_origin} onChange={(e) => set("customer_origin", e.target.value)} placeholder="Indicação, site, Instagram..." />
+                </div>
               </div>
 
               <div className="flex items-center justify-between rounded-md border p-3">
