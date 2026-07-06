@@ -264,7 +264,9 @@ export function ItemFormSheet({
             <Section title="Identificação">
               <Field
                 label={isService ? "SKU (opcional)" : "SKU"}
-                help="Código interno do item para você identificar rapidamente. Ex.: CAM-001."
+                help={isService
+                  ? "Código interno para identificar o serviço rapidamente. Opcional. Ex.: SRV-INST."
+                  : "Código interno do item para você identificar rapidamente. Ex.: CAM-001."}
               >
                 <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} maxLength={80} />
               </Field>
