@@ -240,14 +240,18 @@ export function ItemFormSheet({
               <Field
                 label="Nome*"
                 className="md:col-span-2"
-                help="Nome que aparece nos orçamentos e no catálogo. Ex.: Câmera Intelbras VHD 1220 D."
+                help={isService
+                  ? "Nome do serviço como aparece nos orçamentos. Ex.: Instalação de câmera, Visita técnica."
+                  : "Nome que aparece nos orçamentos e no catálogo. Ex.: Câmera Intelbras VHD 1220 D."}
               >
                 <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} maxLength={200} />
               </Field>
               <Field
                 label="Descrição"
                 className="md:col-span-2"
-                help="Detalhes técnicos e diferenciais. Aparece no orçamento e ajuda o cliente a entender o item."
+                help={isService
+                  ? "O que está incluso no serviço, tempo estimado, condições. Aparece no orçamento."
+                  : "Detalhes técnicos e diferenciais. Aparece no orçamento e ajuda o cliente a entender o item."}
               >
                 <Textarea
                   rows={3}
