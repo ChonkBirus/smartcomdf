@@ -192,7 +192,7 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Segmento</Label>
+              <LabelWithHelp label="Segmento" help="Perfil do cliente: residencial, comercial, industrial, condomínio." />
               <Select value={form.customer_type} onValueChange={(v) => setForm({ ...form, customer_type: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
@@ -203,7 +203,7 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Responsável</Label>
+              <LabelWithHelp label="Responsável" help="Quem da sua equipe vai cuidar deste lead até o fechamento." />
               <Select value={form.assigned_to} onValueChange={(v) => setForm({ ...form, assigned_to: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
@@ -217,11 +217,17 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Próxima ação</Label>
+              <LabelWithHelp
+                label="Próxima ação"
+                help="O que precisa ser feito depois. Ex.: enviar orçamento, agendar visita, ligar."
+              />
               <Input value={form.next_action} onChange={(e) => setForm({ ...form, next_action: e.target.value })} />
             </div>
             <div className="grid gap-2">
-              <Label>Follow-up em</Label>
+              <LabelWithHelp
+                label="Follow-up em"
+                help="Data e hora para você ser lembrado de retomar o contato com este lead."
+              />
               <Input
                 type="datetime-local"
                 value={form.next_follow_up_at}
@@ -231,7 +237,10 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
           </div>
 
           <div className="grid gap-2">
-            <Label>Descrição</Label>
+            <LabelWithHelp
+              label="Descrição"
+              help="Anotações livres sobre a conversa, necessidades e detalhes do lead."
+            />
             <Textarea
               rows={3}
               value={form.description}
