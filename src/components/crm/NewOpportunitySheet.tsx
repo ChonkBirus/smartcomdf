@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LabelWithHelp } from "@/components/ui/FieldHelp";
 import { createOpportunity, listCrmTeam } from "@/lib/crm.functions";
 
 type Props = {
@@ -93,7 +94,10 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
 
         <div className="mt-6 grid gap-4">
           <div className="grid gap-2">
-            <Label>Nome do lead *</Label>
+            <LabelWithHelp
+              label="Nome do lead *"
+              help="Nome da pessoa (ou responsável, se empresa) com quem você está negociando."
+            />
             <Input
               value={form.lead_name}
               onChange={(e) => setForm({ ...form, lead_name: e.target.value })}
@@ -103,7 +107,7 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Tipo</Label>
+              <LabelWithHelp label="Tipo" help="Pessoa Física (CPF) ou Pessoa Jurídica (CNPJ)." />
               <Select value={form.lead_type} onValueChange={(v) => setForm({ ...form, lead_type: v as any })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -113,7 +117,10 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Temperatura</Label>
+              <LabelWithHelp
+                label="Temperatura"
+                help="Quão pronto o lead está para fechar: Frio (só olhou), Morno (interessado), Quente (quer fechar já)."
+              />
               <Select value={form.temperature} onValueChange={(v) => setForm({ ...form, temperature: v as any })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -144,7 +151,10 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
           </div>
 
           <div className="grid gap-2">
-            <Label>Interesse / Serviço</Label>
+            <LabelWithHelp
+              label="Interesse / Serviço"
+              help="O que o lead quer contratar. Ex.: instalação de câmeras, projeto elétrico, manutenção."
+            />
             <Input
               value={form.service_interest}
               onChange={(e) => setForm({ ...form, service_interest: e.target.value })}
@@ -154,7 +164,10 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Valor estimado (R$)</Label>
+              <LabelWithHelp
+                label="Valor estimado (R$)"
+                help="Quanto você acha que esta venda pode gerar. Usado para calcular o total do funil."
+              />
               <Input
                 inputMode="decimal"
                 value={form.estimated_value}
@@ -162,7 +175,10 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
               />
             </div>
             <div className="grid gap-2">
-              <Label>Origem</Label>
+              <LabelWithHelp
+                label="Origem"
+                help="De onde veio o lead. Ajuda a saber quais canais trazem mais clientes."
+              />
               <Select value={form.source} onValueChange={(v) => setForm({ ...form, source: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
@@ -176,7 +192,7 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Segmento</Label>
+              <LabelWithHelp label="Segmento" help="Perfil do cliente: residencial, comercial, industrial, condomínio." />
               <Select value={form.customer_type} onValueChange={(v) => setForm({ ...form, customer_type: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
@@ -187,7 +203,7 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Responsável</Label>
+              <LabelWithHelp label="Responsável" help="Quem da sua equipe vai cuidar deste lead até o fechamento." />
               <Select value={form.assigned_to} onValueChange={(v) => setForm({ ...form, assigned_to: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
@@ -201,11 +217,17 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Próxima ação</Label>
+              <LabelWithHelp
+                label="Próxima ação"
+                help="O que precisa ser feito depois. Ex.: enviar orçamento, agendar visita, ligar."
+              />
               <Input value={form.next_action} onChange={(e) => setForm({ ...form, next_action: e.target.value })} />
             </div>
             <div className="grid gap-2">
-              <Label>Follow-up em</Label>
+              <LabelWithHelp
+                label="Follow-up em"
+                help="Data e hora para você ser lembrado de retomar o contato com este lead."
+              />
               <Input
                 type="datetime-local"
                 value={form.next_follow_up_at}
@@ -215,7 +237,10 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
           </div>
 
           <div className="grid gap-2">
-            <Label>Descrição</Label>
+            <LabelWithHelp
+              label="Descrição"
+              help="Anotações livres sobre a conversa, necessidades e detalhes do lead."
+            />
             <Textarea
               rows={3}
               value={form.description}
