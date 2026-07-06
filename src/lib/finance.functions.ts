@@ -93,8 +93,14 @@ function mapRow(r: any): FinancialTransaction {
     category_name: r.financial_categories?.name ?? null,
     customer_name: r.customers?.name ?? null,
     supplier_name: r.suppliers?.name ?? null,
+    bank_account_name: r.financial_bank_accounts
+      ? (r.financial_bank_accounts.account_name
+          ? `${r.financial_bank_accounts.bank_name} — ${r.financial_bank_accounts.account_name}`
+          : r.financial_bank_accounts.bank_name)
+      : null,
   };
 }
+
 
 // ---------- Categories ----------
 
@@ -180,7 +186,9 @@ const TxInputSchema = z.object({
   supplier_id: z.string().uuid().nullable().optional(),
   payment_method: z.string().max(60).nullable().optional(),
   notes: z.string().max(2000).nullable().optional(),
+  bank_account_id: z.string().uuid().nullable().optional(),
 });
+
 
 export const listFinancialTransactions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -188,8 +196,9 @@ export const listFinancialTransactions = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
     let q = context.supabase.from("financial_transactions")
-      .select("*, financial_categories(name), customers(name), suppliers(name)")
+      .select("*, financial_categories(name), customers(name), suppliers(name), financial_bank_accounts(bank_name, account_name)")
       .eq("company_id", cid);
+
     q = applyFilters(q, data);
     const { data: rows, error } = await q.order("due_date", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
     if (error) throw error;
