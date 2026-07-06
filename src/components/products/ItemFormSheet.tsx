@@ -237,10 +237,18 @@ export function ItemFormSheet({
             </Section>
 
             <Section title="Informações gerais">
-              <Field label="Nome*" className="md:col-span-2">
+              <Field
+                label="Nome*"
+                className="md:col-span-2"
+                help="Nome que aparece nos orçamentos e no catálogo. Ex.: Câmera Intelbras VHD 1220 D."
+              >
                 <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} maxLength={200} />
               </Field>
-              <Field label="Descrição" className="md:col-span-2">
+              <Field
+                label="Descrição"
+                className="md:col-span-2"
+                help="Detalhes técnicos e diferenciais. Aparece no orçamento e ajuda o cliente a entender o item."
+              >
                 <Textarea
                   rows={3}
                   value={form.description}
