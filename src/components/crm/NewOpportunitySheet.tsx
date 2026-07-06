@@ -107,7 +107,7 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Tipo</Label>
+              <LabelWithHelp label="Tipo" help="Pessoa Física (CPF) ou Pessoa Jurídica (CNPJ)." />
               <Select value={form.lead_type} onValueChange={(v) => setForm({ ...form, lead_type: v as any })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -117,7 +117,10 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Temperatura</Label>
+              <LabelWithHelp
+                label="Temperatura"
+                help="Quão pronto o lead está para fechar: Frio (só olhou), Morno (interessado), Quente (quer fechar já)."
+              />
               <Select value={form.temperature} onValueChange={(v) => setForm({ ...form, temperature: v as any })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
