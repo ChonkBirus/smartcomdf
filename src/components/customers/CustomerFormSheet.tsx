@@ -625,9 +625,12 @@ export function CustomerFormSheet({
                         }} />
                       {errors[`addr_${i}_city`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_city`]}</p>}
                     </div>
-                    <div className="sm:col-span-3"><Label>Referência</Label><Input value={a.reference ?? ""} onChange={(e) => {
-                      const next = [...form.addresses]; next[i] = { ...a, reference: e.target.value }; set("addresses", next);
-                    }} /></div>
+                    <div className="sm:col-span-3">
+                      <LabelWithHelp label="Referência" help="Ponto de referência para o técnico chegar mais fácil. Ex.: em frente à padaria." />
+                      <Input value={a.reference ?? ""} onChange={(e) => {
+                        const next = [...form.addresses]; next[i] = { ...a, reference: e.target.value }; set("addresses", next);
+                      }} />
+                    </div>
                   </div>
                 </div>
               ))}
