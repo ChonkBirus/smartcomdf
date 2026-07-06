@@ -141,12 +141,18 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
 }) {
   const companyId = useCompanyId();
   const catsFn = useServerFn(listFinancialCategories);
+  const accsFn = useServerFn(listBankAccounts);
   const createFn = useServerFn(createFinancialTransaction);
   const updateFn = useServerFn(updateFinancialTransaction);
 
   const cats = useQuery({
     queryKey: ["fin-cats", companyId, type],
     queryFn: () => catsFn({ data: { type, activeOnly: true } }),
+    enabled: open,
+  });
+  const accs = useQuery({
+    queryKey: ["fin-bank-accounts", companyId, true],
+    queryFn: () => accsFn({ data: { activeOnly: true } }),
     enabled: open,
   });
 
@@ -156,6 +162,7 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
     due_date: editing?.due_date ?? "",
     paid_at: editing?.paid_at?.slice(0, 10) ?? "",
     category_id: editing?.category_id ?? "",
+    bank_account_id: editing?.bank_account_id ?? "",
     payment_method: editing?.payment_method ?? "",
     notes: editing?.notes ?? "",
     status: (editing?.status ?? "PLANNED") as FinTxStatus,
@@ -170,6 +177,7 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
         due_date: form.due_date || null,
         paid_at: form.paid_at ? new Date(form.paid_at).toISOString() : null,
         category_id: form.category_id || null,
+        bank_account_id: form.bank_account_id || null,
         payment_method: form.payment_method || null,
         notes: form.notes || null,
         status: form.status,
@@ -183,6 +191,7 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
     },
     onError: (e: any) => toast.error(e?.message ?? "Erro ao salvar."),
   });
+
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
