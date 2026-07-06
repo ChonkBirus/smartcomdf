@@ -395,7 +395,7 @@ export function ItemFormSheet({
                   </Label>
                 </div>
                 {form.controls_stock && (
-                  <Field label="Estoque mínimo">
+                  <Field label="Estoque mínimo" help="Quantidade abaixo da qual o sistema avisa que precisa comprar mais.">
                     <Input
                       type="number"
                       min={0}
