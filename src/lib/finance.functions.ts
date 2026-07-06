@@ -114,13 +114,6 @@ function mapRow(r: any): FinancialTransaction {
 
 // ---------- Categories ----------
 
-export const ensureDefaultFinancialCategories = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const cid = await getCompanyId(context.supabase, context.userId);
-    await context.supabase.rpc("seed_default_financial_categories", { _company_id: cid });
-    return { ok: true };
-  });
 
 export const listFinancialCategories = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
