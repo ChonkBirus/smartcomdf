@@ -319,7 +319,7 @@ export function ItemFormSheet({
                 </Select>
               </Field>
               {!isService && (
-                <Field label="Fabricante" className="md:col-span-2">
+                <Field label="Fabricante" className="md:col-span-2" help="Quem produz o item. Pode ser diferente da marca (ex.: fabricante OEM).">
                   <Select
                     value={form.manufacturer_id || "_none"}
                     onValueChange={(v) => setForm({ ...form, manufacturer_id: v === "_none" ? "" : v })}
