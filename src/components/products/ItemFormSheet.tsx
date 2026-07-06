@@ -258,11 +258,17 @@ export function ItemFormSheet({
             </Section>
 
             <Section title="Identificação">
-              <Field label={isService ? "SKU (opcional)" : "SKU"}>
+              <Field
+                label={isService ? "SKU (opcional)" : "SKU"}
+                help="Código interno do item para você identificar rapidamente. Ex.: CAM-001."
+              >
                 <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} maxLength={80} />
               </Field>
               {!isService && (
-                <Field label="Código de barras">
+                <Field
+                  label="Código de barras"
+                  help="Código EAN/GTIN de fábrica. Use um leitor ou digite manualmente."
+                >
                   <Input
                     value={form.barcode}
                     onChange={(e) => setForm({ ...form, barcode: e.target.value })}
