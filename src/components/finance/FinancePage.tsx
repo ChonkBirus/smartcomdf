@@ -522,6 +522,8 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
   };
 
   const [sheet, setSheet] = useState<{ open: boolean; type: FinTxType }>({ open: false, type: "INCOME" });
+  const [quickOpen, setQuickOpen] = useState(false);
+
   const o = overview.data;
 
   const [highlightTxId, setHighlightTxId] = useState<string | null>(null);
@@ -575,6 +577,8 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
           <TabsTrigger value="receivables">A Receber</TabsTrigger>
           <TabsTrigger value="payables">A Pagar</TabsTrigger>
           <TabsTrigger value="categories">Categorias</TabsTrigger>
+          <TabsTrigger value="accounts">Contas</TabsTrigger>
+
           <TabsTrigger value="agent">Agente IA</TabsTrigger>
           <TabsTrigger value="reconciliation">Conciliação Bancária</TabsTrigger>
           <TabsTrigger value="reports">Relatórios</TabsTrigger>
@@ -591,7 +595,9 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
             <FinanceMetricCard title="Recebimentos atrasados" value={BRL(o?.overdueReceivables ?? 0)} hint="Entradas vencidas e não recebidas." tone="warning" icon={<AlertTriangle className="h-5 w-5" />} />
             <FinanceMetricCard title="Contas vencidas" value={BRL(o?.overduePayables ?? 0)} hint="Saídas vencidas e não pagas." tone="warning" icon={<AlertTriangle className="h-5 w-5" />} />
           </div>
+          <AccountBalancesCard />
         </TabsContent>
+
 
         <TabsContent value="health" className="mt-4">
           <FinancialHealthPage filters={filters} />
@@ -615,6 +621,10 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
         <TabsContent value="categories" className="mt-4">
           <CategoriesManager />
         </TabsContent>
+        <TabsContent value="accounts" className="mt-4">
+          <BankAccountsManager />
+        </TabsContent>
+
         <TabsContent value="agent" className="mt-4">
           <FinanceAgentChat />
         </TabsContent>
