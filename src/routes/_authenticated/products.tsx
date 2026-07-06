@@ -64,6 +64,7 @@ import { TaxonomyDialog } from "@/components/products/TaxonomyDialog";
 import { ItemFormSheet } from "@/components/products/ItemFormSheet";
 import { ItemBadge } from "@/components/products/ItemBadge";
 import { ProductImportDialog } from "@/components/products/ProductImportDialog";
+import { FieldHelp } from "@/components/ui/FieldHelp";
 
 export const Route = createFileRoute("/_authenticated/products")({
   head: () => ({ meta: [{ title: "Catálogo — SmartPro" }] }),
@@ -264,67 +265,81 @@ function ItemsPage() {
                 onChange={(e) => setSearchDraft(e.target.value)}
               />
             </div>
+            <FieldHelp>
+              Busca pelo nome do item, código interno (SKU) ou código de barras. Pressione Buscar ou Enter.
+            </FieldHelp>
             <Button type="submit" variant="secondary" size="sm">
               Buscar
             </Button>
           </form>
 
-          <Select
-            value={categoryId}
-            onValueChange={(v) => {
-              setCategoryId(v);
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="_all">Todas categorias</SelectItem>
-              {visibleCategories.map((c: any) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-1">
+            <Select
+              value={categoryId}
+              onValueChange={(v) => {
+                setCategoryId(v);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_all">Todas categorias</SelectItem>
+                {visibleCategories.map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FieldHelp>Filtra por categoria (agrupamento do item). Cadastre em "Cadastros auxiliares".</FieldHelp>
+          </div>
 
-          <Select
-            value={brandId}
-            onValueChange={(v) => {
-              setBrandId(v);
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Marca" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="_all">Todas marcas</SelectItem>
-              {(brands as any[]).map((b: any) => (
-                <SelectItem key={b.id} value={b.id}>
-                  {b.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-1">
+            <Select
+              value={brandId}
+              onValueChange={(v) => {
+                setBrandId(v);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Marca" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_all">Todas marcas</SelectItem>
+                {(brands as any[]).map((b: any) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FieldHelp>Filtra pela marca comercial do item (ex.: Intelbras, Hikvision).</FieldHelp>
+          </div>
 
-          <Select
-            value={status}
-            onValueChange={(v) => {
-              setStatus(v as any);
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-[130px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos status</SelectItem>
-              <SelectItem value="active">Ativos</SelectItem>
-              <SelectItem value="inactive">Inativos</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-1">
+            <Select
+              value={status}
+              onValueChange={(v) => {
+                setStatus(v as any);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[130px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos status</SelectItem>
+                <SelectItem value="active">Ativos</SelectItem>
+                <SelectItem value="inactive">Inativos</SelectItem>
+              </SelectContent>
+            </Select>
+            <FieldHelp>
+              Ativos aparecem em orçamentos. Inativos ficam ocultos, mas o histórico é preservado.
+            </FieldHelp>
+          </div>
         </div>
       </div>
 
@@ -341,16 +356,24 @@ function ItemsPage() {
                 >
                   Nome <SortIcon k="name" />
                 </th>
-                <th className="px-3 py-2 text-left">Tipo</th>
-                <th className="px-3 py-2 text-left">Categoria</th>
+                <th className="px-3 py-2 text-left">
+                  <span className="inline-flex items-center gap-1">Tipo <FieldHelp>Produto (item físico com estoque) ou Serviço (mão de obra, não controla estoque).</FieldHelp></span>
+                </th>
+                <th className="px-3 py-2 text-left">
+                  <span className="inline-flex items-center gap-1">Categoria <FieldHelp>Agrupamento do item para busca e relatórios.</FieldHelp></span>
+                </th>
                 <th
                   className="cursor-pointer px-3 py-2 text-right hover:text-foreground"
                   onClick={() => handleSort("sale_price")}
                 >
-                  Preço <SortIcon k="sale_price" />
+                  <span className="inline-flex items-center gap-1">Preço <SortIcon k="sale_price" /> <FieldHelp>Preço de venda ao cliente. Clique no cabeçalho para ordenar.</FieldHelp></span>
                 </th>
-                <th className="px-3 py-2 text-center">Estoque</th>
-                <th className="px-3 py-2 text-center">Status</th>
+                <th className="px-3 py-2 text-center">
+                  <span className="inline-flex items-center gap-1">Estoque <FieldHelp>"Controlado" significa que o sistema desconta a quantidade ao vender.</FieldHelp></span>
+                </th>
+                <th className="px-3 py-2 text-center">
+                  <span className="inline-flex items-center gap-1">Status <FieldHelp>Ativo aparece em orçamentos; Inativo fica oculto (histórico preservado).</FieldHelp></span>
+                </th>
                 <th className="px-3 py-2 text-center">Ações</th>
               </tr>
             </thead>
