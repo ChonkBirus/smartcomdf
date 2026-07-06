@@ -354,7 +354,12 @@ export function ItemFormSheet({
             </Section>
 
             <Section title="Comercial">
-              <Field label="Preço de custo (R$)" help="Quanto você paga pelo item (custo de compra). Base para calcular o markup.">
+              <Field
+                label="Preço de custo (R$)"
+                help={isService
+                  ? "Quanto o serviço custa para a empresa executar (mão de obra, deslocamento). Base para calcular o markup."
+                  : "Quanto você paga pelo item (custo de compra). Base para calcular o markup."}
+              >
                 <Input
                   type="number"
                   min={0}
@@ -363,7 +368,12 @@ export function ItemFormSheet({
                   onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
                 />
               </Field>
-              <Field label="Preço de venda (R$)" help="Preço final para o cliente. Use o botão de sugestão para calcular com base no custo e markup.">
+              <Field
+                label="Preço de venda (R$)"
+                help={isService
+                  ? "Valor cobrado do cliente pelo serviço. Use o botão de sugestão para calcular a partir do custo e do markup."
+                  : "Preço final para o cliente. Use o botão de sugestão para calcular com base no custo e markup."}
+              >
                 <div className="flex gap-2">
                   <Input
                     type="number"
@@ -378,7 +388,12 @@ export function ItemFormSheet({
                   />
                 </div>
               </Field>
-              <Field label="Unidade de medida" help="Como o item é vendido: unidade (UN), caixa (CX), metro (MT) etc.">
+              <Field
+                label="Unidade de medida"
+                help={isService
+                  ? "Como o serviço é cobrado. Ex.: UN por chamado, MT por metro instalado, KIT por pacote fechado."
+                  : "Como o item é vendido: unidade (UN), caixa (CX), metro (MT) etc."}
+              >
                 <Select value={form.unit} onValueChange={(v) => setForm({ ...form, unit: v as ProductUnit })}>
                   <SelectTrigger>
                     <SelectValue />
