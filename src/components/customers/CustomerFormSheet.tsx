@@ -560,7 +560,7 @@ export function CustomerFormSheet({
                     </div>
 
                     <div>
-                      <Label>UF *</Label>
+                      <LabelWithHelp label="UF *" help="Estado do endereço." />
                       <Select
                         value={a.state ?? ""}
                         onValueChange={(v) => {
