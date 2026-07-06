@@ -590,7 +590,7 @@ export function CustomerFormSheet({
                       {errors[`addr_${i}_street`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_street`]}</p>}
                     </div>
                     <div>
-                      <Label>Número *</Label>
+                      <LabelWithHelp label="Número *" help="Número do imóvel. Use S/N se não houver." />
                       <Input value={a.number ?? ""}
                         aria-invalid={!!errors[`addr_${i}_number`]}
                         className={errors[`addr_${i}_number`] ? "border-destructive" : ""}
@@ -599,9 +599,12 @@ export function CustomerFormSheet({
                         }} />
                       {errors[`addr_${i}_number`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_number`]}</p>}
                     </div>
-                    <div><Label>Complemento</Label><Input value={a.complement ?? ""} onChange={(e) => {
-                      const next = [...form.addresses]; next[i] = { ...a, complement: e.target.value }; set("addresses", next);
-                    }} /></div>
+                    <div>
+                      <LabelWithHelp label="Complemento" help="Apto, sala, bloco, andar. Opcional." />
+                      <Input value={a.complement ?? ""} onChange={(e) => {
+                        const next = [...form.addresses]; next[i] = { ...a, complement: e.target.value }; set("addresses", next);
+                      }} />
+                    </div>
                     <div>
                       <Label>Bairro *</Label>
                       <Input value={a.district ?? ""}
