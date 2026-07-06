@@ -25,6 +25,7 @@ import {
 } from "@/lib/products.functions";
 import { ImageUploader, type ItemImage } from "./ImageUploader";
 import { ProductPricingSuggestion } from "./ProductPricingSuggestion";
+import { getItemFieldCopy } from "./itemFieldHelp";
 
 const UNITS: { value: ProductUnit; label: string }[] = [
   { value: "UN", label: "UN — Unidade" },
@@ -237,176 +238,182 @@ export function ItemFormSheet({
             </Section>
 
             <Section title="Informações gerais">
-              <Field
-                label="Nome*"
-                className="md:col-span-2"
-                help={isService
-                  ? "Nome do serviço como aparece nos orçamentos. Ex.: Instalação de câmera, Visita técnica."
-                  : "Nome que aparece nos orçamentos e no catálogo. Ex.: Câmera Intelbras VHD 1220 D."}
-              >
-                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} maxLength={200} />
-              </Field>
-              <Field
-                label="Descrição"
-                className="md:col-span-2"
-                help={isService
-                  ? "O que está incluso no serviço, tempo estimado, condições. Aparece no orçamento."
-                  : "Detalhes técnicos e diferenciais. Aparece no orçamento e ajuda o cliente a entender o item."}
-              >
-                <Textarea
-                  rows={3}
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                />
-              </Field>
+              {(() => {
+                const c = getItemFieldCopy(form.item_type, "name");
+                return (
+                  <Field label={c.label} className="md:col-span-2" help={c.help}>
+                    <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} maxLength={200} />
+                  </Field>
+                );
+              })()}
+              {(() => {
+                const c = getItemFieldCopy(form.item_type, "description");
+                return (
+                  <Field label={c.label} className="md:col-span-2" help={c.help}>
+                    <Textarea
+                      rows={3}
+                      value={form.description}
+                      onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    />
+                  </Field>
+                );
+              })()}
             </Section>
 
             <Section title="Identificação">
-              <Field
-                label={isService ? "SKU (opcional)" : "SKU"}
-                help={isService
-                  ? "Código interno para identificar o serviço rapidamente. Opcional. Ex.: SRV-INST."
-                  : "Código interno do item para você identificar rapidamente. Ex.: CAM-001."}
-              >
-                <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} maxLength={80} />
-              </Field>
-              {!isService && (
-                <Field
-                  label="Código de barras"
-                  help="Código EAN/GTIN de fábrica. Use um leitor ou digite manualmente."
-                >
-                  <Input
-                    value={form.barcode}
-                    onChange={(e) => setForm({ ...form, barcode: e.target.value })}
-                    maxLength={80}
-                  />
-                </Field>
-              )}
+              {(() => {
+                const c = getItemFieldCopy(form.item_type, "sku");
+                return (
+                  <Field label={c.label} help={c.help}>
+                    <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} maxLength={80} />
+                  </Field>
+                );
+              })()}
+              {!isService && (() => {
+                const c = getItemFieldCopy(form.item_type, "barcode");
+                return (
+                  <Field label={c.label} help={c.help}>
+                    <Input
+                      value={form.barcode}
+                      onChange={(e) => setForm({ ...form, barcode: e.target.value })}
+                      maxLength={80}
+                    />
+                  </Field>
+                );
+              })()}
             </Section>
 
             <Section title="Classificação">
-              <Field label="Categoria*" help="Agrupamento do item (ex.: Câmeras, Cabos, Instalação). Facilita busca e relatórios.">
-                <Select value={form.category_id} onValueChange={(v) => setForm({ ...form, category_id: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredCategories.length === 0 && (
-                      <div className="px-2 py-3 text-xs text-muted-foreground">
-                        Nenhuma categoria de {isService ? "serviço" : "produto"} cadastrada.
-                      </div>
-                    )}
-                    {filteredCategories.map((c: any) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field
-                label={isService ? "Marca (opcional)" : "Marca"}
-                help={isService
-                  ? "Opcional. Use quando o serviço estiver associado a uma marca (ex.: instalação autorizada Intelbras)."
-                  : "Marca comercial do item. Ex.: Intelbras, Hikvision."}
-              >
-                <Select
-                  value={form.brand_id || "_none"}
-                  onValueChange={(v) => setForm({ ...form, brand_id: v === "_none" ? "" : v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Nenhuma" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="_none">— Nenhuma —</SelectItem>
-                    {(brands as any[])
-                      .filter((b: any) => b.active || b.id === form.brand_id)
-                      .map((b: any) => (
-                        <SelectItem key={b.id} value={b.id}>
-                          {b.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              {!isService && (
-                <Field label="Fabricante" className="md:col-span-2" help="Quem produz o item. Pode ser diferente da marca (ex.: fabricante OEM).">
-                  <Select
-                    value={form.manufacturer_id || "_none"}
-                    onValueChange={(v) => setForm({ ...form, manufacturer_id: v === "_none" ? "" : v })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Nenhum" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="_none">— Nenhum —</SelectItem>
-                      {(manufacturers as any[])
-                        .filter((m: any) => m.active || m.id === form.manufacturer_id)
-                        .map((m: any) => (
-                          <SelectItem key={m.id} value={m.id}>
-                            {m.name}
+              {(() => {
+                const c = getItemFieldCopy(form.item_type, "category");
+                return (
+                  <Field label={c.label} help={c.help}>
+                    <Select value={form.category_id} onValueChange={(v) => setForm({ ...form, category_id: v })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredCategories.length === 0 && (
+                          <div className="px-2 py-3 text-xs text-muted-foreground">
+                            Nenhuma categoria de {isService ? "serviço" : "produto"} cadastrada.
+                          </div>
+                        )}
+                        {filteredCategories.map((c: any) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
                           </SelectItem>
                         ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              )}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                );
+              })()}
+              {(() => {
+                const c = getItemFieldCopy(form.item_type, "brand");
+                return (
+                  <Field label={c.label} help={c.help}>
+                    <Select
+                      value={form.brand_id || "_none"}
+                      onValueChange={(v) => setForm({ ...form, brand_id: v === "_none" ? "" : v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Nenhuma" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_none">— Nenhuma —</SelectItem>
+                        {(brands as any[])
+                          .filter((b: any) => b.active || b.id === form.brand_id)
+                          .map((b: any) => (
+                            <SelectItem key={b.id} value={b.id}>
+                              {b.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                );
+              })()}
+              {!isService && (() => {
+                const c = getItemFieldCopy(form.item_type, "manufacturer");
+                return (
+                  <Field label={c.label} className="md:col-span-2" help={c.help}>
+                    <Select
+                      value={form.manufacturer_id || "_none"}
+                      onValueChange={(v) => setForm({ ...form, manufacturer_id: v === "_none" ? "" : v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Nenhum" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_none">— Nenhum —</SelectItem>
+                        {(manufacturers as any[])
+                          .filter((m: any) => m.active || m.id === form.manufacturer_id)
+                          .map((m: any) => (
+                            <SelectItem key={m.id} value={m.id}>
+                              {m.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                );
+              })()}
             </Section>
 
             <Section title="Comercial">
-              <Field
-                label="Preço de custo (R$)"
-                help={isService
-                  ? "Quanto o serviço custa para a empresa executar (mão de obra, deslocamento). Base para calcular o markup."
-                  : "Quanto você paga pelo item (custo de compra). Base para calcular o markup."}
-              >
-                <Input
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={form.cost_price}
-                  onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
-                />
-              </Field>
-              <Field
-                label="Preço de venda (R$)"
-                help={isService
-                  ? "Valor cobrado do cliente pelo serviço. Use o botão de sugestão para calcular a partir do custo e do markup."
-                  : "Preço final para o cliente. Use o botão de sugestão para calcular com base no custo e markup."}
-              >
-                <div className="flex gap-2">
-                  <Input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={form.sale_price}
-                    onChange={(e) => setForm({ ...form, sale_price: e.target.value })}
-                  />
-                  <ProductPricingSuggestion
-                    costPrice={form.cost_price}
-                    onApply={(price) => setForm({ ...form, sale_price: String(price) })}
-                  />
-                </div>
-              </Field>
-              <Field
-                label="Unidade de medida"
-                help={isService
-                  ? "Como o serviço é cobrado. Ex.: UN por chamado, MT por metro instalado, KIT por pacote fechado."
-                  : "Como o item é vendido: unidade (UN), caixa (CX), metro (MT) etc."}
-              >
-                <Select value={form.unit} onValueChange={(v) => setForm({ ...form, unit: v as ProductUnit })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {UNITS.map((u) => (
-                      <SelectItem key={u.value} value={u.value}>
-                        {u.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
+              {(() => {
+                const c = getItemFieldCopy(form.item_type, "cost_price");
+                return (
+                  <Field label={c.label} help={c.help}>
+                    <Input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={form.cost_price}
+                      onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
+                    />
+                  </Field>
+                );
+              })()}
+              {(() => {
+                const c = getItemFieldCopy(form.item_type, "sale_price");
+                return (
+                  <Field label={c.label} help={c.help}>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={form.sale_price}
+                        onChange={(e) => setForm({ ...form, sale_price: e.target.value })}
+                      />
+                      <ProductPricingSuggestion
+                        costPrice={form.cost_price}
+                        onApply={(price) => setForm({ ...form, sale_price: String(price) })}
+                      />
+                    </div>
+                  </Field>
+                );
+              })()}
+              {(() => {
+                const c = getItemFieldCopy(form.item_type, "unit");
+                return (
+                  <Field label={c.label} help={c.help}>
+                    <Select value={form.unit} onValueChange={(v) => setForm({ ...form, unit: v as ProductUnit })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {UNITS.map((u) => (
+                          <SelectItem key={u.value} value={u.value}>
+                            {u.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                );
+              })()}
             </Section>
 
             {!isService && (
@@ -420,17 +427,20 @@ export function ItemFormSheet({
                     Controlar estoque deste produto
                   </Label>
                 </div>
-                {form.controls_stock && (
-                  <Field label="Estoque mínimo" help="Quantidade abaixo da qual o sistema avisa que precisa comprar mais.">
-                    <Input
-                      type="number"
-                      min={0}
-                      step="0.001"
-                      value={form.minimum_stock}
-                      onChange={(e) => setForm({ ...form, minimum_stock: e.target.value })}
-                    />
-                  </Field>
-                )}
+                {form.controls_stock && (() => {
+                  const c = getItemFieldCopy(form.item_type, "minimum_stock");
+                  return (
+                    <Field label={c.label} help={c.help}>
+                      <Input
+                        type="number"
+                        min={0}
+                        step="0.001"
+                        value={form.minimum_stock}
+                        onChange={(e) => setForm({ ...form, minimum_stock: e.target.value })}
+                      />
+                    </Field>
+                  );
+                })()}
               </Section>
             )}
 
