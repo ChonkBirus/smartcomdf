@@ -643,6 +643,24 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
         type={sheet.type}
         onSaved={invalidateAll}
       />
+
+      {/* Mobile FAB — lançamento rápido pelo celular */}
+      <button
+        type="button"
+        onClick={() => setQuickOpen(true)}
+        className="fixed bottom-5 right-5 z-40 flex h-14 items-center gap-2 rounded-full bg-primary px-5 text-primary-foreground shadow-lg shadow-primary/30 md:hidden"
+        aria-label="Novo lançamento"
+      >
+        <Plus className="h-5 w-5" />
+        <span className="font-semibold">Lançar</span>
+      </button>
+      <QuickTransactionSheet
+        open={quickOpen}
+        onOpenChange={setQuickOpen}
+        onSaved={invalidateAll}
+        defaultType="EXPENSE"
+      />
     </div>
   );
 }
+
