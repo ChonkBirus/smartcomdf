@@ -320,8 +320,9 @@ export const getCashFlow = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
     let q = context.supabase.from("financial_transactions")
-      .select("*, financial_categories(name)")
+      .select("*, financial_categories(name), financial_bank_accounts(bank_name, account_name)")
       .eq("company_id", cid);
+
     q = applyFilters(q, data);
     const { data: rows, error } = await q.order("due_date", { ascending: false, nullsFirst: false });
     if (error) throw error;
@@ -334,8 +335,9 @@ export const getReceivables = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
     const { data: rows, error } = await context.supabase.from("financial_transactions")
-      .select("*, financial_categories(name), customers(name)")
+      .select("*, financial_categories(name), customers(name), financial_bank_accounts(bank_name, account_name)")
       .eq("company_id", cid)
+
       .eq("type", "INCOME")
       .in("status", ["PLANNED", "PAID", "OVERDUE", "CANCELED"])
       .order("due_date", { ascending: true, nullsFirst: false });
@@ -349,8 +351,9 @@ export const getPayables = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
     const { data: rows, error } = await context.supabase.from("financial_transactions")
-      .select("*, financial_categories(name), suppliers(name)")
+      .select("*, financial_categories(name), suppliers(name), financial_bank_accounts(bank_name, account_name)")
       .eq("company_id", cid)
+
       .eq("type", "EXPENSE")
       .in("status", ["PLANNED", "PAID", "OVERDUE", "CANCELED"])
       .order("due_date", { ascending: true, nullsFirst: false });
