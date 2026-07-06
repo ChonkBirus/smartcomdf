@@ -482,10 +482,20 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
+function Field({
+  label,
+  help,
+  children,
+  className,
+}: {
+  label: string;
+  help?: ReactNode;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <div className={"space-y-1.5 " + (className ?? "")}>
-      <Label>{label}</Label>
+      {help ? <LabelWithHelp label={label} help={help} /> : <Label>{label}</Label>}
       {children}
     </div>
   );
