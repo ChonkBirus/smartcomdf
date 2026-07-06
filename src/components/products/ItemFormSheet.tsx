@@ -298,7 +298,7 @@ export function ItemFormSheet({
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label={isService ? "Marca (opcional)" : "Marca"}>
+              <Field label={isService ? "Marca (opcional)" : "Marca"} help="Marca comercial do item. Ex.: Intelbras, Hikvision.">
                 <Select
                   value={form.brand_id || "_none"}
                   onValueChange={(v) => setForm({ ...form, brand_id: v === "_none" ? "" : v })}
