@@ -437,9 +437,10 @@ export function ItemFormSheet({
                         step="0.001"
                         value={form.minimum_stock}
                         onChange={(e) => setForm({ ...form, minimum_stock: e.target.value })}
-                    />
-                  </Field>
-                )}
+                      />
+                    </Field>
+                  );
+                })()}
               </Section>
             )}
 
