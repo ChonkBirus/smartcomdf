@@ -43,15 +43,10 @@ export function QuickTransactionSheet({
   const [status, setStatus] = useState<FinTxStatus>("PAID");
   const [notes, setNotes] = useState("");
 
-  const catsFn = useServerFn(listFinancialCategories);
   const accsFn = useServerFn(listBankAccounts);
   const createFn = useServerFn(createFinancialTransaction);
 
-  const cats = useQuery({
-    queryKey: ["fin-cats", companyId, type],
-    queryFn: () => catsFn({ data: { type, activeOnly: true } }),
-    enabled: open,
-  });
+
   const accs = useQuery({
     queryKey: ["fin-bank-accounts", companyId, true],
     queryFn: () => accsFn({ data: { activeOnly: true } }),
