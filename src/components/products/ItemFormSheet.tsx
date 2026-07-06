@@ -240,14 +240,18 @@ export function ItemFormSheet({
               <Field
                 label="Nome*"
                 className="md:col-span-2"
-                help="Nome que aparece nos orçamentos e no catálogo. Ex.: Câmera Intelbras VHD 1220 D."
+                help={isService
+                  ? "Nome do serviço como aparece nos orçamentos. Ex.: Instalação de câmera, Visita técnica."
+                  : "Nome que aparece nos orçamentos e no catálogo. Ex.: Câmera Intelbras VHD 1220 D."}
               >
                 <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} maxLength={200} />
               </Field>
               <Field
                 label="Descrição"
                 className="md:col-span-2"
-                help="Detalhes técnicos e diferenciais. Aparece no orçamento e ajuda o cliente a entender o item."
+                help={isService
+                  ? "O que está incluso no serviço, tempo estimado, condições. Aparece no orçamento."
+                  : "Detalhes técnicos e diferenciais. Aparece no orçamento e ajuda o cliente a entender o item."}
               >
                 <Textarea
                   rows={3}
@@ -260,7 +264,9 @@ export function ItemFormSheet({
             <Section title="Identificação">
               <Field
                 label={isService ? "SKU (opcional)" : "SKU"}
-                help="Código interno do item para você identificar rapidamente. Ex.: CAM-001."
+                help={isService
+                  ? "Código interno para identificar o serviço rapidamente. Opcional. Ex.: SRV-INST."
+                  : "Código interno do item para você identificar rapidamente. Ex.: CAM-001."}
               >
                 <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} maxLength={80} />
               </Field>
@@ -298,7 +304,12 @@ export function ItemFormSheet({
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label={isService ? "Marca (opcional)" : "Marca"} help="Marca comercial do item. Ex.: Intelbras, Hikvision.">
+              <Field
+                label={isService ? "Marca (opcional)" : "Marca"}
+                help={isService
+                  ? "Opcional. Use quando o serviço estiver associado a uma marca (ex.: instalação autorizada Intelbras)."
+                  : "Marca comercial do item. Ex.: Intelbras, Hikvision."}
+              >
                 <Select
                   value={form.brand_id || "_none"}
                   onValueChange={(v) => setForm({ ...form, brand_id: v === "_none" ? "" : v })}
@@ -343,7 +354,12 @@ export function ItemFormSheet({
             </Section>
 
             <Section title="Comercial">
-              <Field label="Preço de custo (R$)" help="Quanto você paga pelo item (custo de compra). Base para calcular o markup.">
+              <Field
+                label="Preço de custo (R$)"
+                help={isService
+                  ? "Quanto o serviço custa para a empresa executar (mão de obra, deslocamento). Base para calcular o markup."
+                  : "Quanto você paga pelo item (custo de compra). Base para calcular o markup."}
+              >
                 <Input
                   type="number"
                   min={0}
@@ -352,7 +368,12 @@ export function ItemFormSheet({
                   onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
                 />
               </Field>
-              <Field label="Preço de venda (R$)" help="Preço final para o cliente. Use o botão de sugestão para calcular com base no custo e markup.">
+              <Field
+                label="Preço de venda (R$)"
+                help={isService
+                  ? "Valor cobrado do cliente pelo serviço. Use o botão de sugestão para calcular a partir do custo e do markup."
+                  : "Preço final para o cliente. Use o botão de sugestão para calcular com base no custo e markup."}
+              >
                 <div className="flex gap-2">
                   <Input
                     type="number"
@@ -367,7 +388,12 @@ export function ItemFormSheet({
                   />
                 </div>
               </Field>
-              <Field label="Unidade de medida" help="Como o item é vendido: unidade (UN), caixa (CX), metro (MT) etc.">
+              <Field
+                label="Unidade de medida"
+                help={isService
+                  ? "Como o serviço é cobrado. Ex.: UN por chamado, MT por metro instalado, KIT por pacote fechado."
+                  : "Como o item é vendido: unidade (UN), caixa (CX), metro (MT) etc."}
+              >
                 <Select value={form.unit} onValueChange={(v) => setForm({ ...form, unit: v as ProductUnit })}>
                   <SelectTrigger>
                     <SelectValue />
