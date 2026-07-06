@@ -10,11 +10,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LabelWithHelp } from "@/components/ui/FieldHelp";
 import {
-  createFinancialTransaction, listFinancialCategories,
+  createFinancialTransaction,
   type FinTxType, type FinTxStatus,
 } from "@/lib/finance.functions";
 import { listBankAccounts } from "@/lib/bank-accounts.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
+import { CategorySelect } from "@/components/finance/chart-of-accounts/CategorySelect";
 
 /**
  * Mobile-first quick entry for a financial transaction.
