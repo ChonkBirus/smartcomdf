@@ -376,11 +376,6 @@ export function ChartOfAccountsPage({ canManage = true }: { canManage?: boolean 
   const filtered = useMemo(() => {
     let rows = (q.data ?? []) as FinancialCategory[];
     if (!showInactive) rows = rows.filter((r) => r.active);
-    if (levelFilter !== "all") {
-      const lvl = parseInt(levelFilter, 10);
-      // Keep everything at or above the requested level, so parents remain in the tree.
-      rows = rows.filter((r) => (r.level ?? levelFromCode(r.code)) <= lvl);
-    }
     const term = search.trim().toLowerCase();
     if (term) {
       const matching = new Set<string>();
