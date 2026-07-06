@@ -507,7 +507,7 @@ export function CustomerFormSheet({
                   </div>
                   <div className="grid gap-2 sm:grid-cols-3">
                     <div>
-                      <Label>País *</Label>
+                      <LabelWithHelp label="País *" help="País do endereço. Muda a lista de estados/UF disponível." />
                       <Select
                         value={a.country || "BR"}
                         onValueChange={(v) => {
@@ -525,7 +525,7 @@ export function CustomerFormSheet({
                       </Select>
                     </div>
                     <div>
-                      <Label>CEP *</Label>
+                      <LabelWithHelp label="CEP *" help="Digite o CEP para preencher rua, bairro, cidade e UF automaticamente." />
                       {a.country === "BR" ? (
                         <CepInput
                           value={a.zipcode ?? ""}
@@ -560,7 +560,7 @@ export function CustomerFormSheet({
                     </div>
 
                     <div>
-                      <Label>UF *</Label>
+                      <LabelWithHelp label="UF *" help="Estado do endereço." />
                       <Select
                         value={a.state ?? ""}
                         onValueChange={(v) => {
@@ -580,7 +580,7 @@ export function CustomerFormSheet({
                       {errors[`addr_${i}_state`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_state`]}</p>}
                     </div>
                     <div className="sm:col-span-2">
-                      <Label>Rua *</Label>
+                      <LabelWithHelp label="Rua *" help="Nome da rua, avenida ou logradouro." />
                       <Input value={a.street ?? ""}
                         aria-invalid={!!errors[`addr_${i}_street`]}
                         className={errors[`addr_${i}_street`] ? "border-destructive" : ""}
@@ -590,7 +590,7 @@ export function CustomerFormSheet({
                       {errors[`addr_${i}_street`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_street`]}</p>}
                     </div>
                     <div>
-                      <Label>Número *</Label>
+                      <LabelWithHelp label="Número *" help="Número do imóvel. Use S/N se não houver." />
                       <Input value={a.number ?? ""}
                         aria-invalid={!!errors[`addr_${i}_number`]}
                         className={errors[`addr_${i}_number`] ? "border-destructive" : ""}
@@ -599,11 +599,14 @@ export function CustomerFormSheet({
                         }} />
                       {errors[`addr_${i}_number`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_number`]}</p>}
                     </div>
-                    <div><Label>Complemento</Label><Input value={a.complement ?? ""} onChange={(e) => {
-                      const next = [...form.addresses]; next[i] = { ...a, complement: e.target.value }; set("addresses", next);
-                    }} /></div>
                     <div>
-                      <Label>Bairro *</Label>
+                      <LabelWithHelp label="Complemento" help="Apto, sala, bloco, andar. Opcional." />
+                      <Input value={a.complement ?? ""} onChange={(e) => {
+                        const next = [...form.addresses]; next[i] = { ...a, complement: e.target.value }; set("addresses", next);
+                      }} />
+                    </div>
+                    <div>
+                      <LabelWithHelp label="Bairro *" help="Bairro do endereço." />
                       <Input value={a.district ?? ""}
                         aria-invalid={!!errors[`addr_${i}_district`]}
                         className={errors[`addr_${i}_district`] ? "border-destructive" : ""}
@@ -613,7 +616,7 @@ export function CustomerFormSheet({
                       {errors[`addr_${i}_district`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_district`]}</p>}
                     </div>
                     <div>
-                      <Label>Cidade *</Label>
+                      <LabelWithHelp label="Cidade *" help="Cidade do endereço." />
                       <Input value={a.city ?? ""}
                         aria-invalid={!!errors[`addr_${i}_city`]}
                         className={errors[`addr_${i}_city`] ? "border-destructive" : ""}
@@ -622,9 +625,12 @@ export function CustomerFormSheet({
                         }} />
                       {errors[`addr_${i}_city`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_city`]}</p>}
                     </div>
-                    <div className="sm:col-span-3"><Label>Referência</Label><Input value={a.reference ?? ""} onChange={(e) => {
-                      const next = [...form.addresses]; next[i] = { ...a, reference: e.target.value }; set("addresses", next);
-                    }} /></div>
+                    <div className="sm:col-span-3">
+                      <LabelWithHelp label="Referência" help="Ponto de referência para o técnico chegar mais fácil. Ex.: em frente à padaria." />
+                      <Input value={a.reference ?? ""} onChange={(e) => {
+                        const next = [...form.addresses]; next[i] = { ...a, reference: e.target.value }; set("addresses", next);
+                      }} />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -643,7 +649,7 @@ export function CustomerFormSheet({
                 <div key={i} className="space-y-2 rounded-md border p-3">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <Label>Nome *</Label>
+                      <LabelWithHelp label="Nome *" help="Nome da pessoa de contato desta empresa/cliente." />
                       <Input value={c.name}
                         aria-invalid={!!errors[`contact_${i}_name`]}
                         className={errors[`contact_${i}_name`] ? "border-destructive" : ""}
@@ -669,11 +675,14 @@ export function CustomerFormSheet({
                     </div>
                   </div>
                   <div className="grid gap-2 sm:grid-cols-2">
-                    <div><Label>Cargo/Função</Label><Input value={c.role ?? ""} onChange={(e) => {
-                      const next = [...form.contacts]; next[i] = { ...c, role: e.target.value }; set("contacts", next);
-                    }} /></div>
                     <div>
-                      <Label>E-mail</Label>
+                      <LabelWithHelp label="Cargo/Função" help="Cargo do contato. Ex.: síndico, gerente, comprador." />
+                      <Input value={c.role ?? ""} onChange={(e) => {
+                        const next = [...form.contacts]; next[i] = { ...c, role: e.target.value }; set("contacts", next);
+                      }} />
+                    </div>
+                    <div>
+                      <LabelWithHelp label="E-mail" help="E-mail deste contato específico." />
                       <Input value={c.email ?? ""}
                         aria-invalid={!!errors[`contact_${i}_email`]}
                         className={errors[`contact_${i}_email`] ? "border-destructive" : ""}
@@ -683,7 +692,7 @@ export function CustomerFormSheet({
                       {errors[`contact_${i}_email`] && <p className="mt-1 text-xs text-destructive">{errors[`contact_${i}_email`]}</p>}
                     </div>
                     <div>
-                      <Label>Telefone *</Label>
+                      <LabelWithHelp label="Telefone *" help="Telefone deste contato para ligações." />
                       <Input value={maskPhone(c.phone ?? "")}
                         aria-invalid={!!errors[`contact_${i}_phone`]}
                         className={errors[`contact_${i}_phone`] ? "border-destructive" : ""}
@@ -693,7 +702,7 @@ export function CustomerFormSheet({
                       {errors[`contact_${i}_phone`] && <p className="mt-1 text-xs text-destructive">{errors[`contact_${i}_phone`]}</p>}
                     </div>
                     <div>
-                      <Label>WhatsApp *</Label>
+                      <LabelWithHelp label="WhatsApp *" help="WhatsApp deste contato para envio de orçamentos e mensagens." />
                       <Input value={maskPhone(c.whatsapp ?? "")}
                         aria-invalid={!!errors[`contact_${i}_phone`]}
                         className={errors[`contact_${i}_phone`] ? "border-destructive" : ""}
@@ -713,7 +722,7 @@ export function CustomerFormSheet({
             {/* TAGS */}
             <TabsContent value="extra" className="space-y-4 pt-4">
               <div>
-                <Label>Tags</Label>
+                <LabelWithHelp label="Tags" help="Etiquetas para agrupar clientes (ex.: VIP, Contrato, Manutenção). Clique para marcar ou desmarcar." />
                 <div className="mt-2 flex flex-wrap gap-2">
                   {(tags ?? []).map((t) => {
                     const selected = form.tag_ids.includes(t.id);
@@ -744,7 +753,7 @@ export function CustomerFormSheet({
               </div>
               <Separator />
               <div>
-                <Label>Observações internas</Label>
+                <LabelWithHelp label="Observações internas" help="Notas que só a sua equipe vê. Não aparece para o cliente." />
                 <Textarea rows={4} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
               </div>
             </TabsContent>
