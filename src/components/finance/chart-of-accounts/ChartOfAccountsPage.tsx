@@ -345,7 +345,7 @@ export function ChartOfAccountsPage({ canManage = true }: { canManage?: boolean 
 
   const [showInactive, setShowInactive] = useState(false);
   const [search, setSearch] = useState("");
-  const [levelFilter, setLevelFilter] = useState<"all" | "1" | "2" | "3">("all");
+  const [levelView, setLevelView] = useState<"1" | "2" | "3">("2");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<FormMode | null>(null);
