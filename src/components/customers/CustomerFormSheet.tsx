@@ -507,7 +507,7 @@ export function CustomerFormSheet({
                   </div>
                   <div className="grid gap-2 sm:grid-cols-3">
                     <div>
-                      <Label>País *</Label>
+                      <LabelWithHelp label="País *" help="País do endereço. Muda a lista de estados/UF disponível." />
                       <Select
                         value={a.country || "BR"}
                         onValueChange={(v) => {
