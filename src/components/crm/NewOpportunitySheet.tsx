@@ -94,7 +94,10 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
 
         <div className="mt-6 grid gap-4">
           <div className="grid gap-2">
-            <Label>Nome do lead *</Label>
+            <LabelWithHelp
+              label="Nome do lead *"
+              help="Nome da pessoa (ou responsável, se empresa) com quem você está negociando."
+            />
             <Input
               value={form.lead_name}
               onChange={(e) => setForm({ ...form, lead_name: e.target.value })}
