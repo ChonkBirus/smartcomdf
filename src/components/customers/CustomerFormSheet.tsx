@@ -315,7 +315,10 @@ export function CustomerFormSheet({
             <TabsContent value="main" className="space-y-4 pt-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <Label>Tipo *</Label>
+                  <LabelWithHelp
+                    label="Tipo *"
+                    help="Pessoa Física (CPF, uma pessoa) ou Pessoa Jurídica (CNPJ, empresa)."
+                  />
                   <Select
                     value={form.customer_type}
                     onValueChange={(v) => set("customer_type", v as CustomerType)}
@@ -328,7 +331,10 @@ export function CustomerFormSheet({
                   </Select>
                 </div>
                 <div>
-                  <Label>Status</Label>
+                  <LabelWithHelp
+                    label="Status"
+                    help="Situação do cliente: Lead (ainda não comprou), Ativo, Inativo ou Bloqueado (não vender)."
+                  />
                   <Select
                     value={form.customer_status}
                     onValueChange={(v) => set("customer_status", v as CustomerStatus)}
