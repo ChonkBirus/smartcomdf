@@ -606,7 +606,7 @@ export function CustomerFormSheet({
                       }} />
                     </div>
                     <div>
-                      <Label>Bairro *</Label>
+                      <LabelWithHelp label="Bairro *" help="Bairro do endereço." />
                       <Input value={a.district ?? ""}
                         aria-invalid={!!errors[`addr_${i}_district`]}
                         className={errors[`addr_${i}_district`] ? "border-destructive" : ""}
