@@ -25,6 +25,7 @@ import {
 } from "@/lib/products.functions";
 import { ImageUploader, type ItemImage } from "./ImageUploader";
 import { ProductPricingSuggestion } from "./ProductPricingSuggestion";
+import { getItemFieldCopy } from "./itemFieldHelp";
 
 const UNITS: { value: ProductUnit; label: string }[] = [
   { value: "UN", label: "UN — Unidade" },
