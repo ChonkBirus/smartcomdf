@@ -68,12 +68,15 @@ export function PricingSimulatorPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
-      <PageHeader title="Precificação e markup"
-        description="Simulador de preço baseado em custos, pró-labore, margem e defaults da empresa." />
+      <PageHeader
+        title="Precificação simples"
+        description="Calcule o preço ideal de venda com base nos custos da sua empresa."
+      />
       <Simulator canSave={canSave} canApply={canApply} />
     </div>
   );
 }
+
 
 function Simulator({ canSave, canApply }: { canSave: boolean; canApply: boolean }) {
   const qc = useQueryClient();
