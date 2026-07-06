@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ChevronDown, ChevronRight, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -345,7 +345,7 @@ export function ChartOfAccountsPage({ canManage = true }: { canManage?: boolean 
 
   const [showInactive, setShowInactive] = useState(false);
   const [search, setSearch] = useState("");
-  const [levelFilter, setLevelFilter] = useState<"all" | "1" | "2" | "3">("all");
+  const [levelView, setLevelView] = useState<"1" | "2" | "3">("2");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<FormMode | null>(null);
@@ -376,11 +376,6 @@ export function ChartOfAccountsPage({ canManage = true }: { canManage?: boolean 
   const filtered = useMemo(() => {
     let rows = (q.data ?? []) as FinancialCategory[];
     if (!showInactive) rows = rows.filter((r) => r.active);
-    if (levelFilter !== "all") {
-      const lvl = parseInt(levelFilter, 10);
-      // Keep everything at or above the requested level, so parents remain in the tree.
-      rows = rows.filter((r) => (r.level ?? levelFromCode(r.code)) <= lvl);
-    }
     const term = search.trim().toLowerCase();
     if (term) {
       const matching = new Set<string>();
@@ -399,15 +394,27 @@ export function ChartOfAccountsPage({ canManage = true }: { canManage?: boolean 
       rows = rows.filter((r) => matching.has(r.id));
     }
     return rows;
-  }, [q.data, showInactive, levelFilter, search]);
+  }, [q.data, showInactive, search]);
 
   const tree = useMemo(() => buildTree(filtered), [filtered]);
 
-  // When searching, auto-expand all matched branches.
+  // Auto-expand: on search, expand matched branches.
+  // Otherwise expand up to the selected view level (1 = collapse all, 2 = show level 2, 3 = show level 3).
   useEffect(() => {
-    if (!search.trim()) return;
-    setExpanded(new Set(filtered.map((r) => r.id)));
-  }, [search, filtered]);
+    if (search.trim()) {
+      setExpanded(new Set(filtered.map((r) => r.id)));
+      return;
+    }
+    const targetDepth = parseInt(levelView, 10); // 1..3
+    const ids = new Set<string>();
+    // Expand every node whose own level is strictly less than targetDepth
+    // so its children (at level = its level + 1) become visible.
+    filtered.forEach((r) => {
+      const lvl = r.level ?? levelFromCode(r.code);
+      if (lvl < targetDepth) ids.add(r.id);
+    });
+    setExpanded(ids);
+  }, [search, filtered, levelView]);
 
   const onToggle = (id: string) =>
     setExpanded((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
@@ -505,19 +512,39 @@ export function ChartOfAccountsPage({ canManage = true }: { canManage?: boolean 
                 className="pl-9"
               />
             </div>
-            <Tabs value={levelFilter} onValueChange={(v) => setLevelFilter(v as any)}>
+            <Tabs value={levelView} onValueChange={(v) => setLevelView(v as "1" | "2" | "3")}>
               <TabsList>
-                <TabsTrigger value="all">Todos</TabsTrigger>
                 <TabsTrigger value="1">Nível 1</TabsTrigger>
                 <TabsTrigger value="2">Nível 2</TabsTrigger>
                 <TabsTrigger value="3">Nível 3</TabsTrigger>
               </TabsList>
             </Tabs>
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setExpanded(new Set(filtered.map((r) => r.id)))}
+                title="Expandir tudo"
+              >
+                <ChevronsUpDown className="mr-1 h-4 w-4" /> Expandir
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setExpanded(new Set())}
+                title="Recolher tudo"
+              >
+                <ChevronsDownUp className="mr-1 h-4 w-4" /> Recolher
+              </Button>
+            </div>
             <label className="flex cursor-pointer items-center gap-2 text-sm">
               <Switch checked={showInactive} onCheckedChange={setShowInactive} />
               Mostrar inativas
             </label>
           </div>
+
         </CardContent>
       </Card>
 
