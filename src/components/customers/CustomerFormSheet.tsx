@@ -525,7 +525,7 @@ export function CustomerFormSheet({
                       </Select>
                     </div>
                     <div>
-                      <Label>CEP *</Label>
+                      <LabelWithHelp label="CEP *" help="Digite o CEP para preencher rua, bairro, cidade e UF automaticamente." />
                       {a.country === "BR" ? (
                         <CepInput
                           value={a.zipcode ?? ""}
