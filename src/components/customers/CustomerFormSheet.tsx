@@ -753,7 +753,7 @@ export function CustomerFormSheet({
               </div>
               <Separator />
               <div>
-                <Label>Observações internas</Label>
+                <LabelWithHelp label="Observações internas" help="Notas que só a sua equipe vê. Não aparece para o cliente." />
                 <Textarea rows={4} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
               </div>
             </TabsContent>
