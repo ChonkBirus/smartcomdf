@@ -8,6 +8,11 @@ export type FinTxOrigin =
   | "MANUAL" | "QUOTE" | "PAYMENT" | "PURCHASE"
   | "SERVICE_ORDER" | "OPEN_FINANCE" | "IMPORT";
 
+export type CostBehavior = "FIXED" | "VARIABLE";
+export type CategoryGroup =
+  | "REVENUE" | "VARIABLE_COST" | "FIXED_EXPENSE"
+  | "INVESTMENT" | "NON_OPERATIONAL" | "CASH_ADJUSTMENT";
+
 export type FinancialCategory = {
   id: string;
   company_id: string;
@@ -16,6 +21,11 @@ export type FinancialCategory = {
   parent_id: string | null;
   active: boolean;
   is_default: boolean;
+  code: string | null;
+  level: number | null;
+  sort_order: number;
+  cost_behavior: CostBehavior | null;
+  category_group: CategoryGroup | null;
   created_at: string;
   updated_at: string;
 };
