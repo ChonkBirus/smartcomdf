@@ -367,7 +367,7 @@ export function ItemFormSheet({
                   />
                 </div>
               </Field>
-              <Field label="Unidade de medida">
+              <Field label="Unidade de medida" help="Como o item é vendido: unidade (UN), caixa (CX), metro (MT) etc.">
                 <Select value={form.unit} onValueChange={(v) => setForm({ ...form, unit: v as ProductUnit })}>
                   <SelectTrigger>
                     <SelectValue />
