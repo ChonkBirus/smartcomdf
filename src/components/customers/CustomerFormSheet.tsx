@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LabelWithHelp } from "@/components/ui/FieldHelp";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
@@ -314,7 +315,10 @@ export function CustomerFormSheet({
             <TabsContent value="main" className="space-y-4 pt-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <Label>Tipo *</Label>
+                  <LabelWithHelp
+                    label="Tipo *"
+                    help="Pessoa Física (CPF, uma pessoa) ou Pessoa Jurídica (CNPJ, empresa)."
+                  />
                   <Select
                     value={form.customer_type}
                     onValueChange={(v) => set("customer_type", v as CustomerType)}
@@ -327,7 +331,10 @@ export function CustomerFormSheet({
                   </Select>
                 </div>
                 <div>
-                  <Label>Status</Label>
+                  <LabelWithHelp
+                    label="Status"
+                    help="Situação do cliente: Lead (ainda não comprou), Ativo, Inativo ou Bloqueado (não vender)."
+                  />
                   <Select
                     value={form.customer_status}
                     onValueChange={(v) => set("customer_status", v as CustomerStatus)}
@@ -345,7 +352,12 @@ export function CustomerFormSheet({
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <Label>{isCompany ? "Nome (referência) *" : "Nome completo *"}</Label>
+                  <LabelWithHelp
+                    label={isCompany ? "Nome (referência) *" : "Nome completo *"}
+                    help={isCompany
+                      ? "Como esta empresa vai aparecer nas listas. Pode ser o nome fantasia ou um apelido."
+                      : "Nome completo do cliente, como consta no documento."}
+                  />
                   <Input value={form.name} onChange={(e) => set("name", e.target.value)} aria-invalid={!!errors.name}
                     className={errors.name ? "border-destructive" : ""} />
                   {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name}</p>}
@@ -353,17 +365,22 @@ export function CustomerFormSheet({
                 {isCompany && (
                   <>
                     <div>
-                      <Label>Razão social</Label>
+                      <LabelWithHelp label="Razão social" help="Nome oficial registrado da empresa (aparece na nota fiscal)." />
                       <Input value={form.corporate_name} onChange={(e) => set("corporate_name", e.target.value)} />
                     </div>
                     <div>
-                      <Label>Nome fantasia</Label>
+                      <LabelWithHelp label="Nome fantasia" help="Nome comercial pelo qual a empresa é conhecida no mercado." />
                       <Input value={form.trade_name} onChange={(e) => set("trade_name", e.target.value)} />
                     </div>
                   </>
                 )}
                 <div>
-                  <Label>{isCompany ? "CNPJ *" : "CPF *"}</Label>
+                  <LabelWithHelp
+                    label={isCompany ? "CNPJ *" : "CPF *"}
+                    help={isCompany
+                      ? "Documento da empresa (14 dígitos). Digite e clique em buscar para preencher automaticamente."
+                      : "Documento do cliente (11 dígitos). Usado em orçamentos e notas."}
+                  />
                   <Input
                     value={maskCpfCnpj(form.cpf_cnpj, form.customer_type)}
                     onChange={(e) => set("cpf_cnpj", e.target.value)}
@@ -396,11 +413,11 @@ export function CustomerFormSheet({
                 {isCompany && (
                   <>
                     <div>
-                      <Label>Inscrição estadual</Label>
+                      <LabelWithHelp label="Inscrição estadual" help="Registro da empresa na receita estadual. Deixe vazio se isento." />
                       <Input value={form.state_registration} onChange={(e) => set("state_registration", e.target.value)} />
                     </div>
                     <div>
-                      <Label>Inscrição municipal</Label>
+                      <LabelWithHelp label="Inscrição municipal" help="Registro da empresa na prefeitura, usado para nota de serviço." />
                       <Input value={form.municipal_registration} onChange={(e) => set("municipal_registration", e.target.value)} />
                     </div>
                   </>
@@ -410,7 +427,7 @@ export function CustomerFormSheet({
               <Separator />
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <Label>E-mail *</Label>
+                  <LabelWithHelp label="E-mail *" help="Usado para enviar orçamentos, cobranças e comunicados." />
                   <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)}
                     aria-invalid={!!errors.email}
                     className={errors.email ? "border-destructive" : ""} />
@@ -419,19 +436,22 @@ export function CustomerFormSheet({
                     : <p className="mt-1 text-xs text-muted-foreground">Este campo é obrigatório.</p>}
                 </div>
                 <div>
-                  <Label>Telefone</Label>
+                  <LabelWithHelp label="Telefone" help="Telefone fixo ou celular para ligações." />
                   <Input value={maskPhone(form.phone)} onChange={(e) => set("phone", e.target.value)}
                     aria-invalid={!!errors.whatsapp}
                     className={errors.whatsapp ? "border-destructive" : ""} />
                 </div>
                 <div>
-                  <Label>WhatsApp *</Label>
+                  <LabelWithHelp label="WhatsApp *" help="Número usado para enviar orçamentos e mensagens pelo WhatsApp. Informe WhatsApp ou telefone." />
                   <Input value={maskPhone(form.whatsapp)} onChange={(e) => set("whatsapp", e.target.value)}
                     aria-invalid={!!errors.whatsapp}
                     className={errors.whatsapp ? "border-destructive" : ""} />
                   {errors.whatsapp && <p className="mt-1 text-xs text-destructive">{errors.whatsapp}</p>}
                 </div>
-                <div><Label>Origem</Label><Input value={form.customer_origin} onChange={(e) => set("customer_origin", e.target.value)} placeholder="Indicação, site, Instagram..." /></div>
+                <div>
+                  <LabelWithHelp label="Origem" help="Como este cliente chegou até você. Ajuda a saber quais canais funcionam." />
+                  <Input value={form.customer_origin} onChange={(e) => set("customer_origin", e.target.value)} placeholder="Indicação, site, Instagram..." />
+                </div>
               </div>
 
               <div className="flex items-center justify-between rounded-md border p-3">
