@@ -265,67 +265,81 @@ function ItemsPage() {
                 onChange={(e) => setSearchDraft(e.target.value)}
               />
             </div>
+            <FieldHelp>
+              Busca pelo nome do item, código interno (SKU) ou código de barras. Pressione Buscar ou Enter.
+            </FieldHelp>
             <Button type="submit" variant="secondary" size="sm">
               Buscar
             </Button>
           </form>
 
-          <Select
-            value={categoryId}
-            onValueChange={(v) => {
-              setCategoryId(v);
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="_all">Todas categorias</SelectItem>
-              {visibleCategories.map((c: any) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-1">
+            <Select
+              value={categoryId}
+              onValueChange={(v) => {
+                setCategoryId(v);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_all">Todas categorias</SelectItem>
+                {visibleCategories.map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FieldHelp>Filtra por categoria (agrupamento do item). Cadastre em "Cadastros auxiliares".</FieldHelp>
+          </div>
 
-          <Select
-            value={brandId}
-            onValueChange={(v) => {
-              setBrandId(v);
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Marca" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="_all">Todas marcas</SelectItem>
-              {(brands as any[]).map((b: any) => (
-                <SelectItem key={b.id} value={b.id}>
-                  {b.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-1">
+            <Select
+              value={brandId}
+              onValueChange={(v) => {
+                setBrandId(v);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Marca" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_all">Todas marcas</SelectItem>
+                {(brands as any[]).map((b: any) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FieldHelp>Filtra pela marca comercial do item (ex.: Intelbras, Hikvision).</FieldHelp>
+          </div>
 
-          <Select
-            value={status}
-            onValueChange={(v) => {
-              setStatus(v as any);
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-[130px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos status</SelectItem>
-              <SelectItem value="active">Ativos</SelectItem>
-              <SelectItem value="inactive">Inativos</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-1">
+            <Select
+              value={status}
+              onValueChange={(v) => {
+                setStatus(v as any);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[130px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos status</SelectItem>
+                <SelectItem value="active">Ativos</SelectItem>
+                <SelectItem value="inactive">Inativos</SelectItem>
+              </SelectContent>
+            </Select>
+            <FieldHelp>
+              Ativos aparecem em orçamentos. Inativos ficam ocultos, mas o histórico é preservado.
+            </FieldHelp>
+          </div>
         </div>
       </div>
 
