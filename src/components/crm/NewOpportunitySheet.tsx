@@ -164,7 +164,10 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Valor estimado (R$)</Label>
+              <LabelWithHelp
+                label="Valor estimado (R$)"
+                help="Quanto você acha que esta venda pode gerar. Usado para calcular o total do funil."
+              />
               <Input
                 inputMode="decimal"
                 value={form.estimated_value}
@@ -172,7 +175,10 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
               />
             </div>
             <div className="grid gap-2">
-              <Label>Origem</Label>
+              <LabelWithHelp
+                label="Origem"
+                help="De onde veio o lead. Ajuda a saber quais canais trazem mais clientes."
+              />
               <Select value={form.source} onValueChange={(v) => setForm({ ...form, source: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
