@@ -394,15 +394,27 @@ export function ChartOfAccountsPage({ canManage = true }: { canManage?: boolean 
       rows = rows.filter((r) => matching.has(r.id));
     }
     return rows;
-  }, [q.data, showInactive, levelFilter, search]);
+  }, [q.data, showInactive, search]);
 
   const tree = useMemo(() => buildTree(filtered), [filtered]);
 
-  // When searching, auto-expand all matched branches.
+  // Auto-expand: on search, expand matched branches.
+  // Otherwise expand up to the selected view level (1 = collapse all, 2 = show level 2, 3 = show level 3).
   useEffect(() => {
-    if (!search.trim()) return;
-    setExpanded(new Set(filtered.map((r) => r.id)));
-  }, [search, filtered]);
+    if (search.trim()) {
+      setExpanded(new Set(filtered.map((r) => r.id)));
+      return;
+    }
+    const targetDepth = parseInt(levelView, 10); // 1..3
+    const ids = new Set<string>();
+    // Expand every node whose own level is strictly less than targetDepth
+    // so its children (at level = its level + 1) become visible.
+    filtered.forEach((r) => {
+      const lvl = r.level ?? levelFromCode(r.code);
+      if (lvl < targetDepth) ids.add(r.id);
+    });
+    setExpanded(ids);
+  }, [search, filtered, levelView]);
 
   const onToggle = (id: string) =>
     setExpanded((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
