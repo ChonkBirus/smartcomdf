@@ -151,7 +151,10 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
           </div>
 
           <div className="grid gap-2">
-            <Label>Interesse / Serviço</Label>
+            <LabelWithHelp
+              label="Interesse / Serviço"
+              help="O que o lead quer contratar. Ex.: instalação de câmeras, projeto elétrico, manutenção."
+            />
             <Input
               value={form.service_interest}
               onChange={(e) => setForm({ ...form, service_interest: e.target.value })}
