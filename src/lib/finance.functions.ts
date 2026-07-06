@@ -8,6 +8,11 @@ export type FinTxOrigin =
   | "MANUAL" | "QUOTE" | "PAYMENT" | "PURCHASE"
   | "SERVICE_ORDER" | "OPEN_FINANCE" | "IMPORT";
 
+export type CostBehavior = "FIXED" | "VARIABLE";
+export type CategoryGroup =
+  | "REVENUE" | "VARIABLE_COST" | "FIXED_EXPENSE"
+  | "INVESTMENT" | "NON_OPERATIONAL" | "CASH_ADJUSTMENT";
+
 export type FinancialCategory = {
   id: string;
   company_id: string;
@@ -16,6 +21,11 @@ export type FinancialCategory = {
   parent_id: string | null;
   active: boolean;
   is_default: boolean;
+  code: string | null;
+  level: number | null;
+  sort_order: number;
+  cost_behavior: CostBehavior | null;
+  category_group: CategoryGroup | null;
   created_at: string;
   updated_at: string;
 };
@@ -104,13 +114,6 @@ function mapRow(r: any): FinancialTransaction {
 
 // ---------- Categories ----------
 
-export const ensureDefaultFinancialCategories = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const cid = await getCompanyId(context.supabase, context.userId);
-    await context.supabase.rpc("seed_default_financial_categories", { _company_id: cid });
-    return { ok: true };
-  });
 
 export const listFinancialCategories = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -120,42 +123,180 @@ export const listFinancialCategories = createServerFn({ method: "GET" })
     let q = context.supabase.from("financial_categories").select("*").eq("company_id", cid);
     if (data.type) q = q.eq("type", data.type);
     if (data.activeOnly !== false) q = q.eq("active", true);
-    const { data: rows, error } = await q.order("type").order("name");
+    const { data: rows, error } = await q.order("sort_order").order("code").order("name");
     if (error) throw error;
     return (rows ?? []) as FinancialCategory[];
   });
 
+// Seeds the standard chart of accounts for the current company.
+// Idempotent: skips any code that already exists. Never overwrites user edits.
+export const ensureDefaultChartOfAccounts = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const cid = await getCompanyId(context.supabase, context.userId);
+    const { DEFAULT_CHART_OF_ACCOUNTS, levelFromCode, parentCode, sortOrderFromCode } =
+      await import("@/lib/chart-of-accounts.seed");
+
+    const { data: existing } = await context.supabase
+      .from("financial_categories")
+      .select("id, code")
+      .eq("company_id", cid)
+      .not("code", "is", null);
+    const codeToId = new Map<string, string>();
+    for (const r of (existing ?? []) as { id: string; code: string }[]) codeToId.set(r.code, r.id);
+
+    let inserted = 0;
+    // Seed sequentially so parent_id is available when children are inserted.
+    for (const node of DEFAULT_CHART_OF_ACCOUNTS) {
+      if (codeToId.has(node.code)) continue;
+      const pcode = parentCode(node.code);
+      const parent_id = pcode ? (codeToId.get(pcode) ?? null) : null;
+      const { data: row, error } = await context.supabase
+        .from("financial_categories")
+        .insert({
+          company_id: cid,
+          name: node.name,
+          type: node.type,
+          parent_id,
+          is_default: true,
+          active: true,
+          code: node.code,
+          level: levelFromCode(node.code),
+          sort_order: sortOrderFromCode(node.code),
+          cost_behavior: node.cost_behavior ?? null,
+          category_group: node.category_group,
+        })
+        .select("id, code")
+        .single();
+      if (error) {
+        // Non-fatal: another concurrent seed may have inserted the row.
+        continue;
+      }
+      if (row) codeToId.set(row.code as string, row.id as string);
+      inserted += 1;
+    }
+    return { ok: true, inserted };
+  });
+
+// Legacy name kept for existing call sites. Delegates to the chart-of-accounts seed.
+export const ensureDefaultFinancialCategories = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const cid = await getCompanyId(context.supabase, context.userId);
+    // Preserve the old flat seed for backward compatibility.
+    await context.supabase.rpc("seed_default_financial_categories", { _company_id: cid });
+    // Then upsert the hierarchical chart of accounts.
+    const { DEFAULT_CHART_OF_ACCOUNTS, levelFromCode, parentCode, sortOrderFromCode } =
+      await import("@/lib/chart-of-accounts.seed");
+    const { data: existing } = await context.supabase
+      .from("financial_categories")
+      .select("id, code")
+      .eq("company_id", cid)
+      .not("code", "is", null);
+    const codeToId = new Map<string, string>();
+    for (const r of (existing ?? []) as { id: string; code: string }[]) codeToId.set(r.code, r.id);
+    for (const node of DEFAULT_CHART_OF_ACCOUNTS) {
+      if (codeToId.has(node.code)) continue;
+      const pcode = parentCode(node.code);
+      const parent_id = pcode ? (codeToId.get(pcode) ?? null) : null;
+      const { data: row } = await context.supabase.from("financial_categories").insert({
+        company_id: cid,
+        name: node.name,
+        type: node.type,
+        parent_id,
+        is_default: true,
+        active: true,
+        code: node.code,
+        level: levelFromCode(node.code),
+        sort_order: sortOrderFromCode(node.code),
+        cost_behavior: node.cost_behavior ?? null,
+        category_group: node.category_group,
+      }).select("id, code").single();
+      if (row) codeToId.set(row.code as string, row.id as string);
+    }
+    return { ok: true };
+  });
+
 export const createFinancialCategory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { name: string; type: FinTxType; parent_id?: string | null }) =>
+  .inputValidator((d: {
+    name: string;
+    type: FinTxType;
+    parent_id?: string | null;
+    code?: string | null;
+    cost_behavior?: CostBehavior | null;
+    category_group?: CategoryGroup | null;
+    active?: boolean;
+  }) =>
     z.object({
       name: z.string().min(1).max(120),
       type: z.enum(["INCOME", "EXPENSE"]),
       parent_id: z.string().uuid().nullable().optional(),
+      code: z.string().min(1).max(40).nullable().optional(),
+      cost_behavior: z.enum(["FIXED", "VARIABLE"]).nullable().optional(),
+      category_group: z.enum([
+        "REVENUE", "VARIABLE_COST", "FIXED_EXPENSE",
+        "INVESTMENT", "NON_OPERATIONAL", "CASH_ADJUSTMENT",
+      ]).nullable().optional(),
+      active: z.boolean().optional(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
+    const { levelFromCode, sortOrderFromCode } = await import("@/lib/chart-of-accounts.seed");
+    const payload: any = {
+      company_id: cid,
+      name: data.name,
+      type: data.type,
+      parent_id: data.parent_id ?? null,
+      active: data.active ?? true,
+    };
+    if (data.code) {
+      payload.code = data.code;
+      payload.level = levelFromCode(data.code);
+      payload.sort_order = sortOrderFromCode(data.code);
+    }
+    if (data.cost_behavior !== undefined) payload.cost_behavior = data.cost_behavior;
+    if (data.category_group !== undefined) payload.category_group = data.category_group;
+
     const { data: row, error } = await context.supabase.from("financial_categories")
-      .insert({ company_id: cid, name: data.name, type: data.type, parent_id: data.parent_id ?? null })
-      .select("*").single();
+      .insert(payload).select("*").single();
     if (error) throw error;
     return row as FinancialCategory;
   });
 
 export const updateFinancialCategory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string; name?: string; active?: boolean }) =>
+  .inputValidator((d: {
+    id: string;
+    name?: string;
+    active?: boolean;
+    code?: string | null;
+    type?: FinTxType;
+  }) =>
     z.object({
       id: z.string().uuid(),
       name: z.string().min(1).max(120).optional(),
       active: z.boolean().optional(),
+      code: z.string().min(1).max(40).nullable().optional(),
+      type: z.enum(["INCOME", "EXPENSE"]).optional(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
+    const { levelFromCode, sortOrderFromCode } = await import("@/lib/chart-of-accounts.seed");
     const patch: any = {};
     if (data.name !== undefined) patch.name = data.name;
     if (data.active !== undefined) patch.active = data.active;
+    if (data.type !== undefined) patch.type = data.type;
+    if (data.code !== undefined) {
+      patch.code = data.code;
+      if (data.code) {
+        patch.level = levelFromCode(data.code);
+        patch.sort_order = sortOrderFromCode(data.code);
+      } else {
+        patch.level = null;
+      }
+    }
     const { data: row, error } = await context.supabase.from("financial_categories")
       .update(patch).eq("id", data.id).select("*").single();
     if (error) throw error;
@@ -164,12 +305,50 @@ export const updateFinancialCategory = createServerFn({ method: "POST" })
 
 export const deactivateFinancialCategory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: { id: string; active?: boolean }) =>
+    z.object({ id: z.string().uuid(), active: z.boolean().optional() }).parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("financial_categories")
-      .update({ active: false }).eq("id", data.id);
+      .update({ active: data.active ?? false }).eq("id", data.id);
     if (error) throw error;
     return { ok: true };
+  });
+
+// Deletes a category only when safe (no transactions and no subcategories, and not default).
+// Returns `{ deleted: false, reason }` when blocked so the UI can offer to deactivate instead.
+export const deleteFinancialCategory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const cid = await getCompanyId(context.supabase, context.userId);
+    const { data: cat, error: catErr } = await context.supabase
+      .from("financial_categories")
+      .select("id, company_id, is_default")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (catErr) throw catErr;
+    if (!cat || cat.company_id !== cid) throw new Error("Categoria não encontrada.");
+    if (cat.is_default) {
+      return { deleted: false as const, reason: "default" as const };
+    }
+    const { count: txCount } = await context.supabase
+      .from("financial_transactions")
+      .select("id", { count: "exact", head: true })
+      .eq("category_id", data.id);
+    if ((txCount ?? 0) > 0) {
+      return { deleted: false as const, reason: "has_transactions" as const };
+    }
+    const { count: childCount } = await context.supabase
+      .from("financial_categories")
+      .select("id", { count: "exact", head: true })
+      .eq("parent_id", data.id);
+    if ((childCount ?? 0) > 0) {
+      return { deleted: false as const, reason: "has_children" as const };
+    }
+    const { error } = await context.supabase
+      .from("financial_categories").delete().eq("id", data.id);
+    if (error) throw error;
+    return { deleted: true as const };
   });
 
 // ---------- Transactions ----------

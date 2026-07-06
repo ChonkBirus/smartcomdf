@@ -10,11 +10,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LabelWithHelp } from "@/components/ui/FieldHelp";
 import {
-  createFinancialTransaction, listFinancialCategories,
+  createFinancialTransaction,
   type FinTxType, type FinTxStatus,
 } from "@/lib/finance.functions";
 import { listBankAccounts } from "@/lib/bank-accounts.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
+import { CategorySelect } from "@/components/finance/chart-of-accounts/CategorySelect";
 
 /**
  * Mobile-first quick entry for a financial transaction.
@@ -42,15 +43,10 @@ export function QuickTransactionSheet({
   const [status, setStatus] = useState<FinTxStatus>("PAID");
   const [notes, setNotes] = useState("");
 
-  const catsFn = useServerFn(listFinancialCategories);
   const accsFn = useServerFn(listBankAccounts);
   const createFn = useServerFn(createFinancialTransaction);
 
-  const cats = useQuery({
-    queryKey: ["fin-cats", companyId, type],
-    queryFn: () => catsFn({ data: { type, activeOnly: true } }),
-    enabled: open,
-  });
+
   const accs = useQuery({
     queryKey: ["fin-bank-accounts", companyId, true],
     queryFn: () => accsFn({ data: { activeOnly: true } }),
@@ -161,16 +157,14 @@ export function QuickTransactionSheet({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <LabelWithHelp label="Categoria" help="Classifique para entender onde a empresa ganha e gasta." />
-              <Select value={categoryId || "__none__"} onValueChange={(v) => setCategoryId(v === "__none__" ? "" : v)}>
-                <SelectTrigger className="h-12"><SelectValue placeholder="Categoria" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">Sem categoria</SelectItem>
-                  {(cats.data ?? []).map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <LabelWithHelp label="Categoria" help="Selecione no Plano de Contas. Entrada mostra receitas; saída mostra custos, despesas e investimentos." />
+              <CategorySelect
+                value={categoryId || null}
+                onChange={(id) => setCategoryId(id ?? "")}
+                flowType={type}
+                className="h-12"
+                placeholder="Buscar categoria..."
+              />
             </div>
             <div className="space-y-1.5">
               <LabelWithHelp label="Data" help="Data em que o dinheiro saiu ou entrou (se pago), ou data de vencimento (se pendente)." />

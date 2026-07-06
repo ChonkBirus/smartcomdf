@@ -36,6 +36,8 @@ import { FinanceReportsPage } from "@/components/finance/FinanceReportsPage";
 import { QuickTransactionSheet } from "@/components/finance/QuickTransactionSheet";
 import { BankAccountsManager } from "@/components/finance/BankAccountsManager";
 import { AccountBalancesCard } from "@/components/finance/AccountBalancesCard";
+import { ChartOfAccountsPage } from "@/components/finance/chart-of-accounts/ChartOfAccountsPage";
+import { CategorySelect } from "@/components/finance/chart-of-accounts/CategorySelect";
 
 
 const BRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -210,13 +212,12 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
               <Input inputMode="decimal" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="0,00" />
             </div>
             <div>
-              <LabelWithHelp label="Categoria financeira" help="Classifique para entender onde a empresa ganha e gasta dinheiro." />
-              <Select value={form.category_id} onValueChange={(v) => setForm({ ...form, category_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {(cats.data ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <LabelWithHelp label="Categoria financeira" help="Selecione no Plano de Contas. Entrada mostra receitas; saída mostra custos, despesas e investimentos." />
+              <CategorySelect
+                value={form.category_id || null}
+                onChange={(id) => setForm({ ...form, category_id: id ?? "" })}
+                flowType={type}
+              />
             </div>
           </div>
           <div>
@@ -576,7 +577,7 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
           <TabsTrigger value="expense">Saídas</TabsTrigger>
           <TabsTrigger value="receivables">A Receber</TabsTrigger>
           <TabsTrigger value="payables">A Pagar</TabsTrigger>
-          <TabsTrigger value="categories">Categorias</TabsTrigger>
+          <TabsTrigger value="categories">Plano de Contas</TabsTrigger>
           <TabsTrigger value="accounts">Contas</TabsTrigger>
 
           <TabsTrigger value="agent">Agente IA</TabsTrigger>
@@ -619,7 +620,7 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
           <TransactionTable rows={(expenses.data ?? []).filter((t) => t.status !== "RECONCILED")} onChanged={invalidateAll} highlightId={highlightTxId} />
         </TabsContent>
         <TabsContent value="categories" className="mt-4">
-          <CategoriesManager />
+          <ChartOfAccountsPage />
         </TabsContent>
         <TabsContent value="accounts" className="mt-4">
           <BankAccountsManager />

@@ -2844,34 +2844,49 @@ export type Database = {
       financial_categories: {
         Row: {
           active: boolean
+          category_group: string | null
+          code: string | null
           company_id: string
+          cost_behavior: string | null
           created_at: string
           id: string
           is_default: boolean
+          level: number | null
           name: string
           parent_id: string | null
+          sort_order: number
           type: string
           updated_at: string
         }
         Insert: {
           active?: boolean
+          category_group?: string | null
+          code?: string | null
           company_id: string
+          cost_behavior?: string | null
           created_at?: string
           id?: string
           is_default?: boolean
+          level?: number | null
           name: string
           parent_id?: string | null
+          sort_order?: number
           type: string
           updated_at?: string
         }
         Update: {
           active?: boolean
+          category_group?: string | null
+          code?: string | null
           company_id?: string
+          cost_behavior?: string | null
           created_at?: string
           id?: string
           is_default?: boolean
+          level?: number | null
           name?: string
           parent_id?: string | null
+          sort_order?: number
           type?: string
           updated_at?: string
         }
