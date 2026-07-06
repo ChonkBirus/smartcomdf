@@ -42,10 +42,13 @@ export type FinancialTransaction = {
   payment_method: string | null;
   origin: FinTxOrigin;
   notes: string | null;
+  bank_account_id: string | null;
+  bank_account_name?: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
 };
+
 
 async function getCompanyId(supabase: any, userId: string): Promise<string> {
   const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
