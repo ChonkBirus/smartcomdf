@@ -512,19 +512,39 @@ export function ChartOfAccountsPage({ canManage = true }: { canManage?: boolean 
                 className="pl-9"
               />
             </div>
-            <Tabs value={levelFilter} onValueChange={(v) => setLevelFilter(v as any)}>
+            <Tabs value={levelView} onValueChange={(v) => setLevelView(v as "1" | "2" | "3")}>
               <TabsList>
-                <TabsTrigger value="all">Todos</TabsTrigger>
                 <TabsTrigger value="1">Nível 1</TabsTrigger>
                 <TabsTrigger value="2">Nível 2</TabsTrigger>
                 <TabsTrigger value="3">Nível 3</TabsTrigger>
               </TabsList>
             </Tabs>
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setExpanded(new Set(filtered.map((r) => r.id)))}
+                title="Expandir tudo"
+              >
+                <ChevronsUpDown className="mr-1 h-4 w-4" /> Expandir
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setExpanded(new Set())}
+                title="Recolher tudo"
+              >
+                <ChevronsDownUp className="mr-1 h-4 w-4" /> Recolher
+              </Button>
+            </div>
             <label className="flex cursor-pointer items-center gap-2 text-sm">
               <Switch checked={showInactive} onCheckedChange={setShowInactive} />
               Mostrar inativas
             </label>
           </div>
+
         </CardContent>
       </Card>
 
