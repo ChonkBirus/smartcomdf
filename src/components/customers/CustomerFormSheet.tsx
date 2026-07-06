@@ -616,7 +616,7 @@ export function CustomerFormSheet({
                       {errors[`addr_${i}_district`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_district`]}</p>}
                     </div>
                     <div>
-                      <Label>Cidade *</Label>
+                      <LabelWithHelp label="Cidade *" help="Cidade do endereço." />
                       <Input value={a.city ?? ""}
                         aria-invalid={!!errors[`addr_${i}_city`]}
                         className={errors[`addr_${i}_city`] ? "border-destructive" : ""}
