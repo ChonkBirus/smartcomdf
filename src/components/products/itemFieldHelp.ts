@@ -108,8 +108,8 @@ const SERVICE: FieldMap = {
 };
 
 const MAP: Record<ItemType, FieldMap> = {
-  product: PRODUCT,
-  service: SERVICE,
+  PRODUCT,
+  SERVICE,
 };
 
 /**
