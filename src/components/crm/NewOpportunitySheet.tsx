@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LabelWithHelp } from "@/components/ui/FieldHelp";
 import { createOpportunity, listCrmTeam } from "@/lib/crm.functions";
 
 type Props = {
