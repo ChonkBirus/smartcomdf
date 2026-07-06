@@ -36,6 +36,8 @@ import { FinanceReportsPage } from "@/components/finance/FinanceReportsPage";
 import { QuickTransactionSheet } from "@/components/finance/QuickTransactionSheet";
 import { BankAccountsManager } from "@/components/finance/BankAccountsManager";
 import { AccountBalancesCard } from "@/components/finance/AccountBalancesCard";
+import { ChartOfAccountsPage } from "@/components/finance/chart-of-accounts/ChartOfAccountsPage";
+import { CategorySelect } from "@/components/finance/chart-of-accounts/CategorySelect";
 
 
 const BRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
