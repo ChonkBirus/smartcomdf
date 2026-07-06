@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Calculator, Save, CheckCircle2, AlertTriangle, Sparkles } from "lucide-react";
+import { Calculator, Save, CheckCircle2, AlertTriangle, Sparkles, Settings2 } from "lucide-react";
 
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/EmptyState";
@@ -13,10 +14,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { FieldHelp, LabelWithHelp } from "@/components/ui/FieldHelp";
 import { usePermissions } from "@/lib/permissions";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -43,6 +46,7 @@ const zero: Rates = {
   tax_rate: "0", card_fee_rate: "0", commission_rate: "0", warranty_reserve_rate: "0",
   operational_cost_rate: "0", fixed_cost_allocation_rate: "0", pro_labore_rate: "0", desired_margin_rate: "15",
 };
+
 
 function pct(n: number | null | undefined) { return String(Number(((Number(n) || 0) * 100).toFixed(4))); }
 function toRate(s: string) { const n = Number((s || "").replace(",", ".")); return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) / 100 : 0; }
