@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { LabelWithHelp } from "@/components/ui/FieldHelp";
 
 import {
   ensureDefaultFinancialCategories, getFinanceOverview, getCashFlow,
@@ -25,14 +26,17 @@ import {
   createFinancialCategory, deactivateFinancialCategory,
   type FinancialTransaction, type FinancialCategory, type FinTxType, type FinTxStatus,
 } from "@/lib/finance.functions";
+import { listBankAccounts } from "@/lib/bank-accounts.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
 import { FinancialHealthScoreCard, FinancialHealthPage } from "@/components/finance/FinancialHealthPage";
 import { FinanceAgentChat } from "@/components/finance/FinanceAgentChat";
-// Open Finance temporariamente desativado (custo de integração).
-// A conciliação bancária agora é feita por upload de extrato (OFX/CSV/XLSX) — Fase 2.16E reescrita.
 import { BankReconciliationPanel } from "@/components/finance/BankReconciliationPanel";
 import { BankStatementReconciliationPanel } from "@/components/finance/BankStatementReconciliationPanel";
 import { FinanceReportsPage } from "@/components/finance/FinanceReportsPage";
+import { QuickTransactionSheet } from "@/components/finance/QuickTransactionSheet";
+import { BankAccountsManager } from "@/components/finance/BankAccountsManager";
+import { AccountBalancesCard } from "@/components/finance/AccountBalancesCard";
+
 
 const BRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
