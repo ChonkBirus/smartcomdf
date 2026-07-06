@@ -352,7 +352,12 @@ export function CustomerFormSheet({
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <Label>{isCompany ? "Nome (referência) *" : "Nome completo *"}</Label>
+                  <LabelWithHelp
+                    label={isCompany ? "Nome (referência) *" : "Nome completo *"}
+                    help={isCompany
+                      ? "Como esta empresa vai aparecer nas listas. Pode ser o nome fantasia ou um apelido."
+                      : "Nome completo do cliente, como consta no documento."}
+                  />
                   <Input value={form.name} onChange={(e) => set("name", e.target.value)} aria-invalid={!!errors.name}
                     className={errors.name ? "border-destructive" : ""} />
                   {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name}</p>}
@@ -360,17 +365,22 @@ export function CustomerFormSheet({
                 {isCompany && (
                   <>
                     <div>
-                      <Label>Razão social</Label>
+                      <LabelWithHelp label="Razão social" help="Nome oficial registrado da empresa (aparece na nota fiscal)." />
                       <Input value={form.corporate_name} onChange={(e) => set("corporate_name", e.target.value)} />
                     </div>
                     <div>
-                      <Label>Nome fantasia</Label>
+                      <LabelWithHelp label="Nome fantasia" help="Nome comercial pelo qual a empresa é conhecida no mercado." />
                       <Input value={form.trade_name} onChange={(e) => set("trade_name", e.target.value)} />
                     </div>
                   </>
                 )}
                 <div>
-                  <Label>{isCompany ? "CNPJ *" : "CPF *"}</Label>
+                  <LabelWithHelp
+                    label={isCompany ? "CNPJ *" : "CPF *"}
+                    help={isCompany
+                      ? "Documento da empresa (14 dígitos). Digite e clique em buscar para preencher automaticamente."
+                      : "Documento do cliente (11 dígitos). Usado em orçamentos e notas."}
+                  />
                   <Input
                     value={maskCpfCnpj(form.cpf_cnpj, form.customer_type)}
                     onChange={(e) => set("cpf_cnpj", e.target.value)}
