@@ -212,13 +212,12 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
               <Input inputMode="decimal" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="0,00" />
             </div>
             <div>
-              <LabelWithHelp label="Categoria financeira" help="Classifique para entender onde a empresa ganha e gasta dinheiro." />
-              <Select value={form.category_id} onValueChange={(v) => setForm({ ...form, category_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {(cats.data ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <LabelWithHelp label="Categoria financeira" help="Selecione no Plano de Contas. Entrada mostra receitas; saída mostra custos, despesas e investimentos." />
+              <CategorySelect
+                value={form.category_id || null}
+                onChange={(id) => setForm({ ...form, category_id: id ?? "" })}
+                flowType={type}
+              />
             </div>
           </div>
           <div>
