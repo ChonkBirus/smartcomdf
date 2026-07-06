@@ -279,7 +279,7 @@ export function ItemFormSheet({
             </Section>
 
             <Section title="Classificação">
-              <Field label="Categoria*">
+              <Field label="Categoria*" help="Agrupamento do item (ex.: Câmeras, Cabos, Instalação). Facilita busca e relatórios.">
                 <Select value={form.category_id} onValueChange={(v) => setForm({ ...form, category_id: v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione..." />
