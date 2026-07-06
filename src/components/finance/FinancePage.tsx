@@ -577,7 +577,7 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
           <TabsTrigger value="expense">Saídas</TabsTrigger>
           <TabsTrigger value="receivables">A Receber</TabsTrigger>
           <TabsTrigger value="payables">A Pagar</TabsTrigger>
-          <TabsTrigger value="categories">Categorias</TabsTrigger>
+          <TabsTrigger value="categories">Plano de Contas</TabsTrigger>
           <TabsTrigger value="accounts">Contas</TabsTrigger>
 
           <TabsTrigger value="agent">Agente IA</TabsTrigger>
