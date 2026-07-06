@@ -722,7 +722,7 @@ export function CustomerFormSheet({
             {/* TAGS */}
             <TabsContent value="extra" className="space-y-4 pt-4">
               <div>
-                <Label>Tags</Label>
+                <LabelWithHelp label="Tags" help="Etiquetas para agrupar clientes (ex.: VIP, Contrato, Manutenção). Clique para marcar ou desmarcar." />
                 <div className="mt-2 flex flex-wrap gap-2">
                   {(tags ?? []).map((t) => {
                     const selected = form.tag_ids.includes(t.id);
