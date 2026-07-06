@@ -352,7 +352,7 @@ export function ItemFormSheet({
                   onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
                 />
               </Field>
-              <Field label="Preço de venda (R$)">
+              <Field label="Preço de venda (R$)" help="Preço final para o cliente. Use o botão de sugestão para calcular com base no custo e markup.">
                 <div className="flex gap-2">
                   <Input
                     type="number"
