@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { LabelWithHelp } from "@/components/ui/FieldHelp";
+import type { ReactNode } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
@@ -235,10 +237,18 @@ export function ItemFormSheet({
             </Section>
 
             <Section title="Informações gerais">
-              <Field label="Nome*" className="md:col-span-2">
+              <Field
+                label="Nome*"
+                className="md:col-span-2"
+                help="Nome que aparece nos orçamentos e no catálogo. Ex.: Câmera Intelbras VHD 1220 D."
+              >
                 <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} maxLength={200} />
               </Field>
-              <Field label="Descrição" className="md:col-span-2">
+              <Field
+                label="Descrição"
+                className="md:col-span-2"
+                help="Detalhes técnicos e diferenciais. Aparece no orçamento e ajuda o cliente a entender o item."
+              >
                 <Textarea
                   rows={3}
                   value={form.description}
@@ -248,11 +258,17 @@ export function ItemFormSheet({
             </Section>
 
             <Section title="Identificação">
-              <Field label={isService ? "SKU (opcional)" : "SKU"}>
+              <Field
+                label={isService ? "SKU (opcional)" : "SKU"}
+                help="Código interno do item para você identificar rapidamente. Ex.: CAM-001."
+              >
                 <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} maxLength={80} />
               </Field>
               {!isService && (
-                <Field label="Código de barras">
+                <Field
+                  label="Código de barras"
+                  help="Código EAN/GTIN de fábrica. Use um leitor ou digite manualmente."
+                >
                   <Input
                     value={form.barcode}
                     onChange={(e) => setForm({ ...form, barcode: e.target.value })}
@@ -263,7 +279,7 @@ export function ItemFormSheet({
             </Section>
 
             <Section title="Classificação">
-              <Field label="Categoria*">
+              <Field label="Categoria*" help="Agrupamento do item (ex.: Câmeras, Cabos, Instalação). Facilita busca e relatórios.">
                 <Select value={form.category_id} onValueChange={(v) => setForm({ ...form, category_id: v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione..." />
@@ -282,7 +298,7 @@ export function ItemFormSheet({
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label={isService ? "Marca (opcional)" : "Marca"}>
+              <Field label={isService ? "Marca (opcional)" : "Marca"} help="Marca comercial do item. Ex.: Intelbras, Hikvision.">
                 <Select
                   value={form.brand_id || "_none"}
                   onValueChange={(v) => setForm({ ...form, brand_id: v === "_none" ? "" : v })}
@@ -303,7 +319,7 @@ export function ItemFormSheet({
                 </Select>
               </Field>
               {!isService && (
-                <Field label="Fabricante" className="md:col-span-2">
+                <Field label="Fabricante" className="md:col-span-2" help="Quem produz o item. Pode ser diferente da marca (ex.: fabricante OEM).">
                   <Select
                     value={form.manufacturer_id || "_none"}
                     onValueChange={(v) => setForm({ ...form, manufacturer_id: v === "_none" ? "" : v })}
@@ -327,7 +343,7 @@ export function ItemFormSheet({
             </Section>
 
             <Section title="Comercial">
-              <Field label="Preço de custo (R$)">
+              <Field label="Preço de custo (R$)" help="Quanto você paga pelo item (custo de compra). Base para calcular o markup.">
                 <Input
                   type="number"
                   min={0}
@@ -336,7 +352,7 @@ export function ItemFormSheet({
                   onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
                 />
               </Field>
-              <Field label="Preço de venda (R$)">
+              <Field label="Preço de venda (R$)" help="Preço final para o cliente. Use o botão de sugestão para calcular com base no custo e markup.">
                 <div className="flex gap-2">
                   <Input
                     type="number"
@@ -351,7 +367,7 @@ export function ItemFormSheet({
                   />
                 </div>
               </Field>
-              <Field label="Unidade de medida">
+              <Field label="Unidade de medida" help="Como o item é vendido: unidade (UN), caixa (CX), metro (MT) etc.">
                 <Select value={form.unit} onValueChange={(v) => setForm({ ...form, unit: v as ProductUnit })}>
                   <SelectTrigger>
                     <SelectValue />
@@ -379,7 +395,7 @@ export function ItemFormSheet({
                   </Label>
                 </div>
                 {form.controls_stock && (
-                  <Field label="Estoque mínimo">
+                  <Field label="Estoque mínimo" help="Quantidade abaixo da qual o sistema avisa que precisa comprar mais.">
                     <Input
                       type="number"
                       min={0}
@@ -480,10 +496,20 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
+function Field({
+  label,
+  help,
+  children,
+  className,
+}: {
+  label: string;
+  help?: ReactNode;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <div className={"space-y-1.5 " + (className ?? "")}>
-      <Label>{label}</Label>
+      {help ? <LabelWithHelp label={label} help={help} /> : <Label>{label}</Label>}
       {children}
     </div>
   );
