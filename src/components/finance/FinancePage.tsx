@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { LabelWithHelp } from "@/components/ui/FieldHelp";
 
 import {
   ensureDefaultFinancialCategories, getFinanceOverview, getCashFlow,
@@ -25,14 +26,17 @@ import {
   createFinancialCategory, deactivateFinancialCategory,
   type FinancialTransaction, type FinancialCategory, type FinTxType, type FinTxStatus,
 } from "@/lib/finance.functions";
+import { listBankAccounts } from "@/lib/bank-accounts.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
 import { FinancialHealthScoreCard, FinancialHealthPage } from "@/components/finance/FinancialHealthPage";
 import { FinanceAgentChat } from "@/components/finance/FinanceAgentChat";
-// Open Finance temporariamente desativado (custo de integração).
-// A conciliação bancária agora é feita por upload de extrato (OFX/CSV/XLSX) — Fase 2.16E reescrita.
 import { BankReconciliationPanel } from "@/components/finance/BankReconciliationPanel";
 import { BankStatementReconciliationPanel } from "@/components/finance/BankStatementReconciliationPanel";
 import { FinanceReportsPage } from "@/components/finance/FinanceReportsPage";
+import { QuickTransactionSheet } from "@/components/finance/QuickTransactionSheet";
+import { BankAccountsManager } from "@/components/finance/BankAccountsManager";
+import { AccountBalancesCard } from "@/components/finance/AccountBalancesCard";
+
 
 const BRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -137,12 +141,18 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
 }) {
   const companyId = useCompanyId();
   const catsFn = useServerFn(listFinancialCategories);
+  const accsFn = useServerFn(listBankAccounts);
   const createFn = useServerFn(createFinancialTransaction);
   const updateFn = useServerFn(updateFinancialTransaction);
 
   const cats = useQuery({
     queryKey: ["fin-cats", companyId, type],
     queryFn: () => catsFn({ data: { type, activeOnly: true } }),
+    enabled: open,
+  });
+  const accs = useQuery({
+    queryKey: ["fin-bank-accounts", companyId, true],
+    queryFn: () => accsFn({ data: { activeOnly: true } }),
     enabled: open,
   });
 
@@ -152,6 +162,7 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
     due_date: editing?.due_date ?? "",
     paid_at: editing?.paid_at?.slice(0, 10) ?? "",
     category_id: editing?.category_id ?? "",
+    bank_account_id: editing?.bank_account_id ?? "",
     payment_method: editing?.payment_method ?? "",
     notes: editing?.notes ?? "",
     status: (editing?.status ?? "PLANNED") as FinTxStatus,
@@ -166,6 +177,7 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
         due_date: form.due_date || null,
         paid_at: form.paid_at ? new Date(form.paid_at).toISOString() : null,
         category_id: form.category_id || null,
+        bank_account_id: form.bank_account_id || null,
         payment_method: form.payment_method || null,
         notes: form.notes || null,
         status: form.status,
@@ -180,6 +192,7 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
     onError: (e: any) => toast.error(e?.message ?? "Erro ao salvar."),
   });
 
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-md">
@@ -188,16 +201,16 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
         </SheetHeader>
         <div className="mt-4 space-y-3">
           <div>
-            <Label>Descrição</Label>
+            <LabelWithHelp label="Descrição" help="O que foi este lançamento? Ex.: Instalação cliente João." />
             <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Ex.: Instalação cliente João" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Valor (R$)</Label>
+              <LabelWithHelp label="Valor (R$)" help="Quanto entrou ou saiu. Use vírgula ou ponto para os centavos." />
               <Input inputMode="decimal" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="0,00" />
             </div>
             <div>
-              <Label>Categoria</Label>
+              <LabelWithHelp label="Categoria financeira" help="Classifique para entender onde a empresa ganha e gasta dinheiro." />
               <Select value={form.category_id} onValueChange={(v) => setForm({ ...form, category_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
@@ -206,13 +219,33 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
               </Select>
             </div>
           </div>
+          <div>
+            <LabelWithHelp label="Conta financeira" help="De onde o dinheiro saiu ou entrou: carteira, banco, caixa. Cadastre em Configurações → Contas financeiras." />
+            <Select
+              value={form.bank_account_id || "__none__"}
+              onValueChange={(v) => setForm({ ...form, bank_account_id: v === "__none__" ? "" : v })}
+            >
+              <SelectTrigger><SelectValue placeholder="Sem conta definida" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sem conta definida</SelectItem>
+                {(accs.data ?? []).map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.account_name ? `${a.bank_name} — ${a.account_name}` : a.bank_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Vencimento</Label>
+              <LabelWithHelp label="Vencimento" help="Data prevista para pagar ou receber." />
               <Input type="date" value={form.due_date ?? ""} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
             </div>
             <div>
-              <Label>{type === "INCOME" ? "Recebido em" : "Pago em"}</Label>
+              <LabelWithHelp
+                label={type === "INCOME" ? "Recebido em" : "Pago em"}
+                help="Data em que o dinheiro realmente saiu ou entrou."
+              />
               <Input type="date" value={form.paid_at ?? ""} onChange={(e) => setForm({ ...form, paid_at: e.target.value })} />
             </div>
           </div>
@@ -237,6 +270,7 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
             <Label>Observações</Label>
             <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} />
           </div>
+
           <Button className="w-full" onClick={() => submitting.mutate()} disabled={!form.description || !form.amount || submitting.isPending}>
             {submitting.isPending ? "Salvando…" : "Salvar"}
           </Button>
@@ -488,6 +522,8 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
   };
 
   const [sheet, setSheet] = useState<{ open: boolean; type: FinTxType }>({ open: false, type: "INCOME" });
+  const [quickOpen, setQuickOpen] = useState(false);
+
   const o = overview.data;
 
   const [highlightTxId, setHighlightTxId] = useState<string | null>(null);
@@ -541,6 +577,8 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
           <TabsTrigger value="receivables">A Receber</TabsTrigger>
           <TabsTrigger value="payables">A Pagar</TabsTrigger>
           <TabsTrigger value="categories">Categorias</TabsTrigger>
+          <TabsTrigger value="accounts">Contas</TabsTrigger>
+
           <TabsTrigger value="agent">Agente IA</TabsTrigger>
           <TabsTrigger value="reconciliation">Conciliação Bancária</TabsTrigger>
           <TabsTrigger value="reports">Relatórios</TabsTrigger>
@@ -557,7 +595,9 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
             <FinanceMetricCard title="Recebimentos atrasados" value={BRL(o?.overdueReceivables ?? 0)} hint="Entradas vencidas e não recebidas." tone="warning" icon={<AlertTriangle className="h-5 w-5" />} />
             <FinanceMetricCard title="Contas vencidas" value={BRL(o?.overduePayables ?? 0)} hint="Saídas vencidas e não pagas." tone="warning" icon={<AlertTriangle className="h-5 w-5" />} />
           </div>
+          <AccountBalancesCard />
         </TabsContent>
+
 
         <TabsContent value="health" className="mt-4">
           <FinancialHealthPage filters={filters} />
@@ -581,6 +621,10 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
         <TabsContent value="categories" className="mt-4">
           <CategoriesManager />
         </TabsContent>
+        <TabsContent value="accounts" className="mt-4">
+          <BankAccountsManager />
+        </TabsContent>
+
         <TabsContent value="agent" className="mt-4">
           <FinanceAgentChat />
         </TabsContent>
@@ -599,6 +643,24 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
         type={sheet.type}
         onSaved={invalidateAll}
       />
+
+      {/* Mobile FAB — lançamento rápido pelo celular */}
+      <button
+        type="button"
+        onClick={() => setQuickOpen(true)}
+        className="fixed bottom-5 right-5 z-40 flex h-14 items-center gap-2 rounded-full bg-primary px-5 text-primary-foreground shadow-lg shadow-primary/30 md:hidden"
+        aria-label="Novo lançamento"
+      >
+        <Plus className="h-5 w-5" />
+        <span className="font-semibold">Lançar</span>
+      </button>
+      <QuickTransactionSheet
+        open={quickOpen}
+        onOpenChange={setQuickOpen}
+        onSaved={invalidateAll}
+        defaultType="EXPENSE"
+      />
     </div>
   );
 }
+
