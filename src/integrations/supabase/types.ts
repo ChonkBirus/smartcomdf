@@ -2923,11 +2923,14 @@ export type Database = {
           notes: string | null
           openfinance_transaction_id: string | null
           origin: string
+          origin_id: string | null
+          origin_type: string | null
           paid_at: string | null
           payment_method: string | null
           project_id: string | null
           purchase_id: string | null
           quote_id: string | null
+          quote_payment_id: string | null
           service_order_id: string | null
           status: string
           supplier_id: string | null
@@ -2949,11 +2952,14 @@ export type Database = {
           notes?: string | null
           openfinance_transaction_id?: string | null
           origin?: string
+          origin_id?: string | null
+          origin_type?: string | null
           paid_at?: string | null
           payment_method?: string | null
           project_id?: string | null
           purchase_id?: string | null
           quote_id?: string | null
+          quote_payment_id?: string | null
           service_order_id?: string | null
           status?: string
           supplier_id?: string | null
@@ -2975,11 +2981,14 @@ export type Database = {
           notes?: string | null
           openfinance_transaction_id?: string | null
           origin?: string
+          origin_id?: string | null
+          origin_type?: string | null
           paid_at?: string | null
           payment_method?: string | null
           project_id?: string | null
           purchase_id?: string | null
           quote_id?: string | null
+          quote_payment_id?: string | null
           service_order_id?: string | null
           status?: string
           supplier_id?: string | null
@@ -3034,6 +3043,13 @@ export type Database = {
             columns: ["quote_id"]
             isOneToOne: false
             referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transactions_quote_payment_id_fkey"
+            columns: ["quote_payment_id"]
+            isOneToOne: false
+            referencedRelation: "quote_payments"
             referencedColumns: ["id"]
           },
           {
@@ -4575,6 +4591,7 @@ export type Database = {
           down_payment_amount: number
           expected_end_date: string | null
           expected_start_date: string | null
+          financial_status: string
           id: string
           internal_notes: string | null
           material_status: string
@@ -4617,6 +4634,7 @@ export type Database = {
           down_payment_amount?: number
           expected_end_date?: string | null
           expected_start_date?: string | null
+          financial_status?: string
           id?: string
           internal_notes?: string | null
           material_status?: string
@@ -4659,6 +4677,7 @@ export type Database = {
           down_payment_amount?: number
           expected_end_date?: string | null
           expected_start_date?: string | null
+          financial_status?: string
           id?: string
           internal_notes?: string | null
           material_status?: string
@@ -5139,6 +5158,7 @@ export type Database = {
           discount: number
           down_payment_amount: number
           down_payment_percent: number
+          financial_status: string
           first_sent_at: string | null
           id: string
           internal_notes: string | null
@@ -5146,9 +5166,11 @@ export type Database = {
           items_subtotal: number
           labor_cost: number
           opportunity_id: string | null
+          paid_amount: number
           payment_approved_at: string | null
           payment_status: string
           payment_terms: string | null
+          project_id: string | null
           public_token: string
           quote_number: string
           remaining_amount: number
@@ -5184,6 +5206,7 @@ export type Database = {
           discount?: number
           down_payment_amount?: number
           down_payment_percent?: number
+          financial_status?: string
           first_sent_at?: string | null
           id?: string
           internal_notes?: string | null
@@ -5191,9 +5214,11 @@ export type Database = {
           items_subtotal?: number
           labor_cost?: number
           opportunity_id?: string | null
+          paid_amount?: number
           payment_approved_at?: string | null
           payment_status?: string
           payment_terms?: string | null
+          project_id?: string | null
           public_token?: string
           quote_number: string
           remaining_amount?: number
@@ -5229,6 +5254,7 @@ export type Database = {
           discount?: number
           down_payment_amount?: number
           down_payment_percent?: number
+          financial_status?: string
           first_sent_at?: string | null
           id?: string
           internal_notes?: string | null
@@ -5236,9 +5262,11 @@ export type Database = {
           items_subtotal?: number
           labor_cost?: number
           opportunity_id?: string | null
+          paid_amount?: number
           payment_approved_at?: string | null
           payment_status?: string
           payment_terms?: string | null
+          project_id?: string | null
           public_token?: string
           quote_number?: string
           remaining_amount?: number
@@ -5270,6 +5298,13 @@ export type Database = {
             columns: ["opportunity_id"]
             isOneToOne: false
             referencedRelation: "crm_opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -7352,7 +7387,7 @@ export type Database = {
       }
       approve_quote_payment: {
         Args: { _note?: string; _payment_id: string }
-        Returns: Json
+        Returns: undefined
       }
       can_access_service_order: { Args: { _so_id: string }; Returns: boolean }
       cancel_quote_payment: {
@@ -7375,6 +7410,10 @@ export type Database = {
       }
       convert_quote_to_project: {
         Args: { _quote_id: string; _responsible_user_id?: string }
+        Returns: string
+      }
+      create_project_from_quote: {
+        Args: { _quote_id: string }
         Returns: string
       }
       create_service_order_from_project: {
