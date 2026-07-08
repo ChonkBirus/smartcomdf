@@ -59,6 +59,9 @@ export type QuotePaymentStatus =
   | "NOT_STARTED" | "WAITING_PAYMENT" | "PAYMENT_APPROVED"
   | "PAYMENT_REJECTED" | "PAYMENT_CANCELLED";
 
+export type QuoteFinancialStatus =
+  | "PENDING" | "PARTIALLY_PAID" | "PAID" | "CANCELLED" | "REFUNDED";
+
 export type QuoteHistoryEvent = {
   id: string;
   quote_id: string;
