@@ -62,6 +62,7 @@ export type QuotePaymentStatus =
 export type QuoteFinancialStatus =
   | "PENDING" | "PARTIALLY_PAID" | "PAID" | "CANCELLED" | "REFUNDED";
 
+
 export type QuoteHistoryEvent = {
   id: string;
   quote_id: string;
