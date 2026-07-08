@@ -22,11 +22,12 @@ type Props = {
   quoteId: string;
   status: string;
   paymentStatus: string;
+  financialStatus?: string | null;
 };
 
 const NONE = "__none__";
 
-export function ConvertQuoteToProjectButton({ quoteId, status, paymentStatus }: Props) {
+export function ConvertQuoteToProjectButton({ quoteId, status, paymentStatus, financialStatus }: Props) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { has } = usePermissions();
@@ -38,9 +39,12 @@ export function ConvertQuoteToProjectButton({ quoteId, status, paymentStatus }: 
   const canConvert = has("projects.convert_from_quote");
   const alreadyConverted = status === "CONVERTED";
   const notApproved = status !== "APPROVED" && !alreadyConverted;
-  const waitingPayment = status === "APPROVED" && paymentStatus !== "PAYMENT_APPROVED";
-  const enabled =
-    canConvert && status === "APPROVED" && paymentStatus === "PAYMENT_APPROVED";
+  const financiallyOk =
+    financialStatus === "PARTIALLY_PAID" ||
+    financialStatus === "PAID" ||
+    paymentStatus === "PAYMENT_APPROVED";
+  const waitingPayment = status === "APPROVED" && !financiallyOk;
+  const enabled = canConvert && status === "APPROVED" && financiallyOk;
 
   const { data: team } = useQuery({
     queryKey: ["team-members-lite"],
