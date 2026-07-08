@@ -40,6 +40,9 @@ export type Quote = {
   created_at: string;
   updated_at: string;
   payment_status: QuotePaymentStatus;
+  financial_status: QuoteFinancialStatus;
+  paid_amount: number;
+  project_id: string | null;
   down_payment_percent: number;
   down_payment_amount: number;
   remaining_amount: number;
