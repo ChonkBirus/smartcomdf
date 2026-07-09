@@ -85,6 +85,7 @@ export type QuoteItem = {
   cost_price: number;
   total: number;
   position: number;
+  image_path: string | null;
 };
 
 const itemLineSchema = z.object({
@@ -97,7 +98,9 @@ const itemLineSchema = z.object({
   unit_price: z.number().min(0),
   cost_price: z.number().min(0).default(0),
   position: z.number().int().min(0).default(0),
+  image_path: z.string().trim().max(500).optional().nullable(),
 });
+
 
 const quoteSchema = z.object({
   id: z.string().uuid().optional(),
