@@ -355,6 +355,15 @@ function PublicQuotePage() {
           </div>
         )}
 
+        {/* Enviar comprovante */}
+        {isAccepted && data.payment?.payment_status !== "APPROVED" && (
+          <ReceiptUploader
+            token={token}
+            defaultAmount={Number(data.payment?.amount ?? quote.remaining_amount ?? 0)}
+            onDone={() => qc.invalidateQueries({ queryKey: ["public-quote", token] })}
+          />
+        )}
+
         {company.whatsapp && (() => {
           const digits = String(company.whatsapp).replace(/\D/g, "");
           const num = digits.startsWith("55") ? digits : `55${digits}`;
@@ -411,5 +420,144 @@ function PublicQuotePage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+// ------------------------------------------------------------
+// Uploader público de comprovante — chama /api/public/quote-receipt
+// ------------------------------------------------------------
+const RECEIPT_MIME = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+
+function ReceiptUploader({
+  token,
+  defaultAmount,
+  onDone,
+}: {
+  token: string;
+  defaultAmount: number;
+  onDone: () => void;
+}) {
+  const [amount, setAmount] = useState<string>(
+    defaultAmount > 0 ? String(defaultAmount.toFixed(2)) : "",
+  );
+  const [payerName, setPayerName] = useState("");
+  const [paymentDate, setPaymentDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [method, setMethod] = useState("PIX");
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!file) return toast.error("Selecione o comprovante.");
+    if (!RECEIPT_MIME.includes(file.type)) {
+      return toast.error("Use PDF, JPG, PNG ou WEBP.");
+    }
+    if (file.size > 10 * 1024 * 1024) return toast.error("Arquivo excede 10 MB.");
+    const num = Number(String(amount).replace(",", "."));
+    if (!Number.isFinite(num) || num <= 0) return toast.error("Informe um valor válido.");
+    if (!paymentDate) return toast.error("Informe a data do pagamento.");
+
+    const fd = new FormData();
+    fd.append("token", token);
+    fd.append("amount", String(num));
+    fd.append("payer_name", payerName);
+    fd.append("payment_date", paymentDate);
+    fd.append("payment_method", method);
+    fd.append("file", file);
+
+    setBusy(true);
+    try {
+      const res = await fetch("/api/public/quote-receipt", { method: "POST", body: fd });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body?.error ?? "Falha ao enviar.");
+      toast.success("Comprovante enviado com sucesso. A empresa irá validar o pagamento.");
+      setDone(true);
+      onDone();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Falha ao enviar.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (done) {
+    return (
+      <div className="rounded-lg border border-success/40 bg-success/10 p-5 text-sm">
+        <div className="flex items-center gap-2 font-medium text-success">
+          <CheckCircle2 className="h-4 w-4" />Comprovante enviado
+        </div>
+        <p className="mt-1 text-muted-foreground">
+          A empresa irá validar o pagamento e você receberá a confirmação.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-3 rounded-lg border bg-card p-5 shadow-sm">
+      <h3 className="text-base font-semibold">Enviar comprovante de pagamento</h3>
+      <p className="text-xs text-muted-foreground">
+        Após enviar, a empresa irá validar o pagamento.
+      </p>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="rc-payer">Nome de quem pagou</Label>
+          <Input id="rc-payer" value={payerName} onChange={(e) => setPayerName(e.target.value)} />
+        </div>
+        <div>
+          <Label htmlFor="rc-amount">Valor pago (R$)</Label>
+          <Input
+            id="rc-amount"
+            inputMode="decimal"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="rc-date">Data do pagamento</Label>
+          <Input
+            id="rc-date"
+            type="date"
+            value={paymentDate}
+            onChange={(e) => setPaymentDate(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="rc-method">Forma de pagamento</Label>
+          <select
+            id="rc-method"
+            value={method}
+            onChange={(e) => setMethod(e.target.value)}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="PIX">Pix</option>
+            <option value="BANK_TRANSFER">Transferência</option>
+            <option value="CARD">Cartão</option>
+            <option value="CASH">Dinheiro</option>
+            <option value="OTHER">Outra</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="rc-file">Comprovante (PDF, JPG, PNG ou WEBP — até 10 MB)</Label>
+        <Input
+          id="rc-file"
+          type="file"
+          accept="application/pdf,image/jpeg,image/png,image/webp"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          required
+        />
+      </div>
+
+      <Button type="submit" disabled={busy} className="w-full">
+        <FileText className="mr-1 h-4 w-4" />
+        {busy ? "Enviando..." : "Enviar comprovante"}
+      </Button>
+    </form>
   );
 }

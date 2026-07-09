@@ -2,6 +2,56 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+// ============================================================
+// PR2 — Comprovantes de pagamento
+// ============================================================
+
+export const rejectQuotePaymentReceipt = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({
+      id: z.string().uuid(),
+      reason: z.string().trim().max(500).optional(),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const { error } = await sb.rpc("reject_quote_payment_receipt", {
+      _payment_id: data.id,
+      _reason: data.reason ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/**
+ * Gera URL assinada (5 min) para o comprovante de um quote_payment.
+ * Autorização: precisa pertencer à empresa do pagamento + permissão financeira.
+ * Usa supabaseAdmin (bucket privado); a checagem de autorização é feita
+ * antes do signing via `context.supabase` (RLS como o usuário).
+ */
+export const getQuoteReceiptSignedUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ payment_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    // RLS garante que só enxergamos linhas da mesma empresa
+    const { data: row, error } = await sb
+      .from("quote_payments")
+      .select("id, company_id, receipt_file_path, receipt_mime_type")
+      .eq("id", data.payment_id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row?.receipt_file_path) throw new Error("Comprovante não encontrado.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: signed, error: sErr } = await supabaseAdmin.storage
+      .from("payment-receipts")
+      .createSignedUrl(row.receipt_file_path, 300); // 5 min
+    if (sErr) throw new Error(sErr.message);
+    return { url: signed.signedUrl, mime: row.receipt_mime_type as string | null };
+  });
+
 export type QuotePayment = {
   id: string;
   company_id: string;
