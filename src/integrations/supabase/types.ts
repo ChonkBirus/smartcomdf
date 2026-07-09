@@ -7550,6 +7550,10 @@ export type Database = {
         Returns: undefined
       }
       remove_project_team_member: { Args: { _id: string }; Returns: undefined }
+      resync_quote_payment: {
+        Args: { _payment_id: string }
+        Returns: undefined
+      }
       seed_default_financial_categories: {
         Args: { _company_id: string }
         Returns: undefined
