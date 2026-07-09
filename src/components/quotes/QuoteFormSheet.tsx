@@ -329,7 +329,9 @@ export function QuoteFormSheet({
             unit_price: Number(l.unit_price) || 0,
             cost_price: Number(l.cost_price) || 0,
             position: idx,
+            image_path: l.image_path ?? null,
           })),
+
         } as any,
       }),
     onSuccess: () => {
