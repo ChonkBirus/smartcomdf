@@ -532,7 +532,7 @@ export const getPayables = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
     const { data: rows, error } = await context.supabase.from("financial_transactions")
-      .select("*, financial_categories(name), suppliers(name), financial_bank_accounts(bank_name, account_name)")
+      .select("*, financial_categories(name), suppliers(trade_name, corporate_name), financial_bank_accounts(bank_name, account_name)")
       .eq("company_id", cid)
 
       .eq("type", "EXPENSE")
