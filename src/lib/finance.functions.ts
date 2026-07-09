@@ -104,7 +104,7 @@ function mapRow(r: any): FinancialTransaction {
     amount: Number(r.amount ?? 0),
     category_name: r.financial_categories?.name ?? null,
     customer_name: r.customers?.name ?? null,
-    supplier_name: r.suppliers?.name ?? null,
+    supplier_name: r.suppliers?.trade_name ?? r.suppliers?.corporate_name ?? null,
     bank_account_name: r.financial_bank_accounts
       ? (r.financial_bank_accounts.account_name
           ? `${r.financial_bank_accounts.bank_name} — ${r.financial_bank_accounts.account_name}`
@@ -377,7 +377,7 @@ export const listFinancialTransactions = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
     let q = context.supabase.from("financial_transactions")
-      .select("*, financial_categories(name), customers(name), suppliers(name), financial_bank_accounts(bank_name, account_name)")
+      .select("*, financial_categories(name), customers(name), suppliers(trade_name, corporate_name), financial_bank_accounts(bank_name, account_name)")
       .eq("company_id", cid);
 
     q = applyFilters(q, data);
@@ -532,7 +532,7 @@ export const getPayables = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
     const { data: rows, error } = await context.supabase.from("financial_transactions")
-      .select("*, financial_categories(name), suppliers(name), financial_bank_accounts(bank_name, account_name)")
+      .select("*, financial_categories(name), suppliers(trade_name, corporate_name), financial_bank_accounts(bank_name, account_name)")
       .eq("company_id", cid)
 
       .eq("type", "EXPENSE")
