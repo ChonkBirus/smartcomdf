@@ -95,3 +95,38 @@ export function getTxOriginLabel(t: Partial<FinancialTransaction>): TxOriginInfo
 
   return { label: "Manual", badgeLabel: "Manual" };
 }
+
+/**
+ * Static label for an origin_type when aggregating (no full row available).
+ * Used by dashboards / reports grouped by origin.
+ */
+export function getOriginTypeLabel(
+  originType: string | null | undefined,
+  type?: "INCOME" | "EXPENSE",
+): { label: string; badgeLabel: string } {
+  const key = (originType ?? "MANUAL").toUpperCase();
+  switch (key) {
+    case "QUOTE_PAYMENT":
+      return { label: "Pagamento de orçamento", badgeLabel: "Orçamento" };
+    case "QUOTE_RECEIVABLE_BALANCE":
+      return { label: "Saldo de orçamento", badgeLabel: "Orçamento (saldo)" };
+    case "PURCHASE_ORDER_PAYABLE":
+      return { label: "Pedido de compra", badgeLabel: "Compra" };
+    case "STOCK_PURCHASE":
+      return { label: "Compra de estoque", badgeLabel: "Estoque" };
+    case "SERVICE_ORDER_COST":
+      return { label: "Custo avulso de OS", badgeLabel: "OS" };
+    case "PROJECT_COST":
+      return { label: "Custo de projeto", badgeLabel: "Projeto" };
+    case "OPEN_FINANCE":
+      return { label: "Open Finance", badgeLabel: "Open Finance" };
+    case "IMPORT":
+      return { label: "Importação", badgeLabel: "Importação" };
+    case "MANUAL":
+    default:
+      return {
+        label: type === "EXPENSE" ? "Despesa manual" : "Lançamento manual",
+        badgeLabel: "Manual",
+      };
+  }
+}
