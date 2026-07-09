@@ -148,3 +148,65 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+  pr3-service-orders:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: latest }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: bun install --frozen-lockfile
+      - run: |
+          python -m pip install --upgrade pip
+          pip install playwright
+          playwright install --with-deps chromium
+      - name: Build app
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+      - name: Start preview server
+        run: |
+          bun run preview --port 8080 &
+          echo $! > server.pid
+          for i in {1..40}; do
+            if curl -sf http://localhost:8080 > /dev/null; then break; fi
+            sleep 1
+          done
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+      - name: Run PR3 service-orders E2E
+        run: |
+          mkdir -p test-results
+          python tests/e2e/pr3-service-orders.py 2>&1 | tee test-results/pr3-service-orders.log
+        env:
+          E2E_BROWSER: chromium
+          E2E_A_SUPABASE_SESSION_JSON: ${{ secrets.E2E_A_SUPABASE_SESSION_JSON }}
+          E2E_A_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_A_SUPABASE_STORAGE_KEY }}
+          E2E_B_SUPABASE_SESSION_JSON: ${{ secrets.E2E_B_SUPABASE_SESSION_JSON }}
+          E2E_B_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_B_SUPABASE_STORAGE_KEY }}
+          E2E_TECH_SUPABASE_SESSION_JSON: ${{ secrets.E2E_TECH_SUPABASE_SESSION_JSON }}
+          E2E_TECH_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_TECH_SUPABASE_STORAGE_KEY }}
+          E2E_PR3_PROJECT_WITH_QUOTE_ID: ${{ secrets.E2E_PR3_PROJECT_WITH_QUOTE_ID }}
+          E2E_PR3_PROJECT_WITHOUT_QUOTE_ID: ${{ secrets.E2E_PR3_PROJECT_WITHOUT_QUOTE_ID }}
+          E2E_PR3_TECHNICIAN_ID: ${{ secrets.E2E_PR3_TECHNICIAN_ID }}
+      - name: Stop preview server
+        if: always()
+        run: if [ -f server.pid ]; then kill "$(cat server.pid)" || true; fi
+      - name: Upload PR3 artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr3-service-orders-results
+          path: |
+            test-results/
+            tests/e2e/artifacts/pr3/**
+          if-no-files-found: ignore
+          retention-days: 14
+
+
