@@ -347,7 +347,8 @@ function ProjectDetailPage() {
         <div className="flex items-center gap-2 border-b p-4 text-sm font-medium">
           <Package className="h-4 w-4" />Itens do projeto
         </div>
-        <Table>
+        <div className="overflow-x-auto">
+        <Table className="min-w-[640px]">
           <TableHeader>
             <TableRow>
               <TableHead></TableHead>
@@ -395,6 +396,7 @@ function ProjectDetailPage() {
             })}
           </TableBody>
         </Table>
+        </div>
       </div>
 
       {project.notes && (
