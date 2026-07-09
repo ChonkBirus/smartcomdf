@@ -110,6 +110,16 @@ export function ItemFormSheet({
 
   const [form, setForm] = useState<FormState>({ ...EMPTY, item_type: defaultType });
   const [images, setImages] = useState<ItemImage[]>([]);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingPreview, setPendingPreview] = useState<string | null>(null);
+  const pendingInputRef = useRef<HTMLInputElement>(null);
+  const registerImgFn = useServerFn(registerItemImage);
+
+  useEffect(() => {
+    return () => {
+      if (pendingPreview) URL.revokeObjectURL(pendingPreview);
+    };
+  }, [pendingPreview]);
 
   useEffect(() => {
     if (!open) return;
@@ -136,8 +146,14 @@ export function ItemFormSheet({
     } else if (!itemId) {
       setForm({ ...EMPTY, item_type: defaultType });
       setImages([]);
+      setPendingFile(null);
+      setPendingPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
     }
   }, [open, itemId, item, defaultType]);
+
 
   const isService = form.item_type === "SERVICE";
 
