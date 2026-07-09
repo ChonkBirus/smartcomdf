@@ -57,10 +57,17 @@ export const getProjectPlanning = createServerFn({ method: "GET" })
     if (!proj) throw new Error("Projeto não encontrado.");
     const { data: team, error: e1 } = await sb
       .from("project_team_members")
-      .select("id, user_id, role, profiles:user_id(full_name, email)")
+      .select("id, user_id, role")
       .eq("project_id", data.project_id)
       .order("created_at", { ascending: true });
     if (e1) throw new Error(e1.message);
+
+    const userIds = Array.from(new Set((team ?? []).map((m: any) => m.user_id).filter(Boolean)));
+    const profMap: Record<string, { full_name: string | null; email: string | null }> = {};
+    if (userIds.length) {
+      const { data: profs } = await sb.from("profiles").select("id, full_name, email").in("id", userIds);
+      for (const p of profs ?? []) profMap[(p as any).id] = { full_name: (p as any).full_name, email: (p as any).email };
+    }
 
     const { data: checks, error: e2 } = await sb
       .from("project_material_checks")
@@ -72,8 +79,9 @@ export const getProjectPlanning = createServerFn({ method: "GET" })
 
     const members: TeamMember[] = (team ?? []).map((m: any) => ({
       id: m.id, user_id: m.user_id, role: m.role,
-      full_name: m.profiles?.full_name ?? null, email: m.profiles?.email ?? null,
+      full_name: profMap[m.user_id]?.full_name ?? null, email: profMap[m.user_id]?.email ?? null,
     }));
+
     const materials: MaterialCheck[] = (checks ?? []).map((c: any) => ({
       id: c.id, project_item_id: c.project_item_id, item_id: c.item_id,
       name: c.project_items?.name ?? "—",
