@@ -34,6 +34,7 @@ import {
 import { ProjectPlanningPanel } from "@/components/projects/ProjectPlanningPanel";
 import { ProjectFinancialSummary } from "@/components/finance/ProjectFinancialSummary";
 import { CreateServiceOrderFromProjectButton } from "@/components/service-orders/CreateServiceOrderFromProjectButton";
+import { ProjectServiceOrdersList } from "@/components/projects/ProjectServiceOrdersList";
 
 export const Route = createFileRoute("/_authenticated/projects_/$id")({
   head: () => ({ meta: [{ title: "Detalhe do Projeto — SmartPro" }] }),
