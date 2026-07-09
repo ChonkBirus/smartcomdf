@@ -354,7 +354,7 @@ function ProjectDetailPage() {
           ) : items.map((it: any) => {
             const stock = STOCK_LABEL[it.stock_status] ?? STOCK_LABEL.NA;
             return (
-              <div key={it.id} className="flex gap-3 rounded-lg border p-3">
+              <div key={it.id} className="flex gap-3 overflow-hidden rounded-lg border p-3">
                 {it.image_url ? (
                   <img src={it.image_url} alt="" className="h-12 w-12 shrink-0 rounded object-cover" />
                 ) : (
