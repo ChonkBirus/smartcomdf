@@ -377,7 +377,7 @@ export const listFinancialTransactions = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
     let q = context.supabase.from("financial_transactions")
-      .select("*, financial_categories(name), customers(name), suppliers(name), financial_bank_accounts(bank_name, account_name)")
+      .select("*, financial_categories(name), customers(name), suppliers(trade_name, corporate_name), financial_bank_accounts(bank_name, account_name)")
       .eq("company_id", cid);
 
     q = applyFilters(q, data);
