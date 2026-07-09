@@ -270,6 +270,13 @@ function PurchasesPage() {
 
       <PurchaseOrderFormSheet open={open} onOpenChange={setOpen} orderId={editing} />
       <ReceivingDialog open={!!receiving} onOpenChange={(o) => !o && setReceiving(null)} orderId={receiving} />
+      <MarkPurchaseOrderPaidDialog
+        open={!!payingPO}
+        onOpenChange={(o) => !o && setPayingPO(null)}
+        purchaseId={payingPO?.id ?? null}
+        orderNumber={payingPO?.order_number}
+        onPaid={invalidate}
+      />
 
       <AlertDialog open={!!confirmDel} onOpenChange={(o) => !o && setConfirmDel(null)}>
         <AlertDialogContent>
