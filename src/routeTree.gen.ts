@@ -43,6 +43,7 @@ import { Route as AuthenticatedAssistantRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as ApiPublicQuoteReceiptRouteImport } from './routes/api/public/quote-receipt'
 import { Route as ApiPublicOpenFinanceWebhookRouteImport } from './routes/api/public/open-finance-webhook'
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing-webhook'
 import { Route as ApiFinanceAgentChatRouteImport } from './routes/api/finance-agent.chat'
@@ -259,6 +260,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const ApiPublicQuoteReceiptRoute = ApiPublicQuoteReceiptRouteImport.update({
+  id: '/api/public/quote-receipt',
+  path: '/api/public/quote-receipt',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicOpenFinanceWebhookRoute =
   ApiPublicOpenFinanceWebhookRouteImport.update({
@@ -583,6 +589,7 @@ export interface FileRoutesByFullPath {
   '/api/finance-agent/chat': typeof ApiFinanceAgentChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/api/public/open-finance-webhook': typeof ApiPublicOpenFinanceWebhookRoute
+  '/api/public/quote-receipt': typeof ApiPublicQuoteReceiptRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/admin/pilot-detail/$id': typeof AuthenticatedAdminPilotDetailIdRoute
@@ -659,6 +666,7 @@ export interface FileRoutesByTo {
   '/api/finance-agent/chat': typeof ApiFinanceAgentChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/api/public/open-finance-webhook': typeof ApiPublicOpenFinanceWebhookRoute
+  '/api/public/quote-receipt': typeof ApiPublicQuoteReceiptRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/admin/pilot-detail/$id': typeof AuthenticatedAdminPilotDetailIdRoute
@@ -739,6 +747,7 @@ export interface FileRoutesById {
   '/api/finance-agent/chat': typeof ApiFinanceAgentChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/api/public/open-finance-webhook': typeof ApiPublicOpenFinanceWebhookRoute
+  '/api/public/quote-receipt': typeof ApiPublicQuoteReceiptRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/admin/pilot-detail/$id': typeof AuthenticatedAdminPilotDetailIdRoute
@@ -819,6 +828,7 @@ export interface FileRouteTypes {
     | '/api/finance-agent/chat'
     | '/api/public/billing-webhook'
     | '/api/public/open-finance-webhook'
+    | '/api/public/quote-receipt'
     | '/admin/'
     | '/settings/'
     | '/admin/pilot-detail/$id'
@@ -895,6 +905,7 @@ export interface FileRouteTypes {
     | '/api/finance-agent/chat'
     | '/api/public/billing-webhook'
     | '/api/public/open-finance-webhook'
+    | '/api/public/quote-receipt'
     | '/admin'
     | '/settings'
     | '/admin/pilot-detail/$id'
@@ -974,6 +985,7 @@ export interface FileRouteTypes {
     | '/api/finance-agent/chat'
     | '/api/public/billing-webhook'
     | '/api/public/open-finance-webhook'
+    | '/api/public/quote-receipt'
     | '/_authenticated/admin/'
     | '/_authenticated/settings/'
     | '/_authenticated/admin/pilot-detail/$id'
@@ -998,6 +1010,7 @@ export interface RootRouteChildren {
   ApiFinanceAgentChatRoute: typeof ApiFinanceAgentChatRoute
   ApiPublicBillingWebhookRoute: typeof ApiPublicBillingWebhookRoute
   ApiPublicOpenFinanceWebhookRoute: typeof ApiPublicOpenFinanceWebhookRoute
+  ApiPublicQuoteReceiptRoute: typeof ApiPublicQuoteReceiptRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
@@ -1240,6 +1253,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/api/public/quote-receipt': {
+      id: '/api/public/quote-receipt'
+      path: '/api/public/quote-receipt'
+      fullPath: '/api/public/quote-receipt'
+      preLoaderRoute: typeof ApiPublicQuoteReceiptRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/open-finance-webhook': {
       id: '/api/public/open-finance-webhook'
@@ -1752,6 +1772,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiFinanceAgentChatRoute: ApiFinanceAgentChatRoute,
   ApiPublicBillingWebhookRoute: ApiPublicBillingWebhookRoute,
   ApiPublicOpenFinanceWebhookRoute: ApiPublicOpenFinanceWebhookRoute,
+  ApiPublicQuoteReceiptRoute: ApiPublicQuoteReceiptRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
