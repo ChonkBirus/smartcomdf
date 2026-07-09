@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
-import { Rocket } from "lucide-react";
+import { Rocket, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,7 +14,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { convertQuoteToProject } from "@/lib/projects.functions";
+import { convertQuoteToProject, getProjectByQuote } from "@/lib/projects.functions";
 import { listTeam } from "@/lib/team.functions";
 import { usePermissions } from "@/lib/permissions";
 
@@ -32,19 +32,25 @@ export function ConvertQuoteToProjectButton({ quoteId, status, paymentStatus, fi
   const navigate = useNavigate();
   const { has } = usePermissions();
   const convert = useServerFn(convertQuoteToProject);
+  const fetchByQuote = useServerFn(getProjectByQuote);
   const fetchTeam = useServerFn(listTeam);
   const [open, setOpen] = useState(false);
   const [responsibleId, setResponsibleId] = useState<string>(NONE);
 
-  const canConvert = has("projects.convert_from_quote");
-  const alreadyConverted = status === "CONVERTED";
+  const { data: existingProject } = useQuery({
+    queryKey: ["project-by-quote", quoteId],
+    queryFn: () => fetchByQuote({ data: { quote_id: quoteId } }),
+  });
+
+  const canConvert = has("projects.convert_from_quote") || has("projects.create");
+  const alreadyConverted = !!existingProject || status === "CONVERTED";
   const notApproved = status !== "APPROVED" && !alreadyConverted;
   const financiallyOk =
     financialStatus === "PARTIALLY_PAID" ||
     financialStatus === "PAID" ||
     paymentStatus === "PAYMENT_APPROVED";
   const waitingPayment = status === "APPROVED" && !financiallyOk;
-  const enabled = canConvert && status === "APPROVED" && financiallyOk;
+  const enabled = canConvert && status === "APPROVED" && financiallyOk && !alreadyConverted;
 
   const { data: team } = useQuery({
     queryKey: ["team-members-lite"],
@@ -56,7 +62,7 @@ export function ConvertQuoteToProjectButton({ quoteId, status, paymentStatus, fi
   const tooltip = !canConvert
     ? "Você não tem permissão para converter."
     : alreadyConverted
-      ? "Orçamento já convertido."
+      ? "Projeto já criado. Clique para abrir."
       : notApproved
         ? "Orçamento ainda não aprovado."
         : waitingPayment
@@ -74,25 +80,40 @@ export function ConvertQuoteToProjectButton({ quoteId, status, paymentStatus, fi
       toast.success("Projeto criado com sucesso.");
       qc.invalidateQueries({ queryKey: ["quotes"] });
       qc.invalidateQueries({ queryKey: ["quote", quoteId] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      qc.invalidateQueries({ queryKey: ["project-by-quote", quoteId] });
       setOpen(false);
       navigate({ to: "/projects/$id", params: { id: res.project_id } });
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao converter."),
   });
 
+  if (existingProject) {
+    return (
+      <Button
+        variant="outline"
+        className="w-full"
+        onClick={() => navigate({ to: "/projects/$id", params: { id: existingProject.id } })}
+      >
+        <ExternalLink className="mr-1 h-4 w-4" />
+        Abrir projeto {existingProject.project_number}
+      </Button>
+    );
+  }
+
   return (
     <>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="inline-block">
+            <span className="inline-block w-full">
               <Button
                 onClick={() => setOpen(true)}
                 disabled={!enabled || mut.isPending}
                 className="w-full"
               >
                 <Rocket className="mr-1 h-4 w-4" />
-                Converter em Projeto
+                Criar projeto
               </Button>
             </span>
           </TooltipTrigger>
