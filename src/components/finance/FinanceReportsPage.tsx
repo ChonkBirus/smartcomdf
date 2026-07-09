@@ -201,6 +201,85 @@ export function FinanceReportsPage({ filters }: { filters: Filters }) {
         <CategoryTable title="Saídas por categoria" rows={r?.expenseByCategory ?? []} />
       </div>
 
+      {/* Resumo por origem — PR6B */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold">Resumo por origem</h3>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Metric title="Receitas de orçamento" value={BRL(r?.originCards.quotePaymentsPaid ?? 0)} tone="success" icon={<TrendingUp className="h-5 w-5" />} hint="QUOTE_PAYMENT · pagos" />
+          <Metric title="A receber de orçamento" value={BRL(r?.originCards.quoteReceivables ?? 0)} icon={<TrendingUp className="h-5 w-5" />} hint="Saldos previstos/atrasados" />
+          <Metric title="Compras a pagar" value={BRL(r?.originCards.purchasesPlanned ?? 0)} tone="warning" icon={<TrendingDown className="h-5 w-5" />} hint="Pedidos previstos/atrasados" />
+          <Metric title="Compras pagas" value={BRL(r?.originCards.purchasesPaid ?? 0)} tone="danger" icon={<TrendingDown className="h-5 w-5" />} />
+          <Metric title="Despesas manuais" value={BRL(r?.originCards.manualExpense ?? 0)} icon={<Wallet className="h-5 w-5" />} />
+          <Metric title="Custos avulsos de OS" value={BRL(r?.originCards.serviceOrderCosts ?? 0)} icon={<FileBarChart className="h-5 w-5" />} />
+        </div>
+
+        <Card>
+          <CardContent className="p-0">
+            <div className="border-b px-4 py-3">
+              <h3 className="text-sm font-semibold">Entradas e saídas por origem</h3>
+            </div>
+            {!r?.originSummary?.length ? (
+              <div className="p-6">
+                <EmptyState icon={<FileBarChart className="h-5 w-5" />} title="Sem dados por origem" description="Nenhum lançamento no período." />
+              </div>
+            ) : (
+              <>
+                {/* Desktop: table */}
+                <div className="hidden overflow-x-auto sm:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Origem</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead className="text-right">Previsto</TableHead>
+                        <TableHead className="text-right">Realizado</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead className="text-right">Qtd</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {r.originSummary.map((o) => (
+                        <TableRow key={`${o.origin_type}-${o.type}`}>
+                          <TableCell>{o.label}</TableCell>
+                          <TableCell>
+                            <span className={o.type === "INCOME" ? "text-success" : "text-destructive"}>
+                              {o.type === "INCOME" ? "Entrada" : "Saída"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right font-mono">{BRL(o.planned_total)}</TableCell>
+                          <TableCell className="text-right font-mono">{BRL(o.realized_total)}</TableCell>
+                          <TableCell className="text-right font-mono">{BRL(o.total)}</TableCell>
+                          <TableCell className="text-right">{o.count}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                {/* Mobile: stacked cards */}
+                <div className="divide-y sm:hidden">
+                  {r.originSummary.map((o) => (
+                    <div key={`${o.origin_type}-${o.type}-m`} className="p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{o.label}</span>
+                        <Badge variant="outline" className={o.type === "INCOME" ? "text-success" : "text-destructive"}>
+                          {o.type === "INCOME" ? "Entrada" : "Saída"}
+                        </Badge>
+                      </div>
+                      <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                        <div><span className="text-muted-foreground">Previsto:</span> <span className="font-mono">{BRL(o.planned_total)}</span></div>
+                        <div><span className="text-muted-foreground">Realizado:</span> <span className="font-mono">{BRL(o.realized_total)}</span></div>
+                        <div><span className="text-muted-foreground">Total:</span> <span className="font-mono">{BRL(o.total)}</span></div>
+                        <div><span className="text-muted-foreground">Qtd:</span> {o.count}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
       {r?.monthly && r.monthly.length > 0 && (
         <div className="grid gap-4 lg:grid-cols-2">
           <Card>
