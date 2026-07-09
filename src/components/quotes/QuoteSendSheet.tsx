@@ -30,7 +30,7 @@ import {
   getQuote, getQuoteHistory, logQuoteEvent, markQuoteSent,
 } from "@/lib/quotes.functions";
 import {
-  listQuotePayments, approveQuotePayment, cancelQuotePayment, getCompanyPix,
+  listQuotePayments, approveQuotePayment, cancelQuotePayment, resyncQuotePayment, getCompanyPix,
 } from "@/lib/quote-payments.functions";
 import { generateQuotePDF, type QuotePdfTemplate } from "@/lib/quote-pdf-index";
 import { getQuotePdfPayload } from "@/lib/quote-pdf.functions";
@@ -84,6 +84,7 @@ export function QuoteSendSheet({
   const fetchPix = useServerFn(getCompanyPix);
   const approvePay = useServerFn(approveQuotePayment);
   const cancelPay = useServerFn(cancelQuotePayment);
+  const resyncPay = useServerFn(resyncQuotePayment);
   const fetchPdfPayload = useServerFn(getQuotePdfPayload);
   const [pdfTemplate, setPdfTemplate] = useState<QuotePdfTemplate>("premium");
   const [pdfBusy, setPdfBusy] = useState(false);
@@ -285,6 +286,17 @@ export function QuoteSendSheet({
       qc.invalidateQueries({ queryKey: ["quotes"] });
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
+  });
+  const resyncMut = useMutation({
+    mutationFn: (id: string) => resyncPay({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Financeiro ressincronizado.");
+      qc.invalidateQueries({ queryKey: ["quote", quoteId, "for-send"] });
+      qc.invalidateQueries({ queryKey: ["quote-payments", quoteId] });
+      qc.invalidateQueries({ queryKey: ["quotes"] });
+      qc.invalidateQueries({ queryKey: ["finance"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao ressincronizar."),
   });
 
   const pixMessage =
@@ -538,6 +550,24 @@ export function QuoteSendSheet({
                           </Button>
                         </Can>
                       </div>
+                    )}
+
+                    {activePayment?.payment_status === "APPROVED" && (
+                      <Can module="quote_payments" action="approve">
+                        <div className="mt-3">
+                          <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => resyncMut.mutate(activePayment.id)}
+                            disabled={resyncMut.isPending}
+                          >
+                            {resyncMut.isPending ? "Ressincronizando..." : "Ressincronizar financeiro"}
+                          </Button>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Recalcula o recebido/saldo e cancela lançamentos legados duplicados.
+                          </p>
+                        </div>
+                      </Can>
                     )}
                   </div>
                 )}
