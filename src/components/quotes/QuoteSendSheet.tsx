@@ -287,6 +287,17 @@ export function QuoteSendSheet({
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
   });
+  const resyncMut = useMutation({
+    mutationFn: (id: string) => resyncPay({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Financeiro ressincronizado.");
+      qc.invalidateQueries({ queryKey: ["quote", quoteId, "for-send"] });
+      qc.invalidateQueries({ queryKey: ["quote-payments", quoteId] });
+      qc.invalidateQueries({ queryKey: ["quotes"] });
+      qc.invalidateQueries({ queryKey: ["finance"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao ressincronizar."),
+  });
 
   const pixMessage =
     quote && activePayment
