@@ -7310,6 +7310,7 @@ export type Database = {
       }
     }
     Functions: {
+      _po_expense_category: { Args: { _company: string }; Returns: string }
       accept_invitation: { Args: { _token: string }; Returns: string }
       accept_public_quote: {
         Args: { _document?: string; _name: string; _token: string }
@@ -7423,6 +7424,10 @@ export type Database = {
         Returns: undefined
       }
       can_access_service_order: { Args: { _so_id: string }; Returns: boolean }
+      cancel_purchase_order_finance: {
+        Args: { _po_id: string }
+        Returns: number
+      }
       cancel_quote_payment: {
         Args: { _payment_id: string; _reason?: string }
         Returns: Json
@@ -7514,6 +7519,16 @@ export type Database = {
       mark_project_ready_for_os: {
         Args: { _force?: boolean; _project_id: string }
         Returns: undefined
+      }
+      mark_purchase_order_paid: {
+        Args: {
+          _bank_account_id?: string
+          _notes?: string
+          _paid_at?: string
+          _payment_method?: string
+          _po_id: string
+        }
+        Returns: string
       }
       move_to_dlq: {
         Args: {
@@ -7966,6 +7981,10 @@ export type Database = {
           payment_id: string
           upload_path: string
         }[]
+      }
+      sync_purchase_order_to_finance: {
+        Args: { _po_id: string }
+        Returns: string
       }
       transfer_stock: {
         Args: {
