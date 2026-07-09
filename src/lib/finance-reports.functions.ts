@@ -14,6 +14,18 @@ const FiltersSchema = z
 
 type Bucket = { id: string | null; name: string; total: number; count: number };
 
+export type OriginSummaryRow = {
+  origin_type: string;
+  label: string;
+  type: "INCOME" | "EXPENSE";
+  realized_total: number;
+  realized_count: number;
+  planned_total: number;
+  planned_count: number;
+  total: number;
+  count: number;
+};
+
 async function getCompanyId(supabase: any, userId: string): Promise<string> {
   const { data } = await supabase
     .from("profiles")
@@ -27,6 +39,27 @@ async function getCompanyId(supabase: any, userId: string): Promise<string> {
 export type FinanceReportSummary = {
   income: number;
   expense: number;
+  balance: number;
+  receivables: number;
+  payables: number;
+  overdueReceivables: number;
+  overduePayables: number;
+  incomeByCategory: Bucket[];
+  expenseByCategory: Bucket[];
+  receivablesByStatus: Array<{ status: string; total: number; count: number }>;
+  payablesByStatus: Array<{ status: string; total: number; count: number }>;
+  monthly: Array<{ month: string; income: number; expense: number; balance: number }>;
+  originSummary: OriginSummaryRow[];
+  originCards: {
+    quotePaymentsPaid: number;
+    quoteReceivables: number;
+    purchasesPlanned: number;
+    purchasesPaid: number;
+    manualExpense: number;
+    serviceOrderCosts: number;
+  };
+  count: number;
+};
   balance: number;
   receivables: number;
   payables: number;
