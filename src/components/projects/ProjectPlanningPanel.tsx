@@ -197,15 +197,17 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
     <div className="space-y-4">
       {/* Progresso */}
       <div className="rounded-lg border bg-card p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <ShieldCheck className="h-4 w-4" />Planejamento do projeto
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2 text-sm font-medium">
+            <ShieldCheck className="h-4 w-4 shrink-0" />
+            <span className="truncate">Planejamento do projeto</span>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <span className={`rounded px-2 py-0.5 text-xs ${planBadge.cls}`}>{planBadge.label}</span>
             <span className={`rounded px-2 py-0.5 text-xs ${matBadge.cls}`}>{matBadge.label}</span>
           </div>
         </div>
+
         <div className="grid grid-cols-2 gap-2 text-sm md:grid-cols-5">
           <Step done={hasResponsible} label="Responsável definido" />
           <Step done={hasDates} label="Datas definidas" />
