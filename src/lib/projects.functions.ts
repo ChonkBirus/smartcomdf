@@ -119,7 +119,7 @@ export const listProjects = createServerFn({ method: "GET" })
     if (!prof?.company_id) throw new Error("Sem empresa.");
     let q = sb
       .from("projects")
-      .select("*, customers:customer_id(name,trade_name,corporate_name), quotes:quote_id(quote_number), responsible:responsible_user_id(full_name,email)")
+      .select("*, customers:customer_id(name,trade_name,corporate_name), quotes:quote_id(quote_number)")
       .eq("company_id", prof.company_id)
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
@@ -134,6 +134,12 @@ export const listProjects = createServerFn({ method: "GET" })
     }
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
+    const respIds = Array.from(new Set((rows ?? []).map((r: any) => r.responsible_user_id).filter(Boolean)));
+    const respMap: Record<string, { full_name: string | null; email: string | null }> = {};
+    if (respIds.length) {
+      const { data: profs } = await sb.from("profiles").select("id,full_name,email").in("id", respIds);
+      (profs ?? []).forEach((p: any) => { respMap[p.id] = { full_name: p.full_name, email: p.email }; });
+    }
     return (rows ?? []).map((r: any) => ({
       ...r,
       total_amount: Number(r.total_amount || 0),
@@ -142,7 +148,7 @@ export const listProjects = createServerFn({ method: "GET" })
       customer_name:
         r.customers?.trade_name || r.customers?.name || r.customers?.corporate_name || "—",
       quote_number: r.quotes?.quote_number ?? null,
-      responsible_name: r.responsible?.full_name ?? r.responsible?.email ?? null,
+      responsible_name: respMap[r.responsible_user_id]?.full_name ?? respMap[r.responsible_user_id]?.email ?? null,
     })) as Project[];
   });
 
@@ -160,14 +166,24 @@ export const getProject = createServerFn({ method: "GET" })
         customers:customer_id(id,name,trade_name,corporate_name,cpf_cnpj,email,phone,whatsapp),
         address:customer_address_id(*),
         contact:customer_contact_id(*),
-        quotes:quote_id(id,quote_number,total_amount,accepted_at,accepted_by_name),
-        responsible:responsible_user_id(full_name,email)
+        quotes:quote_id(id,quote_number,total_amount,accepted_at,accepted_by_name)
       `)
       .eq("id", data.id)
       .eq("company_id", cid)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!p) return null;
+
+    let responsible: { full_name: string | null; email: string | null } | null = null;
+    if (p.responsible_user_id) {
+      const { data: r } = await sb
+        .from("profiles")
+        .select("full_name,email")
+        .eq("id", p.responsible_user_id)
+        .maybeSingle();
+      responsible = r ?? null;
+    }
+    (p as any).responsible = responsible;
 
     const { data: items, error: e2 } = await sb
       .from("project_items")
