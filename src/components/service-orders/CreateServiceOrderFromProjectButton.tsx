@@ -24,17 +24,12 @@ export function CreateServiceOrderFromProjectButton({
   projectId, planningReady,
 }: { projectId: string; planningReady: boolean }) {
   const navigate = useNavigate();
-  const findFn = useServerFn(findServiceOrderByProject);
+  const qc = useQueryClient();
   const createFn = useServerFn(createServiceOrderFromProject);
   const getProjectFn = useServerFn(getProject);
   const fetchTeam = useServerFn(listTeam);
   const [open, setOpen] = useState(false);
   const [technicianId, setTechnicianId] = useState<string>("");
-
-  const { data: existing, refetch } = useQuery({
-    queryKey: ["service-order-by-project", projectId],
-    queryFn: () => findFn({ data: { project_id: projectId } }),
-  });
 
   const { data: projectData } = useQuery({
     queryKey: ["project-brief", projectId],
@@ -64,21 +59,11 @@ export function CreateServiceOrderFromProjectButton({
     onSuccess: ({ service_order_id }) => {
       toast.success("Ordem de Serviço criada.");
       setOpen(false);
+      qc.invalidateQueries({ queryKey: ["project-service-orders", projectId] });
       navigate({ to: "/service-orders/$id", params: { id: service_order_id } } as any);
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao gerar OS."),
   });
-
-  if (existing) {
-    return (
-      <Button
-        variant="outline" size="sm"
-        onClick={() => navigate({ to: "/service-orders/$id", params: { id: existing.id } } as any)}
-      >
-        <ExternalLink className="mr-1 h-4 w-4" />Ver OS {existing.service_order_number}
-      </Button>
-    );
-  }
 
   const btn = (
     <Button size="sm" disabled={!planningReady}>
