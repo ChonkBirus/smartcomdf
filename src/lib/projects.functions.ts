@@ -148,7 +148,7 @@ export const listProjects = createServerFn({ method: "GET" })
       customer_name:
         r.customers?.trade_name || r.customers?.name || r.customers?.corporate_name || "—",
       quote_number: r.quotes?.quote_number ?? null,
-      responsible_name: r.responsible?.full_name ?? r.responsible?.email ?? null,
+      responsible_name: respMap[r.responsible_user_id]?.full_name ?? respMap[r.responsible_user_id]?.email ?? null,
     })) as Project[];
   });
 
