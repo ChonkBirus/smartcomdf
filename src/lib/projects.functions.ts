@@ -84,6 +84,23 @@ export const convertQuoteToProject = createServerFn({ method: "POST" })
     return { project_id: pid as string };
   });
 
+export const getProjectByQuote = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ quote_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    if (!prof?.company_id) return null;
+    const { data: row } = await sb
+      .from("projects")
+      .select("id, project_number, status")
+      .eq("company_id", prof.company_id)
+      .eq("quote_id", data.quote_id)
+      .is("deleted_at", null)
+      .maybeSingle();
+    return row ?? null;
+  });
+
 export const listProjects = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
