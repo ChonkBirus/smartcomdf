@@ -1,6 +1,6 @@
 ---
-name: Responsive Design
-description: Design responsivo mobile-first partindo de 320px: grid fluido, breakpoints baseados no conteúdo (não em dispositivos), otimização de toque com alvos de 44×44px e progressive enhancement. Usa CSS Grid e Flexbox para layouts que se adaptam naturalmente a qualquer tela, do smartwatch ao ultrawide, sem media queries artificiais.
+name: responsive-design
+description: "Design responsivo mobile-first partindo de 320px: grid fluido, breakpoints baseados no conteúdo (não em dispositivos), otimização de toque com alvos de 44×44px e progressive enhancement. Usa CSS Grid e Flexbox para layouts que se adaptam naturalmente a qualquer tela, do smartwatch ao ultrawide, sem media queries artificiais."
 ---
 
 Review and improve the responsive design of this project using mobile-first principles.
