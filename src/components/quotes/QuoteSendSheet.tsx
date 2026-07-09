@@ -539,6 +539,24 @@ export function QuoteSendSheet({
                         </Can>
                       </div>
                     )}
+
+                    {activePayment?.payment_status === "APPROVED" && (
+                      <Can module="quote_payments" action="approve">
+                        <div className="mt-3">
+                          <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => resyncMut.mutate(activePayment.id)}
+                            disabled={resyncMut.isPending}
+                          >
+                            {resyncMut.isPending ? "Ressincronizando..." : "Ressincronizar financeiro"}
+                          </Button>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Recalcula o recebido/saldo e cancela lançamentos legados duplicados.
+                          </p>
+                        </div>
+                      </Can>
+                    )}
                   </div>
                 )}
 
