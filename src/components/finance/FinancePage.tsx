@@ -27,6 +27,7 @@ import {
   type FinancialTransaction, type FinancialCategory, type FinTxType, type FinTxStatus,
 } from "@/lib/finance.functions";
 import { listBankAccounts } from "@/lib/bank-accounts.functions";
+import { getTxOriginLabel } from "@/lib/finance-origin";
 import { useCompanyId } from "@/hooks/use-company-id";
 import { FinancialHealthScoreCard, FinancialHealthPage } from "@/components/finance/FinancialHealthPage";
 import { FinanceAgentChat } from "@/components/finance/FinanceAgentChat";
