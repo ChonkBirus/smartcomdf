@@ -348,13 +348,13 @@ function ProjectDetailPage() {
           <Package className="h-4 w-4" />Itens do projeto
         </div>
         {/* Mobile: cards */}
-        <div className="grid gap-2 p-3 md:hidden">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-2 p-3 md:hidden">
           {items.length === 0 ? (
             <div className="py-6 text-center text-sm text-muted-foreground">Sem itens.</div>
           ) : items.map((it: any) => {
             const stock = STOCK_LABEL[it.stock_status] ?? STOCK_LABEL.NA;
             return (
-              <div key={it.id} className="flex gap-3 rounded-lg border p-3">
+              <div key={it.id} className="flex gap-3 overflow-hidden rounded-lg border p-3">
                 {it.image_url ? (
                   <img src={it.image_url} alt="" className="h-12 w-12 shrink-0 rounded object-cover" />
                 ) : (
