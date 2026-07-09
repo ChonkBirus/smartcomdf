@@ -27,6 +27,8 @@ import {
   cancelPurchaseOrder, deletePurchaseOrder, duplicatePurchaseOrder,
   purchaseOverview, type PurchaseOrder, type PurchaseOrderStatus,
 } from "@/lib/purchases.functions";
+import { listPayableStatusesByPurchase } from "@/lib/finance-integrations.functions";
+import { MarkPurchaseOrderPaidDialog } from "@/components/purchases/MarkPurchaseOrderPaidDialog";
 import { useCompanyId } from "@/hooks/use-company-id";
 
 export const Route = createFileRoute("/_authenticated/purchases")({
@@ -69,6 +71,7 @@ function PurchasesPage() {
   const [receiving, setReceiving] = useState<string | null>(null);
   const [confirmDel, setConfirmDel] = useState<PurchaseOrder | null>(null);
   const [confirmCancel, setConfirmCancel] = useState<PurchaseOrder | null>(null);
+  const [payingPO, setPayingPO] = useState<PurchaseOrder | null>(null);
 
   const fetchList = useServerFn(listPurchaseOrders);
   const fetchOverview = useServerFn(purchaseOverview);
@@ -88,6 +91,14 @@ function PurchasesPage() {
     queryKey: ["purchase_overview", companyId],
     queryFn: () => fetchOverview(),
     enabled: !!companyId,
+  });
+
+  const fetchStatuses = useServerFn(listPayableStatusesByPurchase);
+  const orderIds = (orders ?? []).map((o) => o.id);
+  const { data: payableMap } = useQuery({
+    queryKey: ["purchase_payable_map", companyId, orderIds.join(",")],
+    queryFn: () => fetchStatuses({ data: { purchase_ids: orderIds } }),
+    enabled: !!companyId && orderIds.length > 0,
   });
 
   const invalidate = () => {
@@ -181,7 +192,17 @@ function PurchasesPage() {
                   <td className="px-3 py-2">{new Date(po.issue_date).toLocaleDateString("pt-BR")}</td>
                   <td className="px-3 py-2 text-right">{brl(po.total_amount)}</td>
                   <td className="px-3 py-2">
-                    <Badge variant={STATUS_VARIANT[po.status]}>{STATUS_LABEL[po.status]}</Badge>
+                    <div className="flex flex-col gap-1">
+                      <Badge variant={STATUS_VARIANT[po.status]}>{STATUS_LABEL[po.status]}</Badge>
+                      {payableMap?.[po.id]?.status === "PAID" && (
+                        <Badge variant="default" className="w-fit bg-success text-success-foreground hover:bg-success">
+                          Pago no financeiro
+                        </Badge>
+                      )}
+                      {payableMap?.[po.id]?.status === "PLANNED" && po.status !== "CANCELLED" && (
+                        <Badge variant="outline" className="w-fit">A pagar</Badge>
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex flex-wrap justify-end gap-1">
@@ -205,6 +226,12 @@ function PurchasesPage() {
                             <PackageCheck className="mr-1 h-3 w-3" />Receber
                           </Button>
                         </Can>
+                      )}
+                      {(po.status === "APPROVED" || po.status === "PARTIALLY_RECEIVED" || po.status === "RECEIVED") &&
+                       payableMap?.[po.id]?.status !== "PAID" && (
+                        <Button size="sm" variant="outline" onClick={() => setPayingPO(po)}>
+                          <DollarSign className="mr-1 h-3 w-3" />Marcar como pago
+                        </Button>
                       )}
                       {(po.status === "DRAFT" || po.status === "PENDING") && (
                         <Can module="purchases" action="edit">
@@ -243,6 +270,13 @@ function PurchasesPage() {
 
       <PurchaseOrderFormSheet open={open} onOpenChange={setOpen} orderId={editing} />
       <ReceivingDialog open={!!receiving} onOpenChange={(o) => !o && setReceiving(null)} orderId={receiving} />
+      <MarkPurchaseOrderPaidDialog
+        open={!!payingPO}
+        onOpenChange={(o) => !o && setPayingPO(null)}
+        purchaseId={payingPO?.id ?? null}
+        orderNumber={payingPO?.order_number}
+        onPaid={invalidate}
+      />
 
       <AlertDialog open={!!confirmDel} onOpenChange={(o) => !o && setConfirmDel(null)}>
         <AlertDialogContent>

@@ -146,6 +146,32 @@ export const getPayableByPurchase = createServerFn({ method: "GET" })
     return row;
   });
 
+export const listPayableStatusesByPurchase = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ purchase_ids: z.array(z.string().uuid()).max(500) }).parse(d))
+  .handler(async ({ data, context }) => {
+    if (!data.purchase_ids.length) return {} as Record<string, { status: string; paid_at: string | null }>;
+    const cid = await getCompanyId(context.supabase, context.userId);
+    const { data: rows, error } = await context.supabase
+      .from("financial_transactions")
+      .select("purchase_id,status,paid_at")
+      .eq("company_id", cid)
+      .eq("type", "EXPENSE")
+      .is("deleted_at", null)
+      .in("purchase_id", data.purchase_ids);
+    if (error) throw new Error(error.message);
+    const map: Record<string, { status: string; paid_at: string | null }> = {};
+    for (const r of (rows ?? []) as any[]) {
+      if (!r.purchase_id) continue;
+      const cur = map[r.purchase_id];
+      // PAID beats PLANNED; CANCELED beats nothing
+      if (!cur || (cur.status !== "PAID" && r.status === "PAID")) {
+        map[r.purchase_id] = { status: r.status, paid_at: r.paid_at };
+      }
+    }
+    return map;
+  });
+
 export const createPayableFromPurchase = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
@@ -196,6 +222,29 @@ export const createPayableFromPurchase = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
     return { id: inserted!.id, duplicate: false };
+  });
+
+export const markPurchaseOrderPaid = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({
+      purchase_id: z.string().uuid(),
+      bank_account_id: z.string().uuid(),
+      paid_at: z.string().optional(),
+      payment_method: z.string().trim().max(60).optional(),
+      notes: z.string().trim().max(500).optional(),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.rpc("mark_purchase_order_paid", {
+      _po_id: data.purchase_id,
+      _bank_account_id: data.bank_account_id,
+      _payment_method: data.payment_method || undefined,
+      _paid_at: data.paid_at ?? new Date().toISOString(),
+      _notes: data.notes || undefined,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 /* -------------------- Summaries -------------------- */
