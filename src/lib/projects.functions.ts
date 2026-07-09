@@ -166,7 +166,7 @@ export const getProject = createServerFn({ method: "GET" })
         customers:customer_id(id,name,trade_name,corporate_name,cpf_cnpj,email,phone,whatsapp),
         address:customer_address_id(*),
         contact:customer_contact_id(*),
-        quotes:quote_id(id,quote_number,total_amount,accepted_at,accepted_by_name)
+        quotes:quote_id(id,quote_number,total_amount,paid_amount,remaining_amount,financial_status,accepted_at,accepted_by_name)
       `)
       .eq("id", data.id)
       .eq("company_id", cid)
@@ -252,7 +252,35 @@ export const getProject = createServerFn({ method: "GET" })
       contact: p.contact,
       quote: p.quotes,
       items: enriched,
+      financial_summary: await (async () => {
+        const q = p.quotes;
+        const total = Number(q?.total_amount ?? p.total_amount ?? 0);
+        let paid = q?.paid_amount != null ? Number(q.paid_amount) : NaN;
+        if (!Number.isFinite(paid) || paid === 0) {
+          // Fallback: sum PAID INCOME financial_transactions from this quote
+          if (p.quote_id) {
+            const { data: tx } = await sb
+              .from("financial_transactions")
+              .select("amount")
+              .eq("company_id", cid)
+              .eq("quote_id", p.quote_id)
+              .eq("origin_type", "QUOTE_PAYMENT")
+              .eq("status", "PAID")
+              .is("deleted_at", null);
+            const sum = (tx ?? []).reduce((a: number, r: any) => a + Number(r.amount || 0), 0);
+            if (sum > 0) paid = sum;
+          }
+          if (!Number.isFinite(paid)) paid = 0;
+        }
+        const remaining =
+          q?.remaining_amount != null ? Number(q.remaining_amount) : Math.max(0, total - paid);
+        const financial_status: "UNPAID" | "PARTIALLY_PAID" | "PAID" =
+          (q?.financial_status as any) ??
+          (paid <= 0 ? "UNPAID" : paid >= total ? "PAID" : "PARTIALLY_PAID");
+        return { total_amount: total, paid_amount: paid, remaining_amount: remaining, financial_status };
+      })(),
     };
+
   });
 
 export const updateProjectBasics = createServerFn({ method: "POST" })
