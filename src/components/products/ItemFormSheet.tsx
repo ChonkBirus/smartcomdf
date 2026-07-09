@@ -159,13 +159,68 @@ export function ItemFormSheet({
 
   const save = useMutation({
     mutationFn: (payload: any) => saveFn({ data: payload }),
-    onSuccess: () => {
+    onSuccess: async (savedRaw: any) => {
+      // Se havia arquivo pendente (fluxo de novo produto), faz upload agora
+      if (pendingFile && !isService) {
+        const saved = savedRaw as { id?: string; company_id?: string } | null;
+        const newId = saved?.id ?? form.id;
+        const companyId = saved?.company_id;
+        if (newId && companyId) {
+          try {
+            const ext = (pendingFile.name.split(".").pop() || "jpg").toLowerCase();
+            const path = `${companyId}/${newId}/${crypto.randomUUID()}.${ext}`;
+            const { error: upErr } = await supabase.storage
+              .from("product-images")
+              .upload(path, pendingFile, {
+                contentType: pendingFile.type,
+                upsert: false,
+              });
+            if (upErr) throw upErr;
+            await registerImgFn({
+              data: { item_id: newId, file_path: path, is_primary: true },
+            });
+          } catch (err: any) {
+            toast.error("Item salvo, mas a imagem não pôde ser enviada: " + (err?.message ?? ""));
+          }
+        }
+      }
       qc.invalidateQueries({ queryKey: ["items"] });
       toast.success(isService ? "Serviço salvo com sucesso." : "Produto salvo com sucesso.");
+      setPendingFile(null);
+      setPendingPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
       onOpenChange(false);
     },
     onError: (e: any) => toast.error(e.message ?? "Falha ao salvar."),
   });
+
+  function handlePendingFile(f: File | null) {
+    if (!f) {
+      setPendingFile(null);
+      setPendingPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      return;
+    }
+    const allowed = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowed.includes(f.type)) {
+      toast.error("Tipo de arquivo não suportado (use JPG, PNG ou WEBP).");
+      return;
+    }
+    if (f.size > 5 * 1024 * 1024) {
+      toast.error("Imagem excede 5 MB.");
+      return;
+    }
+    setPendingFile(f);
+    setPendingPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(f);
+    });
+  }
+
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
