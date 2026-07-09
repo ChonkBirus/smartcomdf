@@ -85,6 +85,7 @@ export type QuoteItem = {
   cost_price: number;
   total: number;
   position: number;
+  image_path: string | null;
 };
 
 const itemLineSchema = z.object({
@@ -97,7 +98,9 @@ const itemLineSchema = z.object({
   unit_price: z.number().min(0),
   cost_price: z.number().min(0).default(0),
   position: z.number().int().min(0).default(0),
+  image_path: z.string().trim().max(500).optional().nullable(),
 });
+
 
 const quoteSchema = z.object({
   id: z.string().uuid().optional(),
@@ -139,6 +142,8 @@ export type QuoteCatalogItem = {
   item_type: "PRODUCT" | "SERVICE";
   sale_price: number;
   cost_price: number;
+  description: string | null;
+  image_path: string | null;
 };
 
 export const listQuoteCatalog = createServerFn({ method: "GET" })
@@ -149,13 +154,26 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
     if (!profile?.company_id) throw new Error("Sem empresa.");
     const { data, error } = await sb
       .from("items")
-      .select("id, name, sku, unit, item_type, sale_price, cost_price")
+      .select("id, name, sku, unit, item_type, sale_price, cost_price, description")
       .eq("company_id", profile.company_id)
       .is("deleted_at", null)
       .eq("active", true)
       .in("item_type", ["PRODUCT", "SERVICE"])
       .order("name");
     if (error) throw new Error(error.message);
+    const ids = (data ?? []).map((r: any) => r.id);
+    const imgMap = new Map<string, string>();
+    if (ids.length > 0) {
+      const { data: imgs } = await sb
+        .from("item_images")
+        .select("item_id, file_path, is_primary, created_at")
+        .in("item_id", ids)
+        .order("is_primary", { ascending: false })
+        .order("created_at", { ascending: true });
+      (imgs ?? []).forEach((im: any) => {
+        if (!imgMap.has(im.item_id)) imgMap.set(im.item_id, im.file_path);
+      });
+    }
     return (data ?? []).map((r: any) => ({
       id: r.id,
       name: r.name,
@@ -164,8 +182,11 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
       item_type: r.item_type,
       sale_price: Number(r.sale_price || 0),
       cost_price: Number(r.cost_price || 0),
+      description: r.description ?? null,
+      image_path: imgMap.get(r.id) ?? null,
     })) as QuoteCatalogItem[];
   });
+
 
 // ============================================================
 // LIST
@@ -389,7 +410,9 @@ export const saveQuote = createServerFn({ method: "POST" })
       unit_price: it.unit_price,
       cost_price: it.cost_price ?? 0,
       position: it.position ?? idx,
+      image_path: nz(it.image_path ?? null),
     }));
+
     const { error: ie } = await sb.from("quote_items").insert(itemsPayload);
     if (ie) throw new Error(ie.message);
 

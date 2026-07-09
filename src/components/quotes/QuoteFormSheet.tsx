@@ -32,7 +32,9 @@ type Line = {
   quantity: number;
   unit_price: number;
   cost_price: number;
+  image_path?: string | null;
 };
+
 
 const KIND_LABEL: Record<QuoteItemKind, string> = {
   PRODUCT: "Produto", SERVICE: "Serviço", LABOR: "Mão de obra", OTHER: "Outro",
@@ -245,8 +247,10 @@ export function QuoteFormSheet({
           quantity: Number(it.quantity),
           unit_price: Number(it.unit_price),
           cost_price: Number(it.cost_price || 0),
+          image_path: (it as any).image_path ?? null,
         })),
       );
+
     } else if (!quoteId) {
       const today = new Date().toISOString().slice(0, 10);
       setCustomerId(""); setTitle("");
@@ -325,7 +329,9 @@ export function QuoteFormSheet({
             unit_price: Number(l.unit_price) || 0,
             cost_price: Number(l.cost_price) || 0,
             position: idx,
+            image_path: l.image_path ?? null,
           })),
+
         } as any,
       }),
     onSuccess: () => {
@@ -362,14 +368,18 @@ export function QuoteFormSheet({
   function pickCatalogItem(i: number, itemId: string) {
     const it = catalogItems.find((x) => x.id === itemId);
     if (!it) return;
+    const current = lines[i];
     setLine(i, {
       item_id: it.id,
       name: it.name,
       kind: it.item_type === "SERVICE" ? "SERVICE" : "PRODUCT",
       unit_price: it.sale_price,
       cost_price: it.cost_price,
+      description: current?.description?.trim() ? current.description : (it.description ?? ""),
+      image_path: it.image_path ?? null,
     });
   }
+
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();

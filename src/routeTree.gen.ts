@@ -44,6 +44,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as ApiPublicQuoteReceiptRouteImport } from './routes/api/public/quote-receipt'
+import { Route as ApiPublicQuoteImageUrlsRouteImport } from './routes/api/public/quote-image-urls'
 import { Route as ApiPublicOpenFinanceWebhookRouteImport } from './routes/api/public/open-finance-webhook'
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing-webhook'
 import { Route as ApiFinanceAgentChatRouteImport } from './routes/api/finance-agent.chat'
@@ -264,6 +265,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
 const ApiPublicQuoteReceiptRoute = ApiPublicQuoteReceiptRouteImport.update({
   id: '/api/public/quote-receipt',
   path: '/api/public/quote-receipt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicQuoteImageUrlsRoute = ApiPublicQuoteImageUrlsRouteImport.update({
+  id: '/api/public/quote-image-urls',
+  path: '/api/public/quote-image-urls',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicOpenFinanceWebhookRoute =
@@ -589,6 +595,7 @@ export interface FileRoutesByFullPath {
   '/api/finance-agent/chat': typeof ApiFinanceAgentChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/api/public/open-finance-webhook': typeof ApiPublicOpenFinanceWebhookRoute
+  '/api/public/quote-image-urls': typeof ApiPublicQuoteImageUrlsRoute
   '/api/public/quote-receipt': typeof ApiPublicQuoteReceiptRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -666,6 +673,7 @@ export interface FileRoutesByTo {
   '/api/finance-agent/chat': typeof ApiFinanceAgentChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/api/public/open-finance-webhook': typeof ApiPublicOpenFinanceWebhookRoute
+  '/api/public/quote-image-urls': typeof ApiPublicQuoteImageUrlsRoute
   '/api/public/quote-receipt': typeof ApiPublicQuoteReceiptRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
@@ -747,6 +755,7 @@ export interface FileRoutesById {
   '/api/finance-agent/chat': typeof ApiFinanceAgentChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/api/public/open-finance-webhook': typeof ApiPublicOpenFinanceWebhookRoute
+  '/api/public/quote-image-urls': typeof ApiPublicQuoteImageUrlsRoute
   '/api/public/quote-receipt': typeof ApiPublicQuoteReceiptRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -828,6 +837,7 @@ export interface FileRouteTypes {
     | '/api/finance-agent/chat'
     | '/api/public/billing-webhook'
     | '/api/public/open-finance-webhook'
+    | '/api/public/quote-image-urls'
     | '/api/public/quote-receipt'
     | '/admin/'
     | '/settings/'
@@ -905,6 +915,7 @@ export interface FileRouteTypes {
     | '/api/finance-agent/chat'
     | '/api/public/billing-webhook'
     | '/api/public/open-finance-webhook'
+    | '/api/public/quote-image-urls'
     | '/api/public/quote-receipt'
     | '/admin'
     | '/settings'
@@ -985,6 +996,7 @@ export interface FileRouteTypes {
     | '/api/finance-agent/chat'
     | '/api/public/billing-webhook'
     | '/api/public/open-finance-webhook'
+    | '/api/public/quote-image-urls'
     | '/api/public/quote-receipt'
     | '/_authenticated/admin/'
     | '/_authenticated/settings/'
@@ -1010,6 +1022,7 @@ export interface RootRouteChildren {
   ApiFinanceAgentChatRoute: typeof ApiFinanceAgentChatRoute
   ApiPublicBillingWebhookRoute: typeof ApiPublicBillingWebhookRoute
   ApiPublicOpenFinanceWebhookRoute: typeof ApiPublicOpenFinanceWebhookRoute
+  ApiPublicQuoteImageUrlsRoute: typeof ApiPublicQuoteImageUrlsRoute
   ApiPublicQuoteReceiptRoute: typeof ApiPublicQuoteReceiptRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
@@ -1259,6 +1272,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/quote-receipt'
       fullPath: '/api/public/quote-receipt'
       preLoaderRoute: typeof ApiPublicQuoteReceiptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/quote-image-urls': {
+      id: '/api/public/quote-image-urls'
+      path: '/api/public/quote-image-urls'
+      fullPath: '/api/public/quote-image-urls'
+      preLoaderRoute: typeof ApiPublicQuoteImageUrlsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/open-finance-webhook': {
@@ -1772,19 +1792,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiFinanceAgentChatRoute: ApiFinanceAgentChatRoute,
   ApiPublicBillingWebhookRoute: ApiPublicBillingWebhookRoute,
   ApiPublicOpenFinanceWebhookRoute: ApiPublicOpenFinanceWebhookRoute,
+  ApiPublicQuoteImageUrlsRoute: ApiPublicQuoteImageUrlsRoute,
   ApiPublicQuoteReceiptRoute: ApiPublicQuoteReceiptRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

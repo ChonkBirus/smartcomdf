@@ -53,8 +53,9 @@ type PublicQuote = {
   items: Array<{
     id: string; name: string; description: string | null;
     kind: string; quantity: number; position: number;
-    unit?: string | null; image_url?: string | null;
+    unit?: string | null; image_path?: string | null; image_url?: string | null;
   }>;
+
   pix?: {
     pix_key: string; pix_key_type: string | null;
     receiver_name: string | null; receiver_city: string | null;
@@ -87,7 +88,31 @@ function PublicQuotePage() {
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_public_quote_by_token", { _token: token });
       if (error) throw error;
-      return data as PublicQuote | null;
+      const payload = data as PublicQuote | null;
+      if (payload?.items?.length) {
+        const paths = Array.from(
+          new Set(payload.items.map((i) => i.image_path).filter((p): p is string => !!p)),
+        );
+        if (paths.length > 0) {
+          try {
+            const res = await fetch("/api/public/quote-image-urls", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token, paths }),
+            });
+            if (res.ok) {
+              const { urls } = (await res.json()) as { urls: Record<string, string> };
+              payload.items = payload.items.map((i) => ({
+                ...i,
+                image_url: i.image_path ? urls[i.image_path] ?? null : null,
+              }));
+            }
+          } catch {
+            /* mantém sem imagem em caso de falha */
+          }
+        }
+      }
+      return payload;
     },
   });
 
@@ -96,6 +121,7 @@ function PublicQuotePage() {
     if (!data?.quote?.id) return;
     supabase.rpc("register_public_quote_view", { _token: token });
   }, [data?.quote?.id, token]);
+
 
   const [acceptOpen, setAcceptOpen] = useState(false);
   const [name, setName] = useState("");
