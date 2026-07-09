@@ -213,9 +213,9 @@ export const markPurchaseOrderPaid = createServerFn({ method: "POST" })
     const { error } = await context.supabase.rpc("mark_purchase_order_paid", {
       _po_id: data.purchase_id,
       _bank_account_id: data.bank_account_id,
-      _payment_method: data.payment_method || null,
+      _payment_method: data.payment_method || undefined,
       _paid_at: data.paid_at ?? new Date().toISOString(),
-      _notes: data.notes || null,
+      _notes: data.notes || undefined,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
