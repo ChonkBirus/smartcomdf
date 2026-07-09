@@ -22,16 +22,17 @@ export const getReceivableByQuote = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ quote_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
-    const { data: row, error } = await context.supabase
+    const { data: rows, error } = await context.supabase
       .from("financial_transactions")
       .select("*")
       .eq("company_id", cid)
       .eq("quote_id", data.quote_id)
       .eq("type", "INCOME")
       .is("deleted_at", null)
-      .maybeSingle();
+      .order("created_at", { ascending: true })
+      .limit(1);
     if (error) throw new Error(error.message);
-    return row;
+    return rows?.[0] ?? null;
   });
 
 export const createReceivableFromQuote = createServerFn({ method: "POST" })
