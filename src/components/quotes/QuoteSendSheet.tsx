@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ConvertQuoteToProjectButton } from "./ConvertQuoteToProjectButton";
 import { QuoteFinancialActions } from "@/components/finance/QuoteFinancialActions";
+import { QuotePaymentReceiptReview } from "@/components/finance/QuotePaymentReceiptReview";
 
 const fmtBRL = (n: number) =>
   Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
