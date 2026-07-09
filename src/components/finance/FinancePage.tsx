@@ -343,7 +343,25 @@ function TransactionTable({ rows, onChanged, highlightId }: { rows: FinancialTra
                     <TableCell className="whitespace-nowrap">{t.due_date ?? "—"}</TableCell>
                     <TableCell>
                       <div className="font-medium">{t.description}</div>
-                      <div className="text-xs text-muted-foreground">{t.customer_name ?? t.supplier_name ?? ""}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {t.customer_name ?? t.supplier_name ?? ""}
+                        {t.purchase_id && (
+                          <>
+                            {(t.customer_name || t.supplier_name) ? " • " : ""}
+                            <Link to="/purchases" className="text-primary hover:underline">
+                              Pedido de compra
+                            </Link>
+                          </>
+                        )}
+                        {t.quote_id && !t.purchase_id && (
+                          <>
+                            {(t.customer_name || t.supplier_name) ? " • " : ""}
+                            <Link to="/quotes" className="text-primary hover:underline">
+                              Orçamento
+                            </Link>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>{t.category_name ?? "—"}</TableCell>
                     <TableCell>
