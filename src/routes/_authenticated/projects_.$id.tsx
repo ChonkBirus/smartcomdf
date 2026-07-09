@@ -348,7 +348,7 @@ function ProjectDetailPage() {
           <Package className="h-4 w-4" />Itens do projeto
         </div>
         {/* Mobile: cards */}
-        <div className="grid gap-2 p-3 md:hidden">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-2 p-3 md:hidden">
           {items.length === 0 ? (
             <div className="py-6 text-center text-sm text-muted-foreground">Sem itens.</div>
           ) : items.map((it: any) => {
