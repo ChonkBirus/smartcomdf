@@ -177,8 +177,14 @@ export function ItemFormSheet({
               });
             if (upErr) throw upErr;
             await registerImgFn({
-              data: { item_id: newId, file_path: path, is_primary: true },
+              data: {
+                item_id: newId,
+                file_path: path,
+                file_name: pendingFile.name,
+                is_primary: true,
+              },
             });
+
           } catch (err: any) {
             toast.error("Item salvo, mas a imagem não pôde ser enviada: " + (err?.message ?? ""));
           }
