@@ -27,6 +27,7 @@ import {
   type FinancialTransaction, type FinancialCategory, type FinTxType, type FinTxStatus,
 } from "@/lib/finance.functions";
 import { listBankAccounts } from "@/lib/bank-accounts.functions";
+import { getTxOriginLabel } from "@/lib/finance-origin";
 import { useCompanyId } from "@/hooks/use-company-id";
 import { FinancialHealthScoreCard, FinancialHealthPage } from "@/components/finance/FinancialHealthPage";
 import { FinanceAgentChat } from "@/components/finance/FinanceAgentChat";
@@ -324,6 +325,7 @@ function TransactionTable({ rows, onChanged, highlightId }: { rows: FinancialTra
                 <TableHead>Vencimento</TableHead>
                 <TableHead>Descrição</TableHead>
                 <TableHead>Categoria</TableHead>
+                <TableHead>Origem</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
                 <TableHead>Status</TableHead>
@@ -345,25 +347,26 @@ function TransactionTable({ rows, onChanged, highlightId }: { rows: FinancialTra
                       <div className="font-medium">{t.description}</div>
                       <div className="text-xs text-muted-foreground">
                         {t.customer_name ?? t.supplier_name ?? ""}
-                        {t.purchase_id && (
-                          <>
-                            {(t.customer_name || t.supplier_name) ? " • " : ""}
-                            <Link to="/purchases" className="text-primary hover:underline">
-                              Pedido de compra
-                            </Link>
-                          </>
-                        )}
-                        {t.quote_id && !t.purchase_id && (
-                          <>
-                            {(t.customer_name || t.supplier_name) ? " • " : ""}
-                            <Link to="/quotes" className="text-primary hover:underline">
-                              Orçamento
-                            </Link>
-                          </>
-                        )}
                       </div>
                     </TableCell>
                     <TableCell>{t.category_name ?? "—"}</TableCell>
+                    <TableCell>
+                      {(() => {
+                        const o = getTxOriginLabel(t);
+                        const content = (
+                          <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs">
+                            {o.badgeLabel}
+                          </span>
+                        );
+                        return o.href ? (
+                          <Link to={o.href} className="hover:underline" title={o.description ?? o.label}>
+                            {content}
+                          </Link>
+                        ) : (
+                          <span title={o.description ?? o.label}>{content}</span>
+                        );
+                      })()}
+                    </TableCell>
                     <TableCell>
                       <span className={t.type === "INCOME" ? "text-success" : "text-destructive"}>
                         {t.type === "INCOME" ? "Entrada" : "Saída"}

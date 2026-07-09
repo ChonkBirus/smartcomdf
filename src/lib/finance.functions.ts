@@ -51,6 +51,8 @@ export type FinancialTransaction = {
   purchase_id: string | null;
   payment_method: string | null;
   origin: FinTxOrigin;
+  origin_type: string | null;
+  origin_id: string | null;
   notes: string | null;
   bank_account_id: string | null;
   bank_account_name?: string | null;
