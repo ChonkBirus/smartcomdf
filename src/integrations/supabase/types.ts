@@ -5053,6 +5053,8 @@ export type Database = {
           due_date: string | null
           id: string
           paid_at: string | null
+          payer_name: string | null
+          payment_date: string | null
           payment_method: string
           payment_status: string
           payment_type: string
@@ -5064,6 +5066,14 @@ export type Database = {
           provider_charge_id: string | null
           provider_payload: Json | null
           quote_id: string
+          receipt_file_path: string | null
+          receipt_mime_type: string | null
+          receipt_rejection_reason: string | null
+          receipt_reviewed_at: string | null
+          receipt_reviewed_by: string | null
+          receipt_size: number | null
+          receipt_status: string | null
+          receipt_uploaded_at: string | null
           updated_at: string
         }
         Insert: {
@@ -5078,6 +5088,8 @@ export type Database = {
           due_date?: string | null
           id?: string
           paid_at?: string | null
+          payer_name?: string | null
+          payment_date?: string | null
           payment_method?: string
           payment_status?: string
           payment_type?: string
@@ -5089,6 +5101,14 @@ export type Database = {
           provider_charge_id?: string | null
           provider_payload?: Json | null
           quote_id: string
+          receipt_file_path?: string | null
+          receipt_mime_type?: string | null
+          receipt_rejection_reason?: string | null
+          receipt_reviewed_at?: string | null
+          receipt_reviewed_by?: string | null
+          receipt_size?: number | null
+          receipt_status?: string | null
+          receipt_uploaded_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -5103,6 +5123,8 @@ export type Database = {
           due_date?: string | null
           id?: string
           paid_at?: string | null
+          payer_name?: string | null
+          payment_date?: string | null
           payment_method?: string
           payment_status?: string
           payment_type?: string
@@ -5114,6 +5136,14 @@ export type Database = {
           provider_charge_id?: string | null
           provider_payload?: Json | null
           quote_id?: string
+          receipt_file_path?: string | null
+          receipt_mime_type?: string | null
+          receipt_rejection_reason?: string | null
+          receipt_reviewed_at?: string | null
+          receipt_reviewed_by?: string | null
+          receipt_size?: number | null
+          receipt_status?: string | null
+          receipt_uploaded_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -7549,8 +7579,16 @@ export type Database = {
         Args: { _token: string }
         Returns: undefined
       }
+      reject_quote_payment_receipt: {
+        Args: { _payment_id: string; _reason?: string }
+        Returns: undefined
+      }
       remove_project_team_member: { Args: { _id: string }; Returns: undefined }
       resync_quote_payment: {
+        Args: { _payment_id: string }
+        Returns: undefined
+      }
+      rollback_public_quote_receipt: {
         Args: { _payment_id: string }
         Returns: undefined
       }
@@ -7909,6 +7947,22 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      submit_public_quote_receipt: {
+        Args: {
+          _amount: number
+          _ext: string
+          _mime: string
+          _payer_name: string
+          _payment_date: string
+          _payment_method: string
+          _size: number
+          _token: string
+        }
+        Returns: {
+          payment_id: string
+          upload_path: string
+        }[]
       }
       transfer_stock: {
         Args: {
