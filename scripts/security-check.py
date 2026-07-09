@@ -52,7 +52,7 @@ for verb in ("INSERT", "UPDATE", "DELETE"):
 
 # --- 3) has_company_role: latest definition references profile_roles ---
 defs = re.findall(
-    r"FUNCTION\s+public\.has_company_role.*?\$function\$",
+    r"FUNCTION\s+public\.has_company_role.*?AS\s+\$function\$.*?\$function\$",
     flat, re.IGNORECASE | re.DOTALL,
 )
 if not defs:
