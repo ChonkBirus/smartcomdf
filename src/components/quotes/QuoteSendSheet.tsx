@@ -30,7 +30,7 @@ import {
   getQuote, getQuoteHistory, logQuoteEvent, markQuoteSent,
 } from "@/lib/quotes.functions";
 import {
-  listQuotePayments, approveQuotePayment, cancelQuotePayment, getCompanyPix,
+  listQuotePayments, approveQuotePayment, cancelQuotePayment, resyncQuotePayment, getCompanyPix,
 } from "@/lib/quote-payments.functions";
 import { generateQuotePDF, type QuotePdfTemplate } from "@/lib/quote-pdf-index";
 import { getQuotePdfPayload } from "@/lib/quote-pdf.functions";
