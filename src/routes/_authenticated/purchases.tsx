@@ -93,6 +93,14 @@ function PurchasesPage() {
     enabled: !!companyId,
   });
 
+  const fetchStatuses = useServerFn(listPayableStatusesByPurchase);
+  const orderIds = (orders ?? []).map((o) => o.id);
+  const { data: payableMap } = useQuery({
+    queryKey: ["purchase_payable_map", companyId, orderIds.join(",")],
+    queryFn: () => fetchStatuses({ data: { purchase_ids: orderIds } }),
+    enabled: !!companyId && orderIds.length > 0,
+  });
+
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["purchase_orders"] });
     qc.invalidateQueries({ queryKey: ["purchase_overview"] });
