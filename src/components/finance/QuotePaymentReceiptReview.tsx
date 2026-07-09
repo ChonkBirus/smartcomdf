@@ -26,6 +26,7 @@ type PaymentWithReceipt = {
   receipt_status?: string | null;
   receipt_uploaded_at?: string | null;
   receipt_rejection_reason?: string | null;
+  receipt_source?: string | null;
 };
 
 const fmtBRL = (n: number) =>
