@@ -251,29 +251,30 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div>
+            <div className="min-w-0">
               <Label>Início previsto</Label>
-              <Input type="date" value={form.planned_start_date} disabled={locked}
+              <Input type="date" className="w-full min-w-0" value={form.planned_start_date} disabled={locked}
                 onChange={(e) => setForm({ ...form, planned_start_date: e.target.value })} />
             </div>
-            <div>
+            <div className="min-w-0">
               <Label>Hora início</Label>
-              <Input type="time" value={form.planned_start_time} disabled={locked}
+              <Input type="time" className="w-full min-w-0" value={form.planned_start_time} disabled={locked}
                 onChange={(e) => setForm({ ...form, planned_start_time: e.target.value })} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div>
+            <div className="min-w-0">
               <Label>Conclusão prevista</Label>
-              <Input type="date" value={form.planned_end_date} disabled={locked}
+              <Input type="date" className="w-full min-w-0" value={form.planned_end_date} disabled={locked}
                 onChange={(e) => setForm({ ...form, planned_end_date: e.target.value })} />
             </div>
-            <div>
+            <div className="min-w-0">
               <Label>Hora término</Label>
-              <Input type="time" value={form.planned_end_time} disabled={locked}
+              <Input type="time" className="w-full min-w-0" value={form.planned_end_time} disabled={locked}
                 onChange={(e) => setForm({ ...form, planned_end_time: e.target.value })} />
             </div>
           </div>
+
           <div className="md:col-span-2">
             <Label>Observações operacionais</Label>
             <Textarea value={form.operational_notes} disabled={locked}
