@@ -247,8 +247,10 @@ export function QuoteFormSheet({
           quantity: Number(it.quantity),
           unit_price: Number(it.unit_price),
           cost_price: Number(it.cost_price || 0),
+          image_path: (it as any).image_path ?? null,
         })),
       );
+
     } else if (!quoteId) {
       const today = new Date().toISOString().slice(0, 10);
       setCustomerId(""); setTitle("");
