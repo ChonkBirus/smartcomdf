@@ -53,8 +53,9 @@ type PublicQuote = {
   items: Array<{
     id: string; name: string; description: string | null;
     kind: string; quantity: number; position: number;
-    unit?: string | null; image_url?: string | null;
+    unit?: string | null; image_path?: string | null; image_url?: string | null;
   }>;
+
   pix?: {
     pix_key: string; pix_key_type: string | null;
     receiver_name: string | null; receiver_city: string | null;
