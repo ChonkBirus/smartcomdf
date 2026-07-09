@@ -146,6 +146,32 @@ export const getPayableByPurchase = createServerFn({ method: "GET" })
     return row;
   });
 
+export const listPayableStatusesByPurchase = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ purchase_ids: z.array(z.string().uuid()).max(500) }).parse(d))
+  .handler(async ({ data, context }) => {
+    if (!data.purchase_ids.length) return {} as Record<string, { status: string; paid_at: string | null }>;
+    const cid = await getCompanyId(context.supabase, context.userId);
+    const { data: rows, error } = await context.supabase
+      .from("financial_transactions")
+      .select("purchase_id,status,paid_at")
+      .eq("company_id", cid)
+      .eq("type", "EXPENSE")
+      .is("deleted_at", null)
+      .in("purchase_id", data.purchase_ids);
+    if (error) throw new Error(error.message);
+    const map: Record<string, { status: string; paid_at: string | null }> = {};
+    for (const r of (rows ?? []) as any[]) {
+      if (!r.purchase_id) continue;
+      const cur = map[r.purchase_id];
+      // PAID beats PLANNED; CANCELED beats nothing
+      if (!cur || (cur.status !== "PAID" && r.status === "PAID")) {
+        map[r.purchase_id] = { status: r.status, paid_at: r.paid_at };
+      }
+    }
+    return map;
+  });
+
 export const createPayableFromPurchase = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
