@@ -355,6 +355,15 @@ function PublicQuotePage() {
           </div>
         )}
 
+        {/* Enviar comprovante */}
+        {isAccepted && data.payment?.payment_status !== "APPROVED" && (
+          <ReceiptUploader
+            token={token}
+            defaultAmount={Number(data.payment?.amount ?? quote.remaining_amount ?? 0)}
+            onDone={() => qc.invalidateQueries({ queryKey: ["public-quote", token] })}
+          />
+        )}
+
         {company.whatsapp && (() => {
           const digits = String(company.whatsapp).replace(/\D/g, "");
           const num = digits.startsWith("55") ? digits : `55${digits}`;
