@@ -197,15 +197,17 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
     <div className="space-y-4">
       {/* Progresso */}
       <div className="rounded-lg border bg-card p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <ShieldCheck className="h-4 w-4" />Planejamento do projeto
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2 text-sm font-medium">
+            <ShieldCheck className="h-4 w-4 shrink-0" />
+            <span className="truncate">Planejamento do projeto</span>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <span className={`rounded px-2 py-0.5 text-xs ${planBadge.cls}`}>{planBadge.label}</span>
             <span className={`rounded px-2 py-0.5 text-xs ${matBadge.cls}`}>{matBadge.label}</span>
           </div>
         </div>
+
         <div className="grid grid-cols-2 gap-2 text-sm md:grid-cols-5">
           <Step done={hasResponsible} label="Responsável definido" />
           <Step done={hasDates} label="Datas definidas" />
@@ -249,29 +251,30 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div>
+            <div className="min-w-0">
               <Label>Início previsto</Label>
-              <Input type="date" value={form.planned_start_date} disabled={locked}
+              <Input type="date" className="w-full min-w-0" value={form.planned_start_date} disabled={locked}
                 onChange={(e) => setForm({ ...form, planned_start_date: e.target.value })} />
             </div>
-            <div>
+            <div className="min-w-0">
               <Label>Hora início</Label>
-              <Input type="time" value={form.planned_start_time} disabled={locked}
+              <Input type="time" className="w-full min-w-0" value={form.planned_start_time} disabled={locked}
                 onChange={(e) => setForm({ ...form, planned_start_time: e.target.value })} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div>
+            <div className="min-w-0">
               <Label>Conclusão prevista</Label>
-              <Input type="date" value={form.planned_end_date} disabled={locked}
+              <Input type="date" className="w-full min-w-0" value={form.planned_end_date} disabled={locked}
                 onChange={(e) => setForm({ ...form, planned_end_date: e.target.value })} />
             </div>
-            <div>
+            <div className="min-w-0">
               <Label>Hora término</Label>
-              <Input type="time" value={form.planned_end_time} disabled={locked}
+              <Input type="time" className="w-full min-w-0" value={form.planned_end_time} disabled={locked}
                 onChange={(e) => setForm({ ...form, planned_end_time: e.target.value })} />
             </div>
           </div>
+
           <div className="md:col-span-2">
             <Label>Observações operacionais</Label>
             <Textarea value={form.operational_notes} disabled={locked}
@@ -371,9 +374,10 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
 
       {/* Materiais */}
       <div className="rounded-lg border bg-card p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <Package className="h-4 w-4" />Materiais
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2 text-sm font-medium">
+            <Package className="h-4 w-4 shrink-0" />
+            <span className="truncate">Materiais</span>
           </div>
           <Button variant="outline" size="sm" onClick={() => checkMut.mutate()}
             disabled={locked || checkMut.isPending || !can("projects", "check_materials")}>
@@ -381,6 +385,7 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
             Verificar disponibilidade
           </Button>
         </div>
+
 
         {insufficient && missingItems.length > 0 && (
           <div className="mb-3 flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-3 text-sm">
