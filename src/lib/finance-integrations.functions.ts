@@ -205,8 +205,8 @@ export const markPurchaseOrderPaid = createServerFn({ method: "POST" })
       purchase_id: z.string().uuid(),
       bank_account_id: z.string().uuid(),
       paid_at: z.string().optional(),
-      payment_method: z.string().trim().max(60).optional().nullable(),
-      notes: z.string().trim().max(500).optional().nullable(),
+      payment_method: z.string().trim().max(60).optional(),
+      notes: z.string().trim().max(500).optional(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
