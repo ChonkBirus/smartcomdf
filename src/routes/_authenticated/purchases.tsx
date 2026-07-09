@@ -192,7 +192,17 @@ function PurchasesPage() {
                   <td className="px-3 py-2">{new Date(po.issue_date).toLocaleDateString("pt-BR")}</td>
                   <td className="px-3 py-2 text-right">{brl(po.total_amount)}</td>
                   <td className="px-3 py-2">
-                    <Badge variant={STATUS_VARIANT[po.status]}>{STATUS_LABEL[po.status]}</Badge>
+                    <div className="flex flex-col gap-1">
+                      <Badge variant={STATUS_VARIANT[po.status]}>{STATUS_LABEL[po.status]}</Badge>
+                      {payableMap?.[po.id]?.status === "PAID" && (
+                        <Badge variant="default" className="w-fit bg-success text-success-foreground hover:bg-success">
+                          Pago no financeiro
+                        </Badge>
+                      )}
+                      {payableMap?.[po.id]?.status === "PLANNED" && po.status !== "CANCELLED" && (
+                        <Badge variant="outline" className="w-fit">A pagar</Badge>
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex flex-wrap justify-end gap-1">
