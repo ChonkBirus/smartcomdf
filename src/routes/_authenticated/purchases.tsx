@@ -71,6 +71,7 @@ function PurchasesPage() {
   const [receiving, setReceiving] = useState<string | null>(null);
   const [confirmDel, setConfirmDel] = useState<PurchaseOrder | null>(null);
   const [confirmCancel, setConfirmCancel] = useState<PurchaseOrder | null>(null);
+  const [payingPO, setPayingPO] = useState<PurchaseOrder | null>(null);
 
   const fetchList = useServerFn(listPurchaseOrders);
   const fetchOverview = useServerFn(purchaseOverview);
