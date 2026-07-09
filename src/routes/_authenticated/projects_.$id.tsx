@@ -265,15 +265,26 @@ function ProjectDetailPage() {
             <FileText className="h-4 w-4" />Orçamento de origem
           </div>
           <div className="grid grid-cols-2 gap-1 text-sm">
-            <div className="text-muted-foreground">Total</div>
-            <div className="text-right font-medium">{fmtBRL(project.total_amount)}</div>
-            <div className="text-muted-foreground">Entrada paga</div>
-            <div className="text-right">{fmtBRL(project.down_payment_amount)}</div>
-            <div className="text-muted-foreground">Saldo restante</div>
-            <div className="text-right">{fmtBRL(project.remaining_amount)}</div>
+            <div className="text-muted-foreground">Valor total</div>
+            <div className="text-right font-medium">{fmtBRL(financial_summary?.total_amount ?? project.total_amount)}</div>
+            <div className="text-muted-foreground">Valor recebido</div>
+            <div className="text-right">{fmtBRL(financial_summary?.paid_amount ?? 0)}</div>
+            <div className="text-muted-foreground">Saldo a receber</div>
+            <div className="text-right">{fmtBRL(financial_summary?.remaining_amount ?? project.remaining_amount)}</div>
+            <div className="text-muted-foreground">Status financeiro</div>
+            <div className="text-right">
+              {financial_summary
+                ? (financial_summary.financial_status === "PAID"
+                    ? "Pago"
+                    : financial_summary.financial_status === "PARTIALLY_PAID"
+                    ? "Parcialmente pago"
+                    : "Não pago")
+                : "—"}
+            </div>
             <div className="text-muted-foreground">Estimativa</div>
             <div className="text-right">{project.completion_estimate ?? "—"}</div>
           </div>
+
           {quote?.id && (
             <Button asChild variant="link" size="sm" className="mt-2 px-0">
               <Link to="/quotes">Ver orçamento {quote.quote_number}</Link>
