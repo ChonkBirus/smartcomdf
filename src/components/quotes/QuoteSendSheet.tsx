@@ -84,6 +84,7 @@ export function QuoteSendSheet({
   const fetchPix = useServerFn(getCompanyPix);
   const approvePay = useServerFn(approveQuotePayment);
   const cancelPay = useServerFn(cancelQuotePayment);
+  const resyncPay = useServerFn(resyncQuotePayment);
   const fetchPdfPayload = useServerFn(getQuotePdfPayload);
   const [pdfTemplate, setPdfTemplate] = useState<QuotePdfTemplate>("premium");
   const [pdfBusy, setPdfBusy] = useState(false);
