@@ -373,9 +373,10 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
 
       {/* Materiais */}
       <div className="rounded-lg border bg-card p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <Package className="h-4 w-4" />Materiais
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2 text-sm font-medium">
+            <Package className="h-4 w-4 shrink-0" />
+            <span className="truncate">Materiais</span>
           </div>
           <Button variant="outline" size="sm" onClick={() => checkMut.mutate()}
             disabled={locked || checkMut.isPending || !can("projects", "check_materials")}>
@@ -383,6 +384,7 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
             Verificar disponibilidade
           </Button>
         </div>
+
 
         {insufficient && missingItems.length > 0 && (
           <div className="mb-3 flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-3 text-sm">
