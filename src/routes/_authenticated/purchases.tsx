@@ -227,6 +227,12 @@ function PurchasesPage() {
                           </Button>
                         </Can>
                       )}
+                      {(po.status === "APPROVED" || po.status === "PARTIALLY_RECEIVED" || po.status === "RECEIVED") &&
+                       payableMap?.[po.id]?.status !== "PAID" && (
+                        <Button size="sm" variant="outline" onClick={() => setPayingPO(po)}>
+                          <DollarSign className="mr-1 h-3 w-3" />Marcar como pago
+                        </Button>
+                      )}
                       {(po.status === "DRAFT" || po.status === "PENDING") && (
                         <Can module="purchases" action="edit">
                           <Button size="icon" variant="ghost" onClick={() => { setEditing(po.id); setOpen(true); }}>
