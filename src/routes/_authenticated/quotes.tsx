@@ -204,86 +204,160 @@ function QuotesPage() {
           description="Crie seu primeiro orçamento para começar."
         />
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
-              <tr>
-                <th className="px-3 py-2">Número</th>
-                <th className="px-3 py-2">Cliente</th>
-                <th className="px-3 py-2 hidden md:table-cell">Emissão</th>
-                <th className="px-3 py-2 hidden md:table-cell">Validade</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2 hidden lg:table-cell">Pagamento</th>
-                <th className="px-3 py-2 text-right">Total</th>
-                <th className="px-3 py-2 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((q) => (
-                <tr key={q.id} className="border-t hover:bg-muted/40">
-                  <td className="px-3 py-2 font-medium">
-                    {q.quote_number}
+        <>
+          {/* Mobile: cards */}
+          <div className="grid gap-3 md:hidden">
+            {filtered.map((q) => (
+              <div key={q.id} className="rounded-lg border bg-card p-3 shadow-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="truncate font-medium">{q.quote_number}</div>
                     {q.title && (
-                      <p className="text-xs text-muted-foreground">{q.title}</p>
+                      <p className="truncate text-xs text-muted-foreground">{q.title}</p>
                     )}
-                  </td>
-                  <td className="px-3 py-2">{q.customer_name ?? "—"}</td>
-                  <td className="px-3 py-2 hidden md:table-cell">{fmtDate(q.issue_date)}</td>
-                  <td className="px-3 py-2 hidden md:table-cell">{fmtDate(q.valid_until)}</td>
-                  <td className="px-3 py-2">
-                    <StatusBadge status={q.status} label={STATUS_LABEL[q.status]} />
-                  </td>
-                  <td className="px-3 py-2 hidden lg:table-cell">
-                    <StatusBadge status={q.payment_status} label={PAY_STATUS_LABEL[q.payment_status]} />
-                  </td>
-                  <td className="px-3 py-2 text-right font-medium">{fmtBRL(q.total_amount)}</td>
-                  <td className="px-3 py-2">
-                    <div className="flex justify-end gap-1">
-                      <Can module="quotes" action="edit">
-                        <Button size="icon" variant="ghost" onClick={() => openEdit(q.id)} title="Editar">
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </Can>
-                      <Can module="quotes" action="edit">
-                        <Button size="icon" variant="ghost" onClick={() => setSendingId(q.id)} title="Enviar / compartilhar">
-                          <Share2 className="h-4 w-4" />
-                        </Button>
-                      </Can>
-                      {["DRAFT", "VIEWED"].includes(q.status) && (
-                        <Can module="quotes" action="edit">
-                          <Button size="icon" variant="ghost" onClick={() => sendMut.mutate(q.id)} title="Marcar como enviado">
-                            <Send className="h-4 w-4" />
-                          </Button>
-                        </Can>
-                      )}
-                      <Can module="quotes" action="create">
-                        <Button size="icon" variant="ghost" onClick={() => dupMut.mutate(q.id)} title="Duplicar">
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </Can>
-                      {!["CANCELLED", "EXPIRED"].includes(q.status) && (
-                        <Can module="quotes" action="edit">
-                          <Button size="icon" variant="ghost" onClick={() => cancelMut.mutate(q.id)} title="Cancelar">
-                            <XCircle className="h-4 w-4" />
-                          </Button>
-                        </Can>
-                      )}
-                      <Can module="quotes" action="delete">
-                        <Button
-                          size="icon" variant="ghost"
-                          onClick={() => setConfirmDel({ id: q.id, number: q.quote_number })}
-                          title="Excluir"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </Can>
+                    <p className="mt-1 truncate text-sm text-muted-foreground">
+                      {q.customer_name ?? "—"}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="font-semibold">{fmtBRL(q.total_amount)}</div>
+                    <div className="mt-1">
+                      <StatusBadge status={q.status} label={STATUS_LABEL[q.status]} />
                     </div>
-                  </td>
+                  </div>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  <span>Emissão: {fmtDate(q.issue_date)}</span>
+                  <span>Validade: {fmtDate(q.valid_until)}</span>
+                  <StatusBadge status={q.payment_status} label={PAY_STATUS_LABEL[q.payment_status]} />
+                </div>
+                <div className="mt-2 flex flex-wrap justify-end gap-1 border-t border-border pt-2">
+                  <Can module="quotes" action="edit">
+                    <Button size="icon" variant="ghost" onClick={() => openEdit(q.id)} title="Editar">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </Can>
+                  <Can module="quotes" action="edit">
+                    <Button size="icon" variant="ghost" onClick={() => setSendingId(q.id)} title="Enviar / compartilhar">
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                  </Can>
+                  {["DRAFT", "VIEWED"].includes(q.status) && (
+                    <Can module="quotes" action="edit">
+                      <Button size="icon" variant="ghost" onClick={() => sendMut.mutate(q.id)} title="Marcar como enviado">
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </Can>
+                  )}
+                  <Can module="quotes" action="create">
+                    <Button size="icon" variant="ghost" onClick={() => dupMut.mutate(q.id)} title="Duplicar">
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </Can>
+                  {!["CANCELLED", "EXPIRED"].includes(q.status) && (
+                    <Can module="quotes" action="edit">
+                      <Button size="icon" variant="ghost" onClick={() => cancelMut.mutate(q.id)} title="Cancelar">
+                        <XCircle className="h-4 w-4" />
+                      </Button>
+                    </Can>
+                  )}
+                  <Can module="quotes" action="delete">
+                    <Button
+                      size="icon" variant="ghost"
+                      onClick={() => setConfirmDel({ id: q.id, number: q.quote_number })}
+                      title="Excluir"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </Can>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <div className="hidden overflow-x-auto rounded-lg border md:block">
+            <table className="w-full min-w-[640px] text-sm">
+              <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2">Número</th>
+                  <th className="px-3 py-2">Cliente</th>
+                  <th className="px-3 py-2 hidden md:table-cell">Emissão</th>
+                  <th className="px-3 py-2 hidden md:table-cell">Validade</th>
+                  <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2 hidden lg:table-cell">Pagamento</th>
+                  <th className="px-3 py-2 text-right">Total</th>
+                  <th className="px-3 py-2 text-right">Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filtered.map((q) => (
+                  <tr key={q.id} className="border-t hover:bg-muted/40">
+                    <td className="px-3 py-2 font-medium">
+                      {q.quote_number}
+                      {q.title && (
+                        <p className="text-xs text-muted-foreground">{q.title}</p>
+                      )}
+                    </td>
+                    <td className="px-3 py-2">{q.customer_name ?? "—"}</td>
+                    <td className="px-3 py-2 hidden md:table-cell">{fmtDate(q.issue_date)}</td>
+                    <td className="px-3 py-2 hidden md:table-cell">{fmtDate(q.valid_until)}</td>
+                    <td className="px-3 py-2">
+                      <StatusBadge status={q.status} label={STATUS_LABEL[q.status]} />
+                    </td>
+                    <td className="px-3 py-2 hidden lg:table-cell">
+                      <StatusBadge status={q.payment_status} label={PAY_STATUS_LABEL[q.payment_status]} />
+                    </td>
+                    <td className="px-3 py-2 text-right font-medium">{fmtBRL(q.total_amount)}</td>
+                    <td className="px-3 py-2">
+                      <div className="flex justify-end gap-1">
+                        <Can module="quotes" action="edit">
+                          <Button size="icon" variant="ghost" onClick={() => openEdit(q.id)} title="Editar">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </Can>
+                        <Can module="quotes" action="edit">
+                          <Button size="icon" variant="ghost" onClick={() => setSendingId(q.id)} title="Enviar / compartilhar">
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                        </Can>
+                        {["DRAFT", "VIEWED"].includes(q.status) && (
+                          <Can module="quotes" action="edit">
+                            <Button size="icon" variant="ghost" onClick={() => sendMut.mutate(q.id)} title="Marcar como enviado">
+                              <Send className="h-4 w-4" />
+                            </Button>
+                          </Can>
+                        )}
+                        <Can module="quotes" action="create">
+                          <Button size="icon" variant="ghost" onClick={() => dupMut.mutate(q.id)} title="Duplicar">
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </Can>
+                        {!["CANCELLED", "EXPIRED"].includes(q.status) && (
+                          <Can module="quotes" action="edit">
+                            <Button size="icon" variant="ghost" onClick={() => cancelMut.mutate(q.id)} title="Cancelar">
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </Can>
+                        )}
+                        <Can module="quotes" action="delete">
+                          <Button
+                            size="icon" variant="ghost"
+                            onClick={() => setConfirmDel({ id: q.id, number: q.quote_number })}
+                            title="Excluir"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </Can>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+
       )}
 
       <QuoteFormSheet open={open} onOpenChange={setOpen} quoteId={editing} />
