@@ -324,6 +324,7 @@ function TransactionTable({ rows, onChanged, highlightId }: { rows: FinancialTra
                 <TableHead>Vencimento</TableHead>
                 <TableHead>Descrição</TableHead>
                 <TableHead>Categoria</TableHead>
+                <TableHead>Origem</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
                 <TableHead>Status</TableHead>
