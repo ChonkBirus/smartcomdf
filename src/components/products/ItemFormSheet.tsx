@@ -523,9 +523,50 @@ export function ItemFormSheet({
                 <div className="md:col-span-2">
                   <ImageUploader itemId={itemId} companyId={companyId} images={images} onChange={setImages} />
                 </div>
+              ) : isService ? (
+                <p className="text-xs text-muted-foreground md:col-span-2">
+                  Serviços não possuem imagens.
+                </p>
               ) : (
-                <p className="text-xs text-muted-foreground md:col-span-2">Salve o item para enviar imagens.</p>
+                <div className="md:col-span-2 space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    A imagem será enviada ao salvar o produto (JPG, PNG ou WEBP, até 5 MB).
+                  </p>
+                  {pendingPreview ? (
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={pendingPreview}
+                        alt="Prévia"
+                        className="h-20 w-20 rounded border object-cover"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handlePendingFile(null)}
+                      >
+                        Remover
+                      </Button>
+                    </div>
+                  ) : null}
+                  <input
+                    ref={pendingInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => handlePendingFile(e.target.files?.[0] ?? null)}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => pendingInputRef.current?.click()}
+                  >
+                    {pendingPreview ? "Trocar imagem" : "Selecionar imagem"}
+                  </Button>
+                </div>
               )}
+
             </Section>
 
             <Separator />
