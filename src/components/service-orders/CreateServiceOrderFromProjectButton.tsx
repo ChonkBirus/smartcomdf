@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
-import { Wrench, ExternalLink } from "lucide-react";
+import { Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -15,9 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import {
-  createServiceOrderFromProject, findServiceOrderByProject,
-} from "@/lib/service-orders.functions";
+import { createServiceOrderFromProject } from "@/lib/service-orders.functions";
 import { getProject } from "@/lib/projects.functions";
 import { listTeam } from "@/lib/team.functions";
 import { Can } from "@/components/app/PermissionRoute";
@@ -26,17 +24,12 @@ export function CreateServiceOrderFromProjectButton({
   projectId, planningReady,
 }: { projectId: string; planningReady: boolean }) {
   const navigate = useNavigate();
-  const findFn = useServerFn(findServiceOrderByProject);
+  const qc = useQueryClient();
   const createFn = useServerFn(createServiceOrderFromProject);
   const getProjectFn = useServerFn(getProject);
   const fetchTeam = useServerFn(listTeam);
   const [open, setOpen] = useState(false);
   const [technicianId, setTechnicianId] = useState<string>("");
-
-  const { data: existing, refetch } = useQuery({
-    queryKey: ["service-order-by-project", projectId],
-    queryFn: () => findFn({ data: { project_id: projectId } }),
-  });
 
   const { data: projectData } = useQuery({
     queryKey: ["project-brief", projectId],
@@ -66,21 +59,11 @@ export function CreateServiceOrderFromProjectButton({
     onSuccess: ({ service_order_id }) => {
       toast.success("Ordem de Serviço criada.");
       setOpen(false);
+      qc.invalidateQueries({ queryKey: ["project-service-orders", projectId] });
       navigate({ to: "/service-orders/$id", params: { id: service_order_id } } as any);
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao gerar OS."),
   });
-
-  if (existing) {
-    return (
-      <Button
-        variant="outline" size="sm"
-        onClick={() => navigate({ to: "/service-orders/$id", params: { id: existing.id } } as any)}
-      >
-        <ExternalLink className="mr-1 h-4 w-4" />Ver OS {existing.service_order_number}
-      </Button>
-    );
-  }
 
   const btn = (
     <Button size="sm" disabled={!planningReady}>
@@ -101,7 +84,7 @@ export function CreateServiceOrderFromProjectButton({
 
   return (
     <Can module="service_orders" action="create">
-      <AlertDialog open={open} onOpenChange={(v) => { setOpen(v); if (v) refetch(); }}>
+      <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogTrigger asChild>{btn}</AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
