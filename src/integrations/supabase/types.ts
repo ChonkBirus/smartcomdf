@@ -4974,6 +4974,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          image_path: string | null
           item_id: string | null
           kind: Database["public"]["Enums"]["quote_item_kind"]
           name: string
@@ -4990,6 +4991,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_path?: string | null
           item_id?: string | null
           kind?: Database["public"]["Enums"]["quote_item_kind"]
           name: string
@@ -5006,6 +5008,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_path?: string | null
           item_id?: string | null
           kind?: Database["public"]["Enums"]["quote_item_kind"]
           name?: string
@@ -8045,6 +8048,10 @@ export type Database = {
           _responsible_user_id?: string
         }
         Returns: undefined
+      }
+      validate_public_quote_image_paths: {
+        Args: { _paths: string[]; _token: string }
+        Returns: string[]
       }
     }
     Enums: {
