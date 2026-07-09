@@ -119,7 +119,7 @@ export const listProjects = createServerFn({ method: "GET" })
     if (!prof?.company_id) throw new Error("Sem empresa.");
     let q = sb
       .from("projects")
-      .select("*, customers:customer_id(name,trade_name,corporate_name), quotes:quote_id(quote_number), responsible:responsible_user_id(full_name,email)")
+      .select("*, customers:customer_id(name,trade_name,corporate_name), quotes:quote_id(quote_number)")
       .eq("company_id", prof.company_id)
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
@@ -134,6 +134,12 @@ export const listProjects = createServerFn({ method: "GET" })
     }
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
+    const respIds = Array.from(new Set((rows ?? []).map((r: any) => r.responsible_user_id).filter(Boolean)));
+    const respMap: Record<string, { full_name: string | null; email: string | null }> = {};
+    if (respIds.length) {
+      const { data: profs } = await sb.from("profiles").select("id,full_name,email").in("id", respIds);
+      (profs ?? []).forEach((p: any) => { respMap[p.id] = { full_name: p.full_name, email: p.email }; });
+    }
     return (rows ?? []).map((r: any) => ({
       ...r,
       total_amount: Number(r.total_amount || 0),
