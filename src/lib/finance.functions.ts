@@ -104,7 +104,7 @@ function mapRow(r: any): FinancialTransaction {
     amount: Number(r.amount ?? 0),
     category_name: r.financial_categories?.name ?? null,
     customer_name: r.customers?.name ?? null,
-    supplier_name: r.suppliers?.name ?? null,
+    supplier_name: r.suppliers?.trade_name ?? r.suppliers?.corporate_name ?? null,
     bank_account_name: r.financial_bank_accounts
       ? (r.financial_bank_accounts.account_name
           ? `${r.financial_bank_accounts.bank_name} — ${r.financial_bank_accounts.account_name}`
