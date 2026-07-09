@@ -405,6 +405,7 @@ function ProjectDetailPage() {
       )}
 
       <ProjectFinancialSummary projectId={project.id} />
+      <ProjectServiceOrdersList projectId={project.id} />
         </TabsContent>
 
         <TabsContent value="planning">
