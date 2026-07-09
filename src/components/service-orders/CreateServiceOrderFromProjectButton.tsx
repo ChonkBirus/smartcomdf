@@ -84,7 +84,7 @@ export function CreateServiceOrderFromProjectButton({
 
   return (
     <Can module="service_orders" action="create">
-      <AlertDialog open={open} onOpenChange={(v) => { setOpen(v); if (v) refetch(); }}>
+      <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogTrigger asChild>{btn}</AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
