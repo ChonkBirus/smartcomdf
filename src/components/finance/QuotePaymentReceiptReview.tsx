@@ -26,6 +26,7 @@ type PaymentWithReceipt = {
   receipt_status?: string | null;
   receipt_uploaded_at?: string | null;
   receipt_rejection_reason?: string | null;
+  receipt_source?: string | null;
 };
 
 const fmtBRL = (n: number) =>
@@ -120,7 +121,14 @@ export function QuotePaymentReceiptReview({
                     </p>
                   )}
                 </div>
-                <ReceiptBadge status={p.receipt_status} />
+                <div className="flex flex-col items-end gap-1">
+                  <ReceiptBadge status={p.receipt_status} />
+                  {p.receipt_source && (
+                    <Badge variant="outline" className="text-[10px]">
+                      {p.receipt_source === "PUBLIC" ? "Enviado pelo cliente" : "Enviado pela equipe"}
+                    </Badge>
+                  )}
+                </div>
               </div>
               <div className="mt-2 grid gap-2 sm:grid-cols-3">
                 <Button

@@ -5072,6 +5072,7 @@ export type Database = {
           receipt_reviewed_at: string | null
           receipt_reviewed_by: string | null
           receipt_size: number | null
+          receipt_source: string | null
           receipt_status: string | null
           receipt_uploaded_at: string | null
           updated_at: string
@@ -5107,6 +5108,7 @@ export type Database = {
           receipt_reviewed_at?: string | null
           receipt_reviewed_by?: string | null
           receipt_size?: number | null
+          receipt_source?: string | null
           receipt_status?: string | null
           receipt_uploaded_at?: string | null
           updated_at?: string
@@ -5142,6 +5144,7 @@ export type Database = {
           receipt_reviewed_at?: string | null
           receipt_reviewed_by?: string | null
           receipt_size?: number | null
+          receipt_source?: string | null
           receipt_status?: string | null
           receipt_uploaded_at?: string | null
           updated_at?: string
