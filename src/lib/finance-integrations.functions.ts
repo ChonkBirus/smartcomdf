@@ -198,6 +198,29 @@ export const createPayableFromPurchase = createServerFn({ method: "POST" })
     return { id: inserted!.id, duplicate: false };
   });
 
+export const markPurchaseOrderPaid = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({
+      purchase_id: z.string().uuid(),
+      bank_account_id: z.string().uuid(),
+      paid_at: z.string().optional(),
+      payment_method: z.string().trim().max(60).optional().nullable(),
+      notes: z.string().trim().max(500).optional().nullable(),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.rpc("mark_purchase_order_paid", {
+      _po_id: data.purchase_id,
+      _bank_account_id: data.bank_account_id,
+      _payment_method: data.payment_method || null,
+      _paid_at: data.paid_at ?? new Date().toISOString(),
+      _notes: data.notes || null,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 /* -------------------- Summaries -------------------- */
 
 export type FinSummary = {
