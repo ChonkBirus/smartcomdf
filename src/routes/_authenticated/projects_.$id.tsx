@@ -347,7 +347,51 @@ function ProjectDetailPage() {
         <div className="flex items-center gap-2 border-b p-4 text-sm font-medium">
           <Package className="h-4 w-4" />Itens do projeto
         </div>
-        <div className="overflow-x-auto">
+        {/* Mobile: cards */}
+        <div className="grid gap-2 p-3 md:hidden">
+          {items.length === 0 ? (
+            <div className="py-6 text-center text-sm text-muted-foreground">Sem itens.</div>
+          ) : items.map((it: any) => {
+            const stock = STOCK_LABEL[it.stock_status] ?? STOCK_LABEL.NA;
+            return (
+              <div key={it.id} className="flex gap-3 rounded-lg border p-3">
+                {it.image_url ? (
+                  <img src={it.image_url} alt="" className="h-12 w-12 shrink-0 rounded object-cover" />
+                ) : (
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded bg-muted">
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="truncate font-medium">{it.name}</div>
+                      {it.description && (
+                        <p className="truncate text-xs text-muted-foreground">{it.description}</p>
+                      )}
+                    </div>
+                    <div className="shrink-0 text-right text-sm">
+                      <div className="font-medium">
+                        {Number(it.quantity).toLocaleString("pt-BR")} {it.unit}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <span className={`rounded px-2 py-0.5 text-xs ${stock.cls}`}>{stock.label}</span>
+                    {it.stock_quantity != null && it.stock_status !== "NA" && (
+                      <span className="text-xs text-muted-foreground">
+                        ({Number(it.stock_quantity).toLocaleString("pt-BR")} em estoque)
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop: table */}
+        <div className="hidden overflow-x-auto md:block">
         <Table className="min-w-[640px]">
           <TableHeader>
             <TableRow>
@@ -397,6 +441,7 @@ function ProjectDetailPage() {
           </TableBody>
         </Table>
         </div>
+
       </div>
 
       {project.notes && (
