@@ -160,14 +160,24 @@ export const getProject = createServerFn({ method: "GET" })
         customers:customer_id(id,name,trade_name,corporate_name,cpf_cnpj,email,phone,whatsapp),
         address:customer_address_id(*),
         contact:customer_contact_id(*),
-        quotes:quote_id(id,quote_number,total_amount,accepted_at,accepted_by_name),
-        responsible:responsible_user_id(full_name,email)
+        quotes:quote_id(id,quote_number,total_amount,accepted_at,accepted_by_name)
       `)
       .eq("id", data.id)
       .eq("company_id", cid)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!p) return null;
+
+    let responsible: { full_name: string | null; email: string | null } | null = null;
+    if (p.responsible_user_id) {
+      const { data: r } = await sb
+        .from("profiles")
+        .select("full_name,email")
+        .eq("id", p.responsible_user_id)
+        .maybeSingle();
+      responsible = r ?? null;
+    }
+    (p as any).responsible = responsible;
 
     const { data: items, error: e2 } = await sb
       .from("project_items")
