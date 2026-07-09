@@ -32,7 +32,9 @@ type Line = {
   quantity: number;
   unit_price: number;
   cost_price: number;
+  image_path?: string | null;
 };
+
 
 const KIND_LABEL: Record<QuoteItemKind, string> = {
   PRODUCT: "Produto", SERVICE: "Serviço", LABOR: "Mão de obra", OTHER: "Outro",
