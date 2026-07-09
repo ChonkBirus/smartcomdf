@@ -573,6 +573,11 @@ export function QuoteSendSheet({
                   </div>
                 )}
 
+                <QuotePaymentReceiptReview
+                  payments={(payments ?? []) as any}
+                  quoteId={quote.id}
+                />
+
                 {(quote.status === "APPROVED" || quote.status === "CONVERTED") && (
                   <>
                     <QuoteFinancialActions quoteId={quote.id} status={quote.status} />
