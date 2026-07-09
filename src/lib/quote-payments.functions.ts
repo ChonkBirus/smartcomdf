@@ -125,6 +125,16 @@ export const approveQuotePayment = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const resyncQuotePayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+    const { error } = await sb.rpc("resync_quote_payment", { _payment_id: data.id });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const cancelQuotePayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
