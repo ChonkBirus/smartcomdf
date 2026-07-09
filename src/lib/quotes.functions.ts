@@ -410,7 +410,9 @@ export const saveQuote = createServerFn({ method: "POST" })
       unit_price: it.unit_price,
       cost_price: it.cost_price ?? 0,
       position: it.position ?? idx,
+      image_path: nz(it.image_path ?? null),
     }));
+
     const { error: ie } = await sb.from("quote_items").insert(itemsPayload);
     if (ie) throw new Error(ie.message);
 
