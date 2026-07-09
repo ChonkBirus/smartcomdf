@@ -368,14 +368,18 @@ export function QuoteFormSheet({
   function pickCatalogItem(i: number, itemId: string) {
     const it = catalogItems.find((x) => x.id === itemId);
     if (!it) return;
+    const current = lines[i];
     setLine(i, {
       item_id: it.id,
       name: it.name,
       kind: it.item_type === "SERVICE" ? "SERVICE" : "PRODUCT",
       unit_price: it.sale_price,
       cost_price: it.cost_price,
+      description: current?.description?.trim() ? current.description : (it.description ?? ""),
+      image_path: it.image_path ?? null,
     });
   }
+
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
