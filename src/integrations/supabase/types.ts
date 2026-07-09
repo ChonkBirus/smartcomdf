@@ -7292,6 +7292,39 @@ export type Database = {
       }
     }
     Views: {
+      billing_provider_settings_public: {
+        Row: {
+          active: boolean | null
+          environment: string | null
+          id: string | null
+          privacy_policy_url: string | null
+          provider: string | null
+          support_email: string | null
+          support_whatsapp: string | null
+          terms_of_use_url: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          environment?: string | null
+          id?: string | null
+          privacy_policy_url?: string | null
+          provider?: string | null
+          support_email?: string | null
+          support_whatsapp?: string | null
+          terms_of_use_url?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          environment?: string | null
+          id?: string | null
+          privacy_policy_url?: string | null
+          provider?: string | null
+          support_email?: string | null
+          support_whatsapp?: string | null
+          terms_of_use_url?: string | null
+        }
+        Relationships: []
+      }
       subscription_commercial_history: {
         Row: {
           actor_name: string | null
