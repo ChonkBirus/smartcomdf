@@ -129,7 +129,7 @@ function ProjectDetailPage() {
   if (isLoading) return <div className="p-8 text-center text-muted-foreground">Carregando...</div>;
   if (!data) return <div className="p-8 text-center text-muted-foreground">Projeto não encontrado.</div>;
 
-  const { project, customer, address, contact, quote, items } = data;
+  const { project, customer, address, contact, quote, items, financial_summary } = data as any;
   const hasResponsible = !!project.responsible_user_id;
   const openRespDialog = () => {
     setRespValue(project.responsible_user_id ?? "");
