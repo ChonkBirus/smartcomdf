@@ -98,6 +98,8 @@ export function QuoteFormSheet({
 
   const [customerId, setCustomerId] = useState("");
   const [customerOpen, setCustomerOpen] = useState(false);
+  const [newCustomerOpen, setNewCustomerOpen] = useState(false);
+
   const [title, setTitle] = useState("");
   const [issueDate, setIssueDate] = useState(() => new Date().toISOString().slice(0, 10));
   const addDays = (iso: string, n: number) =>
