@@ -24,6 +24,11 @@ import { getCompanyCostSettings, computeSuggestedPrice } from "@/lib/pricing.fun
 import { usePermissions } from "@/lib/permissions";
 import { useAuth } from "@/lib/auth-context";
 import { roundMoney, roundPercent } from "@/lib/rounding";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { buildDraftKey, clearDraft, hasDraft, loadDraft, saveDraft } from "@/lib/draft-storage";
 
 type Line = {
   id?: string;
