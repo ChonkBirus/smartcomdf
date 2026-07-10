@@ -34,6 +34,9 @@ import {
 
 export const Route = createFileRoute("/_authenticated/quotes")({
   head: () => ({ meta: [{ title: "Orçamentos — SmartPro" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    new: search.new === 1 || search.new === "1" || search.new === true ? 1 : undefined,
+  }),
   component: () => (
     <PermissionRoute module="quotes">
       <FeatureGate feature="quotes">
