@@ -759,7 +759,18 @@ export function QuoteFormSheet({
           </div>
         </form>
       </SheetContent>
+      <CustomerFormSheet
+        open={newCustomerOpen}
+        onOpenChange={setNewCustomerOpen}
+        customerId={null}
+        onCreated={(id) => {
+          setCustomerId(id);
+          setCustomerTouched(true);
+          qc.invalidateQueries({ queryKey: ["customers", "quote-form", companyId] });
+        }}
+      />
     </Sheet>
+
   );
 }
 
