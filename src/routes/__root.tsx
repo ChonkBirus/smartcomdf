@@ -30,18 +30,30 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const isDev = import.meta.env.DEV;
   useEffect(() => { reportLovableError(error, { boundary: "tanstack_root_error_component" }); }, [error]);
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+      <div className="w-full max-w-md text-center">
         <h1 className="text-xl font-semibold">Algo deu errado</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Tente novamente ou volte ao início.</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Não conseguimos carregar esta tela. Tente novamente ou volte ao painel.
+        </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button onClick={() => { router.invalidate(); reset(); }} className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
             Tentar novamente
           </button>
-          <a href="/" className="inline-flex items-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent">Início</a>
+          <a href="/dashboard" className="inline-flex items-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent">Voltar ao painel</a>
         </div>
+        {isDev && (
+          <details className="mt-6 rounded-md border bg-muted/40 p-3 text-left text-xs">
+            <summary className="cursor-pointer font-medium">Detalhes técnicos (dev)</summary>
+            <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-words text-[11px] text-muted-foreground">
+{error?.name}: {error?.message}
+{error?.stack}
+            </pre>
+          </details>
+        )}
       </div>
     </div>
   );
