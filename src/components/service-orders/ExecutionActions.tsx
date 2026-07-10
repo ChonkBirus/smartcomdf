@@ -264,6 +264,17 @@ export function ExecutionActions({
             <DialogTitle>Pausar atendimento?</DialogTitle>
             <DialogDescription>Informe o motivo para registrar no histórico da OS.</DialogDescription>
           </DialogHeader>
+          {pauseRestoredAt && (
+            <div className="flex items-center justify-between gap-2 rounded-md border border-info/40 bg-info/10 p-2 text-xs">
+              <span className="flex items-center gap-1">
+                <RotateCcw className="h-3.5 w-3.5" />
+                Rascunho restaurado de {new Date(pauseRestoredAt).toLocaleString("pt-BR")}.
+              </span>
+              <Button variant="ghost" size="sm" className="h-7 px-2" onClick={discardPauseDraft}>
+                Descartar
+              </Button>
+            </div>
+          )}
           <div className="space-y-3">
             <div>
               <Label>Motivo da pausa *</Label>
