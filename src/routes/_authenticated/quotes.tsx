@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { QuoteFormSheet } from "@/components/quotes/QuoteFormSheet";
+import { QuoteStatusBadges } from "@/components/quotes/QuoteStatusBadges";
 import { QuoteSendSheet } from "@/components/quotes/QuoteSendSheet";
 import {
   listQuotes, quoteMetrics, deleteQuote, duplicateQuote,
