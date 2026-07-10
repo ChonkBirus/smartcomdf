@@ -124,8 +124,9 @@ function isValidCNPJ(v: string) {
 }
 
 export function CustomerFormSheet({
-  open, onOpenChange, customerId,
-}: { open: boolean; onOpenChange: (o: boolean) => void; customerId: string | null }) {
+  open, onOpenChange, customerId, onCreated,
+}: { open: boolean; onOpenChange: (o: boolean) => void; customerId: string | null; onCreated?: (id: string) => void }) {
+
   const qc = useQueryClient();
   const fetchOne = useServerFn(getCustomer);
   const save = useServerFn(saveCustomer);
