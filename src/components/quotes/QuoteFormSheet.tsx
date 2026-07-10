@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Plus, Trash2, ArrowUp, ArrowDown, Check, ChevronsUpDown, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown, Check, ChevronsUpDown, AlertTriangle, UserPlus, Package } from "lucide-react";
+import { CustomerFormSheet } from "@/components/customers/CustomerFormSheet";
+
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
