@@ -29,6 +29,7 @@ import {
   type ServiceOrderStatus, type ServiceOrderPriority,
 } from "@/lib/service-orders.functions";
 import { ServiceOrderFinancialSummary } from "@/components/finance/ServiceOrderFinancialSummary";
+import { ServiceOrderCosts } from "@/components/service-orders/ServiceOrderCosts";
 
 export const Route = createFileRoute("/_authenticated/service-orders_/$id")({
   head: () => ({ meta: [{ title: "Detalhe da OS — SmartPro" }] }),
