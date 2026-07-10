@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,9 +25,14 @@ function safeRedirectTarget(raw: unknown): string {
   if (!v.startsWith("/")) return "/dashboard";
   if (v.startsWith("//")) return "/dashboard";
   if (v.startsWith("/\\")) return "/dashboard";
-  // block protocol-relative and absolute URLs
   if (/^https?:/i.test(v)) return "/dashboard";
   return v;
+}
+
+function isEmailNotConfirmedError(msg: string | undefined | null): boolean {
+  if (!msg) return false;
+  const m = msg.toLowerCase();
+  return m.includes("email not confirmed") || m.includes("not confirmed") || m.includes("confirm your email");
 }
 
 export const Route = createFileRoute("/auth")({
@@ -54,6 +59,10 @@ function AuthPage() {
   const [showLoginPwd, setShowLoginPwd] = useState(false);
   const [showSignupPwd, setShowSignupPwd] = useState(false);
   const [remember, setRemember] = useState(true);
+  const [tab, setTab] = useState<"login" | "signup">("login");
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const resendGuard = useRef(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -69,7 +78,14 @@ function AuthPage() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword(d);
     setLoading(false);
-    if (error) return toast.error(translateAuthError(error.message));
+    if (error) {
+      if (isEmailNotConfirmedError(error.message)) {
+        setPendingEmail(d.email);
+        toast.error("Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada ou solicite um novo envio.");
+        return;
+      }
+      return toast.error(translateAuthError(error.message));
+    }
     if (remember) localStorage.setItem(REMEMBER_KEY, d.email);
     else localStorage.removeItem(REMEMBER_KEY);
     navigate({ to: redirectTarget, replace: true });
@@ -84,7 +100,7 @@ function AuthPage() {
       console.info("[AUTH SIGNUP] redirectUrl", redirectUrl);
     }
     logAuthDev({ flow: "signup", status: "attempt", emailMasked: masked, redirectUrl });
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: d.email,
       password: d.password,
       options: {
@@ -99,8 +115,88 @@ function AuthPage() {
       return toast.error(translateAuthError(error.message));
     }
     logAuthDev({ flow: "signup", status: "success", emailMasked: masked, redirectUrl });
-    toast.success("Cadastro realizado. Verifique seu e-mail para confirmar sua conta.");
+    // If session came back, confirmation is disabled → go to app.
+    if (data.session) {
+      navigate({ to: redirectTarget, replace: true });
+      return;
+    }
+    setPendingEmail(d.email);
   };
+
+  const handleResend = async () => {
+    if (!pendingEmail || resendGuard.current) return;
+    resendGuard.current = true;
+    setResending(true);
+    const redirectUrl = appUrl("/dashboard");
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: pendingEmail,
+      options: { emailRedirectTo: redirectUrl },
+    });
+    setResending(false);
+    setTimeout(() => { resendGuard.current = false; }, 3000);
+    if (error) {
+      const m = error.message?.toLowerCase() ?? "";
+      if (m.includes("rate") || m.includes("too many")) {
+        return toast.error("Aguarde alguns instantes antes de solicitar novamente.");
+      }
+      return toast.error("Não conseguimos reenviar agora. Tente novamente em alguns minutos.");
+    }
+    toast.success("E-mail de confirmação reenviado.");
+  };
+
+  const handleChangeEmail = () => {
+    const email = pendingEmail ?? "";
+    setPendingEmail(null);
+    setTab("signup");
+    signupForm.setValue("email", "");
+    signupForm.setValue("password", "");
+    // Keep full_name if user filled it.
+    loginForm.setValue("email", email);
+  };
+
+  if (pendingEmail) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+        <div className="w-full max-w-md">
+          <div className="mb-6 flex flex-col items-center gap-3">
+            <img src="/brand/smart-pro-logo-horizontal.png" alt="Logo SmartPro" className="h-20 w-auto object-contain" />
+          </div>
+          <Card className="card-elevated">
+            <CardHeader className="items-center text-center">
+              <div className="brand-gradient mb-2 flex h-12 w-12 items-center justify-center rounded-2xl">
+                <MailCheck className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <CardTitle className="text-lg">Confirme seu e-mail</CardTitle>
+              <CardDescription>
+                Enviamos um link de confirmação para <span className="font-medium text-foreground break-all">{pendingEmail}</span>. Acesse sua caixa de entrada e clique no link para ativar sua conta.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-xs text-muted-foreground text-center">
+                Não encontrou? Verifique a caixa de spam ou solicite um novo envio.
+              </p>
+              <div className="flex flex-col gap-2">
+                <Button onClick={handleResend} disabled={resending} className="w-full">
+                  {resending ? "Reenviando..." : "Reenviar e-mail de confirmação"}
+                </Button>
+                <Button variant="outline" onClick={handleChangeEmail} className="w-full">
+                  Trocar e-mail
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => { setPendingEmail(null); setTab("login"); }}
+                  className="w-full"
+                >
+                  Voltar para login
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -111,7 +207,7 @@ function AuthPage() {
         </div>
 
         <Card className="card-elevated">
-          <Tabs defaultValue="login">
+          <Tabs value={tab} onValueChange={(v) => setTab(v as "login" | "signup")}>
             <CardHeader>
               <TabsList className="grid grid-cols-2">
                 <TabsTrigger value="login">Entrar</TabsTrigger>
