@@ -67,6 +67,8 @@ const fmtDate = (s: string | null) =>
 
 function QuotesPage() {
   const qc = useQueryClient();
+  const navigate = Route.useNavigate();
+  const searchParams = Route.useSearch();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<QuoteStatus | "ALL">("ALL");
   const [payFilter, setPayFilter] = useState<QuotePaymentStatus | "ALL">("ALL");
@@ -74,6 +76,14 @@ function QuotesPage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [confirmDel, setConfirmDel] = useState<{ id: string; number: string } | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (searchParams.new === 1) {
+      setEditing(null);
+      setOpen(true);
+      navigate({ search: {} as never, replace: true });
+    }
+  }, [searchParams.new, navigate]);
 
   const companyId = useCompanyId();
   const fetchList = useServerFn(listQuotes);
