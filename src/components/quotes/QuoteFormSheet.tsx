@@ -494,7 +494,7 @@ export function QuoteFormSheet({
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleSheetOpenChange}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-3xl">
         <SheetHeader>
           <SheetTitle>{quoteId ? "Editar orçamento" : "Novo orçamento"}</SheetTitle>
@@ -502,6 +502,50 @@ export function QuoteFormSheet({
             Cadastro do orçamento, itens e condições comerciais.
           </SheetDescription>
         </SheetHeader>
+
+        {showDraftBanner && (
+          <div className="mt-3 flex flex-col gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-medium">Encontramos um orçamento não salvo.</p>
+              <p className="text-xs text-muted-foreground">
+                {draftRestored ? "Rascunho restaurado." : "Deseja restaurar este rascunho?"}
+              </p>
+            </div>
+            {!draftRestored && (
+              <div className="flex gap-2">
+                <Button type="button" size="sm" variant="outline" onClick={() => {
+                  clearDraft(draftKey); setShowDraftBanner(false);
+                }}>Descartar</Button>
+                <Button type="button" size="sm" onClick={() => {
+                  const d = loadDraft<any>(draftKey);
+                  if (d) { applyDraft(d); setDraftRestored(true); }
+                  setShowDraftBanner(false);
+                }}>Restaurar</Button>
+              </div>
+            )}
+          </div>
+        )}
+
+        <AlertDialog open={confirmClose} onOpenChange={setConfirmClose}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Manter rascunho?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Deseja manter este rascunho para continuar depois?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => {
+                clearDraft(draftKey); setConfirmClose(false); onOpenChange(false);
+              }}>Descartar</AlertDialogCancel>
+              <AlertDialogAction onClick={() => {
+                saveDraft(draftKey, currentDraft());
+                setConfirmClose(false); onOpenChange(false);
+              }}>Manter rascunho</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
 
         <form onSubmit={onSubmit} className="mt-4 space-y-4">
           <Tabs defaultValue="main">
