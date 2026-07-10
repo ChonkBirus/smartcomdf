@@ -305,6 +305,95 @@ export function QuoteFormSheet({
   const suggestedMarginPct =
     suggestedTotal > 0 ? ((suggestedTotal - totalCost) / suggestedTotal) * 100 : 0;
 
+  // ============= Rascunho local (UX2B) =============
+  const draftKey = buildDraftKey("quote", companyId, user?.id, quoteId ?? undefined);
+  const [showDraftBanner, setShowDraftBanner] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
+  const [initialSyncDone, setInitialSyncDone] = useState(false);
+
+  type DraftShape = {
+    customer_id: string; title: string; issue_date: string; valid_until: string;
+    payment: string; delivery: string; warranty: string; completion: string;
+    customer_notes: string; internal_notes: string;
+    diag_problem: string; diag_need: string; diag_environment: string;
+    diag_objective: string; diag_critical: string; diag_tech_notes: string;
+    labor_cost: number; discount: number; lines: Line[];
+  };
+
+  const currentDraft = (): DraftShape => ({
+    customer_id: customerId, title, issue_date: issueDate, valid_until: validUntil,
+    payment, delivery, warranty, completion,
+    customer_notes: customerNotes, internal_notes: internalNotes,
+    diag_problem: diagProblem, diag_need: diagNeed, diag_environment: diagEnvironment,
+    diag_objective: diagObjective, diag_critical: diagCritical, diag_tech_notes: diagTechNotes,
+    labor_cost: laborCost, discount, lines,
+  });
+
+  const isDirty = () => {
+    if (customerId || title || customerNotes || internalNotes ||
+        diagProblem || diagNeed || diagEnvironment || diagObjective ||
+        diagCritical || diagTechNotes || delivery || warranty || completion) return true;
+    if (lines.length > 0) return true;
+    if (laborCost > 0 || discount > 0) return true;
+    if (payment && payment !== DEFAULT_PAYMENT_TERMS) return true;
+    return false;
+  };
+
+  const applyDraft = (d: DraftShape) => {
+    setCustomerId(d.customer_id ?? "");
+    setTitle(d.title ?? "");
+    if (d.issue_date) setIssueDate(d.issue_date);
+    if (d.valid_until) { setValidUntil(d.valid_until); setValidUntilTouched(true); }
+    setPayment(d.payment ?? DEFAULT_PAYMENT_TERMS);
+    setDelivery(d.delivery ?? ""); setWarranty(d.warranty ?? ""); setCompletion(d.completion ?? "");
+    setCustomerNotes(d.customer_notes ?? ""); setInternalNotes(d.internal_notes ?? "");
+    setDiagProblem(d.diag_problem ?? ""); setDiagNeed(d.diag_need ?? "");
+    setDiagEnvironment(d.diag_environment ?? ""); setDiagObjective(d.diag_objective ?? "");
+    setDiagCritical(d.diag_critical ?? ""); setDiagTechNotes(d.diag_tech_notes ?? "");
+    setLaborCost(Number(d.labor_cost) || 0); setDiscount(Number(d.discount) || 0);
+    setLines(Array.isArray(d.lines) ? d.lines : []);
+  };
+
+  // Verifica rascunho quando o sheet abre.
+  useEffect(() => {
+    if (!open || !draftKey) { setInitialSyncDone(false); return; }
+    // Espera dados do "existing" antes de decidir (para edição).
+    if (quoteId && !existing) return;
+    if (initialSyncDone) return;
+    setInitialSyncDone(true);
+    if (hasDraft(draftKey)) setShowDraftBanner(true);
+  }, [open, draftKey, quoteId, existing, initialSyncDone]);
+
+  // Autosave debounced.
+  useEffect(() => {
+    if (!open || !draftKey || !initialSyncDone) return;
+    if (showDraftBanner) return; // não sobrescrever antes de decidir
+    if (!isDirty()) return;
+    const t = setTimeout(() => saveDraft(draftKey, currentDraft()), 600);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    open, draftKey, initialSyncDone, showDraftBanner,
+    customerId, title, issueDate, validUntil, payment, delivery, warranty, completion,
+    customerNotes, internalNotes, diagProblem, diagNeed, diagEnvironment,
+    diagObjective, diagCritical, diagTechNotes, laborCost, discount, lines,
+  ]);
+
+  // Reseta flag quando fecha
+  useEffect(() => {
+    if (!open) { setShowDraftBanner(false); setDraftRestored(false); setInitialSyncDone(false); }
+  }, [open]);
+
+  const handleSheetOpenChange = (o: boolean) => {
+    if (o) { onOpenChange(true); return; }
+    if (draftKey && isDirty() && !showDraftBanner) {
+      setConfirmClose(true);
+      return;
+    }
+    onOpenChange(false);
+  };
+
   const mutation = useMutation({
     mutationFn: () =>
       save({
@@ -345,6 +434,7 @@ export function QuoteFormSheet({
       }),
     onSuccess: () => {
       toast.success(quoteId ? "Orçamento atualizado." : "Orçamento criado.");
+      clearDraft(draftKey);
       qc.invalidateQueries({ queryKey: ["quotes"] });
       qc.invalidateQueries({ queryKey: ["quote-metrics"] });
       qc.invalidateQueries({ queryKey: ["quote", quoteId] });
