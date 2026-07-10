@@ -3,7 +3,7 @@ import { useEffect, useMemo } from "react";
 import {
   Users, FileText, DollarSign, TrendingUp, Activity,
   PackageX, AlertTriangle, Boxes, CheckCircle2, PercentCircle,
-  FolderKanban, Wrench, Wallet, BarChart3,
+  FolderKanban, Wrench, Wallet, BarChart3, FilePlus2, Sparkles,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
