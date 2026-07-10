@@ -127,33 +127,56 @@ export function GettingStartedChecklist() {
         </button>
       </CardHeader>
       <CardContent className="space-y-2">
-        {ITEMS.map((it) => {
-          const ok = !!status?.[it.key];
+        {(() => {
+          const coreDone = CORE_KEYS.every((k) => !!status?.[k]);
+          const visibleItems = expanded || coreDone ? ITEMS : ITEMS.filter((i) => CORE_KEYS.includes(i.key));
+          const hiddenCount = ITEMS.length - visibleItems.length;
           return (
-            <div
-              key={it.key}
-              className={cn(
-                "flex items-start gap-3 rounded-md border border-border p-3 transition",
-                ok && "opacity-60",
-              )}
-            >
-              {ok ? (
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success" />
-              ) : (
-                <Circle className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
-              )}
-              <div className="min-w-0 flex-1">
-                <div className={cn("text-sm font-medium", ok && "line-through")}>{it.title}</div>
-                <p className="mt-0.5 text-xs text-muted-foreground">{it.description}</p>
-              </div>
-              {!ok && (
-                <Button asChild size="sm" variant="outline" className="shrink-0">
-                  <Link to={it.to as never}>{it.cta}</Link>
+            <>
+              {visibleItems.map((it) => {
+                const ok = !!status?.[it.key];
+                return (
+                  <div
+                    key={it.key}
+                    className={cn(
+                      "flex flex-col gap-2 rounded-md border border-border p-3 transition sm:flex-row sm:items-start sm:gap-3",
+                      ok && "opacity-60",
+                    )}
+                  >
+                    <div className="flex items-start gap-3 sm:contents">
+                      {ok ? (
+                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success" />
+                      ) : (
+                        <Circle className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className={cn("text-sm font-medium", ok && "line-through")}>{it.title}</div>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{it.description}</p>
+                      </div>
+                    </div>
+                    {!ok && (
+                      <Button asChild size="sm" variant="outline" className="w-full shrink-0 sm:w-auto">
+                        <Link to={it.to as never}>{it.cta}</Link>
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+              {hiddenCount > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setExpanded((v) => !v)}
+                  className="w-full justify-center gap-1 text-muted-foreground"
+                >
+                  {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  {expanded ? "Mostrar apenas o essencial" : `Ver mais ${hiddenCount} passos avançados`}
                 </Button>
               )}
-            </div>
+            </>
           );
-        })}
+        })()}
       </CardContent>
     </Card>
   );
