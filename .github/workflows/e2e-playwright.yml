@@ -63,6 +63,20 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
 
+      - name: Seed E2E fixtures (clean state)
+        run: scripts/e2e-seed.sh
+        env:
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
+          E2E_A_USER_ID: ${{ secrets.E2E_A_USER_ID }}
+          E2E_B_USER_ID: ${{ secrets.E2E_B_USER_ID }}
+          E2E_A_ACCESS_TOKEN: ${{ secrets.E2E_A_ACCESS_TOKEN }}
+          E2E_B_ACCESS_TOKEN: ${{ secrets.E2E_B_ACCESS_TOKEN }}
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+
       - name: Run Playwright E2E tests (${{ matrix.browser }})
         run: |
           mkdir -p test-results
@@ -72,6 +86,16 @@ jobs:
           LOVABLE_BROWSER_SUPABASE_SESSION_JSON: ${{ secrets.E2E_SUPABASE_SESSION_JSON }}
           LOVABLE_BROWSER_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_SUPABASE_STORAGE_KEY }}
           LOVABLE_BROWSER_AUTH_STATUS: injected
+
+      - name: Teardown E2E fixtures
+        if: always()
+        run: python tests/e2e/seed_fixtures.py --teardown || true
+        env:
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
 
 
       - name: Stop preview server
