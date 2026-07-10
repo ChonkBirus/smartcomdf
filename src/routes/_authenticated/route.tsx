@@ -13,6 +13,7 @@ import { FeaturesProvider, type PlanInfo } from "@/lib/features";
 import { UpgradeModal } from "@/components/app/UpgradeModal";
 import { SubscriptionGuard } from "@/components/billing/SubscriptionGuard";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
+import { OfflineBanner } from "@/components/app/OfflineBanner";
 
 
 export const Route = createFileRoute("/_authenticated")({
@@ -68,6 +69,7 @@ function AuthenticatedLayout() {
             <div className="flex min-h-screen w-full bg-background">
               <AppSidebar isSuperAdmin={data?.isSuperAdmin} />
               <SidebarInset className="flex min-h-screen flex-1 flex-col">
+                <OfflineBanner />
                 <Topbar
                   name={data?.profile?.full_name}
                   email={data?.profile?.email}
