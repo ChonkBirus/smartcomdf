@@ -20,6 +20,7 @@ import { ExecutionTimeline } from "@/components/service-orders/ExecutionTimeline
 import { ServiceOrderChecklist } from "@/components/service-orders/ServiceOrderChecklist";
 import { ServiceOrderPhotos } from "@/components/service-orders/ServiceOrderPhotos";
 import { ServiceOrderMaterials } from "@/components/service-orders/ServiceOrderMaterials";
+import { ServiceOrderCosts } from "@/components/service-orders/ServiceOrderCosts";
 import { ServiceOrderSignature } from "@/components/service-orders/ServiceOrderSignature";
 import { ServiceOrderStockDeduction } from "@/components/service-orders/ServiceOrderStockDeduction";
 import { ServiceOrderFinalReport } from "@/components/service-orders/ServiceOrderFinalReport";
@@ -273,6 +274,10 @@ function MobileSODetailPage() {
           status={so.status as any}
           canManage={canManageMaterials}
         />
+      </Section>
+
+      <Section title="Custos avulsos">
+        <ServiceOrderCosts serviceOrderId={so.id} projectId={(so as any).project_id ?? null} />
       </Section>
 
       <Section title="Assinatura do Cliente">
