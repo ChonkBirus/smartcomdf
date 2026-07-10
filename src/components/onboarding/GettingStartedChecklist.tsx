@@ -18,14 +18,16 @@ type Item = {
   cta: string;
 };
 
+const CORE_KEYS: Array<keyof GettingStartedStatus> = ["hasCompanyData", "hasProduct", "hasQuote"];
+
 const ITEMS: Item[] = [
-  { key: "hasCompanyData", title: "Configurar dados da empresa", description: "Razão social, CNPJ e contato aparecem em propostas e relatórios.", to: "/settings/company", cta: "Configurar empresa" },
-  { key: "hasCustomer", title: "Cadastrar primeiro cliente", description: "Comece cadastrando seus clientes para usar em orçamentos, projetos e ordens de serviço.", to: "/clients", cta: "Cadastrar cliente" },
-  { key: "hasProduct", title: "Cadastrar primeiro produto ou serviço", description: "Adicione os itens que entram nas suas propostas e atendimentos.", to: "/products", cta: "Cadastrar item" },
+  { key: "hasCompanyData", title: "Configurar dados da empresa", description: "Razão social, CNPJ e contato aparecem em propostas e relatórios.", to: "/settings/company", cta: "Configurar" },
+  { key: "hasProduct", title: "Cadastrar primeiro produto ou serviço", description: "Adicione os itens que entram nas suas propostas e atendimentos.", to: "/products", cta: "Cadastrar" },
+  { key: "hasQuote", title: "Criar primeiro orçamento", description: "Monte uma proposta em minutos — cliente pode ser criado direto no orçamento.", to: "/quotes", cta: "Criar orçamento" },
+  { key: "hasCustomer", title: "Cadastrar primeiro cliente", description: "Também dá pra criar clientes direto no orçamento.", to: "/clients", cta: "Cadastrar cliente" },
   { key: "hasCrmOpportunity", title: "Registrar primeira oportunidade no CRM", description: "Acompanhe leads e negociações no funil de vendas estilo Kanban.", to: "/crm", cta: "Abrir CRM" },
-  { key: "hasQuote", title: "Criar primeiro orçamento", description: "Monte uma proposta com itens, condições comerciais e diagnóstico.", to: "/quotes", cta: "Novo orçamento" },
   { key: "hasQuotePdf", title: "Gerar PDF da proposta", description: "Gere a versão Premium para impressionar o cliente.", to: "/quotes", cta: "Ir para orçamentos" },
-  { key: "hasQuoteSent", title: "Enviar proposta para o cliente", description: "WhatsApp, e-mail ou link público com aceite eletrônico.", to: "/quotes", cta: "Enviar proposta" },
+  { key: "hasQuoteSent", title: "Enviar proposta para o cliente", description: "WhatsApp, e-mail ou link público com aceite eletrônico.", to: "/quotes", cta: "Enviar" },
   { key: "hasQuoteApproved", title: "Aprovar orçamento", description: "Acompanhe o aceite — orçamentos aprovados viram projetos.", to: "/quotes", cta: "Ver orçamentos" },
   { key: "hasCrmWon", title: "Marcar oportunidade como ganha", description: "Feche o ciclo comercial marcando a oportunidade como ganha no CRM.", to: "/crm", cta: "Ir para CRM" },
   { key: "hasServiceOrder", title: "Criar primeira ordem de serviço", description: "Organize a execução com checklist, fotos e relatório.", to: "/service-orders", cta: "Nova OS" },
