@@ -183,14 +183,17 @@ export function CustomerFormSheet({
 
   const mutation = useMutation({
     mutationFn: (payload: FormState) => save({ data: payload as any }),
-    onSuccess: () => {
+    onSuccess: (result: any) => {
       toast.success(form.id ? "Cliente atualizado." : "Cliente cadastrado.");
       qc.invalidateQueries({ queryKey: ["customers"] });
       qc.invalidateQueries({ queryKey: ["customer-metrics"] });
+      const newId = result?.id ?? form.id;
+      if (!form.id && newId && onCreated) onCreated(newId);
       onOpenChange(false);
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao salvar."),
   });
+
 
   const tagMut = useMutation({
     mutationFn: (name: string) => newTag({ data: { name, color: "#3B82F6" } }),
