@@ -63,6 +63,20 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
 
+      - name: Seed E2E fixtures (clean state)
+        run: scripts/e2e-seed.sh
+        env:
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
+          E2E_A_USER_ID: ${{ secrets.E2E_A_USER_ID }}
+          E2E_B_USER_ID: ${{ secrets.E2E_B_USER_ID }}
+          E2E_A_ACCESS_TOKEN: ${{ secrets.E2E_A_ACCESS_TOKEN }}
+          E2E_B_ACCESS_TOKEN: ${{ secrets.E2E_B_ACCESS_TOKEN }}
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+
       - name: Run Playwright E2E tests (${{ matrix.browser }})
         run: |
           mkdir -p test-results
@@ -72,6 +86,16 @@ jobs:
           LOVABLE_BROWSER_SUPABASE_SESSION_JSON: ${{ secrets.E2E_SUPABASE_SESSION_JSON }}
           LOVABLE_BROWSER_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_SUPABASE_STORAGE_KEY }}
           LOVABLE_BROWSER_AUTH_STATUS: injected
+
+      - name: Teardown E2E fixtures
+        if: always()
+        run: python tests/e2e/seed_fixtures.py --teardown || true
+        env:
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
 
 
       - name: Stop preview server
@@ -122,6 +146,20 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+      - name: Seed E2E fixtures (clean state)
+        run: scripts/e2e-seed.sh
+        env:
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
+          E2E_A_USER_ID: ${{ secrets.E2E_A_USER_ID }}
+          E2E_B_USER_ID: ${{ secrets.E2E_B_USER_ID }}
+          E2E_A_ACCESS_TOKEN: ${{ secrets.E2E_A_ACCESS_TOKEN }}
+          E2E_B_ACCESS_TOKEN: ${{ secrets.E2E_B_ACCESS_TOKEN }}
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+
       - name: Run multi-company isolation audit
         run: |
           mkdir -p test-results
@@ -134,6 +172,17 @@ jobs:
           E2E_B_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_B_SUPABASE_STORAGE_KEY }}
           E2E_VIEWER_SUPABASE_SESSION_JSON: ${{ secrets.E2E_VIEWER_SUPABASE_SESSION_JSON }}
           E2E_VIEWER_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_VIEWER_SUPABASE_STORAGE_KEY }}
+
+      - name: Teardown E2E fixtures
+        if: always()
+        run: python tests/e2e/seed_fixtures.py --teardown || true
+        env:
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
+
       - name: Stop preview server
         if: always()
         run: if [ -f server.pid ]; then kill "$(cat server.pid)" || true; fi
@@ -180,6 +229,20 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+      - name: Seed E2E fixtures (clean state)
+        run: scripts/e2e-seed.sh
+        env:
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
+          E2E_A_USER_ID: ${{ secrets.E2E_A_USER_ID }}
+          E2E_B_USER_ID: ${{ secrets.E2E_B_USER_ID }}
+          E2E_A_ACCESS_TOKEN: ${{ secrets.E2E_A_ACCESS_TOKEN }}
+          E2E_B_ACCESS_TOKEN: ${{ secrets.E2E_B_ACCESS_TOKEN }}
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+
       - name: Run PR3 service-orders E2E
         run: |
           mkdir -p test-results
@@ -195,6 +258,17 @@ jobs:
           E2E_PR3_PROJECT_WITH_QUOTE_ID: ${{ secrets.E2E_PR3_PROJECT_WITH_QUOTE_ID }}
           E2E_PR3_PROJECT_WITHOUT_QUOTE_ID: ${{ secrets.E2E_PR3_PROJECT_WITHOUT_QUOTE_ID }}
           E2E_PR3_TECHNICIAN_ID: ${{ secrets.E2E_PR3_TECHNICIAN_ID }}
+
+      - name: Teardown E2E fixtures
+        if: always()
+        run: python tests/e2e/seed_fixtures.py --teardown || true
+        env:
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
+
       - name: Stop preview server
         if: always()
         run: if [ -f server.pid ]; then kill "$(cat server.pid)" || true; fi
@@ -241,18 +315,40 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+      - name: Seed E2E fixtures (clean state)
+        run: scripts/e2e-seed.sh
+        env:
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
+          E2E_A_USER_ID: ${{ secrets.E2E_A_USER_ID }}
+          E2E_B_USER_ID: ${{ secrets.E2E_B_USER_ID }}
+          E2E_A_ACCESS_TOKEN: ${{ secrets.E2E_A_ACCESS_TOKEN }}
+          E2E_B_ACCESS_TOKEN: ${{ secrets.E2E_B_ACCESS_TOKEN }}
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+
       - name: Run quote-images E2E
         run: |
           mkdir -p test-results
           python tests/e2e/pr-quote-images.py 2>&1 | tee test-results/pr-quote-images.log
         env:
+          # E2E_QUOTE_* + E2E_LEGACY_QUOTE_TOKEN come from the seed step via $GITHUB_ENV
           E2E_BROWSER: chromium
           E2E_A_SUPABASE_SESSION_JSON: ${{ secrets.E2E_A_SUPABASE_SESSION_JSON }}
           E2E_A_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_A_SUPABASE_STORAGE_KEY }}
-          E2E_QUOTE_TOKEN_A: ${{ secrets.E2E_QUOTE_TOKEN_A }}
-          E2E_QUOTE_IMAGE_PATH_A: ${{ secrets.E2E_QUOTE_IMAGE_PATH_A }}
-          E2E_QUOTE_FOREIGN_IMAGE_PATH: ${{ secrets.E2E_QUOTE_FOREIGN_IMAGE_PATH }}
-          E2E_LEGACY_QUOTE_TOKEN: ${{ secrets.E2E_LEGACY_QUOTE_TOKEN }}
+
+      - name: Teardown E2E fixtures
+        if: always()
+        run: python tests/e2e/seed_fixtures.py --teardown || true
+        env:
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
+
       - name: Stop preview server
         if: always()
         run: if [ -f server.pid ]; then kill "$(cat server.pid)" || true; fi
