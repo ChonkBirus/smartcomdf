@@ -144,6 +144,8 @@ export type QuoteCatalogItem = {
   cost_price: number;
   description: string | null;
   image_path: string | null;
+  controls_stock: boolean;
+  stock_quantity: number | null;
 };
 
 export const listQuoteCatalog = createServerFn({ method: "GET" })
@@ -154,7 +156,7 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
     if (!profile?.company_id) throw new Error("Sem empresa.");
     const { data, error } = await sb
       .from("items")
-      .select("id, name, sku, unit, item_type, sale_price, cost_price, description")
+      .select("id, name, sku, unit, item_type, sale_price, cost_price, description, controls_stock")
       .eq("company_id", profile.company_id)
       .is("deleted_at", null)
       .eq("active", true)
@@ -163,15 +165,29 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     const ids = (data ?? []).map((r: any) => r.id);
     const imgMap = new Map<string, string>();
+    const stockMap = new Map<string, number>();
     if (ids.length > 0) {
-      const { data: imgs } = await sb
-        .from("item_images")
-        .select("item_id, file_path, is_primary, created_at")
-        .in("item_id", ids)
-        .order("is_primary", { ascending: false })
-        .order("created_at", { ascending: true });
+      const productIds = (data ?? [])
+        .filter((r: any) => r.item_type === "PRODUCT" && r.controls_stock)
+        .map((r: any) => r.id);
+      const [{ data: imgs }, { data: bal }] = await Promise.all([
+        sb.from("item_images")
+          .select("item_id, file_path, is_primary, created_at")
+          .in("item_id", ids)
+          .order("is_primary", { ascending: false })
+          .order("created_at", { ascending: true }),
+        productIds.length
+          ? sb.from("stock_balances")
+              .select("item_id, quantity")
+              .eq("company_id", profile.company_id)
+              .in("item_id", productIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
       (imgs ?? []).forEach((im: any) => {
         if (!imgMap.has(im.item_id)) imgMap.set(im.item_id, im.file_path);
+      });
+      (bal ?? []).forEach((b: any) => {
+        stockMap.set(b.item_id, (stockMap.get(b.item_id) || 0) + Number(b.quantity || 0));
       });
     }
     return (data ?? []).map((r: any) => ({
@@ -184,8 +200,11 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
       cost_price: Number(r.cost_price || 0),
       description: r.description ?? null,
       image_path: imgMap.get(r.id) ?? null,
+      controls_stock: Boolean(r.controls_stock),
+      stock_quantity: r.item_type === "PRODUCT" && r.controls_stock ? (stockMap.get(r.id) ?? 0) : null,
     })) as QuoteCatalogItem[];
   });
+
 
 
 // ============================================================
