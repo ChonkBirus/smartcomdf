@@ -201,6 +201,23 @@ def print_env() -> None:
     ]
     print("\n".join(lines))
 
+REQUIRED_VARS = ("PGHOST", "PGUSER", "PGPASSWORD", "PGDATABASE",
+                 "E2E_A_USER_ID", "E2E_B_USER_ID")
+
+def _check_required_env() -> None:
+    """List every missing required var and abort loudly. Never seed partial state."""
+    missing = [name for name in REQUIRED_VARS if not os.environ.get(name)]
+    if not missing:
+        return
+    sys.stderr.write(
+        "ERROR: seed_fixtures.py cannot run — missing required env vars:\n"
+        + "".join(f"  - {name}\n" for name in missing)
+        + "Configure repository secrets E2E_PGHOST/E2E_PGPORT/E2E_PGUSER/"
+          "E2E_PGPASSWORD/E2E_PGDATABASE/E2E_A_USER_ID/E2E_B_USER_ID and "
+          "re-run. Aborting instead of touching an unknown or partial database.\n"
+    )
+    sys.exit(2)
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--teardown", action="store_true")
@@ -209,38 +226,19 @@ def main() -> None:
 
     if args.print_only:
         print_env(); return
+
+    # teardown and full seed both hit the DB → require the same env
+    _check_required_env()
+
     if args.teardown:
         teardown(); return
 
-    user_a = os.environ.get("E2E_A_USER_ID")
-    user_b = os.environ.get("E2E_B_USER_ID")
-    pghost = os.environ.get("PGHOST")
-
-    missing = [k for k, v in (
-        ("PGHOST", pghost),
-        ("PGUSER", os.environ.get("PGUSER")),
-        ("PGPASSWORD", os.environ.get("PGPASSWORD")),
-        ("PGDATABASE", os.environ.get("PGDATABASE")),
-        ("E2E_A_USER_ID", user_a),
-        ("E2E_B_USER_ID", user_b),
-    ) if not v]
-    if missing:
-        sys.stderr.write(
-            "ERROR: seed_fixtures.py cannot run — missing required env vars: "
-            + ", ".join(missing)
-            + "\nConfigure these repository secrets (E2E_PGHOST/E2E_PGPORT/"
-            "E2E_PGUSER/E2E_PGPASSWORD/E2E_PGDATABASE/E2E_A_USER_ID/"
-            "E2E_B_USER_ID) and re-run. Aborting instead of seeding a partial "
-            "or wrong-database fixture.\n"
-        )
-        sys.exit(2)
-
-
     supabase_url = os.environ.get("SUPABASE_URL") or "https://ifhtznbbvjwejxlgpana.supabase.co"
-    seed(user_a, user_b, supabase_url,
+    seed(os.environ["E2E_A_USER_ID"], os.environ["E2E_B_USER_ID"], supabase_url,
          os.environ.get("E2E_A_ACCESS_TOKEN"),
          os.environ.get("E2E_B_ACCESS_TOKEN"))
     print_env()
+
 
 if __name__ == "__main__":
     main()
