@@ -227,7 +227,7 @@ export const updateServiceOrderCost = createServerFn({ method: "POST" })
       if (data.status === "PLANNED") patch.paid_at = null;
     }
 
-    const { error } = await context.supabase
+    const { error } = await (context.supabase as any)
       .from("financial_transactions")
       .update(patch)
       .eq("id", data.id)
