@@ -16,8 +16,9 @@ set -euo pipefail
 MODE="${1:-full}"
 
 if [ -z "${PGHOST:-}" ] || [ -z "${E2E_A_USER_ID:-}" ] || [ -z "${E2E_B_USER_ID:-}" ]; then
-  echo "e2e-seed: required env missing (PGHOST/E2E_A_USER_ID/E2E_B_USER_ID) — SKIP" >&2
-  exit 0
+  echo "e2e-seed: FATAL — PGHOST/E2E_A_USER_ID/E2E_B_USER_ID missing." >&2
+  echo "Configure repository secrets E2E_PGHOST/E2E_PGPORT/E2E_PGUSER/E2E_PGPASSWORD/E2E_PGDATABASE/E2E_A_USER_ID/E2E_B_USER_ID before running the E2E workflow." >&2
+  exit 1
 fi
 
 if [ "$MODE" != "print-only" ]; then
