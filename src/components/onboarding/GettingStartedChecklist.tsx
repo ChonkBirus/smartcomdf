@@ -1,9 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckCircle2, Circle, Rocket, X } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronUp, Circle, Rocket, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getGettingStartedStatus, type GettingStartedStatus, getOnboardingProgress, upsertOnboardingProgress } from "@/lib/onboarding.functions";
@@ -18,14 +18,16 @@ type Item = {
   cta: string;
 };
 
+const CORE_KEYS: Array<keyof GettingStartedStatus> = ["hasCompanyData", "hasProduct", "hasQuote"];
+
 const ITEMS: Item[] = [
-  { key: "hasCompanyData", title: "Configurar dados da empresa", description: "Razão social, CNPJ e contato aparecem em propostas e relatórios.", to: "/settings/company", cta: "Configurar empresa" },
-  { key: "hasCustomer", title: "Cadastrar primeiro cliente", description: "Comece cadastrando seus clientes para usar em orçamentos, projetos e ordens de serviço.", to: "/clients", cta: "Cadastrar cliente" },
-  { key: "hasProduct", title: "Cadastrar primeiro produto ou serviço", description: "Adicione os itens que entram nas suas propostas e atendimentos.", to: "/products", cta: "Cadastrar item" },
+  { key: "hasCompanyData", title: "Configurar dados da empresa", description: "Razão social, CNPJ e contato aparecem em propostas e relatórios.", to: "/settings/company", cta: "Configurar" },
+  { key: "hasProduct", title: "Cadastrar primeiro produto ou serviço", description: "Adicione os itens que entram nas suas propostas e atendimentos.", to: "/products", cta: "Cadastrar" },
+  { key: "hasQuote", title: "Criar primeiro orçamento", description: "Monte uma proposta em minutos — cliente pode ser criado direto no orçamento.", to: "/quotes", cta: "Criar orçamento" },
+  { key: "hasCustomer", title: "Cadastrar primeiro cliente", description: "Também dá pra criar clientes direto no orçamento.", to: "/clients", cta: "Cadastrar cliente" },
   { key: "hasCrmOpportunity", title: "Registrar primeira oportunidade no CRM", description: "Acompanhe leads e negociações no funil de vendas estilo Kanban.", to: "/crm", cta: "Abrir CRM" },
-  { key: "hasQuote", title: "Criar primeiro orçamento", description: "Monte uma proposta com itens, condições comerciais e diagnóstico.", to: "/quotes", cta: "Novo orçamento" },
   { key: "hasQuotePdf", title: "Gerar PDF da proposta", description: "Gere a versão Premium para impressionar o cliente.", to: "/quotes", cta: "Ir para orçamentos" },
-  { key: "hasQuoteSent", title: "Enviar proposta para o cliente", description: "WhatsApp, e-mail ou link público com aceite eletrônico.", to: "/quotes", cta: "Enviar proposta" },
+  { key: "hasQuoteSent", title: "Enviar proposta para o cliente", description: "WhatsApp, e-mail ou link público com aceite eletrônico.", to: "/quotes", cta: "Enviar" },
   { key: "hasQuoteApproved", title: "Aprovar orçamento", description: "Acompanhe o aceite — orçamentos aprovados viram projetos.", to: "/quotes", cta: "Ver orçamentos" },
   { key: "hasCrmWon", title: "Marcar oportunidade como ganha", description: "Feche o ciclo comercial marcando a oportunidade como ganha no CRM.", to: "/crm", cta: "Ir para CRM" },
   { key: "hasServiceOrder", title: "Criar primeira ordem de serviço", description: "Organize a execução com checklist, fotos e relatório.", to: "/service-orders", cta: "Nova OS" },
@@ -35,6 +37,7 @@ const TOUR_KEY = "getting_started_checklist";
 
 export function GettingStartedChecklist() {
   const qc = useQueryClient();
+  const [expanded, setExpanded] = useState(false);
   const fetchStatus = useServerFn(getGettingStartedStatus);
   const fetchProgress = useServerFn(getOnboardingProgress);
   const upsertProgress = useServerFn(upsertOnboardingProgress);
@@ -124,33 +127,56 @@ export function GettingStartedChecklist() {
         </button>
       </CardHeader>
       <CardContent className="space-y-2">
-        {ITEMS.map((it) => {
-          const ok = !!status?.[it.key];
+        {(() => {
+          const coreDone = CORE_KEYS.every((k) => !!status?.[k]);
+          const visibleItems = expanded || coreDone ? ITEMS : ITEMS.filter((i) => CORE_KEYS.includes(i.key));
+          const hiddenCount = ITEMS.length - visibleItems.length;
           return (
-            <div
-              key={it.key}
-              className={cn(
-                "flex items-start gap-3 rounded-md border border-border p-3 transition",
-                ok && "opacity-60",
-              )}
-            >
-              {ok ? (
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success" />
-              ) : (
-                <Circle className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
-              )}
-              <div className="min-w-0 flex-1">
-                <div className={cn("text-sm font-medium", ok && "line-through")}>{it.title}</div>
-                <p className="mt-0.5 text-xs text-muted-foreground">{it.description}</p>
-              </div>
-              {!ok && (
-                <Button asChild size="sm" variant="outline" className="shrink-0">
-                  <Link to={it.to as never}>{it.cta}</Link>
+            <>
+              {visibleItems.map((it) => {
+                const ok = !!status?.[it.key];
+                return (
+                  <div
+                    key={it.key}
+                    className={cn(
+                      "flex flex-col gap-2 rounded-md border border-border p-3 transition sm:flex-row sm:items-start sm:gap-3",
+                      ok && "opacity-60",
+                    )}
+                  >
+                    <div className="flex items-start gap-3 sm:contents">
+                      {ok ? (
+                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success" />
+                      ) : (
+                        <Circle className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className={cn("text-sm font-medium", ok && "line-through")}>{it.title}</div>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{it.description}</p>
+                      </div>
+                    </div>
+                    {!ok && (
+                      <Button asChild size="sm" variant="outline" className="w-full shrink-0 sm:w-auto">
+                        <Link to={it.to as never}>{it.cta}</Link>
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+              {hiddenCount > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setExpanded((v) => !v)}
+                  className="w-full justify-center gap-1 text-muted-foreground"
+                >
+                  {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  {expanded ? "Mostrar apenas o essencial" : `Ver mais ${hiddenCount} passos avançados`}
                 </Button>
               )}
-            </div>
+            </>
           );
-        })}
+        })()}
       </CardContent>
     </Card>
   );

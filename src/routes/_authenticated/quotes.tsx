@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -34,6 +34,9 @@ import {
 
 export const Route = createFileRoute("/_authenticated/quotes")({
   head: () => ({ meta: [{ title: "Orçamentos — SmartPro" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    new: search.new === 1 || search.new === "1" || search.new === true ? 1 : undefined,
+  }),
   component: () => (
     <PermissionRoute module="quotes">
       <FeatureGate feature="quotes">
@@ -64,6 +67,8 @@ const fmtDate = (s: string | null) =>
 
 function QuotesPage() {
   const qc = useQueryClient();
+  const navigate = Route.useNavigate();
+  const searchParams = Route.useSearch();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<QuoteStatus | "ALL">("ALL");
   const [payFilter, setPayFilter] = useState<QuotePaymentStatus | "ALL">("ALL");
@@ -71,6 +76,14 @@ function QuotesPage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [confirmDel, setConfirmDel] = useState<{ id: string; number: string } | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (searchParams.new === 1) {
+      setEditing(null);
+      setOpen(true);
+      navigate({ search: {} as never, replace: true });
+    }
+  }, [searchParams.new, navigate]);
 
   const companyId = useCompanyId();
   const fetchList = useServerFn(listQuotes);
