@@ -145,11 +145,27 @@ function PublicQuotePage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
-        Carregando proposta...
+      <div className="min-h-screen bg-muted/30 py-6 sm:py-10">
+        <div className="mx-auto max-w-3xl space-y-4 px-4">
+          <div className="h-24 animate-pulse rounded-lg border bg-card" />
+          <div className="h-20 animate-pulse rounded-lg border bg-card" />
+          <div className="space-y-2 rounded-lg border bg-card p-4">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="flex gap-3">
+                <div className="h-16 w-16 shrink-0 animate-pulse rounded bg-muted" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
+                  <div className="h-3 w-full animate-pulse rounded bg-muted" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="h-28 animate-pulse rounded-lg border-2 border-primary/20 bg-primary/5" />
+        </div>
       </div>
     );
   }
+
   if (error || !data) {
     return <ErrorView message={(error as any)?.message ?? "Orçamento não encontrado."} />;
   }
