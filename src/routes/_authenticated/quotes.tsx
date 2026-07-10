@@ -222,15 +222,14 @@ function QuotesPage() {
                   </div>
                   <div className="shrink-0 text-right">
                     <div className="font-semibold">{fmtBRL(q.total_amount)}</div>
-                    <div className="mt-1">
-                      <StatusBadge status={q.status} label={STATUS_LABEL[q.status]} />
-                    </div>
                   </div>
+                </div>
+                <div className="mt-2">
+                  <QuoteStatusBadges quote={q as any} />
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                   <span>Emissão: {fmtDate(q.issue_date)}</span>
                   <span>Validade: {fmtDate(q.valid_until)}</span>
-                  <StatusBadge status={q.payment_status} label={PAY_STATUS_LABEL[q.payment_status]} />
                 </div>
                 <div className="mt-2 flex flex-wrap justify-end gap-1 border-t border-border pt-2">
                   <Can module="quotes" action="edit">
