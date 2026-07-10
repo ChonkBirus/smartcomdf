@@ -48,6 +48,8 @@ const signupSchema = loginSchema.extend({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
+  const redirectTarget = safeRedirectTarget(search.redirectTo);
   const [loading, setLoading] = useState(false);
   const [showLoginPwd, setShowLoginPwd] = useState(false);
   const [showSignupPwd, setShowSignupPwd] = useState(false);
@@ -55,9 +57,9 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
+      if (data.session) navigate({ to: redirectTarget, replace: true });
     });
-  }, [navigate]);
+  }, [navigate, redirectTarget]);
 
   const rememberedEmail = typeof window !== "undefined" ? localStorage.getItem(REMEMBER_KEY) ?? "" : "";
   const loginForm = useForm({ resolver: zodResolver(loginSchema), defaultValues: { email: rememberedEmail, password: "" } });
@@ -70,7 +72,7 @@ function AuthPage() {
     if (error) return toast.error(translateAuthError(error.message));
     if (remember) localStorage.setItem(REMEMBER_KEY, d.email);
     else localStorage.removeItem(REMEMBER_KEY);
-    navigate({ to: "/dashboard", replace: true });
+    navigate({ to: redirectTarget, replace: true });
   };
 
   const onSignup = async (d: z.infer<typeof signupSchema>) => {
