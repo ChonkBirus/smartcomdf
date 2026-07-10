@@ -37,6 +37,7 @@ const TOUR_KEY = "getting_started_checklist";
 
 export function GettingStartedChecklist() {
   const qc = useQueryClient();
+  const [expanded, setExpanded] = useState(false);
   const fetchStatus = useServerFn(getGettingStartedStatus);
   const fetchProgress = useServerFn(getOnboardingProgress);
   const upsertProgress = useServerFn(upsertOnboardingProgress);
