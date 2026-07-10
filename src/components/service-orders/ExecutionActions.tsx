@@ -323,6 +323,17 @@ export function ExecutionActions({
               do cliente e envio serão tratados na próxima fase.
             </DialogDescription>
           </DialogHeader>
+          {finishRestoredAt && (
+            <div className="flex items-center justify-between gap-2 rounded-md border border-info/40 bg-info/10 p-2 text-xs">
+              <span className="flex items-center gap-1">
+                <RotateCcw className="h-3.5 w-3.5" />
+                Rascunho restaurado de {new Date(finishRestoredAt).toLocaleString("pt-BR")}.
+              </span>
+              <Button variant="ghost" size="sm" className="h-7 px-2" onClick={discardFinishDraft}>
+                Descartar
+              </Button>
+            </div>
+          )}
           <div className="space-y-3">
             {pendingRequired.length > 0 && (
               <div className="rounded-md border border-warning/40 bg-warning/10 p-3 text-xs text-warning space-y-1">
