@@ -33,6 +33,7 @@ import {
 } from "@/lib/projects.functions";
 import { ProjectPlanningPanel } from "@/components/projects/ProjectPlanningPanel";
 import { ProjectFinancialSummary } from "@/components/finance/ProjectFinancialSummary";
+import { ProjectMarginSummary } from "@/components/finance/ProjectMarginSummary";
 import { CreateServiceOrderFromProjectButton } from "@/components/service-orders/CreateServiceOrderFromProjectButton";
 import { ProjectServiceOrdersList } from "@/components/projects/ProjectServiceOrdersList";
 
@@ -451,6 +452,7 @@ function ProjectDetailPage() {
         </div>
       )}
 
+      <ProjectMarginSummary projectId={project.id} />
       <ProjectFinancialSummary projectId={project.id} />
       <ProjectServiceOrdersList projectId={project.id} />
         </TabsContent>
