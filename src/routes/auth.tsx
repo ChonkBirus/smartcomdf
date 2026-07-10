@@ -19,8 +19,22 @@ import { logAuthDev, maskEmail } from "@/lib/auth-dev-log";
 
 const REMEMBER_KEY = "secureerp.remember_email";
 
+function safeRedirectTarget(raw: unknown): string {
+  if (typeof raw !== "string") return "/dashboard";
+  const v = raw.trim();
+  if (!v.startsWith("/")) return "/dashboard";
+  if (v.startsWith("//")) return "/dashboard";
+  if (v.startsWith("/\\")) return "/dashboard";
+  // block protocol-relative and absolute URLs
+  if (/^https?:/i.test(v)) return "/dashboard";
+  return v;
+}
+
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Entrar — SmartPro" }, { name: "robots", content: "noindex, nofollow" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirectTo: typeof search.redirectTo === "string" ? search.redirectTo : undefined,
+  }),
   component: AuthPage,
 });
 
