@@ -124,8 +124,9 @@ function isValidCNPJ(v: string) {
 }
 
 export function CustomerFormSheet({
-  open, onOpenChange, customerId,
-}: { open: boolean; onOpenChange: (o: boolean) => void; customerId: string | null }) {
+  open, onOpenChange, customerId, onCreated,
+}: { open: boolean; onOpenChange: (o: boolean) => void; customerId: string | null; onCreated?: (id: string) => void }) {
+
   const qc = useQueryClient();
   const fetchOne = useServerFn(getCustomer);
   const save = useServerFn(saveCustomer);
@@ -182,14 +183,17 @@ export function CustomerFormSheet({
 
   const mutation = useMutation({
     mutationFn: (payload: FormState) => save({ data: payload as any }),
-    onSuccess: () => {
+    onSuccess: (result: any) => {
       toast.success(form.id ? "Cliente atualizado." : "Cliente cadastrado.");
       qc.invalidateQueries({ queryKey: ["customers"] });
       qc.invalidateQueries({ queryKey: ["customer-metrics"] });
+      const newId = result?.id ?? form.id;
+      if (!form.id && newId && onCreated) onCreated(newId);
       onOpenChange(false);
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao salvar."),
   });
+
 
   const tagMut = useMutation({
     mutationFn: (name: string) => newTag({ data: { name, color: "#3B82F6" } }),

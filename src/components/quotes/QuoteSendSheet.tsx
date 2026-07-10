@@ -413,31 +413,38 @@ export function QuoteSendSheet({
                 </div>
 
                 <div className="space-y-2">
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <Button asChild className="w-full min-w-0 justify-center whitespace-nowrap">
-                      <a
-                        href={waResult.ok ? waResult.url : "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={handleWhatsAppClick}
-                        aria-disabled={!waResult.ok}
-                      >
-                        <MessageCircle className="mr-1 h-4 w-4 shrink-0" />WhatsApp
-                      </a>
+                  <Button asChild size="lg" className="w-full justify-center whitespace-nowrap">
+                    <a
+                      href={waResult.ok ? waResult.url : "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={handleWhatsAppClick}
+                      aria-disabled={!waResult.ok}
+                    >
+                      <MessageCircle className="mr-2 h-5 w-5 shrink-0" />Enviar por WhatsApp
+                    </a>
+                  </Button>
+                  <p className="text-center text-xs text-muted-foreground">
+                    Canal recomendado — mensagem já preparada acima.
+                  </p>
+
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <Button variant="outline" size="sm" onClick={handleCopyLink} className="w-full min-w-0 justify-center whitespace-nowrap">
+                      <Link2 className="mr-1 h-4 w-4 shrink-0" />Copiar link
                     </Button>
-                    <Button variant="outline" onClick={handleEmail} className="w-full min-w-0 justify-center whitespace-nowrap">
+                    <Button variant="outline" size="sm" onClick={handleEmail} className="w-full min-w-0 justify-center whitespace-nowrap">
                       <Mail className="mr-1 h-4 w-4 shrink-0" />E-mail
                     </Button>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <Button variant="outline" onClick={handlePreviewPDF} className="w-full min-w-0 justify-center whitespace-nowrap" disabled={previewBusy}>
-                      <FileSearch className="mr-1 h-4 w-4 shrink-0" />{previewBusy ? "Gerando..." : "Pré-visualizar"}
-                    </Button>
-                    <Button variant="outline" onClick={handleDownloadPDF} className="w-full min-w-0 justify-center whitespace-nowrap" disabled={pdfBusy}>
+                    <Button variant="outline" size="sm" onClick={handleDownloadPDF} className="w-full min-w-0 justify-center whitespace-nowrap" disabled={pdfBusy}>
                       <Download className="mr-1 h-4 w-4 shrink-0" />{pdfBusy ? "Gerando..." : "Baixar PDF"}
                     </Button>
                   </div>
+                  <div className="flex justify-end">
+                    <Button variant="ghost" size="sm" onClick={handlePreviewPDF} disabled={previewBusy} className="text-xs">
+                      <FileSearch className="mr-1 h-4 w-4 shrink-0" />{previewBusy ? "Gerando..." : "Pré-visualizar PDF"}
+                    </Button>
+                  </div>
+
 
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <Label className="text-xs text-muted-foreground sm:w-auto">Modelo do PDF</Label>

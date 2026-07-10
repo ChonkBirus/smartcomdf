@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Plus, Trash2, ArrowUp, ArrowDown, Check, ChevronsUpDown, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown, Check, ChevronsUpDown, AlertTriangle, UserPlus, Package } from "lucide-react";
+import { CustomerFormSheet } from "@/components/customers/CustomerFormSheet";
+
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -96,6 +98,8 @@ export function QuoteFormSheet({
 
   const [customerId, setCustomerId] = useState("");
   const [customerOpen, setCustomerOpen] = useState(false);
+  const [newCustomerOpen, setNewCustomerOpen] = useState(false);
+
   const [title, setTitle] = useState("");
   const [issueDate, setIssueDate] = useState(() => new Date().toISOString().slice(0, 10));
   const addDays = (iso: string, n: number) =>
@@ -454,10 +458,11 @@ export function QuoteFormSheet({
                           ) : customerOptions.length === 0 ? (
                             <div className="space-y-3 px-3 py-6 text-center text-sm text-muted-foreground">
                               <p>Nenhum cliente cadastrado encontrado.</p>
-                              <Button type="button" variant="outline" size="sm" asChild>
-                                <a href="/clients">Cadastrar novo cliente</a>
+                              <Button type="button" variant="outline" size="sm" onClick={() => { setCustomerOpen(false); setNewCustomerOpen(true); }}>
+                                <UserPlus className="mr-1 h-4 w-4" />Cadastrar novo cliente
                               </Button>
                             </div>
+
                           ) : (
                             <>
                               <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
@@ -495,12 +500,18 @@ export function QuoteFormSheet({
                                   );
                                 })}
                               </CommandGroup>
+                              <div className="border-t p-1">
+                                <Button type="button" variant="ghost" size="sm" className="w-full justify-start" onClick={() => { setCustomerOpen(false); setNewCustomerOpen(true); }}>
+                                  <UserPlus className="mr-2 h-4 w-4" />Novo cliente
+                                </Button>
+                              </div>
                             </>
                           )}
                         </CommandList>
                       </Command>
                     </PopoverContent>
                   </Popover>
+
                   {customerTouched && !customerId && (
                     <p className="mt-1 text-xs text-destructive">Selecione um cliente para criar o orçamento.</p>
                   )}
@@ -748,7 +759,18 @@ export function QuoteFormSheet({
           </div>
         </form>
       </SheetContent>
+      <CustomerFormSheet
+        open={newCustomerOpen}
+        onOpenChange={setNewCustomerOpen}
+        customerId={null}
+        onCreated={(id) => {
+          setCustomerId(id);
+          setCustomerTouched(true);
+          qc.invalidateQueries({ queryKey: ["customers", "quote-form", companyId] });
+        }}
+      />
     </Sheet>
+
   );
 }
 
@@ -825,17 +847,48 @@ function LineRow({
                 <CommandList>
                   <CommandEmpty>Nenhum item encontrado.</CommandEmpty>
                   <CommandGroup>
-                    {source.map((it) => (
-                      <CommandItem
-                        key={it.id}
-                        value={`${it.name} ${it.sku ?? ""}`}
-                        onSelect={() => { onPickCatalog(it.id); setPickOpen(false); }}
-                      >
-                        <Check className={cn("mr-2 h-4 w-4", line.item_id === it.id ? "opacity-100" : "opacity-0")} />
-                        <span>{it.name}{it.sku ? ` (${it.sku})` : ""}</span>
-                      </CommandItem>
-                    ))}
+                    {source.map((it) => {
+                      const isProduct = it.item_type === "PRODUCT";
+                      const stock = it.stock_quantity;
+                      const stockLabel = isProduct && it.controls_stock
+                        ? (stock == null ? null : stock <= 0 ? "Sem estoque" : `${stock} em estoque`)
+                        : null;
+                      const stockClass = stock == null || !isProduct || !it.controls_stock
+                        ? ""
+                        : stock <= 0
+                        ? "text-destructive"
+                        : stock < 5
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-emerald-600 dark:text-emerald-400";
+                      return (
+                        <CommandItem
+                          key={it.id}
+                          value={`${it.name} ${it.sku ?? ""} ${it.description ?? ""}`}
+                          onSelect={() => { onPickCatalog(it.id); setPickOpen(false); }}
+                          className="flex items-start gap-2"
+                        >
+                          <Check className={cn("mt-1 h-4 w-4 shrink-0", line.item_id === it.id ? "opacity-100" : "opacity-0")} />
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border bg-muted text-muted-foreground">
+                            <Package className="h-4 w-4" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="truncate font-medium">{it.name}</span>
+                              {it.sku && <span className="shrink-0 text-[11px] text-muted-foreground">({it.sku})</span>}
+                            </div>
+                            {it.description && (
+                              <p className="line-clamp-1 text-xs text-muted-foreground">{it.description}</p>
+                            )}
+                            <div className="mt-0.5 flex items-center gap-3 text-[11px]">
+                              <span className="font-semibold text-foreground">{fmtBRL(it.sale_price)}</span>
+                              {stockLabel && <span className={stockClass}>{stockLabel}</span>}
+                            </div>
+                          </div>
+                        </CommandItem>
+                      );
+                    })}
                   </CommandGroup>
+
                 </CommandList>
               </Command>
             </PopoverContent>
