@@ -276,6 +276,10 @@ function MobileSODetailPage() {
         />
       </Section>
 
+      <Section title="Custos avulsos">
+        <ServiceOrderCosts serviceOrderId={so.id} projectId={(so as any).project_id ?? null} />
+      </Section>
+
       <Section title="Assinatura do Cliente">
         <ServiceOrderSignature
           serviceOrderId={so.id}
