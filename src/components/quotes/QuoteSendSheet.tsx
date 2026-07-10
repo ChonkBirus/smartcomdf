@@ -595,8 +595,8 @@ export function QuoteSendSheet({
                       <ConvertQuoteToProjectButton
                         quoteId={quote.id}
                         status={quote.status}
-                        paymentStatus={quote.payment_status}
                         financialStatus={(quote as any).financial_status}
+                        projectId={(quote as any).project_id}
                       />
                     </div>
                   </>
