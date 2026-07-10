@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/lib/theme";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth-context";
+import { SessionExpiredProvider } from "@/lib/session-expired";
 
 function NotFoundComponent() {
   return (
@@ -124,8 +125,10 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <Outlet />
-          <Toaster richColors position="top-right" />
+          <SessionExpiredProvider>
+            <Outlet />
+            <Toaster richColors position="top-right" />
+          </SessionExpiredProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
