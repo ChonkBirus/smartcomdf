@@ -500,12 +500,18 @@ export function QuoteFormSheet({
                                   );
                                 })}
                               </CommandGroup>
+                              <div className="border-t p-1">
+                                <Button type="button" variant="ghost" size="sm" className="w-full justify-start" onClick={() => { setCustomerOpen(false); setNewCustomerOpen(true); }}>
+                                  <UserPlus className="mr-2 h-4 w-4" />Novo cliente
+                                </Button>
+                              </div>
                             </>
                           )}
                         </CommandList>
                       </Command>
                     </PopoverContent>
                   </Popover>
+
                   {customerTouched && !customerId && (
                     <p className="mt-1 text-xs text-destructive">Selecione um cliente para criar o orçamento.</p>
                   )}
