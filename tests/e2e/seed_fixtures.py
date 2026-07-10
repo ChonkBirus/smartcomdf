@@ -214,10 +214,27 @@ def main() -> None:
 
     user_a = os.environ.get("E2E_A_USER_ID")
     user_b = os.environ.get("E2E_B_USER_ID")
-    if not user_a or not user_b:
-        sys.stderr.write("E2E_A_USER_ID and E2E_B_USER_ID are required. "
-                         "Create the two auth users first, then re-run.\n")
+    pghost = os.environ.get("PGHOST")
+
+    missing = [k for k, v in (
+        ("PGHOST", pghost),
+        ("PGUSER", os.environ.get("PGUSER")),
+        ("PGPASSWORD", os.environ.get("PGPASSWORD")),
+        ("PGDATABASE", os.environ.get("PGDATABASE")),
+        ("E2E_A_USER_ID", user_a),
+        ("E2E_B_USER_ID", user_b),
+    ) if not v]
+    if missing:
+        sys.stderr.write(
+            "ERROR: seed_fixtures.py cannot run — missing required env vars: "
+            + ", ".join(missing)
+            + "\nConfigure these repository secrets (E2E_PGHOST/E2E_PGPORT/"
+            "E2E_PGUSER/E2E_PGPASSWORD/E2E_PGDATABASE/E2E_A_USER_ID/"
+            "E2E_B_USER_ID) and re-run. Aborting instead of seeding a partial "
+            "or wrong-database fixture.\n"
+        )
         sys.exit(2)
+
 
     supabase_url = os.environ.get("SUPABASE_URL") or "https://ifhtznbbvjwejxlgpana.supabase.co"
     seed(user_a, user_b, supabase_url,
