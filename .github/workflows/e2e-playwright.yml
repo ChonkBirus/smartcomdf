@@ -209,4 +209,63 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+  quote-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: latest }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: bun install --frozen-lockfile
+      - run: |
+          python -m pip install --upgrade pip
+          pip install playwright
+          playwright install --with-deps chromium
+      - name: Build app
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+      - name: Start preview server
+        run: |
+          bun run preview --port 8080 &
+          echo $! > server.pid
+          for i in {1..40}; do
+            if curl -sf http://localhost:8080 > /dev/null; then break; fi
+            sleep 1
+          done
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+      - name: Run quote-images E2E
+        run: |
+          mkdir -p test-results
+          python tests/e2e/pr-quote-images.py 2>&1 | tee test-results/pr-quote-images.log
+        env:
+          E2E_BROWSER: chromium
+          E2E_A_SUPABASE_SESSION_JSON: ${{ secrets.E2E_A_SUPABASE_SESSION_JSON }}
+          E2E_A_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_A_SUPABASE_STORAGE_KEY }}
+          E2E_QUOTE_TOKEN_A: ${{ secrets.E2E_QUOTE_TOKEN_A }}
+          E2E_QUOTE_IMAGE_PATH_A: ${{ secrets.E2E_QUOTE_IMAGE_PATH_A }}
+          E2E_QUOTE_FOREIGN_IMAGE_PATH: ${{ secrets.E2E_QUOTE_FOREIGN_IMAGE_PATH }}
+          E2E_LEGACY_QUOTE_TOKEN: ${{ secrets.E2E_LEGACY_QUOTE_TOKEN }}
+      - name: Stop preview server
+        if: always()
+        run: if [ -f server.pid ]; then kill "$(cat server.pid)" || true; fi
+      - name: Upload quote-images artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quote-images-results
+          path: |
+            test-results/
+            tests/e2e/artifacts/quote-images/**
+          if-no-files-found: ignore
+          retention-days: 14
+
+
 
