@@ -239,6 +239,16 @@ export const listQuotes = createServerFn({ method: "GET" })
     }
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
+    const ids = (rows ?? []).map((r: any) => r.id);
+    let pendingReceiptSet = new Set<string>();
+    if (ids.length > 0) {
+      const { data: payRows } = await sb
+        .from("quote_payments")
+        .select("quote_id, receipt_status")
+        .in("quote_id", ids)
+        .eq("receipt_status", "PENDING_REVIEW");
+      pendingReceiptSet = new Set((payRows ?? []).map((p: any) => p.quote_id));
+    }
     return (rows ?? []).map((r: any) => ({
       ...r,
       labor_cost: Number(r.labor_cost || 0),
@@ -248,9 +258,10 @@ export const listQuotes = createServerFn({ method: "GET" })
       down_payment_percent: Number(r.down_payment_percent || 0),
       down_payment_amount: Number(r.down_payment_amount || 0),
       remaining_amount: Number(r.remaining_amount || 0),
+      has_pending_receipt: pendingReceiptSet.has(r.id),
       customer_name:
         r.customers?.trade_name || r.customers?.name || r.customers?.corporate_name || "—",
-    })) as Quote[];
+    })) as (Quote & { has_pending_receipt: boolean })[];
   });
 
 // ============================================================

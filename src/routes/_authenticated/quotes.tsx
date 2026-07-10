@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
-import { StatusBadge } from "@/components/ui/status-badge";
+
 import { PermissionRoute, Can } from "@/components/app/PermissionRoute";
 import { FeatureGate } from "@/components/app/FeatureGate";
 import { KpiCard } from "@/components/app/KpiCard";
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { QuoteFormSheet } from "@/components/quotes/QuoteFormSheet";
+import { QuoteStatusBadges } from "@/components/quotes/QuoteStatusBadges";
 import { QuoteSendSheet } from "@/components/quotes/QuoteSendSheet";
 import {
   listQuotes, quoteMetrics, deleteQuote, duplicateQuote,
@@ -221,15 +222,14 @@ function QuotesPage() {
                   </div>
                   <div className="shrink-0 text-right">
                     <div className="font-semibold">{fmtBRL(q.total_amount)}</div>
-                    <div className="mt-1">
-                      <StatusBadge status={q.status} label={STATUS_LABEL[q.status]} />
-                    </div>
                   </div>
+                </div>
+                <div className="mt-2">
+                  <QuoteStatusBadges quote={q as any} />
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                   <span>Emissão: {fmtDate(q.issue_date)}</span>
                   <span>Validade: {fmtDate(q.valid_until)}</span>
-                  <StatusBadge status={q.payment_status} label={PAY_STATUS_LABEL[q.payment_status]} />
                 </div>
                 <div className="mt-2 flex flex-wrap justify-end gap-1 border-t border-border pt-2">
                   <Can module="quotes" action="edit">
@@ -285,7 +285,6 @@ function QuotesPage() {
                   <th className="px-3 py-2 hidden md:table-cell">Emissão</th>
                   <th className="px-3 py-2 hidden md:table-cell">Validade</th>
                   <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2 hidden lg:table-cell">Pagamento</th>
                   <th className="px-3 py-2 text-right">Total</th>
                   <th className="px-3 py-2 text-right">Ações</th>
                 </tr>
@@ -303,10 +302,7 @@ function QuotesPage() {
                     <td className="px-3 py-2 hidden md:table-cell">{fmtDate(q.issue_date)}</td>
                     <td className="px-3 py-2 hidden md:table-cell">{fmtDate(q.valid_until)}</td>
                     <td className="px-3 py-2">
-                      <StatusBadge status={q.status} label={STATUS_LABEL[q.status]} />
-                    </td>
-                    <td className="px-3 py-2 hidden lg:table-cell">
-                      <StatusBadge status={q.payment_status} label={PAY_STATUS_LABEL[q.payment_status]} />
+                      <QuoteStatusBadges quote={q as any} />
                     </td>
                     <td className="px-3 py-2 text-right font-medium">{fmtBRL(q.total_amount)}</td>
                     <td className="px-3 py-2">

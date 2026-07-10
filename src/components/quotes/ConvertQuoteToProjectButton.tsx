@@ -21,13 +21,13 @@ import { usePermissions } from "@/lib/permissions";
 type Props = {
   quoteId: string;
   status: string;
-  paymentStatus: string;
   financialStatus?: string | null;
+  projectId?: string | null;
 };
 
 const NONE = "__none__";
 
-export function ConvertQuoteToProjectButton({ quoteId, status, paymentStatus, financialStatus }: Props) {
+export function ConvertQuoteToProjectButton({ quoteId, status, financialStatus, projectId }: Props) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { has } = usePermissions();
@@ -40,17 +40,15 @@ export function ConvertQuoteToProjectButton({ quoteId, status, paymentStatus, fi
   const { data: existingProject } = useQuery({
     queryKey: ["project-by-quote", quoteId],
     queryFn: () => fetchByQuote({ data: { quote_id: quoteId } }),
+    enabled: !projectId,
   });
 
+  const project = existingProject ?? (projectId ? { id: projectId, project_number: "" } : null);
+
   const canConvert = has("projects.convert_from_quote") || has("projects.create");
-  const alreadyConverted = !!existingProject || status === "CONVERTED";
-  const notApproved = status !== "APPROVED" && !alreadyConverted;
-  const financiallyOk =
-    financialStatus === "PARTIALLY_PAID" ||
-    financialStatus === "PAID" ||
-    paymentStatus === "PAYMENT_APPROVED";
-  const waitingPayment = status === "APPROVED" && !financiallyOk;
-  const enabled = canConvert && status === "APPROVED" && financiallyOk && !alreadyConverted;
+  const financiallyOk = financialStatus === "PARTIALLY_PAID" || financialStatus === "PAID";
+  const isApproved = status === "APPROVED" || status === "CONVERTED";
+  const enabled = canConvert && isApproved && financiallyOk && !project;
 
   const { data: team } = useQuery({
     queryKey: ["team-members-lite"],
@@ -58,16 +56,6 @@ export function ConvertQuoteToProjectButton({ quoteId, status, paymentStatus, fi
     enabled: open,
   });
   const members = team?.members ?? [];
-
-  const tooltip = !canConvert
-    ? "Você não tem permissão para converter."
-    : alreadyConverted
-      ? "Projeto já criado. Clique para abrir."
-      : notApproved
-        ? "Orçamento ainda não aprovado."
-        : waitingPayment
-          ? "Aguardando pagamento da entrada."
-          : "Converter este orçamento em projeto.";
 
   const mut = useMutation({
     mutationFn: () => convert({
@@ -88,16 +76,31 @@ export function ConvertQuoteToProjectButton({ quoteId, status, paymentStatus, fi
     onError: (e: any) => toast.error(e?.message ?? "Falha ao converter."),
   });
 
-  if (existingProject) {
+  if (project) {
+    const label = (project as any).project_number
+      ? `Abrir projeto ${(project as any).project_number}`
+      : "Abrir projeto";
     return (
       <Button
         variant="outline"
         className="w-full"
-        onClick={() => navigate({ to: "/projects/$id", params: { id: existingProject.id } })}
+        onClick={() => navigate({ to: "/projects/$id", params: { id: project.id } })}
       >
         <ExternalLink className="mr-1 h-4 w-4" />
-        Abrir projeto {existingProject.project_number}
+        {label}
       </Button>
+    );
+  }
+
+  if (!enabled) {
+    // Estado informativo discreto — não bloqueia a UI
+    const hint = !canConvert
+      ? "Sem permissão para converter em projeto."
+      : !isApproved
+        ? "Disponível após aprovação do orçamento."
+        : "Aguardando pagamento (parcial ou total) para criar o projeto.";
+    return (
+      <p className="text-xs text-muted-foreground text-center">{hint}</p>
     );
   }
 
@@ -109,7 +112,7 @@ export function ConvertQuoteToProjectButton({ quoteId, status, paymentStatus, fi
             <span className="inline-block w-full">
               <Button
                 onClick={() => setOpen(true)}
-                disabled={!enabled || mut.isPending}
+                disabled={mut.isPending}
                 className="w-full"
               >
                 <Rocket className="mr-1 h-4 w-4" />
@@ -117,7 +120,7 @@ export function ConvertQuoteToProjectButton({ quoteId, status, paymentStatus, fi
               </Button>
             </span>
           </TooltipTrigger>
-          <TooltipContent>{tooltip}</TooltipContent>
+          <TooltipContent>Converter este orçamento em projeto.</TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
