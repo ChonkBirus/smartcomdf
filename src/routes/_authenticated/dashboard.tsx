@@ -66,6 +66,7 @@ function Dashboard() {
     },
   };
   const openServiceOrders = Math.max(0, (data.serviceOrders.total ?? 0) - (data.serviceOrders.completed ?? 0));
+  const isFreshAccount = !metrics.isLoading && !metrics.isError && (data.quotes.total ?? 0) === 0 && (data.customers.total ?? 0) === 0;
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -75,9 +76,33 @@ function Dashboard() {
         tourKey="initial"
       />
 
+      {isFreshAccount && companyId && (
+        <Card className="card-elevated mb-6 border-primary/30 bg-gradient-to-br from-primary/5 via-background to-background">
+          <CardContent className="flex flex-col items-start gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="brand-gradient flex h-11 w-11 shrink-0 items-center justify-center rounded-lg">
+                <Sparkles className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold">Pronto para começar?</h2>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  O jeito mais rápido de conhecer o Smart Pro é criar seu primeiro orçamento — dá pra cadastrar o cliente na hora.
+                </p>
+              </div>
+            </div>
+            <Button asChild size="lg" className="w-full shrink-0 gap-2 sm:w-auto">
+              <Link to="/quotes" search={{ new: 1 } as never}>
+                <FilePlus2 className="h-4 w-4" /> Criar primeiro orçamento
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="mb-6">
         <GettingStartedChecklist />
       </div>
+
 
       {companyContext.isLoading ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
