@@ -458,10 +458,11 @@ export function QuoteFormSheet({
                           ) : customerOptions.length === 0 ? (
                             <div className="space-y-3 px-3 py-6 text-center text-sm text-muted-foreground">
                               <p>Nenhum cliente cadastrado encontrado.</p>
-                              <Button type="button" variant="outline" size="sm" asChild>
-                                <a href="/clients">Cadastrar novo cliente</a>
+                              <Button type="button" variant="outline" size="sm" onClick={() => { setCustomerOpen(false); setNewCustomerOpen(true); }}>
+                                <UserPlus className="mr-1 h-4 w-4" />Cadastrar novo cliente
                               </Button>
                             </div>
+
                           ) : (
                             <>
                               <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
