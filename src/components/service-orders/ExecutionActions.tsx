@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Play, Pause, RefreshCw, CheckCircle2, AlertTriangle, Ban } from "lucide-react";
+import { Play, Pause, RefreshCw, CheckCircle2, AlertTriangle, Ban, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -13,6 +13,9 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { usePermissions } from "@/lib/permissions";
+import { useAuth } from "@/lib/auth-context";
+import { useCompanyId } from "@/hooks/use-company-id";
+import { buildDraftKey, saveDraft, loadDraft, clearDraft, getDraftSavedAt } from "@/lib/draft-storage";
 import { executeServiceOrderTransition } from "@/lib/service-order-execution.functions";
 import { listPendingRequiredChecklist } from "@/lib/service-order-checklist.functions";
 
