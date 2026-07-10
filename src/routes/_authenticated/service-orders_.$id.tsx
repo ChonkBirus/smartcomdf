@@ -358,6 +358,13 @@ function ServiceOrderDetailPage() {
         </Table>
       </div>
 
+      <div className="rounded-lg border p-4 space-y-3">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Custos avulsos
+        </h3>
+        <ServiceOrderCosts serviceOrderId={so.id} projectId={so.project_id} />
+      </div>
+
       <ServiceOrderFinancialSummary serviceOrderId={so.id} />
 
       <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
