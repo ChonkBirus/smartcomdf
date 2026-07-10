@@ -55,6 +55,83 @@ export function ExecutionActions({
   const [solution, setSolution] = useState("");
   const [overrideJustification, setOverrideJustification] = useState("");
 
+  // ---- UX2C: rascunho local (Pausa e Finalização) ----
+  const { user } = useAuth();
+  const companyId = useCompanyId();
+  const pauseDraftKey = useMemo(
+    () => buildDraftKey("so-exec-pause", companyId, user?.id, serviceOrderId),
+    [companyId, user?.id, serviceOrderId],
+  );
+  const finishDraftKey = useMemo(
+    () => buildDraftKey("so-exec-finish", companyId, user?.id, serviceOrderId),
+    [companyId, user?.id, serviceOrderId],
+  );
+  const [pauseRestoredAt, setPauseRestoredAt] = useState<number | null>(null);
+  const [finishRestoredAt, setFinishRestoredAt] = useState<number | null>(null);
+  const hydratedRef = useRef({ pause: false, finish: false });
+
+  // Restaura ao abrir cada diálogo (uma vez por abertura).
+  useEffect(() => {
+    if (open === "pause" && !hydratedRef.current.pause) {
+      const d = loadDraft<{ reason: string; reasonOther: string }>(pauseDraftKey);
+      if (d) {
+        if (d.reason) setReason(d.reason);
+        if (d.reasonOther) setReasonOther(d.reasonOther);
+        setPauseRestoredAt(getDraftSavedAt(pauseDraftKey));
+      }
+      hydratedRef.current.pause = true;
+    }
+    if (open === "finish" && !hydratedRef.current.finish) {
+      const d = loadDraft<{
+        report: string; issue: string; solution: string; overrideJustification: string;
+      }>(finishDraftKey);
+      if (d) {
+        if (d.report) setReport(d.report);
+        if (d.issue) setIssue(d.issue);
+        if (d.solution) setSolution(d.solution);
+        if (d.overrideJustification) setOverrideJustification(d.overrideJustification);
+        setFinishRestoredAt(getDraftSavedAt(finishDraftKey));
+      }
+      hydratedRef.current.finish = true;
+    }
+    if (open === null) {
+      hydratedRef.current.pause = false;
+      hydratedRef.current.finish = false;
+      setPauseRestoredAt(null);
+      setFinishRestoredAt(null);
+    }
+  }, [open, pauseDraftKey, finishDraftKey]);
+
+  // Auto-save debounced dos rascunhos (só quando o diálogo correspondente está aberto).
+  useEffect(() => {
+    if (open !== "pause") return;
+    const hasContent = reason.trim() || reasonOther.trim();
+    if (!hasContent) return;
+    const t = setTimeout(() => saveDraft(pauseDraftKey, { reason, reasonOther }), 600);
+    return () => clearTimeout(t);
+  }, [open, reason, reasonOther, pauseDraftKey]);
+
+  useEffect(() => {
+    if (open !== "finish") return;
+    const hasContent = report.trim() || issue.trim() || solution.trim() || overrideJustification.trim();
+    if (!hasContent) return;
+    const t = setTimeout(
+      () => saveDraft(finishDraftKey, { report, issue, solution, overrideJustification }),
+      600,
+    );
+    return () => clearTimeout(t);
+  }, [open, report, issue, solution, overrideJustification, finishDraftKey]);
+
+  const discardPauseDraft = () => {
+    clearDraft(pauseDraftKey);
+    setReason(""); setReasonOther(""); setPauseRestoredAt(null);
+  };
+  const discardFinishDraft = () => {
+    clearDraft(finishDraftKey);
+    setReport(""); setIssue(""); setSolution(""); setOverrideJustification("");
+    setFinishRestoredAt(null);
+  };
+
   const pendingFn = useServerFn(listPendingRequiredChecklist);
   const { data: pendingRequired = [] } = useQuery({
     queryKey: ["so-required-pending", serviceOrderId],
@@ -65,13 +142,18 @@ export function ExecutionActions({
 
   const mutation = useMutation({
     mutationFn: fn,
-    onSuccess: () => {
+    onSuccess: (_res, vars) => {
       qc.invalidateQueries({ queryKey: ["so-mobile", serviceOrderId] });
       qc.invalidateQueries({ queryKey: ["so-exec-logs", serviceOrderId] });
       qc.invalidateQueries({ queryKey: ["so-list-mine"] });
       qc.invalidateQueries({ queryKey: ["notifications"] });
+      const action = (vars as any)?.data?.action;
+      if (action === "PAUSED") clearDraft(pauseDraftKey);
+      if (action === "FINISHED_EXECUTION") clearDraft(finishDraftKey);
       setOpen(null);
       setReason(""); setReasonOther(""); setReport(""); setIssue(""); setSolution("");
+      setOverrideJustification("");
+      setPauseRestoredAt(null); setFinishRestoredAt(null);
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao executar ação"),
   });
