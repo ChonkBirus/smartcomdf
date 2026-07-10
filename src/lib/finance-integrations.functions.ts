@@ -375,3 +375,240 @@ export const getServiceOrderFinancialSummary = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return summarize(rows ?? []);
   });
+
+/* -------------------- Project Margin (PR6C) -------------------- */
+
+export type ProjectMarginSummary = {
+  hasQuote: boolean;
+  revenue: {
+    total: number;
+    received: number;
+    remaining: number;
+    financial_status: "UNPAID" | "PARTIALLY_PAID" | "PAID" | null;
+  };
+  cost: {
+    estimated: number | null;
+    estimatedHasData: boolean;
+    realized: number;
+    realizedMaterials: number;
+    realizedExtras: number;
+  };
+  profit: {
+    estimated: number | null;
+    realized: number | null;
+  };
+  margin: {
+    estimatedPct: number | null;
+    realizedPct: number | null;
+  };
+  estimatedBreakdown: Array<{
+    id: string;
+    name: string;
+    quantity: number;
+    unit_cost: number;
+    total_cost: number;
+    has_cost: boolean;
+  }>;
+  realizedBreakdown: Array<{
+    id: string;
+    kind: "MATERIAL" | "EXPENSE";
+    description: string;
+    service_order_id: string | null;
+    service_order_number: string | null;
+    amount: number;
+    date: string | null;
+  }>;
+  serviceOrders: Array<{
+    id: string;
+    service_order_number: string;
+    status: string;
+    technician_name: string | null;
+    estimatedCost: number;
+    realizedCost: number;
+    extrasCost: number;
+  }>;
+};
+
+export const getProjectMarginSummary = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ project_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }): Promise<ProjectMarginSummary> => {
+    const sb = context.supabase as any;
+    const cid = await getCompanyId(sb, context.userId);
+
+    const { data: project } = await sb
+      .from("projects")
+      .select("id, quote_id")
+      .eq("id", data.project_id)
+      .eq("company_id", cid)
+      .maybeSingle();
+    if (!project) throw new Error("Projeto não encontrado.");
+
+    // Revenue from quote
+    let revenue = { total: 0, received: 0, remaining: 0, financial_status: null as any };
+    let estimatedBreakdown: ProjectMarginSummary["estimatedBreakdown"] = [];
+    let estimated = 0;
+    let estimatedHasData = false;
+
+    if (project.quote_id) {
+      const { data: q } = await sb
+        .from("quotes")
+        .select("total_amount,paid_amount,remaining_amount,financial_status")
+        .eq("id", project.quote_id)
+        .eq("company_id", cid)
+        .maybeSingle();
+      if (q) {
+        const total = Number(q.total_amount || 0);
+        let paid = Number(q.paid_amount || 0);
+        if (!paid) {
+          const { data: tx } = await sb
+            .from("financial_transactions")
+            .select("amount")
+            .eq("company_id", cid)
+            .eq("quote_id", project.quote_id)
+            .eq("origin_type", "QUOTE_PAYMENT")
+            .eq("status", "PAID")
+            .is("deleted_at", null);
+          paid = (tx ?? []).reduce((a: number, r: any) => a + Number(r.amount || 0), 0);
+        }
+        const remaining = q.remaining_amount != null ? Number(q.remaining_amount) : Math.max(0, total - paid);
+        revenue = {
+          total,
+          received: paid,
+          remaining,
+          financial_status: (q.financial_status as any) ?? (paid <= 0 ? "UNPAID" : paid >= total ? "PAID" : "PARTIALLY_PAID"),
+        };
+      }
+
+      const { data: qItems } = await sb
+        .from("quote_items")
+        .select("id,name,quantity,cost_price")
+        .eq("company_id", cid)
+        .eq("quote_id", project.quote_id);
+      for (const it of (qItems ?? []) as any[]) {
+        const qty = Number(it.quantity || 0);
+        const cp = Number(it.cost_price || 0);
+        const line = qty * cp;
+        if (cp > 0) { estimatedHasData = true; estimated += line; }
+        estimatedBreakdown.push({
+          id: it.id, name: it.name, quantity: qty,
+          unit_cost: cp, total_cost: line, has_cost: cp > 0,
+        });
+      }
+    }
+
+    // Service orders in project
+    const { data: sos } = await sb
+      .from("service_orders")
+      .select("id, service_order_number, status, technician_name")
+      .eq("company_id", cid)
+      .eq("project_id", data.project_id)
+      .is("deleted_at", null);
+    const soList = (sos ?? []) as any[];
+    const soIds = soList.map((s) => s.id);
+    const soMap: Record<string, any> = {};
+    soList.forEach((s) => { soMap[s.id] = { ...s, estimatedCost: 0, realizedCost: 0, extrasCost: 0 }; });
+
+    // Materials realized: service_order_material_usage x items.cost_price
+    let realizedMaterials = 0;
+    const realizedBreakdown: ProjectMarginSummary["realizedBreakdown"] = [];
+    if (soIds.length) {
+      const { data: usage } = await sb
+        .from("service_order_material_usage")
+        .select("id,service_order_id,item_id,planned_quantity,used_quantity,created_at")
+        .in("service_order_id", soIds);
+      const itemIds = Array.from(new Set((usage ?? []).map((u: any) => u.item_id).filter(Boolean)));
+      const costMap: Record<string, { cost: number; name: string }> = {};
+      if (itemIds.length) {
+        const { data: items } = await sb
+          .from("items")
+          .select("id,name,cost_price")
+          .eq("company_id", cid)
+          .in("id", itemIds);
+        (items ?? []).forEach((i: any) => {
+          costMap[i.id] = { cost: Number(i.cost_price || 0), name: i.name };
+        });
+      }
+      for (const u of (usage ?? []) as any[]) {
+        const info = costMap[u.item_id];
+        const cost = info?.cost ?? 0;
+        const usedQty = Number(u.used_quantity || 0);
+        const plannedQty = Number(u.planned_quantity || 0);
+        const usedTotal = usedQty * cost;
+        const plannedTotal = plannedQty * cost;
+        if (usedTotal > 0) {
+          realizedMaterials += usedTotal;
+          realizedBreakdown.push({
+            id: u.id, kind: "MATERIAL",
+            description: info?.name ?? "Material",
+            service_order_id: u.service_order_id,
+            service_order_number: soMap[u.service_order_id]?.service_order_number ?? null,
+            amount: usedTotal, date: u.created_at,
+          });
+        }
+        const so = soMap[u.service_order_id];
+        if (so) {
+          so.realizedCost += usedTotal;
+          so.estimatedCost += plannedTotal;
+        }
+      }
+    }
+
+    // Extra costs: PAID financial_transactions with SERVICE_ORDER_COST origin_type (or direct project link)
+    let realizedExtras = 0;
+    const ors: string[] = [`project_id.eq.${data.project_id}`];
+    if (soIds.length) ors.push(`service_order_id.in.(${soIds.join(",")})`);
+    const { data: exp } = await sb
+      .from("financial_transactions")
+      .select("id,description,amount,paid_at,service_order_id,origin_type,status,type")
+      .eq("company_id", cid)
+      .eq("type", "EXPENSE")
+      .eq("status", "PAID")
+      .eq("origin_type", "SERVICE_ORDER_COST")
+      .is("deleted_at", null)
+      .or(ors.join(","));
+    for (const e of (exp ?? []) as any[]) {
+      const amt = Number(e.amount || 0);
+      realizedExtras += amt;
+      realizedBreakdown.push({
+        id: e.id, kind: "EXPENSE",
+        description: e.description || "Custo avulso",
+        service_order_id: e.service_order_id,
+        service_order_number: e.service_order_id ? (soMap[e.service_order_id]?.service_order_number ?? null) : null,
+        amount: amt, date: e.paid_at,
+      });
+      if (e.service_order_id && soMap[e.service_order_id]) {
+        soMap[e.service_order_id].extrasCost += amt;
+        soMap[e.service_order_id].realizedCost += amt;
+      }
+    }
+
+    const realized = realizedMaterials + realizedExtras;
+    const estimatedCost = estimatedHasData ? estimated : null;
+    const profitEstimated = estimatedCost != null && revenue.total > 0 ? revenue.total - estimatedCost : null;
+    const profitRealized = revenue.received > 0 ? revenue.received - realized : null;
+    const marginEstimatedPct = profitEstimated != null && revenue.total > 0 ? (profitEstimated / revenue.total) * 100 : null;
+    const marginRealizedPct = profitRealized != null && revenue.received > 0 ? (profitRealized / revenue.received) * 100 : null;
+
+    return {
+      hasQuote: !!project.quote_id,
+      revenue,
+      cost: {
+        estimated: estimatedCost, estimatedHasData,
+        realized, realizedMaterials, realizedExtras,
+      },
+      profit: { estimated: profitEstimated, realized: profitRealized },
+      margin: { estimatedPct: marginEstimatedPct, realizedPct: marginRealizedPct },
+      estimatedBreakdown,
+      realizedBreakdown: realizedBreakdown.sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "")),
+      serviceOrders: Object.values(soMap).map((s: any) => ({
+        id: s.id,
+        service_order_number: s.service_order_number,
+        status: s.status,
+        technician_name: s.technician_name ?? null,
+        estimatedCost: s.estimatedCost,
+        realizedCost: s.realizedCost,
+        extrasCost: s.extrasCost,
+      })),
+    };
+  });
