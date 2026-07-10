@@ -154,8 +154,9 @@ export function ServiceOrderCosts({ serviceOrderId, projectId }: Props) {
   });
 
   const cancelMut = useMutation({
-    mutationFn: () =>
-      cancelTarget ? cancelFn({ data: { id: cancelTarget.id } }) : Promise.resolve(),
+    mutationFn: async () => {
+      if (cancelTarget) await cancelFn({ data: { id: cancelTarget.id } });
+    },
     onSuccess: () => {
       toast.success("Custo cancelado.");
       setCancelTarget(null);
