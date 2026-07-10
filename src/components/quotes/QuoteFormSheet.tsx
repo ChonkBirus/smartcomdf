@@ -24,6 +24,11 @@ import { getCompanyCostSettings, computeSuggestedPrice } from "@/lib/pricing.fun
 import { usePermissions } from "@/lib/permissions";
 import { useAuth } from "@/lib/auth-context";
 import { roundMoney, roundPercent } from "@/lib/rounding";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { buildDraftKey, clearDraft, hasDraft, loadDraft, saveDraft } from "@/lib/draft-storage";
 
 type Line = {
   id?: string;
@@ -300,6 +305,95 @@ export function QuoteFormSheet({
   const suggestedMarginPct =
     suggestedTotal > 0 ? ((suggestedTotal - totalCost) / suggestedTotal) * 100 : 0;
 
+  // ============= Rascunho local (UX2B) =============
+  const draftKey = buildDraftKey("quote", companyId, user?.id, quoteId ?? undefined);
+  const [showDraftBanner, setShowDraftBanner] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
+  const [initialSyncDone, setInitialSyncDone] = useState(false);
+
+  type DraftShape = {
+    customer_id: string; title: string; issue_date: string; valid_until: string;
+    payment: string; delivery: string; warranty: string; completion: string;
+    customer_notes: string; internal_notes: string;
+    diag_problem: string; diag_need: string; diag_environment: string;
+    diag_objective: string; diag_critical: string; diag_tech_notes: string;
+    labor_cost: number; discount: number; lines: Line[];
+  };
+
+  const currentDraft = (): DraftShape => ({
+    customer_id: customerId, title, issue_date: issueDate, valid_until: validUntil,
+    payment, delivery, warranty, completion,
+    customer_notes: customerNotes, internal_notes: internalNotes,
+    diag_problem: diagProblem, diag_need: diagNeed, diag_environment: diagEnvironment,
+    diag_objective: diagObjective, diag_critical: diagCritical, diag_tech_notes: diagTechNotes,
+    labor_cost: laborCost, discount, lines,
+  });
+
+  const isDirty = () => {
+    if (customerId || title || customerNotes || internalNotes ||
+        diagProblem || diagNeed || diagEnvironment || diagObjective ||
+        diagCritical || diagTechNotes || delivery || warranty || completion) return true;
+    if (lines.length > 0) return true;
+    if (laborCost > 0 || discount > 0) return true;
+    if (payment && payment !== DEFAULT_PAYMENT_TERMS) return true;
+    return false;
+  };
+
+  const applyDraft = (d: DraftShape) => {
+    setCustomerId(d.customer_id ?? "");
+    setTitle(d.title ?? "");
+    if (d.issue_date) setIssueDate(d.issue_date);
+    if (d.valid_until) { setValidUntil(d.valid_until); setValidUntilTouched(true); }
+    setPayment(d.payment ?? DEFAULT_PAYMENT_TERMS);
+    setDelivery(d.delivery ?? ""); setWarranty(d.warranty ?? ""); setCompletion(d.completion ?? "");
+    setCustomerNotes(d.customer_notes ?? ""); setInternalNotes(d.internal_notes ?? "");
+    setDiagProblem(d.diag_problem ?? ""); setDiagNeed(d.diag_need ?? "");
+    setDiagEnvironment(d.diag_environment ?? ""); setDiagObjective(d.diag_objective ?? "");
+    setDiagCritical(d.diag_critical ?? ""); setDiagTechNotes(d.diag_tech_notes ?? "");
+    setLaborCost(Number(d.labor_cost) || 0); setDiscount(Number(d.discount) || 0);
+    setLines(Array.isArray(d.lines) ? d.lines : []);
+  };
+
+  // Verifica rascunho quando o sheet abre.
+  useEffect(() => {
+    if (!open || !draftKey) { setInitialSyncDone(false); return; }
+    // Espera dados do "existing" antes de decidir (para edição).
+    if (quoteId && !existing) return;
+    if (initialSyncDone) return;
+    setInitialSyncDone(true);
+    if (hasDraft(draftKey)) setShowDraftBanner(true);
+  }, [open, draftKey, quoteId, existing, initialSyncDone]);
+
+  // Autosave debounced.
+  useEffect(() => {
+    if (!open || !draftKey || !initialSyncDone) return;
+    if (showDraftBanner) return; // não sobrescrever antes de decidir
+    if (!isDirty()) return;
+    const t = setTimeout(() => saveDraft(draftKey, currentDraft()), 600);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    open, draftKey, initialSyncDone, showDraftBanner,
+    customerId, title, issueDate, validUntil, payment, delivery, warranty, completion,
+    customerNotes, internalNotes, diagProblem, diagNeed, diagEnvironment,
+    diagObjective, diagCritical, diagTechNotes, laborCost, discount, lines,
+  ]);
+
+  // Reseta flag quando fecha
+  useEffect(() => {
+    if (!open) { setShowDraftBanner(false); setDraftRestored(false); setInitialSyncDone(false); }
+  }, [open]);
+
+  const handleSheetOpenChange = (o: boolean) => {
+    if (o) { onOpenChange(true); return; }
+    if (draftKey && isDirty() && !showDraftBanner) {
+      setConfirmClose(true);
+      return;
+    }
+    onOpenChange(false);
+  };
+
   const mutation = useMutation({
     mutationFn: () =>
       save({
@@ -340,6 +434,7 @@ export function QuoteFormSheet({
       }),
     onSuccess: () => {
       toast.success(quoteId ? "Orçamento atualizado." : "Orçamento criado.");
+      clearDraft(draftKey);
       qc.invalidateQueries({ queryKey: ["quotes"] });
       qc.invalidateQueries({ queryKey: ["quote-metrics"] });
       qc.invalidateQueries({ queryKey: ["quote", quoteId] });
@@ -399,7 +494,7 @@ export function QuoteFormSheet({
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleSheetOpenChange}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-3xl">
         <SheetHeader>
           <SheetTitle>{quoteId ? "Editar orçamento" : "Novo orçamento"}</SheetTitle>
@@ -407,6 +502,50 @@ export function QuoteFormSheet({
             Cadastro do orçamento, itens e condições comerciais.
           </SheetDescription>
         </SheetHeader>
+
+        {showDraftBanner && (
+          <div className="mt-3 flex flex-col gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-medium">Encontramos um orçamento não salvo.</p>
+              <p className="text-xs text-muted-foreground">
+                {draftRestored ? "Rascunho restaurado." : "Deseja restaurar este rascunho?"}
+              </p>
+            </div>
+            {!draftRestored && (
+              <div className="flex gap-2">
+                <Button type="button" size="sm" variant="outline" onClick={() => {
+                  clearDraft(draftKey); setShowDraftBanner(false);
+                }}>Descartar</Button>
+                <Button type="button" size="sm" onClick={() => {
+                  const d = loadDraft<any>(draftKey);
+                  if (d) { applyDraft(d); setDraftRestored(true); }
+                  setShowDraftBanner(false);
+                }}>Restaurar</Button>
+              </div>
+            )}
+          </div>
+        )}
+
+        <AlertDialog open={confirmClose} onOpenChange={setConfirmClose}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Manter rascunho?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Deseja manter este rascunho para continuar depois?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => {
+                clearDraft(draftKey); setConfirmClose(false); onOpenChange(false);
+              }}>Descartar</AlertDialogCancel>
+              <AlertDialogAction onClick={() => {
+                saveDraft(draftKey, currentDraft());
+                setConfirmClose(false); onOpenChange(false);
+              }}>Manter rascunho</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
 
         <form onSubmit={onSubmit} className="mt-4 space-y-4">
           <Tabs defaultValue="main">
