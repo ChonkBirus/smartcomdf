@@ -75,17 +75,26 @@ export function OnboardingProvider({ children, enabled }: { children: ReactNode;
     if (!enabled || isLoading || activeTour) return;
     const initial = (all ?? []).find((p) => p.tour_key === "initial");
     if (!initial) {
-      // Defer to avoid flashing on first paint
-      const t = setTimeout(() => startTour("initial"), 800);
-      return () => clearTimeout(t);
+      let cancelled = false;
+      // Defer to avoid flashing on first paint and to avoid setState during
+      // parent render/mount of the dashboard.
+      const t = setTimeout(() => {
+        if (!cancelled) startTour("initial");
+      }, 800);
+      return () => { cancelled = true; clearTimeout(t); };
     }
   }, [enabled, isLoading, all, activeTour, startTour]);
 
   // Sync step to backend (debounced via mutation queue)
   useEffect(() => {
     if (!activeTour) return;
-    fetchOne({ data: { tourKey: activeTour } }).catch(() => {});
+    let cancelled = false;
+    fetchOne({ data: { tourKey: activeTour } }).catch(() => {}).finally(() => {
+      if (cancelled) return;
+    });
+    return () => { cancelled = true; };
   }, [activeTour, fetchOne]);
+
 
   const value = useMemo<Ctx>(() => ({
     activeTour, startTour, stopTour, progressFor, isLoaded: !isLoading,
