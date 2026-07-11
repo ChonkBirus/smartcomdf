@@ -29,6 +29,19 @@ export function Topbar({ name, email, avatarUrl, companyName, userId }: {
   const onboarding = useOnboardingSafe();
   const initials = (name ?? email ?? "U").split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase();
 
+  const [resolvedAvatar, setResolvedAvatar] = useState<string | null>(null);
+  const [imgFailed, setImgFailed] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    setImgFailed(false);
+    setResolvedAvatar(null);
+    resolveAvatarUrl(avatarUrl).then((url) => {
+      if (!cancelled) setResolvedAvatar(url);
+    });
+    return () => { cancelled = true; };
+  }, [avatarUrl]);
+
+
 
   const signOut = async () => {
     await qc.cancelQueries();
