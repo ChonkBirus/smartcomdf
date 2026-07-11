@@ -11,9 +11,11 @@ import {
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationsBell } from "./NotificationsBell";
 import { supabase } from "@/integrations/supabase/client";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { OnboardingCtx } from "@/components/onboarding/OnboardingProvider";
+import { resolveAvatarUrl } from "@/lib/resolveAvatarUrl";
 function useOnboardingSafe() { return useContext(OnboardingCtx) as null | { startTour: (k: string) => void }; }
+
 
 
 
@@ -26,6 +28,19 @@ export function Topbar({ name, email, avatarUrl, companyName, userId }: {
   const qc = useQueryClient();
   const onboarding = useOnboardingSafe();
   const initials = (name ?? email ?? "U").split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase();
+
+  const [resolvedAvatar, setResolvedAvatar] = useState<string | null>(null);
+  const [imgFailed, setImgFailed] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    setImgFailed(false);
+    setResolvedAvatar(null);
+    resolveAvatarUrl(avatarUrl).then((url) => {
+      if (!cancelled) setResolvedAvatar(url);
+    });
+    return () => { cancelled = true; };
+  }, [avatarUrl]);
+
 
 
   const signOut = async () => {
@@ -51,9 +66,12 @@ export function Topbar({ name, email, avatarUrl, companyName, userId }: {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
               <Avatar className="h-8 w-8">
-                {avatarUrl && <AvatarImage src={avatarUrl} />}
+                {resolvedAvatar && !imgFailed && (
+                  <AvatarImage src={resolvedAvatar} onError={() => setImgFailed(true)} />
+                )}
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">{initials}</AvatarFallback>
               </Avatar>
+
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
