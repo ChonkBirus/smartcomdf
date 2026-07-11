@@ -11,9 +11,11 @@ import {
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationsBell } from "./NotificationsBell";
 import { supabase } from "@/integrations/supabase/client";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { OnboardingCtx } from "@/components/onboarding/OnboardingProvider";
+import { resolveAvatarUrl } from "@/lib/resolveAvatarUrl";
 function useOnboardingSafe() { return useContext(OnboardingCtx) as null | { startTour: (k: string) => void }; }
+
 
 
 
