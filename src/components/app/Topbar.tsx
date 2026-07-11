@@ -66,9 +66,12 @@ export function Topbar({ name, email, avatarUrl, companyName, userId }: {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
               <Avatar className="h-8 w-8">
-                {avatarUrl && <AvatarImage src={avatarUrl} />}
+                {resolvedAvatar && !imgFailed && (
+                  <AvatarImage src={resolvedAvatar} onError={() => setImgFailed(true)} />
+                )}
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">{initials}</AvatarFallback>
               </Avatar>
+
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
