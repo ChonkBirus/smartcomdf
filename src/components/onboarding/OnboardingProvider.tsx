@@ -146,11 +146,18 @@ function TourOverlay({
   const isLast = safeStep >= steps.length - 1;
 
   useEffect(() => {
-    if (current?.route) {
+    if (!current?.route) return;
+    let cancelled = false;
+    // Defer to next tick to avoid updating router state while a parent
+    // (e.g. Dashboard) is still mounting.
+    const t = setTimeout(() => {
+      if (cancelled) return;
       try { navigate({ to: current.route as never }); } catch { /* noop */ }
-    }
+    }, 0);
+    return () => { cancelled = true; clearTimeout(t); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [safeStep]);
+
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
