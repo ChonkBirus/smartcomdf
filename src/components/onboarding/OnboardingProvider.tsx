@@ -75,17 +75,26 @@ export function OnboardingProvider({ children, enabled }: { children: ReactNode;
     if (!enabled || isLoading || activeTour) return;
     const initial = (all ?? []).find((p) => p.tour_key === "initial");
     if (!initial) {
-      // Defer to avoid flashing on first paint
-      const t = setTimeout(() => startTour("initial"), 800);
-      return () => clearTimeout(t);
+      let cancelled = false;
+      // Defer to avoid flashing on first paint and to avoid setState during
+      // parent render/mount of the dashboard.
+      const t = setTimeout(() => {
+        if (!cancelled) startTour("initial");
+      }, 800);
+      return () => { cancelled = true; clearTimeout(t); };
     }
   }, [enabled, isLoading, all, activeTour, startTour]);
 
   // Sync step to backend (debounced via mutation queue)
   useEffect(() => {
     if (!activeTour) return;
-    fetchOne({ data: { tourKey: activeTour } }).catch(() => {});
+    let cancelled = false;
+    fetchOne({ data: { tourKey: activeTour } }).catch(() => {}).finally(() => {
+      if (cancelled) return;
+    });
+    return () => { cancelled = true; };
   }, [activeTour, fetchOne]);
+
 
   const value = useMemo<Ctx>(() => ({
     activeTour, startTour, stopTour, progressFor, isLoaded: !isLoading,
@@ -137,11 +146,18 @@ function TourOverlay({
   const isLast = safeStep >= steps.length - 1;
 
   useEffect(() => {
-    if (current?.route) {
+    if (!current?.route) return;
+    let cancelled = false;
+    // Defer to next tick to avoid updating router state while a parent
+    // (e.g. Dashboard) is still mounting.
+    const t = setTimeout(() => {
+      if (cancelled) return;
       try { navigate({ to: current.route as never }); } catch { /* noop */ }
-    }
+    }, 0);
+    return () => { cancelled = true; clearTimeout(t); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [safeStep]);
+
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

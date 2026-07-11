@@ -83,13 +83,21 @@ export function GettingStartedChecklist() {
   useEffect(() => {
     if (!status || progress === undefined) return;
     if (progress?.status === "SKIPPED") return;
-    if (allDone) {
-      if (progress?.status !== "COMPLETED" && !completeMutation.isPending) completeMutation.mutate();
-    } else if ((progress?.current_step ?? -1) !== doneCount && !stepMutation.isPending) {
-      stepMutation.mutate(doneCount);
-    }
+    let cancelled = false;
+    // Defer mutation to next tick so we don't setState on unrelated components
+    // (React Query subscribers) while this one is still mounting.
+    const t = setTimeout(() => {
+      if (cancelled) return;
+      if (allDone) {
+        if (progress?.status !== "COMPLETED" && !completeMutation.isPending) completeMutation.mutate();
+      } else if ((progress?.current_step ?? -1) !== doneCount && !stepMutation.isPending) {
+        stepMutation.mutate(doneCount);
+      }
+    }, 0);
+    return () => { cancelled = true; clearTimeout(t); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, progress, doneCount, allDone]);
+
 
   if (isSkipped) return null;
   if (isCompleted && !isLoading) return null;
