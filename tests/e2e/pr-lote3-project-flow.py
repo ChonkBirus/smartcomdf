@@ -250,10 +250,17 @@ async def t8_mobile(results: list[Result]) -> None:
 
 async def main() -> int:
     if not env("PGHOST"):
-        print("SKIP: PGHOST ausente — Lote 3 requer acesso ao banco (psql).")
+        print("SKIP [lote3]: PGHOST ausente — Lote 3 requer acesso ao banco (psql).")
+        print("=== lote3 summary ===  PASS=0 FAIL=0 SKIP=1")
         return 0
+    # Fixtures do Lote 1: obrigatórias quando seed ready.
     if not env("E2E_PROJECT_A_ID"):
-        print("SKIP: fixtures do Lote 1 não carregadas (source /tmp/e2e-fixture.env).")
+        if seed_ready():
+            print("FAIL [lote3]: seed ready mas fixture obrigatória ausente: E2E_PROJECT_A_ID")
+            print("=== lote3 summary ===  PASS=0 FAIL=1 SKIP=0")
+            return 1
+        print("SKIP [lote3]: fixtures do Lote 1 não carregadas (source /tmp/e2e-fixture.env).")
+        print("=== lote3 summary ===  PASS=0 FAIL=0 SKIP=1")
         return 0
 
     results: list[Result] = []
@@ -268,7 +275,12 @@ async def main() -> int:
 
     print(f"\n=== Lote 3 — Projeto/OS/Custo/Margem — {LABEL} ===")
     for name, ok, note in results:
-        print(f"  [{'PASS' if ok else 'FAIL'}] {name} — {note}")
+        tag = "PASS"
+        if (note or "").upper().startswith("SKIP"):
+            tag = "SKIP"
+        elif not ok:
+            tag = "FAIL"
+        print(f"  [{tag}] {name} — {note}")
 
     # teardown: nenhum dado criado; verifica ausência de leftovers do label
     leftover = sql(
@@ -277,9 +289,10 @@ async def main() -> int:
     )
     if leftover != "0":
         print(f"[FAIL] leftover financial_transactions={leftover}")
-        return 1
+        results.append(("teardown leftovers", False, f"leftover={leftover}"))
 
-    return 0 if all(ok for _, ok, _ in results) else 1
+    return print_summary("lote3", results)
+
 
 
 if __name__ == "__main__":
