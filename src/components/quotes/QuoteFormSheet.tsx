@@ -24,6 +24,7 @@ import { getCompanyCostSettings, computeSuggestedPrice } from "@/lib/pricing.fun
 import { usePermissions } from "@/lib/permissions";
 import { useAuth } from "@/lib/auth-context";
 import { roundMoney, roundPercent } from "@/lib/rounding";
+import { computeQuoteTotals } from "@/lib/quote-totals";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -272,24 +273,27 @@ export function QuoteFormSheet({
     }
   }, [open, quoteId, existing]);
 
-  const subtotal = useMemo(
-    () => lines.reduce((s, l) => s + l.quantity * l.unit_price, 0),
-    [lines],
+  const totals = useMemo(
+    () => computeQuoteTotals(lines, laborCost, discount),
+    [lines, laborCost, discount],
   );
-  const total = useMemo(
-    () => Math.max(0, subtotal + laborCost - discount),
-    [subtotal, laborCost, discount],
-  );
+  const subtotal = totals.items_subtotal;
+  const total = totals.total_amount;
   const suggestedItemsSubtotal = useMemo(() => {
     if (!canSeeInternal || !costSettings) return 0;
-    return lines.reduce((s, l) => {
+    const suggestedLines = lines.map((l) => {
       const sug = suggestPrice(l.cost_price);
       const price = sug && sug > 0 ? sug : l.unit_price;
-      return s + l.quantity * price;
-    }, 0);
+      return { ...l, unit_price: price };
+    });
+    return computeQuoteTotals(suggestedLines, 0, 0).items_subtotal;
   }, [lines, suggestPrice, canSeeInternal, costSettings]);
   const suggestedTotal = useMemo(
-    () => Math.max(0, suggestedItemsSubtotal + laborCost - discount),
+    () => computeQuoteTotals(
+      [{ quantity: 1, unit_price: suggestedItemsSubtotal }],
+      laborCost,
+      discount,
+    ).total_amount,
     [suggestedItemsSubtotal, laborCost, discount],
   );
   const totalBelowSuggested =

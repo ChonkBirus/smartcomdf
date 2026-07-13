@@ -34,6 +34,16 @@ export const Route = createFileRoute("/api/public/quote-receipt")({
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
 
       POST: async ({ request }) => {
+        const { rateLimit, clientIp } = await import("@/lib/rate-limit.server");
+        const ip = clientIp(request);
+        // Rate limit por IP antes de qualquer parsing pesado: 20 uploads / 10 min.
+        const rlIp = rateLimit(`qrec:ip:${ip}`, 20, 600);
+        if (!rlIp.ok) {
+          return new Response(
+            JSON.stringify({ error: "Muitas tentativas. Tente novamente em instantes." }),
+            { status: 429, headers: { "Content-Type": "application/json", "Retry-After": String(rlIp.retryAfterSec), ...CORS } },
+          );
+        }
         let form: FormData;
         try {
           form = await request.formData();
@@ -47,6 +57,18 @@ export const Route = createFileRoute("/api/public/quote-receipt")({
         const paymentDate = String(form.get("payment_date") ?? "").trim();
         const paymentMethod = String(form.get("payment_method") ?? "PIX").trim();
         const file = form.get("file");
+
+        // Rate limit adicional por token: 10 uploads / 10 min por orçamento.
+        if (/^[0-9a-f-]{36}$/i.test(token)) {
+          const rlTok = rateLimit(`qrec:tok:${token}`, 10, 600);
+          if (!rlTok.ok) {
+            return new Response(
+              JSON.stringify({ error: "Muitas tentativas para este orçamento. Aguarde alguns minutos." }),
+              { status: 429, headers: { "Content-Type": "application/json", "Retry-After": String(rlTok.retryAfterSec), ...CORS } },
+            );
+          }
+        }
+
 
         if (!/^[0-9a-f-]{36}$/i.test(token)) return json({ error: "Token inválido." }, 400);
         if (!Number.isFinite(amount) || amount <= 0) return json({ error: "Valor inválido." }, 400);

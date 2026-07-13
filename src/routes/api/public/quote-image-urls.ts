@@ -23,6 +23,8 @@ export const Route = createFileRoute("/api/public/quote-image-urls")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
+        const { rateLimit, clientIp } = await import("@/lib/rate-limit.server");
+        const ip = clientIp(request);
         let body: any;
         try {
           body = await request.json();
@@ -32,6 +34,21 @@ export const Route = createFileRoute("/api/public/quote-image-urls")({
         const token = String(body?.token ?? "").trim();
         const rawPaths: unknown = body?.paths;
         if (!/^[0-9a-f-]{36}$/i.test(token)) return json({ error: "Token inválido." }, 400);
+        // Rate limit: 60 req/min por (token+IP) — evita enumeração/scraping.
+        const rl = rateLimit(`qimg:${token}:${ip}`, 60, 60);
+        if (!rl.ok) {
+          return new Response(
+            JSON.stringify({ error: "Muitas requisições. Tente novamente em instantes." }),
+            {
+              status: 429,
+              headers: {
+                "Content-Type": "application/json",
+                "Retry-After": String(rl.retryAfterSec),
+                ...CORS,
+              },
+            },
+          );
+        }
         if (!Array.isArray(rawPaths)) return json({ error: "paths inválido." }, 400);
         const paths = Array.from(
           new Set(
@@ -49,7 +66,9 @@ export const Route = createFileRoute("/api/public/quote-image-urls")({
           "validate_public_quote_image_paths",
           { _token: token, _paths: paths } as any,
         );
-        if (vErr) return json({ error: vErr.message }, 400);
+        // Nunca vazamos a mensagem interna: se a validação falhar, respondemos
+        // como se nada estivesse disponível — evita enumeração.
+        if (vErr) return json({ urls: {} });
         const validPaths = new Set<string>(((valid as string[]) ?? []));
         const urls: Record<string, string> = {};
         for (const p of paths) {
