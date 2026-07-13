@@ -50,7 +50,7 @@ function LandingPage() {
           </Button>
         </header>
 
-        <p className="sr-only" data-build-check={BUILD_CHECK}>
+        <p className="mt-4 text-[11px] text-muted-foreground" data-build-check={BUILD_CHECK}>
           BUILD_CHECK: {BUILD_CHECK}
         </p>
 
