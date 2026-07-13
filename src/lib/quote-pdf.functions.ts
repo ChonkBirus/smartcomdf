@@ -76,9 +76,12 @@ export const getQuotePdfPayload = createServerFn({ method: "GET" })
 
     const { data: company } = await sb
       .from("companies")
-      .select("id, corporate_name, trade_name, cnpj, email, phone, whatsapp, logo_url")
+      .select(
+        "id, corporate_name, trade_name, cnpj, email, phone, whatsapp, logo_url, zipcode, street, number, complement, district, city, state, country",
+      )
       .eq("id", q.company_id)
       .maybeSingle();
+
 
     const { data: settings } = await sb
       .from("company_settings")
