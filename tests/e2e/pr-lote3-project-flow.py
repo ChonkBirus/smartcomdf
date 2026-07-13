@@ -36,12 +36,16 @@ import asyncio, json, os, subprocess, sys, time
 from pathlib import Path
 from playwright.async_api import async_playwright, BrowserContext, Page
 
+sys.path.insert(0, str(Path(__file__).parent))
+from _e2e_common import seed_ready, print_summary
+
 BASE_URL = os.environ.get("E2E_BASE_URL", "http://localhost:8080")
 ARTIFACTS = Path(__file__).parent / "artifacts" / "lote3"
 ARTIFACTS.mkdir(parents=True, exist_ok=True)
 BROWSER = os.environ.get("E2E_BROWSER", "chromium")
 RUN = os.environ.get("E2E_RUN_ID") or time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
 LABEL = os.environ.get("E2E_LABEL_PREFIX") or f"[E2E-{RUN}-LOTE3]"
+
 
 Result = tuple[str, bool, str]
 
