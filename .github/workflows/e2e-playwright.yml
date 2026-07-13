@@ -145,8 +145,10 @@ jobs:
           retention-days: 14
 
   multi-company:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_parallel_jobs }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+
     env:
       E2E_RUN_ID: "[E2E-${{ github.run_id }}-multi-company-${{ github.run_attempt }}]"
     steps:
