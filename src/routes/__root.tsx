@@ -7,10 +7,7 @@ import { StrictMode, useEffect, useState, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "@/lib/theme";
-import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
-import { AuthProvider } from "@/lib/auth-context";
-import { SessionExpiredProvider } from "@/lib/session-expired";
 import { classifyError } from "@/lib/error-messages";
 
 type SafeRuntimeDiagnostic = {
@@ -223,32 +220,12 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const router = useRouter();
-
-  useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      // Only react to identity transitions — TOKEN_REFRESHED/INITIAL_SESSION
-      // fire often and must not blow away all queries.
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT") return;
-      router.invalidate();
-      if (event === "SIGNED_IN") {
-        // Refresh only user-scoped data, not every cached query.
-        queryClient.invalidateQueries({ queryKey: ["me"] });
-        queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      }
-    });
-    return () => sub.subscription.unsubscribe();
-  }, [router, queryClient]);
 
   const tree = (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AuthProvider>
-          <SessionExpiredProvider>
-            <Outlet />
-            <Toaster richColors position="top-right" />
-          </SessionExpiredProvider>
-        </AuthProvider>
+        <Outlet />
+        <Toaster richColors position="top-right" />
       </ThemeProvider>
     </QueryClientProvider>
   );
