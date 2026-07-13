@@ -55,7 +55,7 @@ export const Route = createFileRoute("/api/public/quote-receipt")({
         const ip = clientIp(request);
 
         // Fail-closed: se a RPC falhar (rl.failed) tratamos como bloqueio.
-        const rlIp = await tryConsumeRateLimit(hashBucket("qrec:ip", ip), 20, 600);
+        const rlIp = await tryConsumeRateLimit(await hashBucket("qrec:ip", ip), 20, 600);
         if (rlIp.failed) {
           return tooMany(60, "Serviço indisponível. Tente novamente em instantes.");
         }
@@ -80,7 +80,7 @@ export const Route = createFileRoute("/api/public/quote-receipt")({
         // Rate limit adicional por token+IP: 5 tentativas / 10 min.
         if (/^[0-9a-f-]{36}$/i.test(token)) {
           const rlTok = await tryConsumeRateLimit(
-            hashBucket("qrec:tokip", token, ip),
+            await hashBucket("qrec:tokip", token, ip),
             5,
             600,
           );

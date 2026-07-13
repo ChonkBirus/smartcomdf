@@ -42,7 +42,7 @@ export const Route = createFileRoute("/api/public/quote-image-urls")({
         if (!/^[0-9a-f-]{36}$/i.test(token)) return json({ error: "Token inválido." }, 400);
 
         // Rate limit: 30 req/min por token+IP. Fail-open.
-        const rl = await tryConsumeRateLimit(hashBucket("qimg:tokip", token, ip), 30, 60);
+        const rl = await tryConsumeRateLimit(await hashBucket("qimg:tokip", token, ip), 30, 60);
         if (!rl.ok && !rl.failed) {
           return new Response(
             JSON.stringify({ error: "Muitas requisições. Tente novamente em instantes." }),
