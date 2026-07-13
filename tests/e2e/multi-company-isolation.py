@@ -27,10 +27,14 @@ import uuid
 from pathlib import Path
 from playwright.async_api import async_playwright, Page, BrowserContext
 
+sys.path.insert(0, str(Path(__file__).parent))
+from _e2e_common import seed_ready, print_summary
+
 BASE_URL = os.environ.get("E2E_BASE_URL", "http://localhost:8080")
 ARTIFACTS = Path(__file__).parent / "artifacts" / "multi-company"
 ARTIFACTS.mkdir(parents=True, exist_ok=True)
 BROWSER = os.environ.get("E2E_BROWSER", "chromium")
+
 
 
 def env(name: str) -> str | None:
