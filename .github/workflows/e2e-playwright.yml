@@ -1,10 +1,12 @@
 name: E2E Playwright Tests
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  # ECONOMY MODE: execução automática desativada para não consumir minutos
+  # do GitHub Actions. Descomente push/pull_request para reativar.
+  # push:
+  #   branches: [main]
+  # pull_request:
+  #   branches: [main]
   workflow_dispatch:
     inputs:
       run_parallel_jobs:
