@@ -57,12 +57,12 @@ export const Route = createFileRoute("/api/public/forgot-password")({
         if (!emailValid) return ok();
 
         // Rate limit por IP.
-        const rlIp = await tryConsumeRateLimit(hashBucket("fpw:ip", ip), 10, 900);
+        const rlIp = await tryConsumeRateLimit(await hashBucket("fpw:ip", ip), 10, 900);
         if (rlIp.failed || !rlIp.ok) return ok();
 
         // Rate limit por email+IP.
         const rlEmail = await tryConsumeRateLimit(
-          hashBucket("fpw:emailip", emailNorm, ip),
+          await hashBucket("fpw:emailip", emailNorm, ip),
           3,
           900,
         );
