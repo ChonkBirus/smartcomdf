@@ -10,6 +10,8 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      E2E_RUN_ID: "[E2E-${{ github.run_id }}-e2e-${{ matrix.browser }}-${{ github.run_attempt }}]"
     strategy:
       fail-fast: false
       matrix:
@@ -133,6 +135,8 @@ jobs:
   multi-company:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      E2E_RUN_ID: "[E2E-${{ github.run_id }}-multi-company-${{ github.run_attempt }}]"
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -232,6 +236,8 @@ jobs:
   pr3-service-orders:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      E2E_RUN_ID: "[E2E-${{ github.run_id }}-pr3-service-orders-${{ github.run_attempt }}]"
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -334,6 +340,8 @@ jobs:
   quote-images:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      E2E_RUN_ID: "[E2E-${{ github.run_id }}-quote-images-${{ github.run_attempt }}]"
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -432,6 +440,8 @@ jobs:
   lote3-and-costs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      E2E_RUN_ID: "[E2E-${{ github.run_id }}-lote3-and-costs-${{ github.run_attempt }}]"
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -546,6 +556,8 @@ jobs:
   e2e-full-suite:
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    env:
+      E2E_RUN_ID: "[E2E-${{ github.run_id }}-e2e-full-suite-${{ github.run_attempt }}]"
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
