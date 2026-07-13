@@ -5,9 +5,18 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      run_parallel_jobs:
+        description: "Rodar jobs paralelos legados (e2e matrix, multi-company, pr3, quote-images, lote3-and-costs). Default: apenas e2e-full-suite."
+        type: boolean
+        default: false
 
 jobs:
   e2e:
+    # ECONOMY MODE: jobs paralelos desativados no push/PR. Rodam apenas quando
+    # disparados manualmente via workflow_dispatch com run_parallel_jobs=true.
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_parallel_jobs }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -16,6 +25,9 @@ jobs:
       fail-fast: false
       matrix:
         browser: [chromium, firefox, webkit]
+
+
+
 
 
     steps:
