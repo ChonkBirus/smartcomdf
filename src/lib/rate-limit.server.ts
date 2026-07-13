@@ -10,7 +10,9 @@
  * Comportamento em falha depende do chamador (fail-open vs fail-closed).
  */
 
-import { createHmac } from "node:crypto";
+// HMAC via Web Crypto (nativo no runtime Cloudflare Workers/edge). Evita
+// depender de `node:crypto`, que exige nodejs_compat e já causou falha de
+// carregamento do worker em ambiente de preview.
 
 export type RateLimitResult = {
   ok: boolean;
