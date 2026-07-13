@@ -36,12 +36,16 @@ import asyncio, json, os, subprocess, sys, time
 from pathlib import Path
 from playwright.async_api import async_playwright, BrowserContext, Page
 
+sys.path.insert(0, str(Path(__file__).parent))
+from _e2e_common import seed_ready, print_summary
+
 BASE_URL = os.environ.get("E2E_BASE_URL", "http://localhost:8080")
 ARTIFACTS = Path(__file__).parent / "artifacts" / "lote3"
 ARTIFACTS.mkdir(parents=True, exist_ok=True)
 BROWSER = os.environ.get("E2E_BROWSER", "chromium")
 RUN = os.environ.get("E2E_RUN_ID") or time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
 LABEL = os.environ.get("E2E_LABEL_PREFIX") or f"[E2E-{RUN}-LOTE3]"
+
 
 Result = tuple[str, bool, str]
 
@@ -74,11 +78,22 @@ def sql_as(user_id: str, query: str) -> str:
 # ---------------------------------------------------------------------------
 # scenarios
 
+def _skip_or_fail(name: str, missing: list[str], results: list) -> bool:
+    """When seed ready, missing fixture = FAIL. Else SKIP (ok=True)."""
+    miss = [m for m in missing if not env(m)]
+    if not miss:
+        return False
+    if seed_ready():
+        results.append((name, False, f"FAIL: seed ready mas fixture obrigatória ausente: {', '.join(miss)}"))
+    else:
+        results.append((name, True, f"SKIP: seed não-ready — {', '.join(miss)} ausente"))
+    return True
+
+
 def t1_project_from_quote(results: list[Result]) -> None:
-    quote_id = env("E2E_QUOTE_A_ID"); project_id = env("E2E_PROJECT_A_ID")
-    if not (quote_id and project_id):
-        results.append(("T1 project<->quote", True, "SKIP: fixture ausente"))
+    if _skip_or_fail("T1 project<->quote", ["E2E_QUOTE_A_ID", "E2E_PROJECT_A_ID"], results):
         return
+    quote_id = env("E2E_QUOTE_A_ID"); project_id = env("E2E_PROJECT_A_ID")
     row = sql(
         f"SELECT p.id, p.quote_id, p.customer_id, q.customer_id, q.status "
         f"FROM public.projects p JOIN public.quotes q ON q.id=p.quote_id "
@@ -88,15 +103,15 @@ def t1_project_from_quote(results: list[Result]) -> None:
         results.append(("T1 project<->quote", False, "vínculo ausente")); return
     parts = row.split("|")
     ok = parts[0] == project_id and parts[1] == quote_id and parts[2] == parts[3]
-    # idempotência: getProjectByQuote lógica → um único projeto por quote
     dup = sql(f"SELECT COUNT(*) FROM public.projects WHERE quote_id='{quote_id}' AND deleted_at IS NULL;")
     results.append(("T1 project<->quote", ok and dup == "1",
                     f"pid={parts[0]} qid={parts[1]} cust={parts[2]}={parts[3]} count={dup}"))
 
+
 def t2_os_from_project(results: list[Result]) -> None:
+    if _skip_or_fail("T2 OS<-project", ["E2E_PROJECT_A_ID", "E2E_SO_A_ID"], results):
+        return
     project_id = env("E2E_PROJECT_A_ID"); so_id = env("E2E_SO_A_ID"); quote_id = env("E2E_QUOTE_A_ID")
-    if not (project_id and so_id):
-        results.append(("T2 OS<-project", True, "SKIP: fixture ausente")); return
     row = sql(
         f"SELECT project_id, quote_id, customer_id, assigned_technician_id "
         f"FROM public.service_orders WHERE id='{so_id}';"
@@ -108,10 +123,11 @@ def t2_os_from_project(results: list[Result]) -> None:
     results.append(("T2 OS<-project", ok, f"pid={pid} qid={qid} tech={tech[:8]}…"))
 
 async def t3_technician_my(results: list[Result]) -> None:
+    if _skip_or_fail("T3 técnico /my",
+                     ["E2E_TECH_SUPABASE_STORAGE_KEY", "E2E_TECH_SUPABASE_SESSION_JSON", "E2E_SO_A_ID"],
+                     results):
+        return
     key = env("E2E_TECH_SUPABASE_STORAGE_KEY"); sess = env("E2E_TECH_SUPABASE_SESSION_JSON")
-    so_id = env("E2E_SO_A_ID")
-    if not (key and sess and so_id):
-        results.append(("T3 técnico /my", True, "SKIP: sessão técnico ausente")); return
     async with async_playwright() as p:
         b = await getattr(p, BROWSER).launch(headless=True)
         ctx = await b.new_context(viewport={"width": 1280, "height": 1800})
@@ -128,9 +144,9 @@ async def t3_technician_my(results: list[Result]) -> None:
     results.append(("T3 técnico /my", found, f"OS visível={found}"))
 
 def t4_so_cost(results: list[Result]) -> None:
+    if _skip_or_fail("T4 custo OS", ["E2E_FTX_SO_COST_A_ID"], results):
+        return
     ftx = env("E2E_FTX_SO_COST_A_ID")
-    if not ftx:
-        results.append(("T4 custo OS", True, "SKIP: fixture ausente")); return
     row = sql(
         f"SELECT type, status, origin, service_order_id, project_id, deleted_at IS NULL "
         f"FROM public.financial_transactions WHERE id='{ftx}';"
@@ -143,10 +159,9 @@ def t4_so_cost(results: list[Result]) -> None:
                     f"type={t} st={st} origin={orig} so={bool(so)} project={bool(pr)}"))
 
 def t5_project_margin(results: list[Result]) -> None:
+    if _skip_or_fail("T5 margem", ["E2E_PROJECT_A_ID"], results):
+        return
     project_id = env("E2E_PROJECT_A_ID")
-    if not project_id:
-        results.append(("T5 margem", True, "SKIP: fixture ausente")); return
-    # receita total (quote) e recebido
     rev = sql(
         f"SELECT COALESCE(SUM(amount),0) FROM public.financial_transactions "
         f"WHERE project_id='{project_id}' AND type='INCOME' AND status='PAID' AND deleted_at IS NULL;"
@@ -156,7 +171,6 @@ def t5_project_margin(results: list[Result]) -> None:
         f"WHERE project_id='{project_id}' AND type='EXPENSE' AND status='PAID' "
         f"AND origin='SERVICE_ORDER_COST' AND deleted_at IS NULL;"
     )
-    # compra geral (sem project_id) não deve aparecer
     leak = sql(
         f"SELECT COUNT(*) FROM public.financial_transactions "
         f"WHERE project_id='{project_id}' AND origin='PURCHASE_ORDER';"
@@ -167,10 +181,9 @@ def t5_project_margin(results: list[Result]) -> None:
                     f"receita={rev} custo_real={cost_real} lucro={lucro} leak_compra={leak}"))
 
 def t6_permissions(results: list[Result]) -> None:
+    if _skip_or_fail("T6 permissões", ["E2E_TECH_A_USER_ID"], results):
+        return
     tech = env("E2E_TECH_A_USER_ID")
-    if not tech:
-        results.append(("T6 permissões", True, "SKIP: E2E_TECH_A_USER_ID ausente")); return
-    # técnico sem papel manager/owner não deve ter has_role manager
     row = sql(
         f"SELECT COUNT(*) FROM public.user_roles ur "
         f"JOIN public.roles r ON r.id=ur.role_id "
@@ -180,11 +193,14 @@ def t6_permissions(results: list[Result]) -> None:
                     f"papéis privilegiados no técnico={row} (esperado 0)"))
 
 def t7_multi_company(results: list[Result]) -> None:
-    a = env("E2E_A_USER_ID"); b = env("E2E_B_USER_ID")
+    if _skip_or_fail("T7 multiempresa",
+                     ["E2E_A_USER_ID", "E2E_B_USER_ID", "E2E_QUOTE_A_ID",
+                      "E2E_PROJECT_A_ID", "E2E_SO_A_ID", "E2E_FTX_SO_COST_A_ID"],
+                     results):
+        return
+    b = env("E2E_B_USER_ID")
     quote_a = env("E2E_QUOTE_A_ID"); proj_a = env("E2E_PROJECT_A_ID")
     so_a = env("E2E_SO_A_ID"); ftx = env("E2E_FTX_SO_COST_A_ID")
-    if not (a and b and quote_a and proj_a and so_a and ftx):
-        results.append(("T7 multiempresa", True, "SKIP: fixtures ausentes")); return
     leaks: list[str] = []
     try:
         for table, rid in [("quotes", quote_a), ("projects", proj_a),
@@ -198,11 +214,14 @@ def t7_multi_company(results: list[Result]) -> None:
     results.append(("T7 multiempresa RLS", not leaks, f"leaks={leaks}"))
 
 async def t8_mobile(results: list[Result]) -> None:
+    if _skip_or_fail("T8 mobile 320px",
+                     ["E2E_A_SUPABASE_STORAGE_KEY", "E2E_A_SUPABASE_SESSION_JSON",
+                      "E2E_PROJECT_A_ID", "E2E_SO_A_ID"], results):
+        return
     key = env("E2E_A_SUPABASE_STORAGE_KEY"); sess = env("E2E_A_SUPABASE_SESSION_JSON")
     proj = env("E2E_PROJECT_A_ID"); so = env("E2E_SO_A_ID")
-    if not (key and sess and proj and so):
-        results.append(("T8 mobile 320px", True, "SKIP: sessão A ausente")); return
     failures: list[str] = []
+
     async with async_playwright() as p:
         b = await getattr(p, BROWSER).launch(headless=True)
         ctx = await b.new_context(viewport={"width": 320, "height": 720})
@@ -231,10 +250,17 @@ async def t8_mobile(results: list[Result]) -> None:
 
 async def main() -> int:
     if not env("PGHOST"):
-        print("SKIP: PGHOST ausente — Lote 3 requer acesso ao banco (psql).")
+        print("SKIP [lote3]: PGHOST ausente — Lote 3 requer acesso ao banco (psql).")
+        print("=== lote3 summary ===  PASS=0 FAIL=0 SKIP=1")
         return 0
+    # Fixtures do Lote 1: obrigatórias quando seed ready.
     if not env("E2E_PROJECT_A_ID"):
-        print("SKIP: fixtures do Lote 1 não carregadas (source /tmp/e2e-fixture.env).")
+        if seed_ready():
+            print("FAIL [lote3]: seed ready mas fixture obrigatória ausente: E2E_PROJECT_A_ID")
+            print("=== lote3 summary ===  PASS=0 FAIL=1 SKIP=0")
+            return 1
+        print("SKIP [lote3]: fixtures do Lote 1 não carregadas (source /tmp/e2e-fixture.env).")
+        print("=== lote3 summary ===  PASS=0 FAIL=0 SKIP=1")
         return 0
 
     results: list[Result] = []
@@ -249,7 +275,12 @@ async def main() -> int:
 
     print(f"\n=== Lote 3 — Projeto/OS/Custo/Margem — {LABEL} ===")
     for name, ok, note in results:
-        print(f"  [{'PASS' if ok else 'FAIL'}] {name} — {note}")
+        tag = "PASS"
+        if (note or "").upper().startswith("SKIP"):
+            tag = "SKIP"
+        elif not ok:
+            tag = "FAIL"
+        print(f"  [{tag}] {name} — {note}")
 
     # teardown: nenhum dado criado; verifica ausência de leftovers do label
     leftover = sql(
@@ -258,9 +289,10 @@ async def main() -> int:
     )
     if leftover != "0":
         print(f"[FAIL] leftover financial_transactions={leftover}")
-        return 1
+        results.append(("teardown leftovers", False, f"leftover={leftover}"))
 
-    return 0 if all(ok for _, ok, _ in results) else 1
+    return print_summary("lote3", results)
+
 
 
 if __name__ == "__main__":
