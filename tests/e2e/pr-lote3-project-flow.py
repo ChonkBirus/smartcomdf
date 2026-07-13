@@ -109,9 +109,9 @@ def t1_project_from_quote(results: list[Result]) -> None:
 
 
 def t2_os_from_project(results: list[Result]) -> None:
+    if _skip_or_fail("T2 OS<-project", ["E2E_PROJECT_A_ID", "E2E_SO_A_ID"], results):
+        return
     project_id = env("E2E_PROJECT_A_ID"); so_id = env("E2E_SO_A_ID"); quote_id = env("E2E_QUOTE_A_ID")
-    if not (project_id and so_id):
-        results.append(("T2 OS<-project", True, "SKIP: fixture ausente")); return
     row = sql(
         f"SELECT project_id, quote_id, customer_id, assigned_technician_id "
         f"FROM public.service_orders WHERE id='{so_id}';"
@@ -123,10 +123,11 @@ def t2_os_from_project(results: list[Result]) -> None:
     results.append(("T2 OS<-project", ok, f"pid={pid} qid={qid} tech={tech[:8]}…"))
 
 async def t3_technician_my(results: list[Result]) -> None:
+    if _skip_or_fail("T3 técnico /my",
+                     ["E2E_TECH_SUPABASE_STORAGE_KEY", "E2E_TECH_SUPABASE_SESSION_JSON", "E2E_SO_A_ID"],
+                     results):
+        return
     key = env("E2E_TECH_SUPABASE_STORAGE_KEY"); sess = env("E2E_TECH_SUPABASE_SESSION_JSON")
-    so_id = env("E2E_SO_A_ID")
-    if not (key and sess and so_id):
-        results.append(("T3 técnico /my", True, "SKIP: sessão técnico ausente")); return
     async with async_playwright() as p:
         b = await getattr(p, BROWSER).launch(headless=True)
         ctx = await b.new_context(viewport={"width": 1280, "height": 1800})
@@ -143,9 +144,9 @@ async def t3_technician_my(results: list[Result]) -> None:
     results.append(("T3 técnico /my", found, f"OS visível={found}"))
 
 def t4_so_cost(results: list[Result]) -> None:
+    if _skip_or_fail("T4 custo OS", ["E2E_FTX_SO_COST_A_ID"], results):
+        return
     ftx = env("E2E_FTX_SO_COST_A_ID")
-    if not ftx:
-        results.append(("T4 custo OS", True, "SKIP: fixture ausente")); return
     row = sql(
         f"SELECT type, status, origin, service_order_id, project_id, deleted_at IS NULL "
         f"FROM public.financial_transactions WHERE id='{ftx}';"
@@ -158,10 +159,9 @@ def t4_so_cost(results: list[Result]) -> None:
                     f"type={t} st={st} origin={orig} so={bool(so)} project={bool(pr)}"))
 
 def t5_project_margin(results: list[Result]) -> None:
+    if _skip_or_fail("T5 margem", ["E2E_PROJECT_A_ID"], results):
+        return
     project_id = env("E2E_PROJECT_A_ID")
-    if not project_id:
-        results.append(("T5 margem", True, "SKIP: fixture ausente")); return
-    # receita total (quote) e recebido
     rev = sql(
         f"SELECT COALESCE(SUM(amount),0) FROM public.financial_transactions "
         f"WHERE project_id='{project_id}' AND type='INCOME' AND status='PAID' AND deleted_at IS NULL;"
@@ -171,7 +171,6 @@ def t5_project_margin(results: list[Result]) -> None:
         f"WHERE project_id='{project_id}' AND type='EXPENSE' AND status='PAID' "
         f"AND origin='SERVICE_ORDER_COST' AND deleted_at IS NULL;"
     )
-    # compra geral (sem project_id) não deve aparecer
     leak = sql(
         f"SELECT COUNT(*) FROM public.financial_transactions "
         f"WHERE project_id='{project_id}' AND origin='PURCHASE_ORDER';"
@@ -182,10 +181,9 @@ def t5_project_margin(results: list[Result]) -> None:
                     f"receita={rev} custo_real={cost_real} lucro={lucro} leak_compra={leak}"))
 
 def t6_permissions(results: list[Result]) -> None:
+    if _skip_or_fail("T6 permissões", ["E2E_TECH_A_USER_ID"], results):
+        return
     tech = env("E2E_TECH_A_USER_ID")
-    if not tech:
-        results.append(("T6 permissões", True, "SKIP: E2E_TECH_A_USER_ID ausente")); return
-    # técnico sem papel manager/owner não deve ter has_role manager
     row = sql(
         f"SELECT COUNT(*) FROM public.user_roles ur "
         f"JOIN public.roles r ON r.id=ur.role_id "
@@ -195,11 +193,14 @@ def t6_permissions(results: list[Result]) -> None:
                     f"papéis privilegiados no técnico={row} (esperado 0)"))
 
 def t7_multi_company(results: list[Result]) -> None:
-    a = env("E2E_A_USER_ID"); b = env("E2E_B_USER_ID")
+    if _skip_or_fail("T7 multiempresa",
+                     ["E2E_A_USER_ID", "E2E_B_USER_ID", "E2E_QUOTE_A_ID",
+                      "E2E_PROJECT_A_ID", "E2E_SO_A_ID", "E2E_FTX_SO_COST_A_ID"],
+                     results):
+        return
+    b = env("E2E_B_USER_ID")
     quote_a = env("E2E_QUOTE_A_ID"); proj_a = env("E2E_PROJECT_A_ID")
     so_a = env("E2E_SO_A_ID"); ftx = env("E2E_FTX_SO_COST_A_ID")
-    if not (a and b and quote_a and proj_a and so_a and ftx):
-        results.append(("T7 multiempresa", True, "SKIP: fixtures ausentes")); return
     leaks: list[str] = []
     try:
         for table, rid in [("quotes", quote_a), ("projects", proj_a),
@@ -213,11 +214,14 @@ def t7_multi_company(results: list[Result]) -> None:
     results.append(("T7 multiempresa RLS", not leaks, f"leaks={leaks}"))
 
 async def t8_mobile(results: list[Result]) -> None:
+    if _skip_or_fail("T8 mobile 320px",
+                     ["E2E_A_SUPABASE_STORAGE_KEY", "E2E_A_SUPABASE_SESSION_JSON",
+                      "E2E_PROJECT_A_ID", "E2E_SO_A_ID"], results):
+        return
     key = env("E2E_A_SUPABASE_STORAGE_KEY"); sess = env("E2E_A_SUPABASE_SESSION_JSON")
     proj = env("E2E_PROJECT_A_ID"); so = env("E2E_SO_A_ID")
-    if not (key and sess and proj and so):
-        results.append(("T8 mobile 320px", True, "SKIP: sessão A ausente")); return
     failures: list[str] = []
+
     async with async_playwright() as p:
         b = await getattr(p, BROWSER).launch(headless=True)
         ctx = await b.new_context(viewport={"width": 320, "height": 720})
