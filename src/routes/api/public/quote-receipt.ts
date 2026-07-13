@@ -55,7 +55,7 @@ export const Route = createFileRoute("/api/public/quote-receipt")({
         const ip = clientIp(request);
 
         // Fail-closed: se a RPC falhar (rl.failed) tratamos como bloqueio.
-        const rlIp = await tryConsumeRateLimit(hashBucket("qrec:ip", ip), 20, 600);
+        const rlIp = await tryConsumeRateLimit(await hashBucket("qrec:ip", ip), 20, 600);
         if (rlIp.failed) {
           return tooMany(60, "Serviço indisponível. Tente novamente em instantes.");
         }
