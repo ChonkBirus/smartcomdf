@@ -456,8 +456,10 @@ jobs:
 
 
   lote3-and-costs:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_parallel_jobs }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
+
     env:
       E2E_RUN_ID: "[E2E-${{ github.run_id }}-lote3-and-costs-${{ github.run_attempt }}]"
     steps:
