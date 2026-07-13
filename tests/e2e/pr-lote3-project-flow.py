@@ -120,8 +120,6 @@ async def t3_technician_my(results: list[Result]) -> None:
         await page.evaluate(f"window.localStorage.setItem({json.dumps(key)},{json.dumps(sess)})")
         await page.goto(f"{BASE_URL}/service-orders/my", wait_until="networkidle")
         await page.screenshot(path=str(ARTIFACTS / "t3_tech_my.png"))
-        # OS aparece? busca por E2E-OS
-        found = await page.locator("text=E2E-OS-A-0001").first.is_visible(timeout=3_000).catch(lambda _: False) if hasattr(page.locator("text=x").first.is_visible(timeout=1), "catch") else False
         try:
             found = await page.locator("text=E2E-OS-A-0001").first.is_visible(timeout=3_000)
         except Exception:
