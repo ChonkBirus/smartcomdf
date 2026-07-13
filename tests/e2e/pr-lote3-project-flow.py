@@ -78,11 +78,22 @@ def sql_as(user_id: str, query: str) -> str:
 # ---------------------------------------------------------------------------
 # scenarios
 
+def _skip_or_fail(name: str, missing: list[str], results: list) -> bool:
+    """When seed ready, missing fixture = FAIL. Else SKIP (ok=True)."""
+    miss = [m for m in missing if not env(m)]
+    if not miss:
+        return False
+    if seed_ready():
+        results.append((name, False, f"FAIL: seed ready mas fixture obrigatória ausente: {', '.join(miss)}"))
+    else:
+        results.append((name, True, f"SKIP: seed não-ready — {', '.join(miss)} ausente"))
+    return True
+
+
 def t1_project_from_quote(results: list[Result]) -> None:
-    quote_id = env("E2E_QUOTE_A_ID"); project_id = env("E2E_PROJECT_A_ID")
-    if not (quote_id and project_id):
-        results.append(("T1 project<->quote", True, "SKIP: fixture ausente"))
+    if _skip_or_fail("T1 project<->quote", ["E2E_QUOTE_A_ID", "E2E_PROJECT_A_ID"], results):
         return
+    quote_id = env("E2E_QUOTE_A_ID"); project_id = env("E2E_PROJECT_A_ID")
     row = sql(
         f"SELECT p.id, p.quote_id, p.customer_id, q.customer_id, q.status "
         f"FROM public.projects p JOIN public.quotes q ON q.id=p.quote_id "
@@ -92,10 +103,10 @@ def t1_project_from_quote(results: list[Result]) -> None:
         results.append(("T1 project<->quote", False, "vínculo ausente")); return
     parts = row.split("|")
     ok = parts[0] == project_id and parts[1] == quote_id and parts[2] == parts[3]
-    # idempotência: getProjectByQuote lógica → um único projeto por quote
     dup = sql(f"SELECT COUNT(*) FROM public.projects WHERE quote_id='{quote_id}' AND deleted_at IS NULL;")
     results.append(("T1 project<->quote", ok and dup == "1",
                     f"pid={parts[0]} qid={parts[1]} cust={parts[2]}={parts[3]} count={dup}"))
+
 
 def t2_os_from_project(results: list[Result]) -> None:
     project_id = env("E2E_PROJECT_A_ID"); so_id = env("E2E_SO_A_ID"); quote_id = env("E2E_QUOTE_A_ID")
