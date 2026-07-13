@@ -30,9 +30,16 @@ async function normalizeCatastrophicSsrResponse(response: Response, request: Req
     return response;
   }
 
+  const requestUrl = new URL(request.url);
   const captured = consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`);
+  console.error("[SSR_HTTPERROR_SWALLOWED]", {
+    route: requestUrl.pathname,
+    status: response.status,
+    body,
+    contentType,
+  });
   console.error(captured);
-  return new Response(renderErrorPage({ error: captured, route: new URL(request.url).pathname }), {
+  return new Response(renderErrorPage({ error: captured, route: requestUrl.pathname }), {
     status: 500,
     headers: { "content-type": "text/html; charset=utf-8" },
   });

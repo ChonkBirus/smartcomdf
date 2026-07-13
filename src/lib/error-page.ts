@@ -3,6 +3,8 @@ type ErrorPageInput = {
   route?: string;
 };
 
+const BUILD_CHECK = "SSR_ERROR_PAGE_SAFE_2026-07-13_01";
+
 function escapeHtml(value: unknown): string {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -89,6 +91,7 @@ export function renderErrorPage(input: ErrorPageInput = {}): string {
           <dt>Rota atual</dt><dd id="diag-route">carregando...</dd>
           <dt>Sessão local</dt><dd id="diag-session">carregando...</dd>
           <dt>Storage auth</dt><dd id="diag-storage">carregando...</dd>
+          <dt>Build check</dt><dd>${escapeHtml(BUILD_CHECK)}</dd>
         </dl>
         <pre>${escapeHtml(stack)}</pre>
       </details>

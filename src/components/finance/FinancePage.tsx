@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -30,7 +30,6 @@ import { listBankAccounts } from "@/lib/bank-accounts.functions";
 import { getTxOriginLabel } from "@/lib/finance-origin";
 import { useCompanyId } from "@/hooks/use-company-id";
 import { FinancialHealthScoreCard, FinancialHealthPage } from "@/components/finance/FinancialHealthPage";
-import { FinanceAgentChat } from "@/components/finance/FinanceAgentChat";
 import { BankReconciliationPanel } from "@/components/finance/BankReconciliationPanel";
 import { BankStatementReconciliationPanel } from "@/components/finance/BankStatementReconciliationPanel";
 import { FinanceReportsPage } from "@/components/finance/FinanceReportsPage";
@@ -42,6 +41,12 @@ import { CategorySelect } from "@/components/finance/chart-of-accounts/CategoryS
 
 
 const BRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+const FinanceAgentChat = lazy(() =>
+  import("@/components/finance/FinanceAgentChat").then((module) => ({
+    default: module.FinanceAgentChat,
+  })),
+);
 
 type Preset = "today" | "7d" | "month" | "lastMonth" | "next7" | "next30" | "year" | "custom";
 
@@ -648,7 +653,9 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
         </TabsContent>
 
         <TabsContent value="agent" className="mt-4">
-          <FinanceAgentChat />
+          <Suspense fallback={<div className="rounded-lg border bg-card p-4 text-sm text-muted-foreground">Carregando agente financeiro...</div>}>
+            <FinanceAgentChat />
+          </Suspense>
         </TabsContent>
         <TabsContent value="reconciliation" className="mt-4 space-y-6">
           <BankReconciliationPanel />

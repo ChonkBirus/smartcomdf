@@ -32,6 +32,8 @@ const highlights = [
   "Controle de estoque e financeiro operacional",
 ];
 
+const BUILD_CHECK = "SSR_HOME_SAFE_2026-07-13_01";
+
 function LandingPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -47,6 +49,10 @@ function LandingPage() {
             <Link to="/auth" search={{ redirectTo: undefined }}>Entrar</Link>
           </Button>
         </header>
+
+        <p className="mt-4 text-[11px] text-muted-foreground" data-build-check={BUILD_CHECK}>
+          BUILD_CHECK: {BUILD_CHECK}
+        </p>
 
         <div className="grid flex-1 items-center gap-10 py-14 md:grid-cols-[1.1fr_0.9fr]">
           <div>
