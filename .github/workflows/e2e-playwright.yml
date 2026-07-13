@@ -365,3 +365,97 @@ jobs:
 
 
 
+  lote3-and-costs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: latest }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: bun install --frozen-lockfile
+      - run: |
+          python -m pip install --upgrade pip
+          pip install playwright
+          playwright install --with-deps chromium
+      - name: Build app
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+      - name: Start preview server
+        run: |
+          bun run preview --port 8080 &
+          echo $! > server.pid
+          for i in {1..40}; do
+            if curl -sf http://localhost:8080 > /dev/null; then break; fi
+            sleep 1
+          done
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+      - name: Seed E2E fixtures (clean state)
+        run: scripts/e2e-seed.sh
+        env:
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
+          E2E_A_USER_ID: ${{ secrets.E2E_A_USER_ID }}
+          E2E_B_USER_ID: ${{ secrets.E2E_B_USER_ID }}
+          E2E_TECH_A_USER_ID: ${{ secrets.E2E_TECH_A_USER_ID }}
+          E2E_A_ACCESS_TOKEN: ${{ secrets.E2E_A_ACCESS_TOKEN }}
+          E2E_B_ACCESS_TOKEN: ${{ secrets.E2E_B_ACCESS_TOKEN }}
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      - name: Run Lote 3 + PR7 + quote-flow
+        run: |
+          mkdir -p test-results
+          set +e
+          rc=0
+          python tests/e2e/pr-lote3-project-flow.py 2>&1 | tee test-results/lote3.log ; rc=$((rc || $?))
+          python tests/e2e/pr7-so-costs.py           2>&1 | tee test-results/pr7.log   ; rc=$((rc || $?))
+          python tests/e2e/pr-quote-flow.py          2>&1 | tee test-results/flow.log  ; rc=$((rc || $?))
+          exit $rc
+        env:
+          E2E_BROWSER: chromium
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
+          E2E_A_USER_ID: ${{ secrets.E2E_A_USER_ID }}
+          E2E_B_USER_ID: ${{ secrets.E2E_B_USER_ID }}
+          E2E_A_SUPABASE_SESSION_JSON: ${{ secrets.E2E_A_SUPABASE_SESSION_JSON }}
+          E2E_A_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_A_SUPABASE_STORAGE_KEY }}
+          E2E_B_SUPABASE_SESSION_JSON: ${{ secrets.E2E_B_SUPABASE_SESSION_JSON }}
+          E2E_B_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_B_SUPABASE_STORAGE_KEY }}
+          E2E_TECH_SUPABASE_SESSION_JSON: ${{ secrets.E2E_TECH_SUPABASE_SESSION_JSON }}
+          E2E_TECH_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_TECH_SUPABASE_STORAGE_KEY }}
+      - name: Teardown E2E fixtures
+        if: always()
+        run: python tests/e2e/seed_fixtures.py --teardown || true
+        env:
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
+      - name: Stop preview server
+        if: always()
+        run: if [ -f server.pid ]; then kill "$(cat server.pid)" || true; fi
+      - name: Upload lote3+pr7+flow artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lote3-costs-flow-results
+          path: |
+            test-results/
+            tests/e2e/artifacts/lote3/**
+            tests/e2e/artifacts/pr7/**
+            tests/e2e/artifacts/flow/**
+          if-no-files-found: ignore
+          retention-days: 14
