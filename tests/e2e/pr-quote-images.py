@@ -28,10 +28,19 @@ import asyncio, json, os, sys, uuid, tempfile, base64
 from pathlib import Path
 from playwright.async_api import async_playwright, Page, BrowserContext
 
+sys.path.insert(0, str(Path(__file__).parent))
+from _e2e_common import (
+    seed_ready,
+    skip_if_seed_not_ready,
+    require_fixtures,
+    print_summary,
+)
+
 BASE_URL = os.environ.get("E2E_BASE_URL", "http://localhost:8080")
 BROWSER = os.environ.get("E2E_BROWSER", "chromium")
 ART = Path(__file__).parent / "artifacts" / "quote-images"
 ART.mkdir(parents=True, exist_ok=True)
+
 
 # 1x1 PNG
 PNG_1x1 = base64.b64decode(
