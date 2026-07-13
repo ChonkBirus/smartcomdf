@@ -7548,10 +7548,18 @@ export type Database = {
       get_pilot_activation: { Args: { _company_id: string }; Returns: Json }
       get_public_quote_by_token: { Args: { _token: string }; Returns: Json }
       get_public_so_report: { Args: { _token: string }; Returns: Json }
-      has_company_role: {
-        Args: { _role: Database["public"]["Enums"]["app_role"] }
-        Returns: boolean
-      }
+      has_company_role:
+        | {
+            Args: { _role: Database["public"]["Enums"]["app_role"] }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              _company_id: string
+              _role: Database["public"]["Enums"]["app_role"]
+            }
+            Returns: boolean
+          }
       has_feature: { Args: { _code: string }; Returns: boolean }
       has_permission: { Args: { _slug: string }; Returns: boolean }
       has_role: {
