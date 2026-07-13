@@ -352,6 +352,7 @@ def print_env() -> None:
         f"E2E_FTX_INCOME_A_ID={IDS['ftx_income_a']}",
         f"E2E_FTX_SO_COST_A_ID={IDS['ftx_so_cost_a']}",
         f"E2E_TECH_A_USER_ID={os.environ.get('E2E_TECH_A_USER_ID') or os.environ['E2E_A_USER_ID']}",
+    ]
     print("\n".join(lines))
 
 # ---------------------------------------------------------------------------
