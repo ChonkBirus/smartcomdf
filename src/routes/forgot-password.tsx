@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { translateAuthError } from "@/lib/auth-errors";
+
 import { appUrl } from "@/lib/app-url";
 import { logAuthDev, maskEmail } from "@/lib/auth-dev-log";
 
