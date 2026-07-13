@@ -49,12 +49,21 @@ from __future__ import annotations
 import argparse, base64, os, subprocess, sys, time, urllib.request, uuid
 from typing import Iterable
 
-NS = "e2e-fixture"  # namespace determinístico
+# RUN_ID isola execuções paralelas: entra tanto na LABEL (descrições/nomes
+# human-readable) quanto no namespace de UUIDs, de modo que o teardown só
+# apague dados do próprio run. Aceita valores já formatados ("[E2E-...]")
+# vindos do workflow, ou gera um fallback local.
+_raw_run_id = os.environ.get("E2E_RUN_ID") or f"local-{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}"
+if _raw_run_id.startswith("[") and _raw_run_id.endswith("]"):
+    LABEL = _raw_run_id                 # já vem no formato "[E2E-<...>]"
+    RUN_ID = _raw_run_id[1:-1]          # sem colchetes para o namespace
+else:
+    RUN_ID = _raw_run_id
+    LABEL = f"[E2E-{RUN_ID}]"
 
-# run_id afeta apenas rótulos human-readable ([E2E-<run_id>] …), nunca UUIDs
-# (senão o teardown não conseguiria limpar linhas de execuções anteriores).
-RUN_ID = os.environ.get("E2E_RUN_ID") or time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
-LABEL = f"[E2E-{RUN_ID}]"
+NS = f"e2e-fixture:{RUN_ID}"  # UUIDs derivados por run → sem colisão entre jobs paralelos
+
+sys.stderr.write(f"seed_fixtures: E2E_RUN_ID={RUN_ID} LABEL={LABEL}\n")
 
 def _u(name: str) -> str:
     return str(uuid.uuid5(uuid.NAMESPACE_URL, f"{NS}:{name}"))
