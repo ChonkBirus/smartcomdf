@@ -44,10 +44,11 @@ export const getQuotePdfPayload = createServerFn({ method: "GET" })
     if (itemIds.length > 0) {
       const { data: catalog, error: catErr } = await sb
         .from("items")
-        .select("id, name, unit, description")
+        .select("id, name, sku, unit, description")
         .in("id", itemIds as string[]);
       if (catErr) console.warn("[PDF PAYLOAD] items join warning:", catErr.message);
       (catalog ?? []).forEach((c: any) => catalogById.set(c.id, c));
+
 
       // Fallback: fetch primary image per item for legacy quotes without image_path snapshot
       const { data: imgs } = await sb
