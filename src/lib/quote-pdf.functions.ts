@@ -122,9 +122,11 @@ export const getQuotePdfPayload = createServerFn({ method: "GET" })
         quantity: Number(it.quantity ?? 0),
         position: (it.position ?? 0) as number,
         unit: (it.items?.unit ?? "UN") as string,
+        sku: (it.items?.sku ?? null) as string | null,
         image_url,
       };
     }));
+
     console.log("[PDF PAYLOAD] enriched items:", enrichedItems.length);
 
 
