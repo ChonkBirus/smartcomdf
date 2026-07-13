@@ -166,7 +166,7 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
       toast.success(r.already ? "Orçamento já existia." : "Orçamento gerado.");
       invalidateAll();
       onOpenChange(false);
-      navigate({ to: "/quotes" });
+      navigate({ to: "/quotes", search: { new: undefined } });
     },
     onError: (e: any) => toast.error(e?.message ?? "Erro ao gerar orçamento."),
   });
@@ -230,7 +230,7 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
                   className="mt-1 h-auto p-0"
                   onClick={() => {
                     onOpenChange(false);
-                    navigate({ to: "/quotes/$id", params: { id: quoteStatus.id } });
+                    navigate({ to: "/quotes", search: { new: undefined } });
                   }}
                 >
                   Abrir orçamento →

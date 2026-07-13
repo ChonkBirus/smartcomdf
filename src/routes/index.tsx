@@ -169,10 +169,10 @@ function Header() {
         </nav>
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-            <Link to="/auth">Entrar</Link>
+            <Link to="/auth" search={{ redirectTo: undefined }}>Entrar</Link>
           </Button>
           <Button asChild size="sm">
-            <Link to="/auth">Começar teste grátis</Link>
+            <Link to="/auth" search={{ redirectTo: undefined }}>Começar teste grátis</Link>
           </Button>
         </div>
       </div>
@@ -215,7 +215,7 @@ function Hero() {
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <Button asChild size="lg" className="gap-2">
-              <Link to="/auth">Começar teste grátis <ArrowRight className="h-4 w-4" /></Link>
+              <Link to="/auth" search={{ redirectTo: undefined }}>Começar teste grátis <ArrowRight className="h-4 w-4" /></Link>
             </Button>
             <Button asChild variant="link" className="gap-2 text-muted-foreground hover:text-foreground">
               <a href={WHATSAPP_URL} target="_blank" rel="noreferrer">
@@ -370,7 +370,7 @@ function InlineCTA({ label = "Começar teste grátis" }: { label?: string }) {
   return (
     <div className="mt-10 flex flex-col items-center gap-2">
       <Button asChild size="lg" className="gap-2">
-        <Link to="/auth">{label} <ArrowRight className="h-4 w-4" /></Link>
+        <Link to="/auth" search={{ redirectTo: undefined }}>{label} <ArrowRight className="h-4 w-4" /></Link>
       </Button>
       <p className="text-xs text-muted-foreground">Sem cartão • 7 dias grátis</p>
     </div>
@@ -748,7 +748,7 @@ function Pricing() {
                   {isConsultant ? (
                     <a href={WHATSAPP_URL} target="_blank" rel="noreferrer">{p.cta}</a>
                   ) : (
-                    <Link to="/auth">{p.cta}</Link>
+                    <Link to="/auth" search={{ redirectTo: undefined }}>{p.cta}</Link>
                   )}
                 </Button>
               </CardContent>
@@ -841,7 +841,7 @@ function FinalCTA() {
         </p>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
           <Button asChild size="lg" className="gap-2">
-            <Link to="/auth">Começar teste grátis <ArrowRight className="h-4 w-4" /></Link>
+            <Link to="/auth" search={{ redirectTo: undefined }}>Começar teste grátis <ArrowRight className="h-4 w-4" /></Link>
           </Button>
           <Button asChild size="lg" variant="outline" className="gap-2">
             <a href={WHATSAPP_URL} target="_blank" rel="noreferrer">
@@ -879,7 +879,7 @@ function Footer() {
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li><a href="#pricing" className="hover:text-foreground">Planos</a></li>
             <li><a href="#features" className="hover:text-foreground">Funcionalidades</a></li>
-            <li><Link to="/auth" className="hover:text-foreground">Login</Link></li>
+            <li><Link to="/auth" search={{ redirectTo: undefined }} className="hover:text-foreground">Login</Link></li>
           </ul>
         </div>
         <div>

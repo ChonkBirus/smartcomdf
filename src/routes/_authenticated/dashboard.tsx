@@ -215,7 +215,7 @@ function Dashboard() {
             <div className="flex flex-wrap gap-2 pt-2">
               <Button asChild size="sm" variant="outline"><Link to="/clients">Clientes</Link></Button>
               <Button asChild size="sm" variant="outline"><Link to="/products">Produtos</Link></Button>
-              <Button asChild size="sm" variant="outline"><Link to="/quotes">Orçamentos</Link></Button>
+              <Button asChild size="sm" variant="outline"><Link to="/quotes" search={{ new: undefined }}>Orçamentos</Link></Button>
               <Button asChild size="sm" variant="outline"><Link to="/service-orders">Ordens de Serviço</Link></Button>
             </div>
           </CardContent>

@@ -333,7 +333,7 @@ function MobileSODetailPage() {
             )}
             {quote && (
               <Button asChild variant="outline" size="sm">
-                <Link to="/quotes">
+                <Link to="/quotes" search={{ new: undefined }}>
                   <FileText className="h-4 w-4 mr-1" /> Orçamento {quote.quote_number ?? ""}
                 </Link>
               </Button>
