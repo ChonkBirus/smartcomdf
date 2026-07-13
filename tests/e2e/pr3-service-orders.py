@@ -158,8 +158,20 @@ async def main() -> int:
     proj_q = env("E2E_PR3_PROJECT_WITH_QUOTE_ID")
     proj_nq = env("E2E_PR3_PROJECT_WITHOUT_QUOTE_ID")
     tech_id = env("E2E_PR3_TECHNICIAN_ID")
-    if not (key_a and sess_a and proj_q and tech_id):
-        print("SKIP: PR3 E2E requires E2E_A_* session + E2E_PR3_PROJECT_WITH_QUOTE_ID + E2E_PR3_TECHNICIAN_ID.")
+    required = {
+        "E2E_A_SUPABASE_STORAGE_KEY": key_a,
+        "E2E_A_SUPABASE_SESSION_JSON": sess_a,
+        "E2E_PR3_PROJECT_WITH_QUOTE_ID": proj_q,
+        "E2E_PR3_TECHNICIAN_ID": tech_id,
+    }
+    missing = [k for k, v in required.items() if not v]
+    if missing:
+        if seed_ready():
+            print(f"FAIL [pr3]: seed ready mas fixture obrigatória ausente: {', '.join(missing)}")
+            print("=== pr3 summary ===  PASS=0 FAIL=1 SKIP=0")
+            return 1
+        print(f"SKIP [pr3]: seed não-ready — fixtures ausentes: {', '.join(missing)}")
+        print("=== pr3 summary ===  PASS=0 FAIL=0 SKIP=1")
         return 0
 
     key_b, sess_b = env("E2E_B_SUPABASE_STORAGE_KEY"), env("E2E_B_SUPABASE_SESSION_JSON")
@@ -177,29 +189,46 @@ async def main() -> int:
             if proj_nq:
                 await t3_project_without_quote(page_a, proj_nq, tech_id, results)
             else:
-                results.append(("T3 project without quote", True, "skipped (no id)"))
+                if seed_ready():
+                    results.append(("T3 project without quote", False,
+                                    "FAIL: seed ready mas fixture obrigatória ausente: E2E_PR3_PROJECT_WITHOUT_QUOTE_ID"))
+                else:
+                    results.append(("T3 project without quote", True, "SKIP: no id (seed não-ready)"))
 
             if key_b and sess_b:
                 ctx_b = await browser.new_context(viewport={"width": 1280, "height": 1800})
                 page_b = await restore(ctx_b, key_b, sess_b)
                 await t4_multi_company(page_b, proj_q, results)
             else:
-                results.append(("T4 multi-company", True, "skipped (no B creds)"))
+                if seed_ready():
+                    results.append(("T4 multi-company", False,
+                                    "FAIL: seed ready mas sessão B ausente (E2E_B_SUPABASE_*)"))
+                else:
+                    results.append(("T4 multi-company", True, "SKIP: no B creds"))
 
             if key_t and sess_t:
                 ctx_t = await browser.new_context(viewport={"width": 1280, "height": 1800})
                 page_t = await restore(ctx_t, key_t, sess_t)
                 await t_technician_view(page_t, results)
             else:
-                results.append(("T Technician view", True, "skipped (no tech creds)"))
+                if seed_ready():
+                    results.append(("T Technician view", False,
+                                    "FAIL: seed ready mas sessão técnico ausente (E2E_TECH_SUPABASE_*)"))
+                else:
+                    results.append(("T Technician view", True, "SKIP: no tech creds"))
         finally:
             await browser.close()
 
-    failed = [r for r in results if not r[1]]
     print("\n=== PR3 Service Orders E2E ===")
     for name, ok, note in results:
-        print(f"  [{'PASS' if ok else 'FAIL'}] {name} — {note}")
-    return 0 if not failed else 1
+        tag = "PASS"
+        if (note or "").upper().startswith("SKIP"):
+            tag = "SKIP"
+        elif not ok:
+            tag = "FAIL"
+        print(f"  [{tag}] {name} — {note}")
+    return print_summary("pr3-service-orders", results)
+
 
 
 if __name__ == "__main__":
