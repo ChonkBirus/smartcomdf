@@ -34,6 +34,8 @@ function ForgotPassword() {
       console.info("[AUTH RESET PASSWORD] redirectUrl", redirectUrl);
     }
     logAuthDev({ flow: "reset_password", status: "attempt", emailMasked: masked, redirectUrl });
+    // Resposta genérica sempre: nunca revelamos se o e-mail existe.
+    // Se o Supabase retornar erro (rate limit / rede), logamos apenas em dev.
     const { error } = await supabase.auth.resetPasswordForEmail(d.email, {
       redirectTo: redirectUrl,
     });
@@ -41,11 +43,11 @@ function ForgotPassword() {
     if (error) {
       if (import.meta.env.DEV) console.warn("[AUTH RESET PASSWORD] error", error.message);
       logAuthDev({ flow: "reset_password", status: "error", emailMasked: masked, message: error.message });
-      return toast.error(translateAuthError(error.message));
+    } else {
+      logAuthDev({ flow: "reset_password", status: "success", emailMasked: masked, redirectUrl });
     }
-    logAuthDev({ flow: "reset_password", status: "success", emailMasked: masked, redirectUrl });
     setSent(true);
-    toast.success("Enviamos um link para o seu e-mail.");
+    toast.success("Se o e-mail estiver cadastrado, enviaremos as instruções de recuperação.");
   };
 
   return (
