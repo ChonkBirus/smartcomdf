@@ -46,6 +46,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as ApiPublicQuoteReceiptRouteImport } from './routes/api/public/quote-receipt'
 import { Route as ApiPublicQuoteImageUrlsRouteImport } from './routes/api/public/quote-image-urls'
 import { Route as ApiPublicOpenFinanceWebhookRouteImport } from './routes/api/public/open-finance-webhook'
+import { Route as ApiPublicForgotPasswordRouteImport } from './routes/api/public/forgot-password'
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing-webhook'
 import { Route as ApiFinanceAgentChatRouteImport } from './routes/api/finance-agent.chat'
 import { Route as ApiAssistantChatRouteImport } from './routes/api/assistant.chat'
@@ -278,6 +279,11 @@ const ApiPublicOpenFinanceWebhookRoute =
     path: '/api/public/open-finance-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicForgotPasswordRoute = ApiPublicForgotPasswordRouteImport.update({
+  id: '/api/public/forgot-password',
+  path: '/api/public/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicBillingWebhookRoute = ApiPublicBillingWebhookRouteImport.update({
   id: '/api/public/billing-webhook',
   path: '/api/public/billing-webhook',
@@ -594,6 +600,7 @@ export interface FileRoutesByFullPath {
   '/api/assistant/chat': typeof ApiAssistantChatRoute
   '/api/finance-agent/chat': typeof ApiFinanceAgentChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
+  '/api/public/forgot-password': typeof ApiPublicForgotPasswordRoute
   '/api/public/open-finance-webhook': typeof ApiPublicOpenFinanceWebhookRoute
   '/api/public/quote-image-urls': typeof ApiPublicQuoteImageUrlsRoute
   '/api/public/quote-receipt': typeof ApiPublicQuoteReceiptRoute
@@ -672,6 +679,7 @@ export interface FileRoutesByTo {
   '/api/assistant/chat': typeof ApiAssistantChatRoute
   '/api/finance-agent/chat': typeof ApiFinanceAgentChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
+  '/api/public/forgot-password': typeof ApiPublicForgotPasswordRoute
   '/api/public/open-finance-webhook': typeof ApiPublicOpenFinanceWebhookRoute
   '/api/public/quote-image-urls': typeof ApiPublicQuoteImageUrlsRoute
   '/api/public/quote-receipt': typeof ApiPublicQuoteReceiptRoute
@@ -754,6 +762,7 @@ export interface FileRoutesById {
   '/api/assistant/chat': typeof ApiAssistantChatRoute
   '/api/finance-agent/chat': typeof ApiFinanceAgentChatRoute
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
+  '/api/public/forgot-password': typeof ApiPublicForgotPasswordRoute
   '/api/public/open-finance-webhook': typeof ApiPublicOpenFinanceWebhookRoute
   '/api/public/quote-image-urls': typeof ApiPublicQuoteImageUrlsRoute
   '/api/public/quote-receipt': typeof ApiPublicQuoteReceiptRoute
@@ -836,6 +845,7 @@ export interface FileRouteTypes {
     | '/api/assistant/chat'
     | '/api/finance-agent/chat'
     | '/api/public/billing-webhook'
+    | '/api/public/forgot-password'
     | '/api/public/open-finance-webhook'
     | '/api/public/quote-image-urls'
     | '/api/public/quote-receipt'
@@ -914,6 +924,7 @@ export interface FileRouteTypes {
     | '/api/assistant/chat'
     | '/api/finance-agent/chat'
     | '/api/public/billing-webhook'
+    | '/api/public/forgot-password'
     | '/api/public/open-finance-webhook'
     | '/api/public/quote-image-urls'
     | '/api/public/quote-receipt'
@@ -995,6 +1006,7 @@ export interface FileRouteTypes {
     | '/api/assistant/chat'
     | '/api/finance-agent/chat'
     | '/api/public/billing-webhook'
+    | '/api/public/forgot-password'
     | '/api/public/open-finance-webhook'
     | '/api/public/quote-image-urls'
     | '/api/public/quote-receipt'
@@ -1021,6 +1033,7 @@ export interface RootRouteChildren {
   ApiAssistantChatRoute: typeof ApiAssistantChatRoute
   ApiFinanceAgentChatRoute: typeof ApiFinanceAgentChatRoute
   ApiPublicBillingWebhookRoute: typeof ApiPublicBillingWebhookRoute
+  ApiPublicForgotPasswordRoute: typeof ApiPublicForgotPasswordRoute
   ApiPublicOpenFinanceWebhookRoute: typeof ApiPublicOpenFinanceWebhookRoute
   ApiPublicQuoteImageUrlsRoute: typeof ApiPublicQuoteImageUrlsRoute
   ApiPublicQuoteReceiptRoute: typeof ApiPublicQuoteReceiptRoute
@@ -1286,6 +1299,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/open-finance-webhook'
       fullPath: '/api/public/open-finance-webhook'
       preLoaderRoute: typeof ApiPublicOpenFinanceWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/forgot-password': {
+      id: '/api/public/forgot-password'
+      path: '/api/public/forgot-password'
+      fullPath: '/api/public/forgot-password'
+      preLoaderRoute: typeof ApiPublicForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/billing-webhook': {
@@ -1791,6 +1811,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAssistantChatRoute: ApiAssistantChatRoute,
   ApiFinanceAgentChatRoute: ApiFinanceAgentChatRoute,
   ApiPublicBillingWebhookRoute: ApiPublicBillingWebhookRoute,
+  ApiPublicForgotPasswordRoute: ApiPublicForgotPasswordRoute,
   ApiPublicOpenFinanceWebhookRoute: ApiPublicOpenFinanceWebhookRoute,
   ApiPublicQuoteImageUrlsRoute: ApiPublicQuoteImageUrlsRoute,
   ApiPublicQuoteReceiptRoute: ApiPublicQuoteReceiptRoute,
