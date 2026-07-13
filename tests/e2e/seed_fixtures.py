@@ -345,11 +345,13 @@ def print_env() -> None:
         f"E2E_ITEM_B_ID={IDS['item_b']}",
         f"E2E_QUOTE_PAYMENT_A_ID={IDS['quote_payment_a']}",
         f"E2E_RECEIPT_PATH_A={RECEIPT_PATH_A}",
+        f"E2E_QUOTE_A_ID={IDS['quote_a']}",
+        f"E2E_QUOTE_B_ID={IDS['quote_b']}",
         f"E2E_PROJECT_A_ID={IDS['project_a']}",
         f"E2E_SO_A_ID={IDS['so_a']}",
         f"E2E_FTX_INCOME_A_ID={IDS['ftx_income_a']}",
         f"E2E_FTX_SO_COST_A_ID={IDS['ftx_so_cost_a']}",
-    ]
+        f"E2E_TECH_A_USER_ID={os.environ.get('E2E_TECH_A_USER_ID') or os.environ['E2E_A_USER_ID']}",
     print("\n".join(lines))
 
 # ---------------------------------------------------------------------------
