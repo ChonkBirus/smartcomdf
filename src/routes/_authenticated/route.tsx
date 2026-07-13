@@ -1,13 +1,13 @@
-import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app/AppSidebar";
 import { Topbar } from "@/components/app/Topbar";
 import { getMyContext } from "@/lib/account.functions";
 import { AuthLoadingScreen } from "@/components/app/AuthLoadingScreen";
+import { useAuth } from "@/lib/auth-context";
 import { PermissionsProvider } from "@/lib/permissions";
 import { FeaturesProvider, type PlanInfo } from "@/lib/features";
 import { UpgradeModal } from "@/components/app/UpgradeModal";
@@ -18,20 +18,17 @@ import { OfflineBanner } from "@/components/app/OfflineBanner";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  beforeLoad: async () => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) throw redirect({ to: "/auth", search: { redirectTo: undefined } });
-    return { user: data.user };
-  },
   component: AuthenticatedLayout,
 });
 
 function AuthenticatedLayout() {
   const fetchCtx = useServerFn(getMyContext);
   const navigate = useNavigate();
+  const { session, loading: authLoading } = useAuth();
   const { data, isLoading } = useQuery({
     queryKey: ["me"],
     queryFn: () => fetchCtx(),
+    enabled: !!session,
     // Profile/permissions/plan rarely change; avoid the nested join query
     // (profiles → companies → plans) firing on every navigation/focus.
     staleTime: 5 * 60_000,
@@ -39,16 +36,21 @@ function AuthenticatedLayout() {
     refetchOnWindowFocus: false,
   });
 
+  useEffect(() => {
+    if (!authLoading && !session) {
+      navigate({ to: "/auth", search: { redirectTo: undefined }, replace: true });
+    }
+  }, [authLoading, session, navigate]);
+
   // Redirect to onboarding if no company
   useEffect(() => {
-    if (!isLoading && data && !data.company) {
+    if (!session || isLoading || !data || data.company) return;
       if (location.pathname !== "/onboarding") {
         navigate({ to: "/onboarding", replace: true });
       }
-    }
-  }, [data, isLoading, navigate]);
+  }, [data, isLoading, navigate, session]);
 
-  if (isLoading) {
+  if (authLoading || !session || isLoading) {
     return <AuthLoadingScreen message="Carregando seu perfil..." />;
   }
 

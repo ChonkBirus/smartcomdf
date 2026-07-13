@@ -4,7 +4,7 @@
  * - "simple": legacy single-style PDF kept as fallback.
  */
 import { generateQuotePDF as generateSimplePDF } from "./quote-pdf";
-import { generatePremiumQuotePDF, type PremiumPdfConfig } from "./quote-pdf-premium";
+import type { PremiumPdfConfig } from "./quote-pdf-premium";
 import type { Quote, QuoteItem } from "./quotes.functions";
 
 export type QuotePdfTemplate = "premium" | "simple";
@@ -53,6 +53,7 @@ export async function generateQuotePDF(opts: GenerateQuotePdfOpts): Promise<Blob
       output: opts.output,
     });
   }
+  const { generatePremiumQuotePDF } = await import("./quote-pdf-premium");
   return await generatePremiumQuotePDF({
     quote: opts.quote as any,
     items: opts.items.map((it) => ({
