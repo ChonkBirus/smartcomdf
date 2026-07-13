@@ -24,6 +24,7 @@ import { getCompanyCostSettings, computeSuggestedPrice } from "@/lib/pricing.fun
 import { usePermissions } from "@/lib/permissions";
 import { useAuth } from "@/lib/auth-context";
 import { roundMoney, roundPercent } from "@/lib/rounding";
+import { computeQuoteTotals } from "@/lib/quote-totals";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
