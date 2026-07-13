@@ -133,7 +133,7 @@ function RootComponent() {
     return () => sub.subscription.unsubscribe();
   }, [router, queryClient]);
 
-  return (
+  const tree = (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
@@ -145,4 +145,5 @@ function RootComponent() {
       </ThemeProvider>
     </QueryClientProvider>
   );
+  return import.meta.env.DEV ? <StrictMode>{tree}</StrictMode> : tree;
 }
