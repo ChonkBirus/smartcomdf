@@ -24,6 +24,17 @@ set -euo pipefail
 MODE="${1:-full}"
 REQUIRED=(PGHOST PGUSER PGPASSWORD PGDATABASE E2E_A_USER_ID E2E_B_USER_ID)
 
+# E2E_RUN_ID isola runs paralelos. Se o workflow não passou, gera fallback
+# local no formato "[E2E-local-<ts>]" e exporta para seed/teardown/leftover.
+if [ -z "${E2E_RUN_ID:-}" ]; then
+  E2E_RUN_ID="[E2E-local-$(date -u +%Y%m%dT%H%M%SZ)-$$]"
+fi
+export E2E_RUN_ID
+echo "e2e-seed: E2E_RUN_ID=$E2E_RUN_ID" >&2
+if [ -n "${GITHUB_ENV:-}" ]; then
+  echo "E2E_RUN_ID=$E2E_RUN_ID" >> "$GITHUB_ENV"
+fi
+
 emit_skip() {
   local reason="$1"
   echo "SKIP: e2e-seed — $reason" >&2
