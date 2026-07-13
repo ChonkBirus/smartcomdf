@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -36,11 +35,6 @@ import {
   getConversationMessages,
 } from "@/lib/assistant.functions";
 
-export const Route = createFileRoute("/_authenticated/assistant")({
-  head: () => ({ meta: [{ title: "SmartCom IA — Copiloto" }] }),
-  component: AssistantPage,
-});
-
 const QUICK_PROMPTS = [
   "Criar orçamento para instalação de câmeras",
   "Criar checklist para manutenção de CFTV",
@@ -50,7 +44,7 @@ const QUICK_PROMPTS = [
   "Organizar produtos e serviços no estoque",
 ];
 
-function AssistantPage() {
+export function AssistantPage() {
   return (
     <FeatureGate feature={"ai_assistant" as never}>
       <AssistantInner />
