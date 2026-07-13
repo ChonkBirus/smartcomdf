@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 import { appUrl } from "@/lib/app-url";
@@ -29,26 +28,25 @@ function ForgotPassword() {
     setLoading(true);
     const redirectUrl = appUrl("/reset-password");
     const masked = maskEmail(d.email);
-    if (import.meta.env.DEV) {
-      console.info("[AUTH RESET PASSWORD] email", d.email);
-      console.info("[AUTH RESET PASSWORD] redirectUrl", redirectUrl);
-    }
     logAuthDev({ flow: "reset_password", status: "attempt", emailMasked: masked, redirectUrl });
-    // Resposta genérica sempre: nunca revelamos se o e-mail existe.
-    // Se o Supabase retornar erro (rate limit / rede), logamos apenas em dev.
-    const { error } = await supabase.auth.resetPasswordForEmail(d.email, {
-      redirectTo: redirectUrl,
-    });
-    setLoading(false);
-    if (error) {
-      if (import.meta.env.DEV) console.warn("[AUTH RESET PASSWORD] error", error.message);
-      logAuthDev({ flow: "reset_password", status: "error", emailMasked: masked, message: error.message });
-    } else {
+    // Chama server route com rate limit persistente. Resposta é sempre
+    // genérica — nunca revelamos se o e-mail existe nem se foi bloqueado.
+    try {
+      await fetch("/api/public/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: d.email, redirectTo: redirectUrl }),
+      });
       logAuthDev({ flow: "reset_password", status: "success", emailMasked: masked, redirectUrl });
+    } catch (e: any) {
+      if (import.meta.env.DEV) console.warn("[AUTH RESET PASSWORD] error", e?.message ?? e);
+      logAuthDev({ flow: "reset_password", status: "error", emailMasked: masked, message: String(e?.message ?? e) });
     }
+    setLoading(false);
     setSent(true);
     toast.success("Se o e-mail estiver cadastrado, enviaremos as instruções de recuperação.");
   };
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">

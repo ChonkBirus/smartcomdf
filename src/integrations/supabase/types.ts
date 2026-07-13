@@ -4748,6 +4748,27 @@ export type Database = {
           },
         ]
       }
+      public_rate_limits: {
+        Row: {
+          bucket: string
+          count: number
+          reset_at: string
+          updated_at: string
+        }
+        Insert: {
+          bucket: string
+          count?: number
+          reset_at: string
+          updated_at?: string
+        }
+        Update: {
+          bucket?: string
+          count?: number
+          reset_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       purchase_order_items: {
         Row: {
           created_at: string
@@ -7473,6 +7494,7 @@ export type Database = {
         Returns: undefined
       }
       check_project_materials: { Args: { _project_id: string }; Returns: Json }
+      cleanup_public_rate_limits: { Args: never; Returns: number }
       confirm_nota_receiving: {
         Args: {
           _doc_id: string
@@ -8031,6 +8053,14 @@ export type Database = {
           _to_location: string
         }
         Returns: Json
+      }
+      try_consume_rate_limit: {
+        Args: { _bucket: string; _limit: number; _window_seconds: number }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          retry_after_sec: number
+        }[]
       }
       update_project_planning: {
         Args: {
