@@ -59,7 +59,7 @@ function ForgotPassword() {
           {sent ? (
             <div className="space-y-3 text-sm">
               <p>Se o e-mail existir, você receberá as instruções em instantes.</p>
-              <Link to="/auth" className="text-primary hover:underline">Voltar ao login</Link>
+              <Link to="/auth" search={{ redirectTo: undefined }} className="text-primary hover:underline">Voltar ao login</Link>
             </div>
           ) : (
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
@@ -70,7 +70,7 @@ function ForgotPassword() {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Enviando..." : "Enviar link"}
               </Button>
-              <Link to="/auth" className="block text-center text-xs text-primary hover:underline">Voltar ao login</Link>
+              <Link to="/auth" search={{ redirectTo: undefined }} className="block text-center text-xs text-primary hover:underline">Voltar ao login</Link>
             </form>
           )}
         </CardContent>
