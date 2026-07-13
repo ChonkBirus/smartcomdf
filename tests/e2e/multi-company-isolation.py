@@ -151,18 +151,28 @@ async def run_with_creds(
     finally:
         await browser.close()
 
-    failed = [r for r in results if not r[1]]
     print("\n=== Multi-company audit ===")
     for name, ok, note in results:
-        print(f"  [{'PASS' if ok else 'FAIL'}] {name} — {note}")
-    return 0 if not failed else 1
+        tag = "PASS"
+        if (note or "").upper().startswith("SKIP"):
+            tag = "SKIP"
+        elif not ok:
+            tag = "FAIL"
+        print(f"  [{tag}] {name} — {note}")
+    return print_summary("multi-company", results)
 
 
 async def main() -> int:
     key_a, sess_a = env("E2E_A_SUPABASE_STORAGE_KEY"), env("E2E_A_SUPABASE_SESSION_JSON")
     key_b, sess_b = env("E2E_B_SUPABASE_STORAGE_KEY"), env("E2E_B_SUPABASE_SESSION_JSON")
     if not (key_a and sess_a and key_b and sess_b):
-        print("SKIP: E2E_A_* and E2E_B_* session secrets are not set. Multi-company audit skipped.")
+        # Multiempresa é bloqueante quando a seed rodou; sessão A/B ausente vira FAIL.
+        if seed_ready():
+            print("FAIL [multi-company]: seed ready mas fixture obrigatória ausente: E2E_A_/E2E_B_SUPABASE_SESSION_JSON/STORAGE_KEY")
+            print("=== multi-company summary ===  PASS=0 FAIL=1 SKIP=0")
+            return 1
+        print("SKIP: E2E_A_* and E2E_B_* session secrets are not set (seed não-ready).")
+        print("=== multi-company summary ===  PASS=0 FAIL=0 SKIP=1")
         return 0
 
     viewer = None
@@ -173,6 +183,7 @@ async def main() -> int:
 
     async with async_playwright() as p:
         return await run_with_creds(p, key_a, sess_a, key_b, sess_b, viewer)
+
 
 
 if __name__ == "__main__":
