@@ -46,7 +46,7 @@ function getHashSecret(): string | null {
  * `namespace` identifica o endpoint/dimensão (ex.: "qimg:tokip").
  * `parts` são os identificadores sensíveis já normalizados.
  */
-export function hashBucket(namespace: string, ...parts: string[]): string {
+export async function hashBucket(namespace: string, ...parts: string[]): Promise<string> {
   const secret = getHashSecret();
   const payload = parts.join("|");
   if (!secret) {
@@ -61,8 +61,19 @@ export function hashBucket(namespace: string, ...parts: string[]): string {
     // vai retornar allowed=false e o caller cuida do fail-closed.
     return "";
   }
-  const h = createHmac("sha256", secret).update(`${namespace}|${payload}`).digest("hex");
-  return `${namespace}:${h}`;
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(`${namespace}|${payload}`));
+  const bytes = new Uint8Array(sig);
+  let hex = "";
+  for (let i = 0; i < bytes.length; i++) hex += bytes[i]!.toString(16).padStart(2, "0");
+  return `${namespace}:${hex}`;
 }
 
 /**
