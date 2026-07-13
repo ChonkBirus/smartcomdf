@@ -97,6 +97,22 @@ jobs:
           PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
           PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
 
+      - name: Verify no leftovers
+        if: always()
+        # TODO: ampliar para companies/customers/items/item_images/quotes/quote_items/quote_payments/projects/service_orders
+        run: |
+          if [ -z "$PGHOST" ]; then echo "SKIP leftover check: PGHOST not set"; exit 0; fi
+          leftover=$(psql -tA -c "SELECT COUNT(*) FROM public.financial_transactions WHERE description LIKE '[E2E-%';" || echo 0)
+          echo "leftover financial_transactions=$leftover"
+          test "$leftover" = "0"
+        env:
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
+
+
 
       - name: Stop preview server
         if: always()
