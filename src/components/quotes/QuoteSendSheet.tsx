@@ -32,7 +32,7 @@ import {
 import {
   listQuotePayments, approveQuotePayment, cancelQuotePayment, resyncQuotePayment, getCompanyPix,
 } from "@/lib/quote-payments.functions";
-import { generateQuotePDF, type QuotePdfTemplate } from "@/lib/quote-pdf-index";
+import type { QuotePdfTemplate } from "@/lib/quote-pdf-index";
 import { getQuotePdfPayload } from "@/lib/quote-pdf.functions";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -162,6 +162,7 @@ export function QuoteSendSheet({
     if (!quote) return;
     setPdfBusy(true);
     try {
+      const { generateQuotePDF } = await import("@/lib/quote-pdf-index");
       const payload = await fetchPdfPayload({ data: { quote_id: quote.id } });
       console.log("[PDF CLIENT] payload.items:", payload.items?.length, payload.items);
       await generateQuotePDF({
@@ -185,6 +186,7 @@ export function QuoteSendSheet({
     if (!quote) return;
     setPreviewBusy(true);
     try {
+      const { generateQuotePDF } = await import("@/lib/quote-pdf-index");
       const payload = await fetchPdfPayload({ data: { quote_id: quote.id } });
       console.log("[PDF CLIENT preview] payload.items:", payload.items?.length);
       const blob = await generateQuotePDF({

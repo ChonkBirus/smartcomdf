@@ -8,9 +8,10 @@ import { AppSidebar } from "@/components/app/AppSidebar";
 import { Topbar } from "@/components/app/Topbar";
 import { getMyContext } from "@/lib/account.functions";
 import { AuthLoadingScreen } from "@/components/app/AuthLoadingScreen";
-import { clearLocalAuthStorage, useAuth } from "@/lib/auth-context";
+import { AuthProvider, clearLocalAuthStorage, useAuth } from "@/lib/auth-context";
 import { PermissionsProvider } from "@/lib/permissions";
 import { FeaturesProvider, type PlanInfo } from "@/lib/features";
+import { SessionExpiredProvider } from "@/lib/session-expired";
 import { UpgradeModal } from "@/components/app/UpgradeModal";
 import { SubscriptionGuard } from "@/components/billing/SubscriptionGuard";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
@@ -21,8 +22,18 @@ import { classifyError } from "@/lib/error-messages";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  component: AuthenticatedLayout,
+  component: AuthenticatedRouteProviders,
 });
+
+function AuthenticatedRouteProviders() {
+  return (
+    <AuthProvider>
+      <SessionExpiredProvider>
+        <AuthenticatedLayout />
+      </SessionExpiredProvider>
+    </AuthProvider>
+  );
+}
 
 function AuthenticatedLayout() {
   const fetchCtx = useServerFn(getMyContext);
@@ -44,9 +55,9 @@ function AuthenticatedLayout() {
 
   useEffect(() => {
     if (!authLoading && !session) {
-      navigate({ to: "/auth", search: { redirectTo: undefined }, replace: true });
+      navigate({ to: "/auth", search: { redirectTo: location.pathname }, replace: true });
     }
-  }, [authLoading, session, navigate]);
+  }, [authLoading, location.pathname, session, navigate]);
 
   useEffect(() => {
     if (!isError || classifyError(error) !== "session_expired") return;
