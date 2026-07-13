@@ -66,7 +66,9 @@ export const Route = createFileRoute("/api/public/quote-image-urls")({
           "validate_public_quote_image_paths",
           { _token: token, _paths: paths } as any,
         );
-        if (vErr) return json({ error: vErr.message }, 400);
+        // Nunca vazamos a mensagem interna: se a validação falhar, respondemos
+        // como se nada estivesse disponível — evita enumeração.
+        if (vErr) return json({ urls: {} });
         const validPaths = new Set<string>(((valid as string[]) ?? []));
         const urls: Record<string, string> = {};
         for (const p of paths) {
