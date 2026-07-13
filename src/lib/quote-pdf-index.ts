@@ -32,7 +32,7 @@ type Company = {
 export type GenerateQuotePdfOpts = {
   template?: QuotePdfTemplate;
   quote: Quote;
-  items: Array<QuoteItem & { unit?: string | null; image_url?: string | null }>;
+  items: Array<QuoteItem & { unit?: string | null; image_url?: string | null; sku?: string | null }>;
   customer: Customer;
   company: Company;
   settings?: Record<string, any> | null;
@@ -62,15 +62,17 @@ export async function generateQuotePDF(opts: GenerateQuotePdfOpts): Promise<Blob
       description: it.description,
       quantity: Number(it.quantity),
       unit: (it.unit as string) || "UN",
+      sku: (it.sku as string) || null,
       image_url: (it.image_url as string) || null,
       position: it.position,
     })),
     customer: opts.customer,
-    company: opts.company,
+    company: opts.company as any,
     settings: opts.settings ?? null,
     publicLink: opts.publicLink ?? "",
     config: opts.config,
     output: opts.output,
   });
 }
+
 
