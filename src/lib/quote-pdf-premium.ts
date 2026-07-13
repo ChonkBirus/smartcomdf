@@ -938,7 +938,7 @@ function renderDiagnosisPage(doc: jsPDF, ctx: { quote: PdfQuote }) {
 
   const text =
     q.customer_notes?.trim() ||
-    "Durante a análise da necessidade, foram considerados os pontos críticos do ambiente, a rotina de uso, a exposição a riscos, a necessidade de monitoramento, o controle de acesso e a viabilidade técnica da instalação. A solução proposta busca atender ao cenário atual e permitir futuras ampliações de forma organizada.";
+    "Diagnóstico a ser complementado após validação técnica no local.";
   drawParagraph(doc, text, y);
 }
 
