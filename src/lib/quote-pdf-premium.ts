@@ -246,6 +246,30 @@ const RESOLVES_COPY: Record<HighlightCategory, string> = {
   other: "Contribui para o funcionamento da solução, oferecendo desempenho e confiabilidade adequados ao projeto.",
 };
 
+const CHOSEN_COPY: Record<HighlightCategory, string> = {
+  camera: "Selecionada por atender à cobertura visual dos pontos críticos do ambiente, com qualidade de imagem adequada ao uso pretendido.",
+  dvr: "Escolhido por centralizar a gravação com estabilidade e capacidade compatível com a quantidade de câmeras do projeto.",
+  switch: "Escolhido por alimentar os dispositivos pela própria rede (PoE), reduzindo pontos de energia e simplificando a instalação.",
+  alarm_central: "Selecionada como cérebro do sistema de alarme, responsável por processar sensores e disparar avisos de forma confiável.",
+  sensor: "Escolhido pela cobertura adequada ao ambiente e pela sensibilidade correta para reduzir falso alarme.",
+  siren: "Selecionada para sinalização audível eficaz, reforçando a resposta do sistema em caso de disparo.",
+  intercom: "Selecionado por oferecer comunicação estável entre os pontos e integração com controle da entrada.",
+  lock: "Escolhida por permitir acionamento eletrônico seguro e integração com o controle de acesso do ambiente.",
+  access_reader: "Selecionado por permitir identificação confiável do usuário na liberação do acesso.",
+  controller: "Selecionada por integrar os dispositivos do sistema em uma operação centralizada e organizada.",
+  router: "Escolhido por oferecer capacidade compatível com a demanda de rede do ambiente.",
+  ap: "Selecionado para cobrir as áreas de uso com sinal Wi-Fi estável.",
+  motor: "Escolhido por atender ao porte do portão e à rotina de uso previsto.",
+  inverter: "Selecionado pela eficiência de conversão e compatibilidade com os módulos do projeto.",
+  solar_panel: "Escolhido pela geração adequada ao consumo estimado do imóvel.",
+  ev_charger: "Selecionado por ser compatível com o veículo informado e com a instalação elétrica do imóvel.",
+  amp: "Escolhido por oferecer potência e canais compatíveis com a cobertura sonora prevista.",
+  speaker: "Selecionada pela cobertura sonora equilibrada no ambiente de instalação.",
+  led_panel: "Selecionado por atender à distância de visualização e ao conteúdo previsto.",
+  radio: "Escolhido pela capacidade de manter enlace estável entre os pontos previstos.",
+  other: "Selecionado por atender às necessidades específicas do escopo desta proposta.",
+};
+
 // ---- Helpers specific to this template ----
 
 type SolutionKey =
@@ -938,7 +962,7 @@ function renderDiagnosisPage(doc: jsPDF, ctx: { quote: PdfQuote }) {
 
   const text =
     q.customer_notes?.trim() ||
-    "Durante a análise da necessidade, foram considerados os pontos críticos do ambiente, a rotina de uso, a exposição a riscos, a necessidade de monitoramento, o controle de acesso e a viabilidade técnica da instalação. A solução proposta busca atender ao cenário atual e permitir futuras ampliações de forma organizada.";
+    "Diagnóstico a ser complementado após validação técnica no local.";
   drawParagraph(doc, text, y);
 }
 
@@ -1194,8 +1218,7 @@ async function renderProductHighlight(
   setText(doc, PALETTE.black);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  const reason =
-    "Este equipamento foi selecionado por ser uma peça importante para o funcionamento da solução proposta. Ele contribui para maior segurança, estabilidade e confiabilidade do sistema, reduzindo riscos de falhas e facilitando a operação no dia a dia.";
+  const reason = CHOSEN_COPY[ctx.category] ?? CHOSEN_COPY.other;
   const rLines = doc.splitTextToSize(reason, tw) as string[];
   let cy = y + 32;
   rLines.forEach((ln) => { doc.text(ln, tx, cy); cy += 13; });
