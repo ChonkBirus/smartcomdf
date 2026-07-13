@@ -65,7 +65,7 @@ export function ConvertQuoteToProjectButton({ quoteId, status, financialStatus, 
       },
     }),
     onSuccess: (res) => {
-      toast.success("Projeto criado com sucesso.");
+      toast.success("Projeto aberto.");
       qc.invalidateQueries({ queryKey: ["quotes"] });
       qc.invalidateQueries({ queryKey: ["quote", quoteId] });
       qc.invalidateQueries({ queryKey: ["projects"] });
@@ -73,8 +73,27 @@ export function ConvertQuoteToProjectButton({ quoteId, status, financialStatus, 
       setOpen(false);
       navigate({ to: "/projects/$id", params: { id: res.project_id } });
     },
-    onError: (e: any) => toast.error(e?.message ?? "Falha ao converter."),
+    onError: async (e: any) => {
+      const msg = String(e?.message ?? "");
+      const alreadyConverted =
+        /já foi convertido/i.test(msg) ||
+        /unique|duplicate key|projects_quote_id_key/i.test(msg);
+      if (alreadyConverted) {
+        try {
+          const existing = await fetchByQuote({ data: { quote_id: quoteId } });
+          qc.invalidateQueries({ queryKey: ["project-by-quote", quoteId] });
+          if (existing?.id) {
+            toast.success("Projeto aberto.");
+            setOpen(false);
+            navigate({ to: "/projects/$id", params: { id: existing.id } });
+            return;
+          }
+        } catch { /* fallthrough */ }
+      }
+      toast.error(msg || "Falha ao converter.");
+    },
   });
+
 
   if (project) {
     const label = (project as any).project_number
