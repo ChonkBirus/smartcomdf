@@ -1218,8 +1218,7 @@ async function renderProductHighlight(
   setText(doc, PALETTE.black);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  const reason =
-    "Este equipamento foi selecionado por ser uma peça importante para o funcionamento da solução proposta. Ele contribui para maior segurança, estabilidade e confiabilidade do sistema, reduzindo riscos de falhas e facilitando a operação no dia a dia.";
+  const reason = CHOSEN_COPY[ctx.category] ?? CHOSEN_COPY.other;
   const rLines = doc.splitTextToSize(reason, tw) as string[];
   let cy = y + 32;
   rLines.forEach((ln) => { doc.text(ln, tx, cy); cy += 13; });
