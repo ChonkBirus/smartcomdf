@@ -5,9 +5,18 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      run_parallel_jobs:
+        description: "Rodar jobs paralelos legados (e2e matrix, multi-company, pr3, quote-images, lote3-and-costs). Default: apenas e2e-full-suite."
+        type: boolean
+        default: false
 
 jobs:
   e2e:
+    # ECONOMY MODE: jobs paralelos desativados no push/PR. Rodam apenas quando
+    # disparados manualmente via workflow_dispatch com run_parallel_jobs=true.
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_parallel_jobs }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -16,6 +25,9 @@ jobs:
       fail-fast: false
       matrix:
         browser: [chromium, firefox, webkit]
+
+
+
 
 
     steps:
@@ -133,8 +145,10 @@ jobs:
           retention-days: 14
 
   multi-company:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_parallel_jobs }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+
     env:
       E2E_RUN_ID: "[E2E-${{ github.run_id }}-multi-company-${{ github.run_attempt }}]"
     steps:
@@ -234,8 +248,10 @@ jobs:
           retention-days: 14
 
   pr3-service-orders:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_parallel_jobs }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+
     env:
       E2E_RUN_ID: "[E2E-${{ github.run_id }}-pr3-service-orders-${{ github.run_attempt }}]"
     steps:
@@ -338,8 +354,10 @@ jobs:
           retention-days: 14
 
   quote-images:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_parallel_jobs }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+
     env:
       E2E_RUN_ID: "[E2E-${{ github.run_id }}-quote-images-${{ github.run_attempt }}]"
     steps:
@@ -438,8 +456,10 @@ jobs:
 
 
   lote3-and-costs:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_parallel_jobs }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
+
     env:
       E2E_RUN_ID: "[E2E-${{ github.run_id }}-lote3-and-costs-${{ github.run_attempt }}]"
     steps:
