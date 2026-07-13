@@ -459,3 +459,132 @@ jobs:
             tests/e2e/artifacts/flow/**
           if-no-files-found: ignore
           retention-days: 14
+
+  # Consolidated sequential suite — canonical run order requested by the team.
+  # Order: seed → pr-quote-images → pr-quote-flow → pr-lote3-project-flow →
+  # pr7-so-costs → multi-company-isolation → teardown (always).
+  # Individual jobs above still run in parallel per browser / focused scope.
+  e2e-full-suite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: latest }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: bun install --frozen-lockfile
+      - run: |
+          python -m pip install --upgrade pip
+          pip install playwright
+          playwright install --with-deps chromium
+      - name: Build app
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+      - name: Start preview server
+        run: |
+          bun run preview --port 8080 &
+          echo $! > server.pid
+          for i in {1..40}; do
+            if curl -sf http://localhost:8080 > /dev/null; then break; fi
+            sleep 1
+          done
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+      - name: Seed E2E fixtures (clean state)
+        run: scripts/e2e-seed.sh
+        env:
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
+          E2E_A_USER_ID: ${{ secrets.E2E_A_USER_ID }}
+          E2E_B_USER_ID: ${{ secrets.E2E_B_USER_ID }}
+          E2E_TECH_A_USER_ID: ${{ secrets.E2E_TECH_A_USER_ID }}
+          E2E_A_ACCESS_TOKEN: ${{ secrets.E2E_A_ACCESS_TOKEN }}
+          E2E_B_ACCESS_TOKEN: ${{ secrets.E2E_B_ACCESS_TOKEN }}
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      - name: Run full E2E suite in canonical order
+        run: |
+          mkdir -p test-results
+          set +e
+          rc=0
+          run_step () {
+            local name="$1"; shift
+            echo "::group::$name"
+            "$@" 2>&1 | tee "test-results/${name}.log"
+            local step_rc=${PIPESTATUS[0]}
+            echo "::endgroup::"
+            if [ "$step_rc" -ne 0 ]; then
+              echo "::error title=$name::exited with $step_rc"
+              rc=1
+            fi
+          }
+          run_step quote-images python tests/e2e/pr-quote-images.py
+          run_step quote-flow   python tests/e2e/pr-quote-flow.py
+          run_step lote3        python tests/e2e/pr-lote3-project-flow.py
+          run_step pr7-so-costs python tests/e2e/pr7-so-costs.py
+          run_step multi-company python tests/e2e/multi-company-isolation.py
+          exit $rc
+        env:
+          E2E_BROWSER: chromium
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
+          E2E_A_USER_ID: ${{ secrets.E2E_A_USER_ID }}
+          E2E_B_USER_ID: ${{ secrets.E2E_B_USER_ID }}
+          E2E_TECH_A_USER_ID: ${{ secrets.E2E_TECH_A_USER_ID }}
+          E2E_A_SUPABASE_SESSION_JSON: ${{ secrets.E2E_A_SUPABASE_SESSION_JSON }}
+          E2E_A_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_A_SUPABASE_STORAGE_KEY }}
+          E2E_B_SUPABASE_SESSION_JSON: ${{ secrets.E2E_B_SUPABASE_SESSION_JSON }}
+          E2E_B_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_B_SUPABASE_STORAGE_KEY }}
+          E2E_TECH_SUPABASE_SESSION_JSON: ${{ secrets.E2E_TECH_SUPABASE_SESSION_JSON }}
+          E2E_TECH_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_TECH_SUPABASE_STORAGE_KEY }}
+          E2E_VIEWER_SUPABASE_SESSION_JSON: ${{ secrets.E2E_VIEWER_SUPABASE_SESSION_JSON }}
+          E2E_VIEWER_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_VIEWER_SUPABASE_STORAGE_KEY }}
+      - name: Teardown E2E fixtures
+        if: always()
+        run: python tests/e2e/seed_fixtures.py --teardown || true
+        env:
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
+      - name: Verify no leftovers
+        if: always()
+        run: |
+          if [ -z "$PGHOST" ]; then
+            echo "SKIP leftover check: PGHOST not set"
+            exit 0
+          fi
+          leftover=$(psql -tA -c "SELECT COUNT(*) FROM public.financial_transactions WHERE description LIKE '[E2E-%';" || echo 0)
+          echo "leftover financial_transactions=$leftover"
+          test "$leftover" = "0"
+        env:
+          PGHOST: ${{ secrets.E2E_PGHOST }}
+          PGPORT: ${{ secrets.E2E_PGPORT }}
+          PGUSER: ${{ secrets.E2E_PGUSER }}
+          PGPASSWORD: ${{ secrets.E2E_PGPASSWORD }}
+          PGDATABASE: ${{ secrets.E2E_PGDATABASE }}
+      - name: Stop preview server
+        if: always()
+        run: if [ -f server.pid ]; then kill "$(cat server.pid)" || true; fi
+      - name: Upload full-suite artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-full-suite-results
+          path: |
+            test-results/
+            tests/e2e/artifacts/**
+          if-no-files-found: ignore
+          retention-days: 14
