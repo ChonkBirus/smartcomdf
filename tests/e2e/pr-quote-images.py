@@ -206,11 +206,24 @@ async def main() -> int:
     foreign = env("E2E_QUOTE_FOREIGN_IMAGE_PATH")
     legacy = env("E2E_LEGACY_QUOTE_TOKEN")
 
+    # Rule: when seed is ready, missing required fixtures = FAIL (not SKIP).
+    # When seed is not ready, exit 0 with a clear SKIP.
     if not (key_a and sess_a):
-        print("SKIP: E2E_A_* session not set. Quote images audit skipped.")
+        if seed_ready():
+            print("FAIL: seed ready mas fixture obrigatória ausente: E2E_A_SUPABASE_SESSION_JSON/STORAGE_KEY")
+            print("=== quote-images summary ===  PASS=0 FAIL=1 SKIP=0")
+            return 1
+        print("SKIP: E2E_A_* session not set e seed não-ready. Quote images audit skipped.")
         return 0
 
     results: list[tuple[str, bool, str]] = []
+
+    # Under seed ready, these fixtures are required.
+    critical_note = require_fixtures(
+        ["E2E_QUOTE_TOKEN_A", "E2E_QUOTE_IMAGE_PATH_A", "E2E_QUOTE_FOREIGN_IMAGE_PATH"],
+        "quote-images-public-link",
+    )
+
     async with async_playwright() as p:
         browser = await getattr(p, BROWSER).launch(headless=True)
         ctx = await browser.new_context(viewport={"width": 1280, "height": 1800})
@@ -223,22 +236,40 @@ async def main() -> int:
                 if foreign:
                     await t_isolation(token_a, foreign, results)
                 else:
-                    results.append(("T10 cross-tenant isolation", True, "skipped (no foreign path)"))
+                    # If seed ready and foreign missing → FAIL, else SKIP.
+                    if seed_ready():
+                        results.append(("T10 cross-tenant isolation", False,
+                                        "FAIL: seed ready mas fixture obrigatória ausente: E2E_QUOTE_FOREIGN_IMAGE_PATH"))
+                    else:
+                        results.append(("T10 cross-tenant isolation", True, "SKIP: no foreign path"))
             else:
-                results.append(("T4/T6/T7 public token checks", True, "skipped (no E2E_QUOTE_TOKEN_A)"))
+                if seed_ready():
+                    results.append(("T4/T6/T7 public token checks", False,
+                                    "FAIL: seed ready mas fixture obrigatória ausente: E2E_QUOTE_TOKEN_A/E2E_QUOTE_IMAGE_PATH_A"))
+                else:
+                    results.append(("T4/T6/T7 public token checks", True, "SKIP: no E2E_QUOTE_TOKEN_A"))
             if legacy:
                 await t_legacy(legacy, results)
             else:
-                results.append(("T9 legacy quote fallback", True, "skipped (no E2E_LEGACY_QUOTE_TOKEN)"))
+                # legacy is explicitly documented as optional
+                results.append(("T9 legacy quote fallback", True, "SKIP: E2E_LEGACY_QUOTE_TOKEN optional/not provided"))
             await t_invalid_token(results)
         finally:
             await browser.close()
 
+    if critical_note and critical_note.startswith("FAIL"):
+        results.append(("required-fixtures-precheck", False, critical_note))
+
     print("\n=== Quote images audit ===")
     for name, ok, note in results:
-        print(f"  [{'PASS' if ok else 'FAIL'}] {name} — {note}")
-    failed = [r for r in results if not r[1]]
-    return 0 if not failed else 1
+        tag = "PASS"
+        if (note or "").upper().startswith("SKIP"):
+            tag = "SKIP"
+        elif not ok:
+            tag = "FAIL"
+        print(f"  [{tag}] {name} — {note}")
+    return print_summary("quote-images", results)
+
 
 
 if __name__ == "__main__":
