@@ -1,5 +1,4 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { lazy, Suspense, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Briefcase, FileText, User, Users } from "lucide-react";
@@ -24,12 +23,7 @@ import { ServiceOrderMaterials } from "@/components/service-orders/ServiceOrderM
 import { ServiceOrderCosts } from "@/components/service-orders/ServiceOrderCosts";
 import { ServiceOrderSignature } from "@/components/service-orders/ServiceOrderSignature";
 import { ServiceOrderStockDeduction } from "@/components/service-orders/ServiceOrderStockDeduction";
-
-const ServiceOrderFinalReport = lazy(() =>
-  import("@/components/service-orders/ServiceOrderFinalReport").then((module) => ({
-    default: module.ServiceOrderFinalReport,
-  })),
-);
+import { ServiceOrderFinalReport } from "@/components/service-orders/ServiceOrderFinalReport";
 
 export const Route = createFileRoute("/_authenticated/service-orders_/$id/mobile")({
   head: () => ({ meta: [{ title: "OS — SmartPro" }] }),
@@ -42,7 +36,7 @@ export const Route = createFileRoute("/_authenticated/service-orders_/$id/mobile
   ),
 });
 
-function Section({ title, children, action }: { title: string; children: ReactNode; action?: ReactNode }) {
+function Section({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <Card className="p-4 space-y-3">
       <div className="flex items-center justify-between gap-2">
@@ -306,20 +300,18 @@ function MobileSODetailPage() {
       </Section>
 
       <Section title="Relatório Final">
-        <Suspense fallback={<p className="text-sm text-muted-foreground">Carregando relatório...</p>}>
-          <ServiceOrderFinalReport
-            serviceOrderId={so.id}
-            companyId={so.company_id}
-            status={so.status}
-            canGenerate={canGenerateReport}
-            canSend={canSendReport}
-            canDownload={canDownloadReport}
-            canSeePublicLink={canSeePublicLink}
-            customerName={so.customer_name}
-            customerEmail={email ?? null}
-            customerWhatsapp={whatsapp ?? null}
-          />
-        </Suspense>
+        <ServiceOrderFinalReport
+          serviceOrderId={so.id}
+          companyId={so.company_id}
+          status={so.status}
+          canGenerate={canGenerateReport}
+          canSend={canSendReport}
+          canDownload={canDownloadReport}
+          canSeePublicLink={canSeePublicLink}
+          customerName={so.customer_name}
+          customerEmail={email ?? null}
+          customerWhatsapp={whatsapp ?? null}
+        />
       </Section>
 
       <Section title="Técnico responsável">
@@ -341,7 +333,7 @@ function MobileSODetailPage() {
             )}
             {quote && (
               <Button asChild variant="outline" size="sm">
-                <Link to="/quotes" search={{ new: undefined }}>
+                <Link to="/quotes">
                   <FileText className="h-4 w-4 mr-1" /> Orçamento {quote.quote_number ?? ""}
                 </Link>
               </Button>

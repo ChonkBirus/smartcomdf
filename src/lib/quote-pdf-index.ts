@@ -3,7 +3,8 @@
  * - "premium" (default): rich, persuasive multi-page proposal (SmartCom DF).
  * - "simple": legacy single-style PDF kept as fallback.
  */
-import type { PremiumPdfConfig } from "./quote-pdf-premium";
+import { generateQuotePDF as generateSimplePDF } from "./quote-pdf";
+import { generatePremiumQuotePDF, type PremiumPdfConfig } from "./quote-pdf-premium";
 import type { Quote, QuoteItem } from "./quotes.functions";
 
 export type QuotePdfTemplate = "premium" | "simple";
@@ -31,7 +32,7 @@ type Company = {
 export type GenerateQuotePdfOpts = {
   template?: QuotePdfTemplate;
   quote: Quote;
-  items: Array<QuoteItem & { unit?: string | null; image_url?: string | null; sku?: string | null }>;
+  items: Array<QuoteItem & { unit?: string | null; image_url?: string | null }>;
   customer: Customer;
   company: Company;
   settings?: Record<string, any> | null;
@@ -43,7 +44,6 @@ export type GenerateQuotePdfOpts = {
 export async function generateQuotePDF(opts: GenerateQuotePdfOpts): Promise<Blob | void> {
   const template: QuotePdfTemplate = opts.template ?? "premium";
   if (template === "simple") {
-    const { generateQuotePDF: generateSimplePDF } = await import("./quote-pdf");
     return generateSimplePDF({
       quote: opts.quote,
       items: opts.items,
@@ -53,7 +53,6 @@ export async function generateQuotePDF(opts: GenerateQuotePdfOpts): Promise<Blob
       output: opts.output,
     });
   }
-  const { generatePremiumQuotePDF } = await import("./quote-pdf-premium");
   return await generatePremiumQuotePDF({
     quote: opts.quote as any,
     items: opts.items.map((it) => ({
@@ -63,17 +62,15 @@ export async function generateQuotePDF(opts: GenerateQuotePdfOpts): Promise<Blob
       description: it.description,
       quantity: Number(it.quantity),
       unit: (it.unit as string) || "UN",
-      sku: (it.sku as string) || null,
       image_url: (it.image_url as string) || null,
       position: it.position,
     })),
     customer: opts.customer,
-    company: opts.company as any,
+    company: opts.company,
     settings: opts.settings ?? null,
     publicLink: opts.publicLink ?? "",
     config: opts.config,
     output: opts.output,
   });
 }
-
 

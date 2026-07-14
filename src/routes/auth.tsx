@@ -64,21 +64,15 @@ function AuthPage() {
   const [resending, setResending] = useState(false);
   const resendGuard = useRef(false);
 
-  const loginForm = useForm({ resolver: zodResolver(loginSchema), defaultValues: { email: "", password: "" } });
-  const signupForm = useForm({ resolver: zodResolver(signupSchema), defaultValues: { full_name: "", email: "", password: "" } });
-
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: redirectTarget, replace: true });
     });
   }, [navigate, redirectTarget]);
 
-  useEffect(() => {
-    const rememberedEmail = localStorage.getItem(REMEMBER_KEY) ?? "";
-    if (rememberedEmail) {
-      loginForm.setValue("email", rememberedEmail, { shouldDirty: false, shouldTouch: false, shouldValidate: false });
-    }
-  }, [loginForm]);
+  const rememberedEmail = typeof window !== "undefined" ? localStorage.getItem(REMEMBER_KEY) ?? "" : "";
+  const loginForm = useForm({ resolver: zodResolver(loginSchema), defaultValues: { email: rememberedEmail, password: "" } });
+  const signupForm = useForm({ resolver: zodResolver(signupSchema), defaultValues: { full_name: "", email: "", password: "" } });
 
   const onLogin = async (d: z.infer<typeof loginSchema>) => {
     setLoading(true);

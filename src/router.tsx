@@ -1,29 +1,21 @@
 import { QueryCache, MutationCache, QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { routeTree } from "./routeTree.gen";
 import { classifyError, getFriendlyErrorMessage } from "@/lib/error-messages";
-
-function emitSessionExpiredSafely() {
-  if (typeof window === "undefined") return;
-  window.dispatchEvent(new CustomEvent("smartpro:session-expired"));
-}
-
-function toastErrorSafely(message: string) {
-  if (typeof window === "undefined") return;
-  void import("sonner").then(({ toast }) => toast.error(message));
-}
+import { emitSessionExpired } from "@/lib/session-expired";
 
 function handleGlobalError(error: unknown, opts: { showToast: boolean }) {
   const kind = classifyError(error);
   if (kind === "session_expired") {
     // Modal global cuida da UX; não exibe toast técnico.
-    emitSessionExpiredSafely();
+    emitSessionExpired();
     return;
   }
   if (!opts.showToast) return;
   // Silenciar erros de rede e RLS em queries background evita ruído;
   // mutações sempre veem toast (via MutationCache).
-  toastErrorSafely(getFriendlyErrorMessage(error));
+  toast.error(getFriendlyErrorMessage(error));
 }
 
 export const getRouter = () => {
@@ -37,11 +29,11 @@ export const getRouter = () => {
         // ainda assim disparamos o modal de sessão expirada quando aplicável.
         const kind = classifyError(error);
         if (kind === "session_expired") {
-          emitSessionExpiredSafely();
+          emitSessionExpired();
           return;
         }
         if (mutation.options.onError) return;
-        toastErrorSafely(getFriendlyErrorMessage(error));
+        toast.error(getFriendlyErrorMessage(error));
       },
     }),
     defaultOptions: {

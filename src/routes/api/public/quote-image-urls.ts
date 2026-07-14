@@ -4,10 +4,6 @@ import { createFileRoute } from "@tanstack/react-router";
 // product-images, valida que cada path realmente pertence ao orçamento e
 // devolve signed URLs curtas (1h). Nunca lista o bucket, nunca expõe
 // imagens de outra empresa.
-//
-// Rate limit (P0-07): persistente via RPC try_consume_rate_limit.
-// 30 req/min por token+IP. Fail-open — se a RPC falhar, seguimos
-// aplicando a validação de escopo do token (que é a proteção real).
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -27,9 +23,7 @@ export const Route = createFileRoute("/api/public/quote-image-urls")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
-        const { tryConsumeRateLimit, hashBucket, clientIp } = await import(
-          "@/lib/rate-limit.server"
-        );
+        const { rateLimit, clientIp } = await import("@/lib/rate-limit.server");
         const ip = clientIp(request);
         let body: any;
         try {
@@ -40,10 +34,9 @@ export const Route = createFileRoute("/api/public/quote-image-urls")({
         const token = String(body?.token ?? "").trim();
         const rawPaths: unknown = body?.paths;
         if (!/^[0-9a-f-]{36}$/i.test(token)) return json({ error: "Token inválido." }, 400);
-
-        // Rate limit: 30 req/min por token+IP. Fail-open.
-        const rl = await tryConsumeRateLimit(await hashBucket("qimg:tokip", token, ip), 30, 60);
-        if (!rl.ok && !rl.failed) {
+        // Rate limit: 60 req/min por (token+IP) — evita enumeração/scraping.
+        const rl = rateLimit(`qimg:${token}:${ip}`, 60, 60);
+        if (!rl.ok) {
           return new Response(
             JSON.stringify({ error: "Muitas requisições. Tente novamente em instantes." }),
             {

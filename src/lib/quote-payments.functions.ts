@@ -110,33 +110,12 @@ export async function mirrorQuotePaymentToFinancial(
   if (!pay?.quote_id) return { action: "noop" };
 
   const nowIso = new Date().toISOString();
-
-  // Idempotência #1: já existe transação para este quote_payment_id?
-  const { data: byPayment } = await sb
-    .from("financial_transactions")
-    .select("id, status")
-    .eq("company_id", pay.company_id)
-    .eq("quote_payment_id", paymentId)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (byPayment) {
-    if (byPayment.status === "PAID") return { action: "noop" };
-    await sb.from("financial_transactions").update({
-      status: "PAID",
-      paid_at: nowIso,
-      payment_method: pay.payment_method ?? null,
-    }).eq("id", byPayment.id);
-    return { action: "updated" };
-  }
-
-  // Compatibilidade: recebível legado por quote (sem quote_payment_id)
   const { data: row } = await sb
     .from("financial_transactions")
     .select("id, status")
     .eq("company_id", pay.company_id)
     .eq("quote_id", pay.quote_id)
     .eq("type", "INCOME")
-    .is("quote_payment_id", null)
     .is("deleted_at", null)
     .maybeSingle();
 
@@ -146,9 +125,6 @@ export async function mirrorQuotePaymentToFinancial(
       status: "PAID",
       paid_at: nowIso,
       payment_method: pay.payment_method ?? null,
-      quote_payment_id: paymentId,
-      origin_type: "QUOTE_PAYMENT",
-      origin_id: paymentId,
     }).eq("id", row.id);
     return { action: "updated" };
   }
@@ -162,7 +138,7 @@ export async function mirrorQuotePaymentToFinancial(
   if (!quote) return { action: "noop" };
 
   const due = quote.valid_until ?? nowIso.slice(0, 10);
-  const { error: insErr } = await sb.from("financial_transactions").insert({
+  await sb.from("financial_transactions").insert({
     company_id: pay.company_id,
     type: "INCOME",
     description: "Recebível do orçamento (pagamento aprovado)",
@@ -172,22 +148,10 @@ export async function mirrorQuotePaymentToFinancial(
     status: "PAID",
     customer_id: quote.customer_id,
     quote_id: pay.quote_id,
-    quote_payment_id: paymentId,
     payment_method: pay.payment_method ?? null,
     origin: "QUOTE",
-    origin_type: "QUOTE_PAYMENT",
-    origin_id: paymentId,
     created_by: userId,
   });
-  if (insErr) {
-    // 23505 = unique_violation → outra chamada concorrente já inseriu; noop idempotente
-    const code = (insErr as any)?.code ?? "";
-    const msg = String((insErr as any)?.message ?? "");
-    if (code === "23505" || /duplicate key|unique/i.test(msg)) {
-      return { action: "noop" };
-    }
-    throw insErr;
-  }
   return { action: "created" };
 }
 

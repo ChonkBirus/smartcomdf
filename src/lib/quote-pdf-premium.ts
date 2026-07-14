@@ -3,16 +3,26 @@ import autoTable from "jspdf-autotable";
 import {
   A4,
   MARGIN,
+  PALETTE,
+  applyFooters,
+  drawCard,
+  drawEyebrow,
+  drawParagraph,
+  drawSectionTitle,
+  ensureSpace,
   fmtBRL,
   fmtDate,
+  generateQrDataUrl,
   loadImageAsDataUrl,
   loadLogoForDarkBg,
   detectImageFormat,
+  newPage,
+  setFill,
+  setStroke,
+  setText,
 } from "./quote-pdf-helpers";
 
-// ============================================================
-// TYPES
-// ============================================================
+// ---- Types compatible with getQuotePdfPayload return ----
 type PdfQuote = {
   id: string;
   quote_number: string;
@@ -29,6 +39,8 @@ type PdfQuote = {
   down_payment_amount: number;
   remaining_amount: number;
   public_token: string;
+  accepted_at?: string | null;
+  accepted_by_name?: string | null;
   diagnosis_problem?: string | null;
   diagnosis_need?: string | null;
   diagnosis_environment?: string | null;
@@ -55,14 +67,6 @@ type PdfCompany = {
   phone?: string | null;
   whatsapp?: string | null;
   logo_url?: string | null;
-  zipcode?: string | null;
-  street?: string | null;
-  number?: string | null;
-  complement?: string | null;
-  district?: string | null;
-  city?: string | null;
-  state?: string | null;
-  country?: string | null;
 } | null;
 
 type PdfSettings = Record<string, any> | null;
@@ -74,21 +78,11 @@ type PdfItem = {
   description: string | null;
   quantity: number;
   unit: string;
-  sku: string | null;
   image_url: string | null;
   position: number;
 };
 
 export type PremiumPdfConfig = {
-  showAboutPage?: boolean;
-  showObservationsPage?: boolean;
-  maxProductHighlights?: number;
-  kpis?: { projects?: string; cities?: string; clients?: string };
-  aboutText?: string | null;
-  website?: string | null;
-  responsibleName?: string | null;
-  responsiblePhone?: string | null;
-  // legacy fields kept for backwards compat (ignored)
   compactPremiumPdf?: boolean;
   showCftPage?: boolean;
   showCftvImportance?: boolean;
@@ -96,6 +90,7 @@ export type PremiumPdfConfig = {
   showSolutionSummary?: boolean;
   showScope?: boolean;
   showProductHighlights?: boolean;
+  maxProductHighlights?: number;
   showMaterialsTable?: boolean;
   showExecutionProcess?: boolean;
   showWarrantySupport?: boolean;
@@ -104,52 +99,53 @@ export type PremiumPdfConfig = {
   showAcceptancePage?: boolean;
   showWhatsappQr?: boolean;
   showAcceptanceQr?: boolean;
+  kpis?: { projects?: string; cities?: string; clients?: string };
+  // Optional dynamic copy
+  responsibleName?: string | null;
+  responsiblePhone?: string | null;
+};
+
+const DEFAULTS: Required<Omit<PremiumPdfConfig, "kpis" | "responsibleName" | "responsiblePhone">> & {
+  kpis: NonNullable<PremiumPdfConfig["kpis"]>;
+  responsibleName: string | null;
+  responsiblePhone: string | null;
+} = {
+  compactPremiumPdf: true,
+  showCftPage: true,
+  showCftvImportance: true,
+  showDiagnosis: true,
+  showSolutionSummary: true,
+  showScope: true,
+  showProductHighlights: true,
+  maxProductHighlights: 3,
+  showMaterialsTable: true,
+  showExecutionProcess: true,
+  showWarrantySupport: true,
+  showCommercialConditions: true,
+  showImportantNotes: true,
+  showAcceptancePage: true,
+  showWhatsappQr: true,
+  showAcceptanceQr: true,
+  kpis: { projects: "500+", cities: "30+", clients: "Alta satisfação" },
+  responsibleName: null,
+  responsiblePhone: null,
 };
 
 // ============================================================
-// PALETTE — institutional (black / white / gray + subtle accents)
+// STRATEGIC ITEM SELECTION
 // ============================================================
-const C = {
-  black: "#0B0B0B",
-  ink: "#1A1A1A",
-  gray: "#6B7280",
-  grayLight: "#D1D5DB",
-  grayBg: "#F3F4F6",
-  white: "#FFFFFF",
-  accent: "#0F7A4E", // Smart green
-  tableBlue: "#DCE7F5",
-  tableGray: "#F1F1F1",
-  tableHead: "#0B0B0B",
-} as const;
 
-function hexToRgb(hex: string): [number, number, number] {
-  const h = hex.replace("#", "");
-  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
-}
-function setFill(doc: jsPDF, hex: string) { const [r, g, b] = hexToRgb(hex); doc.setFillColor(r, g, b); }
-function setStroke(doc: jsPDF, hex: string) { const [r, g, b] = hexToRgb(hex); doc.setDrawColor(r, g, b); }
-function setText(doc: jsPDF, hex: string) { const [r, g, b] = hexToRgb(hex); doc.setTextColor(r, g, b); }
+type ScoredItem = { item: PdfItem; score: number; category: HighlightCategory };
 
-// ============================================================
-// SOLUTION DETECTION — used for product-highlight copy only.
-// (Structure of the PDF is the SAME for every solution type;
-// only the copy on the highlight pages changes.)
-// ============================================================
-type SolutionKey =
-  | "cftv" | "alarm" | "intercom" | "access" | "network"
-  | "automation" | "solar" | "ev" | "audio" | "motor"
-  | "lighting" | "it_maintenance" | "generic";
-
-type Category =
+type HighlightCategory =
   | "camera" | "dvr" | "switch" | "alarm_central" | "sensor" | "siren"
   | "intercom" | "lock" | "access_reader" | "controller" | "router" | "ap"
   | "motor" | "inverter" | "solar_panel" | "ev_charger" | "amp" | "speaker"
-  | "led_panel" | "radio" | "luminaire" | "computer" | "labor" | "other";
+  | "led_panel" | "radio" | "other";
 
-const NEGATIVE_RE =
-  /(cabo|canaleta|conector|parafuso|caixa\s*de\s*passag|disjuntor|protetor|suporte|abraçad|abracad|braçad|bracad|eletrod|terminal|presilha|fita|bucha|chumb|silicone|adaptador\s*simples|pente\s*de\s*mem[óo]ria|pasta\s*t[ée]rmica)/i;
+const NEGATIVE_RE = /(cabo|canaleta|conector|parafuso|caixa\s*de\s*passag|disjuntor|protetor|suporte|abraçad|abracad|braçad|bracad|eletrod|terminal|presilha|fita|bucha|chumb|silicone|fonte\s*simples|adaptador\s*simples)/i;
 
-function categorize(it: PdfItem): Category {
+function categorizeItem(it: PdfItem): HighlightCategory {
   const s = `${it.name} ${it.description ?? ""}`.toLowerCase();
   if (/(dvr|nvr|gravador)/.test(s)) return "dvr";
   if (/(c[âa]mer|bullet|dome|speed\s*dome|ipc\b)/.test(s)) return "camera";
@@ -162,8 +158,8 @@ function categorize(it: PdfItem): Category {
   if (/(leitor|biometr|facial|catraca|rfid)/.test(s)) return "access_reader";
   if (/(controladora|controlador|central(?!\s*de\s*alarme))/.test(s)) return "controller";
   if (/(roteador|router)/.test(s)) return "router";
-  if (/(access\s*point|\bap\b|repet|mesh)/.test(s)) return "ap";
-  if (/(motor|automatizador|m[áa]quina\s*de\s*port|portão|porta\s*social|elevador)/.test(s)) return "motor";
+  if (/(access\s*point|\bap\b\s|repet|mesh)/.test(s)) return "ap";
+  if (/(motor|automatizador\s*de\s*port|m[áa]quina\s*de\s*port)/.test(s)) return "motor";
   if (/(inversor)/.test(s)) return "inverter";
   if (/(m[óo]dulo\s*solar|placa\s*solar|painel\s*solar|fotovolt)/.test(s)) return "solar_panel";
   if (/(carregador|wallbox|veicular)/.test(s)) return "ev_charger";
@@ -171,751 +167,1414 @@ function categorize(it: PdfItem): Category {
   if (/(caixa\s*ac[úu]st|alto[- ]?falante|speaker)/.test(s)) return "speaker";
   if (/(painel\s*de\s*led|tela\s*led)/.test(s)) return "led_panel";
   if (/(r[áa]dio|enlace|antena)/.test(s)) return "radio";
-  if (/(lumin[áa]ria|l[âa]mpada|plafon|spot|refletor|arandela|pendente)/.test(s)) return "luminaire";
-  if (/(computador|cpu\b|notebook|monitor|processador|mem[óo]ria|ssd|hd\b|placa[- ]?m[ãa]e|servidor|micro\b)/.test(s)) return "computer";
-  if (/(m[ãa]o\s*de\s*obra|manutenç|instalaç|serviço)/.test(s)) return "labor";
   return "other";
 }
 
-function detectSolution(quote: PdfQuote, items: PdfItem[]): SolutionKey {
-  const hay = [quote.title ?? "", ...items.map((i) => `${i.name} ${i.description ?? ""}`)].join(" ").toLowerCase();
-  const t = (re: RegExp) => re.test(hay);
-  if (t(/(interfon|porteiro\s*eletr|video[- ]?porteir)/)) return "intercom";
-  if (t(/(controle\s*de\s*acesso|catraca|biometr|leitor\s*(rfid|nfc|tag)|fechadura\s*(eletr|digital))/)) return "access";
-  if (t(/(alarme|sensor\s*(de\s*)?(presen|movim|abert)|central\s*de\s*alarme|sirene)/)) return "alarm";
-  if (t(/(carregador|wallbox|veic|ev\b|recarga)/)) return "ev";
-  if (t(/(solar|fotovolt|inversor|placa\s*solar)/)) return "solar";
-  if (t(/(automa(c|ç)ão|domot|cena|smart\s*home)/)) return "automation";
-  if (t(/(motor|automatizador|portão|porta\s*social|elevador)/)) return "motor";
-  if (t(/(lumin[áa]ria|l[âa]mpada|ilumin|plafon|spot|refletor)/)) return "lighting";
-  if (t(/(manutenç|computador|cpu\b|notebook|inform[áa]tic|servidor|upgrade)/)) return "it_maintenance";
-  if (t(/(rede|switch|roteador|wifi|wi[- ]fi|cabea(mento)?\s*estrutur|patch\s*panel|rack|fibra)/)) return "network";
-  if (t(/(som\s*ambient|caixa\s*acust|amplificad|painel\s*de\s*led|mídia|midia)/)) return "audio";
-  if (t(/(cftv|c(â|a)mer|dvr|nvr|vigil|monitor)/)) return "cftv";
+const PRIMARY_BY_SOLUTION: Record<SolutionKey, HighlightCategory[]> = {
+  cftv: ["camera", "dvr", "switch", "radio"],
+  alarm: ["alarm_central", "sensor", "siren", "controller"],
+  intercom: ["intercom", "lock", "controller"],
+  access: ["access_reader", "controller", "lock"],
+  network: ["switch", "router", "ap", "radio"],
+  automation: ["controller", "motor", "sensor"],
+  solar: ["inverter", "solar_panel", "controller"],
+  ev: ["ev_charger", "controller"],
+  audio: ["amp", "speaker", "controller", "led_panel"],
+  generic: ["controller", "camera", "dvr", "intercom", "access_reader", "alarm_central"],
+};
+
+function scoreItem(it: PdfItem, solution: SolutionKey): ScoredItem {
+  const cat = categorizeItem(it);
+  const name = `${it.name} ${it.description ?? ""}`;
+  let score = 0;
+  const primary = PRIMARY_BY_SOLUTION[solution] ?? [];
+  if (cat !== "other" && primary[0] === cat) score += 5;
+  else if (primary.includes(cat)) score += 4;
+  else if (cat !== "other") score += 2;
+  if (it.image_url) score += 2;
+  if (it.description && it.description.trim().length > 20) score += 2;
+  if (Number(it.quantity) >= 1) score += 1;
+  if (NEGATIVE_RE.test(name)) score -= 3;
+  if (cat === "other" && !it.image_url) score -= 2;
+  if (it.kind === "LABOR") score -= 10;
+  return { item: it, score, category: cat };
+}
+
+export function selectStrategicQuoteItems(
+  items: PdfItem[],
+  solution: SolutionKey,
+  max = 3,
+): PdfItem[] {
+  const scored = items
+    .filter((it) => it.kind !== "LABOR")
+    .map((it) => scoreItem(it, solution))
+    .filter((s) => s.score >= 4)
+    .sort((a, b) => b.score - a.score);
+  // dedupe by category so we don't repeat 3 cameras
+  const seen = new Set<HighlightCategory>();
+  const result: PdfItem[] = [];
+  for (const s of scored) {
+    if (s.category !== "other" && seen.has(s.category)) continue;
+    seen.add(s.category);
+    result.push(s.item);
+    if (result.length >= max) break;
+  }
+  return result;
+}
+
+const RESOLVES_COPY: Record<HighlightCategory, string> = {
+  camera: "Permite monitorar pontos estratégicos, registrar imagens com mais clareza e aumentar a capacidade de identificação de movimentações no ambiente.",
+  dvr: "Centraliza a gravação das imagens, organiza o monitoramento e permite consulta posterior de eventos importantes.",
+  switch: "Reduz a necessidade de fontes individuais, melhora a organização da infraestrutura e facilita a alimentação dos dispositivos pela rede.",
+  alarm_central: "Monitora sensores e eventos de intrusão, permitindo resposta mais rápida em caso de tentativa de acesso indevido.",
+  sensor: "Detecta movimentação, abertura ou impacto em pontos críticos do ambiente, ativando o sistema de proteção quando necessário.",
+  siren: "Inibe ações suspeitas e sinaliza eventos de forma audível, reforçando o efeito dissuasivo do sistema.",
+  intercom: "Melhora a comunicação com visitantes, aumenta o controle de acesso e torna a entrada no ambiente mais segura e organizada.",
+  lock: "Controla a liberação de acesso, reduz uso de chaves físicas e aumenta a segurança da entrada.",
+  access_reader: "Identifica usuários autorizados e libera o acesso com rastreabilidade, reduzindo riscos de entradas indevidas.",
+  controller: "Centraliza a operação da solução, garantindo integração e funcionamento confiável entre os dispositivos.",
+  router: "Garante a conectividade do ambiente, organiza o tráfego de rede e dá base estável para os demais sistemas.",
+  ap: "Distribui o sinal Wi-Fi nos pontos certos, reduzindo zonas mortas e melhorando a experiência de uso.",
+  motor: "Automatiza o acesso, melhora a praticidade e contribui para a segurança e o controle na entrada.",
+  inverter: "Converte a energia gerada pelos módulos para uso no imóvel, sendo o coração do sistema fotovoltaico.",
+  solar_panel: "Capta a luz solar e gera energia limpa, reduzindo o custo mensal de eletricidade do imóvel.",
+  ev_charger: "Permite recarregar o veículo elétrico em casa, com mais praticidade, segurança e economia.",
+  amp: "Distribui o áudio com qualidade para todo o ambiente, sustentando a experiência sonora da solução.",
+  speaker: "Entrega cobertura sonora equilibrada, melhorando a experiência e a ambientação do espaço.",
+  led_panel: "Comunica informações e conteúdos visuais com alto impacto, fortalecendo a apresentação do ambiente.",
+  radio: "Estabelece o enlace de comunicação entre pontos distantes, mantendo dados e imagens disponíveis com estabilidade.",
+  other: "Contribui para o funcionamento da solução, oferecendo desempenho e confiabilidade adequados ao projeto.",
+};
+
+// ---- Helpers specific to this template ----
+
+type SolutionKey =
+  | "cftv" | "alarm" | "intercom" | "access" | "network"
+  | "automation" | "solar" | "ev" | "audio" | "generic";
+
+type SolutionContent = {
+  subtitle: string;
+  importanceTitle: string;
+  importanceIntro: string;
+  importanceCards: { t: string; b: string }[];
+  solutionTitle: string;
+  solutionIntro: string;
+  solutionBenefits: { t: string; b: string }[];
+};
+
+const SOLUTION_CONTENT: Record<SolutionKey, SolutionContent> = {
+  cftv: {
+    subtitle: "Solução em CFTV e Segurança Eletrônica",
+    importanceTitle: "Por que investir em CFTV e segurança eletrônica?",
+    importanceIntro:
+      "Um sistema de CFTV bem instalado não serve apenas para gravar imagens. Ele ajuda a prevenir ocorrências, acompanhar movimentações, registrar evidências, aumentar a sensação de segurança e melhorar a gestão do ambiente.",
+    importanceCards: [
+      { t: "Prevenção", b: "Câmeras visíveis inibem ações suspeitas e reduzem vulnerabilidades do ambiente." },
+      { t: "Registro de evidências", b: "Imagens auxiliam na análise de ocorrências e tomada de decisão." },
+      { t: "Controle do ambiente", b: "Acompanhe entradas, saídas, áreas comuns e pontos críticos." },
+      { t: "Mais tranquilidade", b: "Síndicos, gestores e moradores ganham segurança e controle." },
+      { t: "Valorização do imóvel", b: "Ambientes com estrutura de segurança transmitem organização." },
+      { t: "Integração", b: "CFTV trabalha junto com alarmes, controle de acesso, redes e automação." },
+    ],
+    solutionTitle: "Solução de monitoramento e vigilância",
+    solutionIntro:
+      "A solução proposta contempla o fornecimento e instalação de um sistema completo de CFTV, com câmeras, gravador, infraestrutura de cabeamento e configuração de acesso remoto. O projeto foi dimensionado para cobrir os pontos críticos do ambiente com qualidade de imagem e estabilidade.",
+    solutionBenefits: [
+      { t: "Cobertura adequada", b: "Pontos críticos monitorados com câmeras corretas." },
+      { t: "Imagem de qualidade", b: "Resolução adequada para identificação visual." },
+      { t: "Acesso remoto", b: "Visualização pelo celular a qualquer momento." },
+      { t: "Gravação contínua", b: "Histórico das imagens conforme dimensionamento." },
+      { t: "Instalação profissional", b: "Cabeamento organizado e bem documentado." },
+      { t: "Suporte e garantia", b: "Pós-instalação estruturado e assistido." },
+    ],
+  },
+  alarm: {
+    subtitle: "Solução em Alarme e Detecção de Intrusão",
+    importanceTitle: "Por que investir em sistema de alarme?",
+    importanceIntro:
+      "O sistema de alarme atua na detecção imediata de tentativas de invasão e situações de risco, permitindo resposta rápida e reduzindo prejuízos. É uma camada essencial de proteção do patrimônio.",
+    importanceCards: [
+      { t: "Detecção imediata", b: "Sensores identificam abertura, movimento e impacto." },
+      { t: "Resposta rápida", b: "Notificação instantânea para o responsável." },
+      { t: "Efeito dissuasivo", b: "Sirenes e sinalização inibem ação criminosa." },
+      { t: "Cobertura perimetral", b: "Proteção do limite externo da propriedade." },
+      { t: "Integração com CFTV", b: "Alarme + câmeras formam um sistema completo." },
+      { t: "Tranquilidade", b: "Ambiente protegido mesmo quando desocupado." },
+    ],
+    solutionTitle: "Solução de proteção perimetral e intrusão",
+    solutionIntro:
+      "A solução contempla central de alarme, sensores adequados ao ambiente, sirene e sinalização, com configuração de partições e usuários. O projeto foi pensado para reduzir riscos e oferecer reação rápida em caso de evento.",
+    solutionBenefits: [
+      { t: "Sensores corretos", b: "Selecionados para cada tipo de ambiente." },
+      { t: "Notificação no app", b: "Aviso imediato em caso de disparo." },
+      { t: "Partições", b: "Áreas armadas separadamente conforme rotina." },
+      { t: "Sirene e sinalização", b: "Inibição visível e audível." },
+      { t: "Instalação criteriosa", b: "Posicionamento técnico de cada sensor." },
+      { t: "Garantia e suporte", b: "Acompanhamento pós-instalação." },
+    ],
+  },
+  intercom: {
+    subtitle: "Solução em Interfonia e Comunicação Interna",
+    importanceTitle: "Por que investir em um sistema de interfonia?",
+    importanceIntro:
+      "O interfone organiza a comunicação interna, o controle de visitantes e o acesso ao imóvel. Ele aumenta a segurança no momento mais sensível: a entrada de pessoas no ambiente.",
+    importanceCards: [
+      { t: "Controle de acesso", b: "Identifique quem chega antes de liberar a entrada." },
+      { t: "Comunicação clara", b: "Áudio e/ou vídeo de qualidade entre pontos." },
+      { t: "Segurança na portaria", b: "Reduz exposição direta de moradores e equipe." },
+      { t: "Praticidade no dia a dia", b: "Atendimento rápido de visitantes e entregas." },
+      { t: "Integração", b: "Pode operar com fechaduras, portões e CFTV." },
+      { t: "Valorização do imóvel", b: "Ambientes com interfonia transmitem organização." },
+    ],
+    solutionTitle: "Solução de comunicação interna e controle de acesso",
+    solutionIntro:
+      "A solução contempla módulos externos e internos de interfonia, infraestrutura de cabeamento e configuração de acionamentos. O projeto foi pensado para garantir comunicação estável, identificação visual quando aplicável e controle confiável da entrada.",
+    solutionBenefits: [
+      { t: "Áudio estável", b: "Comunicação clara entre os pontos." },
+      { t: "Vídeo quando aplicável", b: "Identificação visual do visitante." },
+      { t: "Acionamento de portão", b: "Abertura remota com segurança." },
+      { t: "Infra organizada", b: "Cabeamento bem documentado." },
+      { t: "Durabilidade", b: "Equipamentos adequados ao uso contínuo." },
+      { t: "Suporte técnico", b: "Garantia e acompanhamento da solução." },
+    ],
+  },
+  access: {
+    subtitle: "Solução em Controle de Acesso",
+    importanceTitle: "Por que investir em controle de acesso?",
+    importanceIntro:
+      "O controle de acesso permite saber quem entra, quando entra e onde pode circular. Reduz riscos, registra movimentações e organiza a rotina do ambiente.",
+    importanceCards: [
+      { t: "Rastreabilidade", b: "Histórico de entradas e saídas." },
+      { t: "Permissões por usuário", b: "Cada pessoa acessa só o que precisa." },
+      { t: "Mais segurança", b: "Reduz acessos indevidos ao ambiente." },
+      { t: "Operação organizada", b: "Fluxo previsível e controlável." },
+      { t: "Integração", b: "Trabalha junto com CFTV e alarme." },
+      { t: "Escalável", b: "Cresce conforme a necessidade do ambiente." },
+    ],
+    solutionTitle: "Solução de gestão de entradas e saídas",
+    solutionIntro:
+      "A solução contempla leitores, controladoras, fechaduras/atuadores e software de gestão, com cadastro de usuários e regras de acesso. O projeto foi pensado para organizar o fluxo de pessoas com segurança e auditoria.",
+    solutionBenefits: [
+      { t: "Cadastro de usuários", b: "Gestão simples de permissões." },
+      { t: "Múltiplas tecnologias", b: "Cartão, senha, biometria conforme escopo." },
+      { t: "Logs de acesso", b: "Registro automatizado de cada evento." },
+      { t: "Atuação em portas/portões", b: "Liberação controlada de cada ponto." },
+      { t: "Instalação técnica", b: "Posicionamento e fixação corretos." },
+      { t: "Garantia e suporte", b: "Acompanhamento contínuo." },
+    ],
+  },
+  network: {
+    subtitle: "Solução em Redes e Infraestrutura",
+    importanceTitle: "Por que investir em infraestrutura de rede?",
+    importanceIntro:
+      "Uma rede estável é a base de quase todos os serviços modernos: internet, câmeras, controle de acesso, automação e gestão. Estrutura mal feita gera lentidão, instabilidade e custo recorrente de manutenção.",
+    importanceCards: [
+      { t: "Estabilidade", b: "Conexão consistente para todos os dispositivos." },
+      { t: "Desempenho", b: "Velocidade adequada ao uso do ambiente." },
+      { t: "Cobertura WiFi", b: "Sinal nas áreas certas, sem zonas mortas." },
+      { t: "Cabeamento organizado", b: "Rack limpo e bem documentado." },
+      { t: "Segurança lógica", b: "Segmentação e proteção da rede." },
+      { t: "Escalabilidade", b: "Pronta para crescer com o ambiente." },
+    ],
+    solutionTitle: "Solução de conectividade e infraestrutura",
+    solutionIntro:
+      "A solução contempla cabeamento estruturado, ativos de rede, pontos de acesso WiFi e organização do rack, com configuração das redes. O projeto foi dimensionado para entregar estabilidade, desempenho e facilidade de manutenção.",
+    solutionBenefits: [
+      { t: "Cabeamento estruturado", b: "Padrão técnico em todos os pontos." },
+      { t: "WiFi bem distribuído", b: "Cobertura onde realmente precisa." },
+      { t: "Rack organizado", b: "Identificação e documentação clara." },
+      { t: "Segmentação de rede", b: "Mais segurança e controle." },
+      { t: "Equipamentos adequados", b: "Selecionados para o porte do projeto." },
+      { t: "Suporte e garantia", b: "Acompanhamento pós-instalação." },
+    ],
+  },
+  automation: {
+    subtitle: "Solução em Automação",
+    importanceTitle: "Por que investir em automação?",
+    importanceIntro:
+      "A automação transforma o uso do ambiente em algo mais prático, controlável e integrado. Iluminação, acionamentos, cenas e dispositivos passam a operar de forma centralizada e inteligente.",
+    importanceCards: [
+      { t: "Praticidade", b: "Controle pelo celular, voz ou cena programada." },
+      { t: "Integração", b: "Vários sistemas operando em conjunto." },
+      { t: "Conforto", b: "Ambiente reage à rotina do usuário." },
+      { t: "Economia", b: "Uso mais consciente de energia." },
+      { t: "Segurança", b: "Simulação de presença e acionamentos remotos." },
+      { t: "Valorização", b: "Imóvel com tecnologia agregada." },
+    ],
+    solutionTitle: "Solução de automação e integração",
+    solutionIntro:
+      "A solução contempla módulos de automação, infraestrutura de comando e configuração de cenas/rotinas. O projeto foi pensado para entregar uso simples no dia a dia e integração com os demais sistemas do ambiente.",
+    solutionBenefits: [
+      { t: "Cenas programadas", b: "Acionamentos com um toque." },
+      { t: "Controle remoto", b: "Pelo aplicativo, de qualquer lugar." },
+      { t: "Integração", b: "Funciona com outros sistemas." },
+      { t: "Instalação limpa", b: "Sem alterações estéticas agressivas." },
+      { t: "Suporte técnico", b: "Equipe disponível para ajustes." },
+      { t: "Escalável", b: "Pode crescer por etapas." },
+    ],
+  },
+  solar: {
+    subtitle: "Solução em Energia Solar",
+    importanceTitle: "Por que investir em energia solar?",
+    importanceIntro:
+      "A energia solar reduz o custo de energia elétrica de forma previsível, agrega valor ao imóvel e contribui para uma operação mais eficiente e sustentável.",
+    importanceCards: [
+      { t: "Economia mensal", b: "Redução real da conta de energia." },
+      { t: "Previsibilidade", b: "Custo de energia mais estável no tempo." },
+      { t: "Valorização do imóvel", b: "Sistema próprio de geração agregado." },
+      { t: "Sustentabilidade", b: "Energia limpa e renovável." },
+      { t: "Vida útil longa", b: "Equipamentos com durabilidade comprovada." },
+      { t: "Monitoramento", b: "Acompanhamento da geração pelo app." },
+    ],
+    solutionTitle: "Solução de geração e economia de energia",
+    solutionIntro:
+      "A solução contempla módulos fotovoltaicos, inversor, estrutura de fixação, proteção e configuração do monitoramento. O projeto foi dimensionado conforme o consumo informado e a capacidade do telhado/área disponível.",
+    solutionBenefits: [
+      { t: "Dimensionamento técnico", b: "Adequado ao consumo do imóvel." },
+      { t: "Estrutura segura", b: "Fixação correta dos módulos." },
+      { t: "Inversor de qualidade", b: "Eficiência e confiabilidade." },
+      { t: "Proteções elétricas", b: "String box e aterramento corretos." },
+      { t: "Monitoramento", b: "Acompanhamento contínuo." },
+      { t: "Garantia", b: "Conforme política dos fabricantes." },
+    ],
+  },
+  ev: {
+    subtitle: "Solução em Recarga Veicular Elétrica",
+    importanceTitle: "Por que investir em carregador veicular?",
+    importanceIntro:
+      "O carregador para veículos elétricos é uma infraestrutura cada vez mais essencial. Ele garante recarga segura, rápida e dimensionada conforme a instalação elétrica do imóvel.",
+    importanceCards: [
+      { t: "Recarga segura", b: "Proteções específicas para VE." },
+      { t: "Praticidade", b: "Carregar em casa, no próprio horário." },
+      { t: "Eficiência", b: "Tempo de carga adequado ao veículo." },
+      { t: "Valorização do imóvel", b: "Infraestrutura moderna agregada." },
+      { t: "Sustentabilidade", b: "Combina com energia solar." },
+      { t: "Pronto para o futuro", b: "Imóvel preparado para a mobilidade elétrica." },
+    ],
+    solutionTitle: "Solução de recarga veicular",
+    solutionIntro:
+      "A solução contempla o carregador, infraestrutura elétrica adequada, proteções e configuração. O projeto foi dimensionado conforme o veículo informado e a capacidade da instalação elétrica do imóvel.",
+    solutionBenefits: [
+      { t: "Dimensionamento correto", b: "Compatível com a instalação elétrica." },
+      { t: "Proteções dedicadas", b: "DR, disjuntor e aterramento." },
+      { t: "Equipamento certificado", b: "Modelo adequado ao veículo." },
+      { t: "Instalação organizada", b: "Acabamento profissional." },
+      { t: "Documentação técnica", b: "Memorial e diagrama da instalação." },
+      { t: "Suporte e garantia", b: "Acompanhamento pós-instalação." },
+    ],
+  },
+  audio: {
+    subtitle: "Solução em Som Ambiente e Comunicação Visual",
+    importanceTitle: "Por que investir em som ambiente e mídia?",
+    importanceIntro:
+      "Som ambiente, painéis de LED e mídia visual transformam a experiência do ambiente — comunicam, ambientam, informam e fortalecem a percepção do espaço.",
+    importanceCards: [
+      { t: "Experiência", b: "Ambientes mais agradáveis e envolventes." },
+      { t: "Comunicação", b: "Mensagens, avisos e conteúdo dirigido." },
+      { t: "Profissionalismo", b: "Transmite cuidado e organização." },
+      { t: "Versatilidade", b: "Atende lazer, vendas e operação." },
+      { t: "Cobertura sonora", b: "Volume equilibrado em todo o ambiente." },
+      { t: "Integração", b: "Som + mídia controlados juntos." },
+    ],
+    solutionTitle: "Solução de áudio e ambientação",
+    solutionIntro:
+      "A solução contempla amplificação, caixas acústicas, fontes de áudio e/ou painéis de mídia, com configuração para uso contínuo. O projeto foi pensado para entregar cobertura equilibrada, qualidade sonora e operação simples.",
+    solutionBenefits: [
+      { t: "Cobertura equilibrada", b: "Som distribuído com qualidade." },
+      { t: "Equipamentos adequados", b: "Selecionados para o ambiente." },
+      { t: "Operação simples", b: "Controle prático no dia a dia." },
+      { t: "Instalação limpa", b: "Sem comprometer a estética." },
+      { t: "Integração", b: "Funciona com mídia/cenas." },
+      { t: "Suporte técnico", b: "Garantia e acompanhamento." },
+    ],
+  },
+  generic: {
+    subtitle: "Solução Técnica Personalizada",
+    importanceTitle: "Por que investir nessa solução?",
+    importanceIntro:
+      "Uma solução bem projetada gera mais segurança, controle e eficiência para o ambiente. Estrutura correta reduz retrabalho, custos futuros e dores de cabeça operacionais.",
+    importanceCards: [
+      { t: "Solução adequada", b: "Pensada para o cenário real do cliente." },
+      { t: "Execução técnica", b: "Profissionais capacitados e responsáveis." },
+      { t: "Documentação", b: "Projeto organizado e rastreável." },
+      { t: "Menor retrabalho", b: "Instalação correta desde o início." },
+      { t: "Suporte estruturado", b: "Atendimento pós-instalação." },
+      { t: "Garantia", b: "Cobertura conforme proposta." },
+    ],
+    solutionTitle: "Solução proposta para o seu projeto",
+    solutionIntro:
+      "A solução contempla o fornecimento e instalação dos equipamentos necessários, com configuração, testes e entrega assistida. O projeto foi pensado para atender à necessidade do cliente com qualidade e organização.",
+    solutionBenefits: [
+      { t: "Equipamentos adequados", b: "Selecionados para o ambiente." },
+      { t: "Instalação profissional", b: "Acabamento e organização." },
+      { t: "Documentação técnica", b: "Projeto bem registrado." },
+      { t: "Testes e entrega", b: "Validação antes da conclusão." },
+      { t: "Suporte técnico", b: "Equipe disponível para dúvidas." },
+      { t: "Garantia", b: "Conforme condições da proposta." },
+    ],
+  },
+};
+
+function detectSolutionKey(quote: PdfQuote, items: PdfItem[]): SolutionKey {
+  const haystack = [
+    quote.title ?? "",
+    ...items.map((i) => `${i.name} ${i.description ?? ""}`),
+  ].join(" ").toLowerCase();
+  const test = (re: RegExp) => re.test(haystack);
+  if (test(/(interfon|porteiro\s*eletr|video[- ]?porteir)/)) return "intercom";
+  if (test(/(controle\s*de\s*acesso|catraca|biometr|leitor\s*(rfid|nfc|tag)|fechadura\s*(eletr|digital))/)) return "access";
+  if (test(/(alarme|sensor\s*(de\s*)?(presen|movim|abert)|central\s*de\s*alarme|sirene)/)) return "alarm";
+  if (test(/(carregador|wallbox|veic|ev\b|recarga)/)) return "ev";
+  if (test(/(solar|fotovolt|inversor|placa\s*solar)/)) return "solar";
+  if (test(/(automa(c|ç)ão|domot|cena|smart\s*home)/)) return "automation";
+  if (test(/(rede|switch|roteador|wifi|wi[- ]fi|cabea(mento)?\s*estrutur|patch\s*panel|rack|fibra)/)) return "network";
+  if (test(/(som\s*ambient|caixa\s*acust|amplificad|painel\s*de\s*led|mídia|midia)/)) return "audio";
+  if (test(/(cftv|c(â|a)mer|dvr|nvr|vigil|monitor)/)) return "cftv";
   return "generic";
 }
 
-const SOLUTION_SUBTITLE: Record<SolutionKey, string> = {
-  cftv: "Solução em CFTV e Segurança Eletrônica",
-  alarm: "Solução em Alarme e Detecção de Intrusão",
-  intercom: "Solução em Interfonia e Comunicação",
-  access: "Solução em Controle de Acesso",
-  network: "Solução em Redes e Infraestrutura",
-  automation: "Solução em Automação",
-  solar: "Solução em Energia Solar",
-  ev: "Solução em Recarga Veicular Elétrica",
-  audio: "Solução em Som Ambiente e Comunicação Visual",
-  motor: "Automação de Portas e Portões",
-  lighting: "Solução em Iluminação",
-  it_maintenance: "Serviços de Informática e Manutenção",
-  generic: "Solução Técnica Personalizada",
-};
-
-// Category → benefits list (short, safe, commercial)
-const CAT_BENEFITS: Record<Category, string[]> = {
-  camera: ["Cobertura visual dos pontos críticos", "Melhor identificação de movimentações", "Integração com gravação e acesso remoto"],
-  dvr: ["Gravação centralizada das imagens", "Consulta posterior de eventos", "Compatível com câmeras do projeto"],
-  switch: ["Alimentação dos dispositivos pela rede", "Menos pontos de energia", "Infraestrutura mais organizada"],
-  alarm_central: ["Processamento confiável dos sensores", "Notificações em caso de disparo", "Operação por partições e usuários"],
-  sensor: ["Detecção adequada ao ambiente", "Redução de falso alarme", "Cobertura de pontos críticos"],
-  siren: ["Sinalização audível eficaz", "Reforço do efeito dissuasivo", "Resposta clara em caso de evento"],
-  intercom: ["Comunicação clara entre pontos", "Controle da entrada de visitantes", "Praticidade e segurança no dia a dia"],
-  lock: ["Acionamento eletrônico seguro", "Integração com controle de acesso", "Redução do uso de chaves físicas"],
-  access_reader: ["Identificação confiável do usuário", "Registro automatizado de acessos", "Redução de acessos indevidos"],
-  controller: ["Integração dos dispositivos do sistema", "Operação centralizada", "Base estável para o restante da solução"],
-  router: ["Conectividade estável", "Distribuição adequada da rede", "Base para os demais sistemas"],
-  ap: ["Cobertura Wi-Fi nas áreas certas", "Redução de zonas mortas", "Melhor experiência de uso"],
-  motor: ["Automação da abertura", "Praticidade e conforto", "Mais controle e segurança no acesso"],
-  inverter: ["Conversão eficiente da energia gerada", "Compatibilidade com os módulos do projeto", "Monitoramento da geração"],
-  solar_panel: ["Geração de energia limpa", "Redução da conta de energia", "Vida útil longa"],
-  ev_charger: ["Recarga segura em casa", "Compatível com o veículo informado", "Instalação elétrica adequada"],
-  amp: ["Potência compatível com o ambiente", "Distribuição sonora equilibrada", "Base do sistema de áudio"],
-  speaker: ["Cobertura sonora equilibrada", "Instalação discreta", "Boa experiência de uso"],
-  led_panel: ["Comunicação visual com destaque", "Conteúdos dirigidos", "Fortalece a apresentação do ambiente"],
-  radio: ["Enlace estável entre pontos", "Comunicação sem depender de cabos", "Boa cobertura de distância"],
-  luminaire: ["Iluminação eficiente e confortável", "Acabamento adequado ao ambiente", "Melhor experiência visual"],
-  computer: ["Desempenho e estabilidade", "Substituição de componentes", "Preparado para uso contínuo"],
-  labor: ["Execução por equipe técnica qualificada", "Boas práticas de instalação", "Testes e entrega assistida"],
-  other: ["Contribui para o funcionamento da solução", "Desempenho adequado ao projeto", "Confiabilidade no uso"],
-};
-
-const CAT_DESCRIPTION: Record<Category, string> = {
-  camera: "Câmera destinada à cobertura visual dos pontos críticos do ambiente, com qualidade de imagem adequada ao uso pretendido.",
-  dvr: "Gravador digital responsável por centralizar as imagens do sistema, permitindo consulta e organização do monitoramento.",
-  switch: "Switch de rede que interliga os dispositivos e, quando compatível, fornece alimentação pela própria rede.",
-  alarm_central: "Central de alarme responsável por processar os sensores, disparar avisos e organizar a operação do sistema.",
-  sensor: "Sensor destinado a detectar movimento, abertura ou impacto em pontos definidos do ambiente.",
-  siren: "Sirene destinada a sinalizar eventos de forma audível, reforçando o efeito dissuasivo do sistema.",
-  intercom: "Módulo de interfonia que interliga a portaria ao ambiente interno, permitindo comunicação e controle da entrada.",
-  lock: "Fechadura/atuador eletrônico para liberação controlada do acesso.",
-  access_reader: "Leitor de acesso que identifica o usuário autorizado e libera a entrada com rastreabilidade.",
-  controller: "Módulo controlador responsável por integrar dispositivos e centralizar a operação da solução.",
-  router: "Roteador responsável por organizar o tráfego da rede local e a saída para a internet.",
-  ap: "Access Point (ponto de acesso Wi-Fi) responsável pela cobertura sem fio do ambiente.",
-  motor: "Motor/automatizador para portão ou porta, dimensionado para o porte e a rotina de uso previstos.",
-  inverter: "Inversor solar responsável por converter a energia dos módulos para uso no imóvel.",
-  solar_panel: "Módulo fotovoltaico responsável pela geração de energia elétrica a partir da luz solar.",
-  ev_charger: "Carregador para veículos elétricos, dimensionado conforme veículo e instalação elétrica do imóvel.",
-  amp: "Amplificador de áudio responsável por distribuir o sinal para as caixas do ambiente.",
-  speaker: "Caixa acústica destinada à cobertura sonora do ambiente de instalação.",
-  led_panel: "Painel de LED para comunicação visual e exibição de conteúdo com boa legibilidade.",
-  radio: "Rádio/enlace destinado à comunicação entre pontos distantes.",
-  luminaire: "Luminária destinada a compor o projeto de iluminação com eficiência e acabamento adequados.",
-  computer: "Item de informática destinado à composição/manutenção do equipamento do cliente.",
-  labor: "Serviço técnico executado por equipe qualificada, seguindo boas práticas de instalação.",
-  other: "Item que compõe a solução proposta, com desempenho e confiabilidade adequados ao projeto.",
-};
-
-// ============================================================
-// HELPERS: layout, text, footer
-// ============================================================
-function companyName(c: PdfCompany): string {
-  return c?.trade_name || c?.corporate_name || "SmartCom";
+function getSolutionContent(quote: PdfQuote, items: PdfItem[]): SolutionContent {
+  return SOLUTION_CONTENT[detectSolutionKey(quote, items)];
 }
+
+function inferSubtitle(quote: PdfQuote, items: PdfItem[]): string {
+  return getSolutionContent(quote, items).subtitle;
+}
+
+function companyName(company: PdfCompany): string {
+  return company?.trade_name || company?.corporate_name || "SmartCom DF";
+}
+
 function customerName(c: PdfCustomer): string {
   return c?.trade_name || c?.name || c?.corporate_name || "Cliente";
 }
-function customerDoc(c: PdfCustomer): string | null {
-  return c?.cpf_cnpj ? String(c.cpf_cnpj) : null;
-}
-function companyAddress(c: PdfCompany): string | null {
-  if (!c) return null;
-  const parts = [
-    [c.street, c.number].filter(Boolean).join(", "),
-    c.complement,
-    c.district,
-    [c.city, c.state].filter(Boolean).join(" - "),
-    c.zipcode,
-  ].filter(Boolean) as string[];
-  const s = parts.filter((p) => p && p.trim()).join(" · ");
-  return s || null;
-}
-
-function newPage(doc: jsPDF): number {
-  doc.addPage();
-  return MARGIN + 24;
-}
-
-const FOOTER_H = 26;
-function ensureSpace(doc: jsPDF, y: number, needed: number): number {
-  if (y + needed > A4.h - FOOTER_H - 20) return newPage(doc);
-  return y;
-}
-
-function drawParagraph(
-  doc: jsPDF,
-  text: string,
-  y: number,
-  opts?: { size?: number; color?: string; lineHeight?: number; maxWidth?: number; x?: number; bold?: boolean },
-): number {
-  const size = opts?.size ?? 10.5;
-  const color = opts?.color ?? C.ink;
-  const lh = opts?.lineHeight ?? 1.5;
-  const maxW = opts?.maxWidth ?? A4.w - MARGIN * 2;
-  const x = opts?.x ?? MARGIN;
-  doc.setFont("helvetica", opts?.bold ? "bold" : "normal");
-  doc.setFontSize(size);
-  setText(doc, color);
-  const lines = doc.splitTextToSize(text, maxW) as string[];
-  lines.forEach((ln, i) => doc.text(ln, x, y + i * size * lh));
-  return y + lines.length * size * lh + 4;
-}
-
-// Section header with a small black bar + label, mimicking reference PDFs
-function drawSectionHeader(doc: jsPDF, label: string, y: number): number {
-  setFill(doc, C.black);
-  doc.rect(MARGIN, y, A4.w - MARGIN * 2, 30, "F");
-  setText(doc, C.white);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.text(label.toUpperCase(), MARGIN + 14, y + 20);
-  return y + 30 + 18;
-}
-
-function drawFooter(doc: jsPDF, pageNum: number, total: number, ctx: { company: PdfCompany; logo: string | null }) {
-  const y = A4.h - FOOTER_H;
-  setFill(doc, C.black);
-  doc.rect(0, y, A4.w, FOOTER_H, "F");
-  // Left: company name
-  setText(doc, C.white);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.text(companyName(ctx.company).toUpperCase(), MARGIN, y + 16);
-  // Right: page num
-  doc.setFont("helvetica", "normal");
-  doc.text(`${pageNum} / ${total}`, A4.w - MARGIN, y + 16, { align: "right" });
-}
-
-function applyFooters(doc: jsPDF, ctx: { company: PdfCompany; logo: string | null }, skipFirst = true) {
-  const total = (doc as any).internal.getNumberOfPages();
-  for (let i = 1; i <= total; i++) {
-    if (skipFirst && i === 1) continue;
-    doc.setPage(i);
-    drawFooter(doc, i, total, ctx);
-  }
-}
 
 // ============================================================
-// PAGE 1 — COVER (dark, institutional)
+// PAGES
 // ============================================================
-function renderCoverPage(
+
+async function renderCoverPage(
   doc: jsPDF,
-  ctx: { quote: PdfQuote; items: PdfItem[]; company: PdfCompany; customer: PdfCustomer; logoDataUrl: string | null; solution: SolutionKey },
+  ctx: {
+    quote: PdfQuote;
+    items: PdfItem[];
+    company: PdfCompany;
+    customer: PdfCustomer;
+    cfg: typeof DEFAULTS;
+    logoDataUrl: string | null;
+  },
 ) {
-  setFill(doc, C.black);
+  // Black background full page
+  setFill(doc, PALETTE.black);
   doc.rect(0, 0, A4.w, A4.h, "F");
 
-  // Thin accent line
-  setFill(doc, C.accent);
-  doc.rect(0, 0, A4.w, 3, "F");
-  doc.rect(0, A4.h - 3, A4.w, 3, "F");
+  // Gold accent bars
+  setFill(doc, PALETTE.gold);
+  doc.rect(0, 0, A4.w, 6, "F");
+  doc.rect(0, A4.h - 6, A4.w, 6, "F");
 
-  // Logo centered ~ top third
+  // Logo — white background already removed in loadLogoForDarkBg.
+  // Rendered directly on the black background, no white box.
   if (ctx.logoDataUrl) {
     try {
-      const lw = 180;
-      const lh = 90;
-      doc.addImage(ctx.logoDataUrl, "PNG", A4.w / 2 - lw / 2, 150, lw, lh, undefined, "FAST");
-    } catch { /* ignore */ }
+      const lw = 160;
+      const lh = 80;
+      doc.addImage(
+        ctx.logoDataUrl,
+        "PNG",
+        A4.w / 2 - lw / 2,
+        90,
+        lw,
+        lh,
+        undefined,
+        "FAST",
+      );
+    } catch {
+      /* ignore */
+    }
   } else {
-    setText(doc, C.white);
+    setText(doc, PALETTE.gold);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(32);
-    doc.text(companyName(ctx.company).toUpperCase(), A4.w / 2, 210, { align: "center" });
+    doc.setFontSize(28);
+    doc.text(companyName(ctx.company).toUpperCase(), A4.w / 2, 130, { align: "center" });
   }
 
-  // Company segment
-  setText(doc, C.grayLight);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  doc.text(SOLUTION_SUBTITLE[ctx.solution] ?? SOLUTION_SUBTITLE.generic, A4.w / 2, 270, { align: "center" });
-
-  // Big title
-  setText(doc, C.white);
+  // Eyebrow
+  setText(doc, PALETTE.goldSoft);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(36);
-  doc.text("PROPOSTA", A4.w / 2, 420, { align: "center" });
-  doc.text("COMERCIAL", A4.w / 2, 460, { align: "center" });
+  doc.setFontSize(10);
+  doc.text("PROPOSTA TÉCNICA E COMERCIAL", A4.w / 2, 220, { align: "center" });
 
-  // Accent divider
-  setFill(doc, C.accent);
-  doc.rect(A4.w / 2 - 40, 478, 80, 2, "F");
+  // Subtitle dynamic
+  setText(doc, PALETTE.white);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(26);
+  const subtitle = inferSubtitle(ctx.quote, ctx.items);
+  const subLines = doc.splitTextToSize(subtitle, A4.w - 120) as string[];
+  let sy = 260;
+  subLines.forEach((ln) => {
+    doc.text(ln, A4.w / 2, sy, { align: "center" });
+    sy += 32;
+  });
 
-  // Customer name
-  setText(doc, C.grayLight);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(14);
-  const cn = doc.splitTextToSize(customerName(ctx.customer), A4.w - 120) as string[];
-  let cy = 520;
-  cn.slice(0, 2).forEach((ln) => { doc.text(ln, A4.w / 2, cy, { align: "center" }); cy += 20; });
+  // Decorative gold line
+  setFill(doc, PALETTE.gold);
+  doc.rect(A4.w / 2 - 30, sy + 10, 60, 2, "F");
+
+  // White info card
+  const cardX = MARGIN + 20;
+  const cardY = 420;
+  const cardW = A4.w - (MARGIN + 20) * 2;
+  const cardH = 220;
+  setFill(doc, PALETTE.white);
+  doc.roundedRect(cardX, cardY, cardW, cardH, 8, 8, "F");
+  setFill(doc, PALETTE.gold);
+  doc.rect(cardX, cardY, cardW, 4, "F");
+
+  setText(doc, PALETTE.grayDark);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text("PREPARADA PARA", cardX + 20, cardY + 26);
+
+  setText(doc, PALETTE.black);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text(customerName(ctx.customer), cardX + 20, cardY + 46);
 
   if (ctx.quote.title) {
-    setText(doc, C.gray);
+    setText(doc, PALETTE.grayDark);
     doc.setFont("helvetica", "italic");
-    doc.setFontSize(11);
-    const tl = doc.splitTextToSize(ctx.quote.title, A4.w - 160) as string[];
-    tl.slice(0, 2).forEach((ln) => { doc.text(ln, A4.w / 2, cy + 6, { align: "center" }); cy += 16; });
+    doc.setFontSize(10);
+    const tt = doc.splitTextToSize(ctx.quote.title, cardW - 40) as string[];
+    doc.text(tt.slice(0, 2), cardX + 20, cardY + 64);
   }
 
-  // Bottom company address
-  const addr = companyAddress(ctx.company);
-  setText(doc, C.grayLight);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  let by = A4.h - 80;
-  if (addr) { doc.text(addr, A4.w / 2, by, { align: "center", maxWidth: A4.w - 80 }); by += 14; }
-  const contact = [ctx.company?.phone, ctx.company?.whatsapp].filter(Boolean).join(" · ");
-  if (contact) { doc.text(contact, A4.w / 2, by, { align: "center" }); by += 12; }
-  if (ctx.company?.email) { doc.text(ctx.company.email, A4.w / 2, by, { align: "center" }); }
-}
-
-// ============================================================
-// PAGE 2 — PROPOSAL HEADER (title + contact + quote meta + customer)
-// ============================================================
-function renderProposalHeaderPage(
-  doc: jsPDF,
-  ctx: { quote: PdfQuote; company: PdfCompany; customer: PdfCustomer; cfg: Required<Pick<PremiumPdfConfig, "website">> },
-) {
-  let y = newPage(doc);
-
-  // Big title
-  setText(doc, C.black);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(34);
-  doc.text("PROPOSTA COMERCIAL", MARGIN, y + 20);
-  y += 40;
-
-  setFill(doc, C.accent);
-  doc.rect(MARGIN, y, 60, 3, "F");
-  y += 26;
-
-  // Empresa / contato
-  setText(doc, C.gray);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.text("EMPRESA CONTRATADA", MARGIN, y);
-  y += 14;
-  setText(doc, C.black);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.text(companyName(ctx.company), MARGIN, y);
-  y += 16;
-
-  const rows: string[] = [];
-  const addr = companyAddress(ctx.company);
-  if (addr) rows.push(addr);
-  if (ctx.company?.cnpj) rows.push(`CNPJ: ${ctx.company.cnpj}`);
-  const contact = [
-    ctx.company?.phone ? `Tel: ${ctx.company.phone}` : null,
-    ctx.company?.whatsapp ? `WhatsApp: ${ctx.company.whatsapp}` : null,
-  ].filter(Boolean).join(" · ");
-  if (contact) rows.push(contact);
-  if (ctx.company?.email) rows.push(`E-mail: ${ctx.company.email}`);
-  if (ctx.cfg.website) rows.push(`Site: ${ctx.cfg.website}`);
-
-  setText(doc, C.ink);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  rows.forEach((r) => {
-    const lines = doc.splitTextToSize(r, A4.w - MARGIN * 2) as string[];
-    lines.forEach((ln) => { doc.text(ln, MARGIN, y); y += 14; });
-  });
-
-  y += 12;
-  setStroke(doc, C.grayLight);
-  doc.setLineWidth(0.5);
-  doc.line(MARGIN, y, A4.w - MARGIN, y);
-  y += 22;
-
-  // Cliente
-  setText(doc, C.gray);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.text("CLIENTE", MARGIN, y);
-  y += 14;
-  setText(doc, C.black);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.text(customerName(ctx.customer), MARGIN, y);
-  y += 16;
-
-  const cRows: string[] = [];
-  if (customerDoc(ctx.customer)) cRows.push(`CPF/CNPJ: ${customerDoc(ctx.customer)}`);
-  const cContact = [
-    ctx.customer?.phone ? `Tel: ${ctx.customer.phone}` : null,
-    ctx.customer?.whatsapp ? `WhatsApp: ${ctx.customer.whatsapp}` : null,
-  ].filter(Boolean).join(" · ");
-  if (cContact) cRows.push(cContact);
-  if (ctx.customer?.email) cRows.push(`E-mail: ${ctx.customer.email}`);
-  setText(doc, C.ink);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  cRows.forEach((r) => { doc.text(r, MARGIN, y); y += 14; });
-
-  y += 12;
-  setStroke(doc, C.grayLight);
-  doc.line(MARGIN, y, A4.w - MARGIN, y);
-  y += 22;
-
-  // Meta grid: nº proposta, emissão, validade, título
-  const colW = (A4.w - MARGIN * 2 - 20) / 2;
-  const meta: { label: string; value: string }[] = [
-    { label: "Nº DA PROPOSTA", value: ctx.quote.quote_number },
-    { label: "DATA DE EMISSÃO", value: fmtDate(ctx.quote.issue_date) },
-    { label: "VALIDADE", value: fmtDate(ctx.quote.valid_until) },
-  ];
-  if (ctx.quote.title) meta.push({ label: "REFERÊNCIA", value: ctx.quote.title });
-
-  meta.forEach((m, i) => {
-    const col = i % 2;
-    const row = Math.floor(i / 2);
-    const mx = MARGIN + col * (colW + 20);
-    const my = y + row * 46;
-    setText(doc, C.gray);
+  // 2-col meta grid
+  const metaY = cardY + 100;
+  const colW = (cardW - 60) / 2;
+  const drawMeta = (x: number, y: number, label: string, value: string) => {
+    setText(doc, PALETTE.gray);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
-    doc.text(m.label, mx, my);
-    setText(doc, C.black);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-    const lines = doc.splitTextToSize(m.value, colW) as string[];
-    lines.slice(0, 2).forEach((ln, li) => doc.text(ln, mx, my + 14 + li * 13));
-  });
+    doc.setFontSize(7);
+    doc.text(label.toUpperCase(), x, y);
+    setText(doc, PALETTE.black);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text(value, x, y + 12);
+  };
+
+  drawMeta(cardX + 20, metaY, "Nº da proposta", ctx.quote.quote_number);
+  drawMeta(cardX + 20 + colW + 20, metaY, "Data", fmtDate(ctx.quote.issue_date));
+  drawMeta(cardX + 20, metaY + 36, "Validade", fmtDate(ctx.quote.valid_until));
+  drawMeta(
+    cardX + 20 + colW + 20,
+    metaY + 36,
+    "Responsável",
+    ctx.cfg.responsibleName || ctx.company?.email || "Equipe Comercial",
+  );
+  const contact = ctx.cfg.responsiblePhone || ctx.company?.whatsapp || ctx.company?.phone || "—";
+  drawMeta(cardX + 20, metaY + 72, "Contato / WhatsApp", contact);
+  drawMeta(
+    cardX + 20 + colW + 20,
+    metaY + 72,
+    "E-mail",
+    ctx.company?.email || "—",
+  );
+
+  // Tagline at bottom
+  setText(doc, PALETTE.goldSoft);
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(11);
+  doc.text(
+    "Segurança, tecnologia e execução técnica para proteger o que realmente importa.",
+    A4.w / 2,
+    A4.h - 80,
+    { align: "center", maxWidth: A4.w - 120 },
+  );
 }
 
-// ============================================================
-// PAGE 3 — SOBRE A EMPRESA
-// ============================================================
-function renderAboutCompanyPage(
-  doc: jsPDF,
-  ctx: { company: PdfCompany; cfg: { aboutText: string | null; kpis: { projects: string; cities: string; clients: string } } },
-) {
+function renderCompanyIntroPage(doc: jsPDF, ctx: { company: PdfCompany }) {
   let y = newPage(doc);
-  y = drawSectionHeader(doc, "Sobre a Empresa", y);
+  y = drawEyebrow(doc, "Apresentação", y);
+  y = drawSectionTitle(doc, "Prezado cliente,", y);
 
-  const intro =
-    "Antes de apresentar a proposta, listamos alguns pontos importantes a serem observados na contratação de soluções técnicas e de infraestrutura.";
-  y = drawParagraph(doc, intro, y, { color: C.ink, size: 10.5 });
+  y = drawParagraph(
+    doc,
+    `A ${companyName(ctx.company)} apresenta esta proposta técnica e comercial com o objetivo de entregar uma solução segura, eficiente e adequada à necessidade do seu ambiente.`,
+    y,
+  );
+  y += 4;
+  y = drawParagraph(
+    doc,
+    "Nosso trabalho não se limita à instalação de equipamentos. Atuamos desde a análise técnica, escolha correta dos materiais, execução organizada, testes, entrega assistida e suporte pós-instalação.",
+    y,
+  );
+  y += 4;
+  y = drawParagraph(
+    doc,
+    "Cada projeto é pensado para reduzir riscos, evitar retrabalho, melhorar o controle do ambiente e garantir maior confiabilidade na operação.",
+    y,
+  );
+
+  y += 16;
+  // Pull-quote box
+  setFill(doc, PALETTE.black);
+  doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, 70, 6, 6, "F");
+  setFill(doc, PALETTE.gold);
+  doc.rect(MARGIN, y, 4, 70, "F");
+  setText(doc, PALETTE.goldSoft);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text("NOSSO COMPROMISSO", MARGIN + 18, y + 22);
+  setText(doc, PALETTE.white);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.text(
+    "Mais do que vender equipamentos, entregamos uma solução técnica\ncom responsabilidade, acabamento e suporte.",
+    MARGIN + 18,
+    y + 42,
+  );
+}
+
+function renderAboutPage(doc: jsPDF, ctx: { company: PdfCompany; cfg: typeof DEFAULTS }) {
+  let y = newPage(doc);
+  y = drawEyebrow(doc, "Quem somos", y);
+  y = drawSectionTitle(doc, `Sobre a ${companyName(ctx.company)}`, y);
+
+  y = drawParagraph(
+    doc,
+    `A ${companyName(ctx.company)} é uma empresa especializada em soluções integradas de segurança eletrônica, tecnologia e infraestrutura para residências, condomínios, comércios e empresas.`,
+    y,
+  );
+  y += 4;
+  y = drawParagraph(
+    doc,
+    "Atuamos com projetos, instalação, manutenção e suporte técnico em sistemas de CFTV, alarmes, controle de acesso, interfonia, redes, automação, energia solar, carregadores veiculares e soluções sob medida.",
+    y,
+  );
+
   y += 8;
-
-  const bullets: { t: string; b: string }[] = [
-    { t: "Definição dos equipamentos a partir de levantamento técnico", b: "Cada projeto é dimensionado conforme necessidade e características do ambiente." },
-    { t: "Documentação técnica do projeto", b: "Registro do que foi instalado para consulta futura e manutenção por outras equipes." },
-    { t: "Suporte técnico e garantia", b: "Cobertura de equipamentos e serviços conforme condições comerciais desta proposta." },
-    { t: "Experiência no Distrito Federal e Entorno", b: "Atendimento a residências, empresas e condomínios com equipe própria." },
-    { t: "Atendimento completo", b: "Desde a elaboração do projeto até manutenções preventivas e corretivas." },
+  // 3 pillars
+  const pillars = [
+    { t: "Levantamento técnico", b: "Análise correta do ambiente, dimensionamento e escolha dos equipamentos adequados." },
+    { t: "Instalação profissional", b: "Execução organizada, com acabamento, testes e documentação técnica." },
+    { t: "Suporte e garantia", b: "Acompanhamento pós-instalação, suporte técnico e garantia sobre os serviços." },
   ];
+  const cardW = (A4.w - MARGIN * 2 - 16) / 3;
+  pillars.forEach((p, i) =>
+    drawCard(doc, { x: MARGIN + i * (cardW + 8), y, w: cardW, h: 90, title: p.t, body: p.b, gold: true }),
+  );
+  y += 110;
 
-  bullets.forEach((b) => {
-    y = ensureSpace(doc, y, 42);
-    setFill(doc, C.accent);
-    doc.circle(MARGIN + 3, y - 3, 2.4, "F");
-    setText(doc, C.black);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10.5);
-    const tLines = doc.splitTextToSize(b.t, A4.w - MARGIN * 2 - 14) as string[];
-    tLines.forEach((ln, i) => doc.text(ln, MARGIN + 14, y + i * 13));
-    y += tLines.length * 13;
-    y = drawParagraph(doc, b.b, y + 2, { color: C.gray, size: 9.5, x: MARGIN + 14, maxWidth: A4.w - MARGIN * 2 - 14 });
-    y += 4;
-  });
+  y = drawParagraph(
+    doc,
+    "Acreditamos que segurança eletrônica não deve ser tratada como improviso. Um sistema bem projetado protege pessoas, patrimônio, informações e reduz riscos operacionais.",
+    y,
+    { color: PALETTE.black },
+  );
 
-  const custom = ctx.cfg.aboutText?.trim();
-  if (custom) {
-    y = ensureSpace(doc, y, 60);
-    y += 6;
-    y = drawParagraph(doc, custom, y, { color: C.ink, size: 10 });
-  }
-
-  // KPIs footer bar
-  const barH = 70;
-  const by = A4.h - FOOTER_H - barH - 10;
-  setFill(doc, C.black);
-  doc.rect(0, by, A4.w, barH, "F");
-  setFill(doc, C.accent);
-  doc.rect(0, by, A4.w, 2, "F");
+  y += 12;
+  // KPI strip
+  setFill(doc, PALETTE.black);
+  doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, 80, 6, 6, "F");
+  const kpiW = (A4.w - MARGIN * 2) / 3;
   const kpis = [
-    { n: ctx.cfg.kpis.projects, l: "Projetos executados" },
-    { n: ctx.cfg.kpis.cities, l: "Cidades atendidas" },
-    { n: ctx.cfg.kpis.clients, l: "Clientes satisfeitos" },
+    { v: ctx.cfg.kpis.projects ?? "500+", l: "Projetos executados" },
+    { v: ctx.cfg.kpis.cities ?? "30+", l: "Cidades atendidas" },
+    { v: ctx.cfg.kpis.clients ?? "Alta satisfação", l: "Clientes atendidos" },
   ];
-  const cw = A4.w / 3;
   kpis.forEach((k, i) => {
-    setText(doc, C.accent);
+    const cx = MARGIN + i * kpiW + kpiW / 2;
+    setText(doc, PALETTE.gold);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    doc.text(k.n, cw * i + cw / 2, by + 34, { align: "center" });
-    setText(doc, C.white);
+    doc.text(k.v, cx, y + 36, { align: "center" });
+    setText(doc, PALETTE.white);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    doc.text(k.l, cw * i + cw / 2, by + 52, { align: "center" });
+    doc.text(k.l, cx, y + 58, { align: "center" });
   });
 }
 
-// ============================================================
-// PAGE 4 — MATERIAIS DO PROJETO (table)
-// ============================================================
-function renderMaterialsTablePage(doc: jsPDF, ctx: { items: PdfItem[] }) {
+function renderTechnicalAuthorityPage(doc: jsPDF, ctx: { settings: PdfSettings; company: PdfCompany }) {
   let y = newPage(doc);
-  y = drawSectionHeader(doc, "Materiais do Projeto", y);
+  y = drawEyebrow(doc, "Responsabilidade Técnica", y);
+  y = drawSectionTitle(doc, "Por que contratar uma empresa com responsabilidade técnica?", y);
 
-  const rows = ctx.items.map((it) => [
-    it.description ? `${it.name}\n${it.description}` : it.name,
-    (it.sku && it.sku.trim()) || "-",
-    `${String(Number(it.quantity)).replace(".", ",")} ${it.unit || "UN"}`,
-  ]);
+  y = drawParagraph(
+    doc,
+    "Projetos de segurança eletrônica envolvem instalação elétrica, passagem de cabos, fixação de equipamentos, configuração de rede, gravação de imagens, controle de acesso e integração de sistemas. Contratar uma empresa com responsabilidade técnica reduz riscos e aumenta a segurança da execução.",
+    y,
+  );
+  y += 6;
 
-  if (rows.length === 0) {
-    setFill(doc, C.grayBg);
-    doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, 70, 4, 4, "F");
-    setText(doc, C.gray);
-    doc.setFont("helvetica", "italic");
-    doc.setFontSize(11);
-    doc.text("Nenhum item cadastrado neste orçamento.", A4.w / 2, y + 40, { align: "center" });
+  const items = [
+    "Melhor escolha dos equipamentos para cada cenário",
+    "Instalação seguindo critérios técnicos",
+    "Documentação organizada do projeto",
+    "Menor risco de falhas e retrabalho",
+    "Suporte técnico estruturado",
+    "Garantia sobre equipamentos e serviços",
+    "Manutenção futura com histórico do projeto",
+  ];
+  setText(doc, PALETTE.black);
+  doc.setFontSize(10);
+  items.forEach((t) => {
+    setFill(doc, PALETTE.gold);
+    doc.circle(MARGIN + 4, y - 3, 2, "F");
+    doc.setFont("helvetica", "normal");
+    doc.text(t, MARGIN + 14, y);
+    y += 16;
+  });
+
+  y += 6;
+  // Credentials box (only real data)
+  const s = ctx.settings ?? {};
+  const creds: { label: string; value: string }[] = [];
+  if (s.cft_registry) creds.push({ label: "Registro CFT", value: String(s.cft_registry) });
+  if (s.nr10) creds.push({ label: "NR-10", value: "Certificação ativa" });
+  if (s.nr35) creds.push({ label: "NR-35", value: "Certificação ativa" });
+  if (s.technical_responsible) creds.push({ label: "Responsável técnico", value: String(s.technical_responsible) });
+
+  setFill(doc, PALETTE.graphite);
+  doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, creds.length ? 110 : 70, 6, 6, "F");
+  setFill(doc, PALETTE.gold);
+  doc.rect(MARGIN, y, 4, creds.length ? 110 : 70, "F");
+
+  setText(doc, PALETTE.goldSoft);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text("CREDENCIAIS DA EMPRESA", MARGIN + 18, y + 22);
+
+  setText(doc, PALETTE.white);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.text(
+    `A ${companyName(ctx.company)} mantém compromisso com normas técnicas e qualificação profissional.`,
+    MARGIN + 18,
+    y + 40,
+    { maxWidth: A4.w - MARGIN * 2 - 36 },
+  );
+
+  if (creds.length) {
+    let cy = y + 64;
+    creds.forEach((c) => {
+      setText(doc, PALETTE.goldSoft);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text(c.label.toUpperCase(), MARGIN + 18, cy);
+      setText(doc, PALETTE.white);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(c.value, MARGIN + 130, cy);
+      cy += 14;
+    });
+  }
+}
+
+function renderCftvImportancePage(doc: jsPDF, ctx: { quote: PdfQuote; items: PdfItem[] }) {
+  const content = getSolutionContent(ctx.quote, ctx.items);
+  let y = newPage(doc);
+  y = drawEyebrow(doc, "Importância da Solução", y);
+  y = drawSectionTitle(doc, content.importanceTitle, y);
+
+  y = drawParagraph(doc, content.importanceIntro, y);
+  y += 14;
+
+  const cards = content.importanceCards;
+  const cw = (A4.w - MARGIN * 2 - 16) / 3;
+  const ch = 88;
+  cards.forEach((c, i) => {
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    drawCard(doc, {
+      x: MARGIN + col * (cw + 8),
+      y: y + row * (ch + 12),
+      w: cw,
+      h: ch,
+      title: c.t,
+      body: c.b,
+    });
+  });
+  y += (ch + 12) * Math.ceil(cards.length / 3);
+
+  y += 8;
+  drawParagraph(
+    doc,
+    "O investimento em uma solução bem projetada é uma decisão preventiva. Esperar o problema acontecer costuma sair mais caro do que estruturar a solução correta desde o início.",
+    y,
+    { color: PALETTE.black, size: 10.5 },
+  );
+}
+
+function renderDiagnosisPage(doc: jsPDF, ctx: { quote: PdfQuote }) {
+  let y = newPage(doc);
+  y = drawEyebrow(doc, "Análise", y);
+  y = drawSectionTitle(doc, "Diagnóstico da necessidade", y);
+
+  const q = ctx.quote;
+  const structured: { label: string; value?: string | null }[] = [
+    { label: "Problema identificado", value: q.diagnosis_problem },
+    { label: "Necessidade do cliente", value: q.diagnosis_need },
+    { label: "Ambiente atendido", value: q.diagnosis_environment },
+    { label: "Objetivo da solução", value: q.diagnosis_objective },
+    { label: "Pontos críticos observados", value: q.diagnosis_critical_points },
+    { label: "Observações técnicas", value: q.diagnosis_technical_notes },
+  ].filter((r) => r.value && String(r.value).trim().length > 0);
+
+  if (structured.length > 0) {
+    structured.forEach((r) => {
+      y = ensureSpace(doc, y, 60);
+      setText(doc, PALETTE.gold);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text(r.label.toUpperCase(), MARGIN, y);
+      y += 14;
+      y = drawParagraph(doc, String(r.value), y, { color: PALETTE.black });
+      y += 6;
+    });
     return;
   }
 
-  autoTable(doc, {
-    startY: y,
-    head: [["PRODUTO", "CÓDIGO", "QUANTIDADE"]],
-    body: rows,
-    theme: "plain",
-    styles: {
-      fontSize: 10,
-      cellPadding: 8,
-      valign: "middle",
-      textColor: [26, 26, 26],
-      lineColor: [220, 220, 220],
-      lineWidth: 0,
-    },
-    headStyles: {
-      fillColor: hexToRgb(C.tableHead) as any,
-      textColor: [255, 255, 255],
-      fontStyle: "bold",
-      halign: "left",
-      cellPadding: 10,
-      fontSize: 10,
-    },
-    // Zebra: blue / gray alternating rows, like the reference PDFs
-    didParseCell: (data) => {
-      if (data.section === "body") {
-        const bg = data.row.index % 2 === 0 ? C.tableBlue : C.tableGray;
-        (data.cell.styles as any).fillColor = hexToRgb(bg);
-      }
-    },
-    columnStyles: {
-      0: { cellWidth: "auto", halign: "left" },
-      1: { cellWidth: 90, halign: "center" },
-      2: { cellWidth: 110, halign: "center" },
-    },
-    margin: { left: MARGIN, right: MARGIN, bottom: FOOTER_H + 30 },
+  const text =
+    q.customer_notes?.trim() ||
+    "Durante a análise da necessidade, foram considerados os pontos críticos do ambiente, a rotina de uso, a exposição a riscos, a necessidade de monitoramento, o controle de acesso e a viabilidade técnica da instalação. A solução proposta busca atender ao cenário atual e permitir futuras ampliações de forma organizada.";
+  drawParagraph(doc, text, y);
+}
+
+
+function renderSolutionSummaryPage(doc: jsPDF, ctx: { quote: PdfQuote; items: PdfItem[] }) {
+  const content = getSolutionContent(ctx.quote, ctx.items);
+  let y = newPage(doc);
+  y = drawEyebrow(doc, "Solução Proposta", y);
+  y = drawSectionTitle(doc, content.solutionTitle, y);
+
+  const totalItems = ctx.items.filter((i) => i.kind !== "LABOR")
+    .reduce((s, i) => s + i.quantity, 0);
+
+  y = drawParagraph(doc, content.solutionIntro, y);
+  y += 12;
+
+  // Quick facts
+  setFill(doc, PALETTE.graphite);
+  doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, 60, 6, 6, "F");
+  const fW = (A4.w - MARGIN * 2) / 2;
+  setText(doc, PALETTE.goldSoft);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text("ESCOPO PRINCIPAL", MARGIN + 16, y + 20);
+  doc.text("ITENS PREVISTOS", MARGIN + 16 + fW, y + 20);
+  setText(doc, PALETTE.white);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.text(ctx.quote.title || content.subtitle, MARGIN + 16, y + 42, { maxWidth: fW - 24 });
+  doc.text(
+    `${ctx.items.filter((i) => i.kind !== "LABOR").length} produtos · ${String(totalItems).replace(".", ",")} unidades`,
+    MARGIN + 16 + fW,
+    y + 42,
+  );
+  y += 78;
+
+  // Dynamic benefits per solution type
+  const benefits = content.solutionBenefits;
+  const cw = (A4.w - MARGIN * 2 - 16) / 3;
+  const ch = 78;
+  benefits.forEach((c, i) => {
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    drawCard(doc, {
+      x: MARGIN + col * (cw + 8),
+      y: y + row * (ch + 12),
+      w: cw,
+      h: ch,
+      title: c.t,
+      body: c.b,
+      gold: true,
+    });
+  });
+}
+
+function renderScopePage(doc: jsPDF) {
+  let y = newPage(doc);
+  y = drawEyebrow(doc, "Escopo", y);
+  y = drawSectionTitle(doc, "Escopo técnico do serviço", y);
+
+  const colW = (A4.w - MARGIN * 2 - 16) / 2;
+
+  // Included
+  setFill(doc, PALETTE.white);
+  setStroke(doc, PALETTE.gold);
+  doc.setLineWidth(1);
+  doc.roundedRect(MARGIN, y, colW, 240, 6, 6, "FD");
+  setFill(doc, PALETTE.gold);
+  doc.rect(MARGIN, y, colW, 4, "F");
+  setText(doc, PALETTE.black);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.text("Incluso na proposta", MARGIN + 14, y + 24);
+
+  const inc = [
+    "Fornecimento dos equipamentos listados",
+    "Instalação dos equipamentos",
+    "Configuração inicial",
+    "Testes de funcionamento",
+    "Orientação básica de uso",
+    "Entrega técnica",
+    "Garantia conforme proposta",
+  ];
+  setText(doc, PALETTE.grayDark);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  inc.forEach((t, i) => {
+    setFill(doc, PALETTE.gold);
+    doc.circle(MARGIN + 18, y + 44 + i * 22, 2, "F");
+    doc.text(t, MARGIN + 28, y + 47 + i * 22);
   });
 
+  // Not included
+  const x2 = MARGIN + colW + 16;
+  setFill(doc, PALETTE.white);
+  setStroke(doc, PALETTE.grayLight);
+  doc.roundedRect(x2, y, colW, 240, 6, 6, "FD");
+  setFill(doc, PALETTE.graphite);
+  doc.rect(x2, y, colW, 4, "F");
+  setText(doc, PALETTE.black);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.text("Não incluso (salvo acordo)", x2 + 14, y + 24);
+
+  const exc = [
+    "Serviços de alvenaria",
+    "Pintura",
+    "Serralheria",
+    "Infraestrutura não prevista",
+    "Pontos elétricos adicionais",
+    "Internet / link dedicado",
+    "Adequações estruturais",
+  ];
+  setText(doc, PALETTE.grayDark);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  exc.forEach((t, i) => {
+    setText(doc, PALETTE.gray);
+    doc.text("×", x2 + 16, y + 47 + i * 22);
+    setText(doc, PALETTE.grayDark);
+    doc.text(t, x2 + 28, y + 47 + i * 22);
+  });
+}
+
+async function renderMaterialsTablePage(
+  doc: jsPDF,
+  ctx: { items: PdfItem[]; thumbnails: Map<string, string> },
+) {
+  let y = newPage(doc);
+  y = drawEyebrow(doc, "Materiais", y);
+  y = drawSectionTitle(doc, "Materiais e itens do projeto", y);
+
+  const visible = ctx.items.filter((it) => it.kind !== "LABOR");
+
+  if (visible.length === 0) {
+    setFill(doc, PALETTE.grayLight);
+    doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, 70, 6, 6, "F");
+    setText(doc, PALETTE.grayDark);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(11);
+    doc.text(
+      "Nenhum material cadastrado neste orçamento.",
+      A4.w / 2,
+      y + 40,
+      { align: "center" },
+    );
+    return;
+  }
+
+  const ROW_H = 44;
+  autoTable(doc, {
+    startY: y,
+    head: [["#", "Foto", "Item / Descrição", "Qtd", "Un"]],
+    body: visible.map((it, i) => [
+      String(i + 1),
+      "",
+      it.description ? `${it.name}\n${it.description}` : it.name,
+      String(Number(it.quantity)).replace(".", ","),
+      it.unit || "UN",
+    ]),
+    styles: { fontSize: 10, cellPadding: 6, valign: "middle", textColor: [30, 30, 30], minCellHeight: ROW_H },
+    headStyles: {
+      fillColor: [11, 11, 11],
+      textColor: [201, 162, 75],
+      fontStyle: "bold",
+      halign: "left",
+      minCellHeight: 24,
+    },
+    alternateRowStyles: { fillColor: [248, 246, 240] },
+    columnStyles: {
+      0: { cellWidth: 26, halign: "center", textColor: [120, 120, 120] },
+      1: { cellWidth: 50, halign: "center" },
+      3: { cellWidth: 46, halign: "center" },
+      4: { cellWidth: 38, halign: "center" },
+    },
+    margin: { left: MARGIN, right: MARGIN, bottom: 60 },
+    didDrawCell: (data) => {
+      if (data.section !== "body" || data.column.index !== 1) return;
+      const it = visible[data.row.index];
+      if (!it) return;
+      const url = it.image_url ?? null;
+      const dataUrl = url ? ctx.thumbnails.get(url) ?? null : null;
+      const cell = data.cell;
+      const size = Math.min(cell.width, cell.height) - 6;
+      const cx = cell.x + (cell.width - size) / 2;
+      const cy = cell.y + (cell.height - size) / 2;
+      if (dataUrl) {
+        try {
+          const fmt = detectImageFormat(dataUrl);
+          doc.addImage(dataUrl, fmt, cx, cy, size, size, undefined, "FAST");
+        } catch {
+          /* ignore */
+        }
+      } else {
+        setFill(doc, PALETTE.grayLight);
+        doc.roundedRect(cx, cy, size, size, 3, 3, "F");
+        setText(doc, PALETTE.gray);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7);
+        doc.text("sem foto", cx + size / 2, cy + size / 2 + 2, { align: "center" });
+      }
+    },
+  });
+
+  // Disclosure
   const finalY = (doc as any).lastAutoTable.finalY + 14;
-  setText(doc, C.gray);
+  setText(doc, PALETTE.gray);
   doc.setFont("helvetica", "italic");
   doc.setFontSize(9);
   doc.text(
-    "Relação de itens que compõem o escopo. Os valores unitários não são detalhados nesta página — o valor total da proposta consta em CONDIÇÕES DA PROPOSTA.",
+    "A tabela apresenta os itens e quantidades do projeto. Valores unitários não são detalhados — o valor total da proposta já contempla materiais, serviços e mão de obra.",
     MARGIN,
     finalY,
     { maxWidth: A4.w - MARGIN * 2 },
   );
 }
 
-// ============================================================
-// PAGE N — PRODUCT HIGHLIGHTS
-// ============================================================
-function scoreForHighlight(it: PdfItem, solution: SolutionKey): number {
-  const cat = categorize(it);
-  const name = `${it.name} ${it.description ?? ""}`;
-  let s = 0;
-  if (cat === "labor" && solution !== "it_maintenance") return -100;
-  if (NEGATIVE_RE.test(name)) s -= 3;
-  if (cat !== "other" && cat !== "labor") s += 3;
-  if (it.image_url) s += 2;
-  if (it.description && it.description.trim().length > 20) s += 2;
-  if (Number(it.quantity) >= 1) s += 1;
-  // Solution affinity
-  const affinity: Record<SolutionKey, Category[]> = {
-    cftv: ["camera", "dvr", "switch"],
-    alarm: ["alarm_central", "sensor", "siren"],
-    intercom: ["intercom", "lock"],
-    access: ["access_reader", "controller", "lock"],
-    network: ["switch", "router", "ap"],
-    automation: ["controller", "motor"],
-    solar: ["inverter", "solar_panel"],
-    ev: ["ev_charger"],
-    audio: ["amp", "speaker", "led_panel"],
-    motor: ["motor", "controller"],
-    lighting: ["luminaire"],
-    it_maintenance: ["computer", "labor"],
-    generic: [],
-  };
-  if (affinity[solution].includes(cat)) s += 4;
-  return s;
-}
 
-function selectHighlights(items: PdfItem[], solution: SolutionKey, max: number): PdfItem[] {
-  const scored = items
-    .map((it) => ({ it, s: scoreForHighlight(it, solution), cat: categorize(it) }))
-    .filter((x) => x.s >= 3)
-    .sort((a, b) => b.s - a.s);
-  const seen = new Set<Category>();
-  const out: PdfItem[] = [];
-  for (const x of scored) {
-    if (x.cat !== "other" && seen.has(x.cat)) continue;
-    seen.add(x.cat);
-    out.push(x.it);
-    if (out.length >= max) break;
-  }
-  return out;
-}
-
-function renderProductHighlightPage(
+async function renderProductHighlight(
   doc: jsPDF,
-  ctx: { item: PdfItem; imageDataUrl: string | null },
+  ctx: { item: PdfItem; imageDataUrl: string | null; index: number; total: number; category: HighlightCategory },
 ) {
-  const it = ctx.item;
-  doc.addPage();
+  let y = newPage(doc);
+  y = drawEyebrow(doc, `Produto estratégico da solução · ${ctx.index + 1}/${ctx.total}`, y);
+  y = drawSectionTitle(doc, ctx.item.name, y);
 
-  // Black header bar with product name
-  setFill(doc, C.black);
-  doc.rect(0, 0, A4.w, 60, "F");
-  setFill(doc, C.accent);
-  doc.rect(0, 60, A4.w, 2, "F");
-  setText(doc, C.white);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  const nameLines = doc.splitTextToSize(it.name.toUpperCase(), A4.w - MARGIN * 2) as string[];
-  const startY = nameLines.length === 1 ? 38 : 30;
-  nameLines.slice(0, 2).forEach((ln, i) => doc.text(ln, MARGIN, startY + i * 18));
-
-  let y = 90;
-  const cat = categorize(it);
-
-  // Description block
-  const desc = (it.description && it.description.trim()) || CAT_DESCRIPTION[cat];
-  setText(doc, C.ink);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10.5);
-  y = drawParagraph(doc, desc, y, { size: 10.5, color: C.ink });
-  y += 6;
-
-  // Benefits
-  setText(doc, C.black);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text("Benefícios", MARGIN, y);
-  y += 14;
-  setText(doc, C.ink);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  const benefits = CAT_BENEFITS[cat];
-  benefits.forEach((b) => {
-    y = ensureSpace(doc, y, 20);
-    setFill(doc, C.accent);
-    doc.circle(MARGIN + 3, y - 3, 2, "F");
-    const lines = doc.splitTextToSize(b, A4.w - MARGIN * 2 - 14) as string[];
-    lines.forEach((ln, i) => doc.text(ln, MARGIN + 14, y + i * 13));
-    y += lines.length * 13 + 3;
-  });
-
-  // Image area (large, lower half)
-  y = Math.max(y + 10, A4.h * 0.5);
-  const availH = A4.h - FOOTER_H - y - 20;
-  const boxH = Math.max(200, Math.min(availH, 360));
-  const boxW = A4.w - MARGIN * 2;
-  setFill(doc, C.grayBg);
-  doc.roundedRect(MARGIN, y, boxW, boxH, 6, 6, "F");
+  // Image box on left, copy on right
+  const imgW = 220;
+  const imgH = 200;
+  setFill(doc, PALETTE.grayLight);
+  doc.roundedRect(MARGIN, y, imgW, imgH, 6, 6, "F");
   if (ctx.imageDataUrl) {
     try {
       const fmt = detectImageFormat(ctx.imageDataUrl);
-      // Fit contained (assume square-ish); use max square inside box
-      const pad = 10;
-      const s = Math.min(boxW - pad * 2, boxH - pad * 2);
-      doc.addImage(ctx.imageDataUrl, fmt, MARGIN + (boxW - s) / 2, y + (boxH - s) / 2, s, s, undefined, "FAST");
-    } catch { /* ignore */ }
+      doc.addImage(ctx.imageDataUrl, fmt, MARGIN + 6, y + 6, imgW - 12, imgH - 12, undefined, "FAST");
+    } catch {
+      /* ignore */
+    }
   } else {
-    setText(doc, C.gray);
+    setText(doc, PALETTE.gray);
     doc.setFont("helvetica", "italic");
-    doc.setFontSize(11);
-    doc.text("Imagem ilustrativa", A4.w / 2, y + boxH / 2, { align: "center" });
+    doc.setFontSize(10);
+    doc.text("Imagem ilustrativa", MARGIN + imgW / 2, y + imgH / 2, { align: "center" });
   }
 
-  // Small qty badge
-  const bx = A4.w - MARGIN - 130;
-  const by = y + boxH + 6;
-  if (by + 14 < A4.h - FOOTER_H) {
-    setText(doc, C.gray);
+  const tx = MARGIN + imgW + 20;
+  const tw = A4.w - tx - MARGIN;
+
+  setText(doc, PALETTE.goldSoft);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text("POR QUE FOI ESCOLHIDO", tx, y + 16);
+  setText(doc, PALETTE.black);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  const reason =
+    "Este equipamento foi selecionado por ser uma peça importante para o funcionamento da solução proposta. Ele contribui para maior segurança, estabilidade e confiabilidade do sistema, reduzindo riscos de falhas e facilitando a operação no dia a dia.";
+  const rLines = doc.splitTextToSize(reason, tw) as string[];
+  let cy = y + 32;
+  rLines.forEach((ln) => { doc.text(ln, tx, cy); cy += 13; });
+
+  cy += 6;
+  setText(doc, PALETTE.gold);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text("O QUE ESTE PRODUTO RESOLVE", tx, cy);
+  cy += 12;
+  setText(doc, PALETTE.grayDark);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9.5);
+  const resolves = RESOLVES_COPY[ctx.category] ?? RESOLVES_COPY.other;
+  const resLines = doc.splitTextToSize(resolves, tw) as string[];
+  resLines.forEach((ln) => { doc.text(ln, tx, cy); cy += 12; });
+
+  if (ctx.item.description) {
+    cy += 6;
+    setText(doc, PALETTE.gold);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.text("DESCRIÇÃO CADASTRADA", tx, cy);
+    cy += 12;
+    setText(doc, PALETTE.grayDark);
     doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    const dLines = doc.splitTextToSize(ctx.item.description, tw) as string[];
+    dLines.slice(0, 6).forEach((ln) => { doc.text(ln, tx, cy); cy += 12; });
+  }
+
+  // Quantity badge
+  let by = y + imgH + 16;
+  setFill(doc, PALETTE.black);
+  doc.roundedRect(MARGIN, by, imgW, 36, 6, 6, "F");
+  setText(doc, PALETTE.goldSoft);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text("QUANTIDADE NO PROJETO", MARGIN + 14, by + 14);
+  setText(doc, PALETTE.white);
+  doc.setFontSize(13);
+  doc.text(
+    `${String(Number(ctx.item.quantity)).replace(".", ",")} ${ctx.item.unit}`,
+    MARGIN + 14,
+    by + 30,
+  );
+}
+
+function renderExecutionProcessPage(doc: jsPDF) {
+  let y = newPage(doc);
+  y = drawEyebrow(doc, "Execução", y);
+  y = drawSectionTitle(doc, "Como será a execução do projeto", y);
+
+  const steps = [
+    "Aprovação da proposta",
+    "Pagamento de entrada, quando houver",
+    "Agendamento da instalação",
+    "Separação dos materiais",
+    "Execução técnica",
+    "Configuração e testes",
+    "Entrega assistida",
+    "Garantia e suporte",
+  ];
+
+  const startY = y + 6;
+  setStroke(doc, PALETTE.gold);
+  doc.setLineWidth(1.5);
+  doc.line(MARGIN + 14, startY, MARGIN + 14, startY + steps.length * 36 - 18);
+
+  steps.forEach((s, i) => {
+    const cy = startY + i * 36;
+    setFill(doc, PALETTE.gold);
+    doc.circle(MARGIN + 14, cy, 9, "F");
+    setText(doc, PALETTE.black);
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
-    doc.text(`Quantidade prevista: ${String(Number(it.quantity)).replace(".", ",")} ${it.unit || "UN"}`, bx, by);
+    doc.text(String(i + 1), MARGIN + 14, cy + 3, { align: "center" });
+    setText(doc, PALETTE.black);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text(s, MARGIN + 34, cy + 4);
+  });
+
+  y = startY + steps.length * 36 + 4;
+  drawParagraph(
+    doc,
+    "Este processo garante mais previsibilidade, organização e transparência para o cliente durante toda a entrega do projeto.",
+    y,
+    { color: PALETTE.grayDark },
+  );
+}
+
+function renderWarrantySupportPage(doc: jsPDF) {
+  let y = newPage(doc);
+  y = drawEyebrow(doc, "Pós-instalação", y);
+  y = drawSectionTitle(doc, "Garantia, suporte e acompanhamento", y);
+
+  y = drawParagraph(
+    doc,
+    "Após a instalação realizamos testes de funcionamento e orientamos o cliente sobre o uso básico da solução implantada. A garantia cobre os serviços executados conforme as condições descritas nesta proposta. Equipamentos seguem garantia conforme fabricante, quando aplicável.",
+    y,
+  );
+  y += 10;
+
+  const cards = [
+    { t: "Suporte técnico", b: "Atendimento estruturado para dúvidas técnicas." },
+    { t: "Garantia de instalação", b: "Cobertura conforme condições da proposta." },
+    { t: "Garantia de equipamentos", b: "Conforme política do fabricante." },
+    { t: "Orientação de uso", b: "Cliente recebe instruções claras de operação." },
+    { t: "Manutenção preventiva", b: "Plano opcional para manter o sistema saudável." },
+    { t: "Histórico do projeto", b: "Documentação para futuras intervenções." },
+  ];
+  const cw = (A4.w - MARGIN * 2 - 16) / 3;
+  const ch = 78;
+  cards.forEach((c, i) => {
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    drawCard(doc, {
+      x: MARGIN + col * (cw + 8),
+      y: y + row * (ch + 10),
+      w: cw,
+      h: ch,
+      title: c.t,
+      body: c.b,
+    });
+  });
+}
+
+function renderCommercialConditionsPage(doc: jsPDF, ctx: { quote: PdfQuote }) {
+  let y = newPage(doc);
+  y = drawEyebrow(doc, "Investimento", y);
+  y = drawSectionTitle(doc, "Condições comerciais", y);
+
+  // Big total
+  setFill(doc, PALETTE.black);
+  doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, 110, 8, 8, "F");
+  setFill(doc, PALETTE.gold);
+  doc.rect(MARGIN, y, 6, 110, "F");
+  setText(doc, PALETTE.goldSoft);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.text("VALOR TOTAL DA PROPOSTA", MARGIN + 20, y + 30);
+  setText(doc, PALETTE.white);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(34);
+  doc.text(fmtBRL(ctx.quote.total_amount), MARGIN + 20, y + 70);
+  setText(doc, PALETTE.gray);
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(9);
+  doc.text(
+    "Valor total com materiais, serviços e mão de obra inclusos.",
+    MARGIN + 20,
+    y + 92,
+  );
+  y += 130;
+
+  // Terms grid
+  const blocks: { label: string; value: string | null | undefined }[] = [
+    { label: "Forma de pagamento", value: ctx.quote.payment_terms },
+    { label: "Prazo / entrega", value: ctx.quote.delivery_terms },
+    { label: "Estimativa de conclusão", value: ctx.quote.completion_estimate },
+    { label: "Validade da proposta", value: fmtDate(ctx.quote.valid_until) },
+    { label: "Garantia", value: ctx.quote.warranty_terms },
+  ];
+  if (ctx.quote.down_payment_percent > 0) {
+    blocks.unshift({
+      label: `Entrada (${ctx.quote.down_payment_percent}%)`,
+      value: `${fmtBRL(ctx.quote.down_payment_amount)} · Saldo restante ${fmtBRL(ctx.quote.remaining_amount)}`,
+    });
+  }
+
+  blocks.forEach((b) => {
+    if (!b.value) return;
+    y = ensureSpace(doc, y, 50);
+    setText(doc, PALETTE.gold);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.text(b.label.toUpperCase(), MARGIN, y);
+    setText(doc, PALETTE.black);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10.5);
+    const lines = doc.splitTextToSize(String(b.value), A4.w - MARGIN * 2) as string[];
+    lines.forEach((ln, i) => doc.text(ln, MARGIN, y + 14 + i * 13));
+    y += 14 + lines.length * 13 + 12;
+  });
+}
+
+function renderImportantNotesPage(doc: jsPDF, ctx: { quote: PdfQuote }) {
+  let y = newPage(doc);
+  y = drawEyebrow(doc, "Observações", y);
+  y = drawSectionTitle(doc, "Observações da proposta", y);
+
+  const items: string[] = [];
+  if (ctx.quote.customer_notes?.trim()) items.push(ctx.quote.customer_notes.trim());
+  items.push(
+    "A proposta foi elaborada com base nas informações disponíveis no momento da análise.",
+    "Alterações de escopo poderão gerar revisão de valores.",
+    "Serviços não listados nesta proposta não estão inclusos.",
+    "A instalação depende de disponibilidade de acesso ao local.",
+    "Infraestrutura adicional será validada antes da execução.",
+    "Equipamentos possuem garantia conforme fabricante.",
+    "Serviços possuem garantia conforme condição comercial informada.",
+  );
+
+  items.forEach((t) => {
+    y = ensureSpace(doc, y, 40);
+    setFill(doc, PALETTE.gold);
+    doc.circle(MARGIN + 3, y - 3, 2, "F");
+    setText(doc, PALETTE.grayDark);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    const lines = doc.splitTextToSize(t, A4.w - MARGIN * 2 - 14) as string[];
+    lines.forEach((ln, i) => doc.text(ln, MARGIN + 14, y + i * 14));
+    y += lines.length * 14 + 6;
+  });
+}
+
+async function renderAcceptancePage(
+  doc: jsPDF,
+  ctx: {
+    quote: PdfQuote;
+    customer: PdfCustomer;
+    company: PdfCompany;
+    publicUrl: string;
+    cfg: typeof DEFAULTS;
+  },
+) {
+  let y = newPage(doc);
+  y = drawEyebrow(doc, "Próximo Passo", y);
+  y = drawSectionTitle(doc, "Aceite da proposta", y);
+
+  y = drawParagraph(
+    doc,
+    "Ao aprovar esta proposta, o cliente declara estar ciente do escopo, condições comerciais, prazo, garantias e observações descritas neste documento.",
+    y,
+  );
+  y += 6;
+
+  // Signature block
+  setFill(doc, PALETTE.white);
+  setStroke(doc, PALETTE.grayLight);
+  doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, 130, 6, 6, "FD");
+  const colW = (A4.w - MARGIN * 2 - 30) / 2;
+  setText(doc, PALETTE.gold);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text("NOME DO CLIENTE", MARGIN + 14, y + 22);
+  doc.text("CPF / CNPJ", MARGIN + 14 + colW + 14, y + 22);
+  setStroke(doc, PALETTE.grayDark);
+  doc.line(MARGIN + 14, y + 50, MARGIN + 14 + colW, y + 50);
+  doc.line(MARGIN + 14 + colW + 14, y + 50, MARGIN + 14 + colW + 14 + colW, y + 50);
+  setText(doc, PALETTE.gold);
+  doc.text("DATA", MARGIN + 14, y + 78);
+  doc.text("ASSINATURA", MARGIN + 14 + colW + 14, y + 78);
+  setStroke(doc, PALETTE.grayDark);
+  doc.line(MARGIN + 14, y + 106, MARGIN + 14 + colW, y + 106);
+  doc.line(MARGIN + 14 + colW + 14, y + 106, MARGIN + 14 + colW + 14 + colW, y + 106);
+  y += 144;
+
+  // CTA bar
+  setFill(doc, PALETTE.black);
+  doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, 60, 6, 6, "F");
+  setFill(doc, PALETTE.gold);
+  doc.rect(MARGIN, y, 6, 60, "F");
+  setText(doc, PALETTE.goldSoft);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text("PRONTO PARA APROVAR?", MARGIN + 20, y + 22);
+  setText(doc, PALETTE.white);
+  doc.setFontSize(14);
+  doc.text("Aprovar proposta e iniciar projeto", MARGIN + 20, y + 44);
+  y += 76;
+
+  // QR codes
+  const qrSize = 110;
+  const acceptQr = ctx.cfg.showAcceptanceQr ? await generateQrDataUrl(ctx.publicUrl) : null;
+  const wa = ctx.company?.whatsapp || ctx.company?.phone || "";
+  const waDigits = String(wa).replace(/\D/g, "");
+  const waUrl = waDigits
+    ? `https://wa.me/${waDigits.startsWith("55") ? waDigits : `55${waDigits}`}?text=${encodeURIComponent(
+        `Olá! Estou com a proposta ${ctx.quote.quote_number} e gostaria de aprovar.`,
+      )}`
+    : null;
+  const waQr = ctx.cfg.showWhatsappQr && waUrl ? await generateQrDataUrl(waUrl) : null;
+
+  const qrs = [
+    acceptQr ? { dataUrl: acceptQr, label: "Aprovar online", caption: ctx.publicUrl } : null,
+    waQr ? { dataUrl: waQr, label: "Falar no WhatsApp", caption: wa } : null,
+  ].filter(Boolean) as { dataUrl: string; label: string; caption: string }[];
+
+  if (qrs.length) {
+    const totalW = qrs.length * (qrSize + 120);
+    let qx = (A4.w - totalW) / 2;
+    qrs.forEach((q) => {
+      try {
+        doc.addImage(q.dataUrl, "PNG", qx, y, qrSize, qrSize, undefined, "FAST");
+      } catch {
+        /* ignore */
+      }
+      setText(doc, PALETTE.black);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text(q.label, qx + qrSize + 16, y + 28);
+      setText(doc, PALETTE.grayDark);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.text(doc.splitTextToSize(q.caption, 110) as string[], qx + qrSize + 16, y + 44);
+      qx += qrSize + 120;
+    });
   }
 }
 
-// ============================================================
-// PAGE — CONDIÇÕES DA PROPOSTA
-// ============================================================
-function renderConditionsPage(doc: jsPDF, ctx: { quote: PdfQuote }) {
+function renderCompanyDataPage(doc: jsPDF, ctx: { company: PdfCompany; settings: PdfSettings }) {
   let y = newPage(doc);
-  y = drawSectionHeader(doc, "Condições da Proposta", y);
+  y = drawEyebrow(doc, "Contato", y);
+  y = drawSectionTitle(doc, `Dados da ${companyName(ctx.company)}`, y);
 
-  const q = ctx.quote;
+  const rows: { label: string; value?: string | null }[] = [
+    { label: "Razão social", value: ctx.company?.corporate_name },
+    { label: "Nome fantasia", value: ctx.company?.trade_name },
+    { label: "CNPJ", value: ctx.company?.cnpj },
+    { label: "Telefone", value: ctx.company?.phone },
+    { label: "WhatsApp", value: ctx.company?.whatsapp },
+    { label: "E-mail", value: ctx.company?.email },
+    { label: "Responsável técnico", value: ctx.settings?.technical_responsible },
+    { label: "Registro CFT", value: ctx.settings?.cft_registry },
+  ];
 
-  // Total card
-  setFill(doc, C.black);
-  doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, 100, 6, 6, "F");
-  setFill(doc, C.accent);
-  doc.rect(MARGIN, y, 5, 100, "F");
-  setText(doc, C.grayLight);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
-  doc.text("VALOR TOTAL DA PROPOSTA", MARGIN + 20, y + 28);
-  setText(doc, C.white);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(30);
-  doc.text(fmtBRL(q.total_amount), MARGIN + 20, y + 66);
-  setText(doc, C.gray);
-  doc.setFont("helvetica", "italic");
-  doc.setFontSize(9);
-  doc.text("Materiais, serviços e mão de obra inclusos.", MARGIN + 20, y + 88);
-  y += 120;
-
-  const rows: { label: string; value: string | null | undefined }[] = [];
-  if (q.down_payment_percent > 0) {
-    rows.push({
-      label: `Entrada (${q.down_payment_percent}%)`,
-      value: `${fmtBRL(q.down_payment_amount)} · Saldo restante ${fmtBRL(q.remaining_amount)}`,
-    });
-  }
-  rows.push(
-    { label: "Condição de pagamento", value: q.payment_terms || "A combinar." },
-    { label: "Prazo de entrega / execução", value: q.delivery_terms || "A definir após aceite da proposta." },
-    { label: "Estimativa de conclusão", value: q.completion_estimate },
-    { label: "Validade da proposta", value: fmtDate(q.valid_until) },
-    { label: "Garantia", value: q.warranty_terms || "Equipamentos conforme fabricante; serviços conforme política da empresa." },
-  );
-
-  rows.forEach((r) => {
-    if (!r.value) return;
-    y = ensureSpace(doc, y, 46);
-    setText(doc, C.gray);
+  rows.filter((r) => r.value).forEach((r) => {
+    setText(doc, PALETTE.gold);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
     doc.text(r.label.toUpperCase(), MARGIN, y);
-    y += 14;
-    y = drawParagraph(doc, String(r.value), y, { color: C.black, size: 10.5 });
-    setStroke(doc, C.grayLight);
-    doc.line(MARGIN, y + 2, A4.w - MARGIN, y + 2);
-    y += 14;
-  });
-}
-
-// ============================================================
-// PAGE — OBSERVAÇÕES DA PROPOSTA
-// ============================================================
-function renderObservationsPage(doc: jsPDF, ctx: { quote: PdfQuote }) {
-  let y = newPage(doc);
-  y = drawSectionHeader(doc, "Observações da Proposta", y);
-
-  const items: string[] = [];
-  const cn = ctx.quote.customer_notes?.trim();
-  if (cn) items.push(cn);
-  items.push(
-    "Sistema cotado conforme informações disponíveis no momento da análise.",
-    "Pode ser necessária conferência técnica no local após o aceite da proposta.",
-    "Garantia dos equipamentos conforme política do fabricante.",
-    "Garantia dos serviços conforme condição comercial informada nesta proposta.",
-    "Serviços executados por equipe técnica qualificada, seguindo boas práticas de instalação.",
-    "Alterações de escopo podem gerar revisão de valores.",
-    "Imagens dos produtos são meramente ilustrativas.",
-    "Proposta válida até a data informada em CONDIÇÕES DA PROPOSTA.",
-  );
-
-  items.forEach((t, i) => {
-    y = ensureSpace(doc, y, 40);
-    setText(doc, C.gray);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.text(String(i + 1).padStart(2, "0"), MARGIN, y);
-    setText(doc, C.ink);
+    setText(doc, PALETTE.black);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    const lines = doc.splitTextToSize(t, A4.w - MARGIN * 2 - 22) as string[];
-    lines.forEach((ln, li) => doc.text(ln, MARGIN + 22, y + li * 13));
-    y += lines.length * 13 + 8;
+    doc.setFontSize(11);
+    const valueText = String(r.value);
+    if (r.label === "WhatsApp") {
+      const digits = valueText.replace(/\D/g, "");
+      if (digits) {
+        const intlDigits = digits.startsWith("55") ? digits : `55${digits}`;
+        const waUrl = `https://wa.me/${intlDigits}`;
+        setText(doc, PALETTE.gold);
+        doc.textWithLink(valueText, MARGIN + 140, y, { url: waUrl });
+        setText(doc, PALETTE.gray);
+        doc.setFontSize(8);
+        doc.text(waUrl, MARGIN + 140, y + 12);
+      } else {
+        doc.text(valueText, MARGIN + 140, y);
+      }
+    } else if (r.label === "E-mail") {
+      setText(doc, PALETTE.gold);
+      doc.textWithLink(valueText, MARGIN + 140, y, { url: `mailto:${valueText}` });
+    } else {
+      doc.text(valueText, MARGIN + 140, y);
+    }
+    setStroke(doc, PALETTE.grayLight);
+    doc.line(MARGIN, y + 18, A4.w - MARGIN, y + 18);
+    y += r.label === "WhatsApp" && String(r.value).replace(/\D/g, "") ? 36 : 28;
   });
+
+
+  y += 16;
+  setFill(doc, PALETTE.black);
+  doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, 90, 6, 6, "F");
+  setText(doc, PALETTE.goldSoft);
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(11);
+  doc.text(
+    `Obrigado pela oportunidade de apresentar esta solução. A ${companyName(ctx.company)} está à disposição para esclarecer dúvidas e iniciar a execução com segurança, organização e responsabilidade técnica.`,
+    MARGIN + 20,
+    y + 36,
+    { maxWidth: A4.w - MARGIN * 2 - 40 },
+  );
 }
 
 // ============================================================
 // MAIN
 // ============================================================
-const DEFAULT_KPIS = { projects: "500+", cities: "30+", clients: "99%" };
-
-export function selectStrategicQuoteItems(items: PdfItem[], solution: SolutionKey, max = 4): PdfItem[] {
-  return selectHighlights(items, solution, max);
-}
 
 export async function generatePremiumQuotePDF(opts: {
   quote: PdfQuote;
@@ -927,62 +1586,137 @@ export async function generatePremiumQuotePDF(opts: {
   config?: PremiumPdfConfig;
   output?: "save" | "blob";
 }): Promise<Blob | void> {
-  const cfg = opts.config ?? {};
-  const showAbout = cfg.showAboutPage ?? true;
-  const showObs = cfg.showObservationsPage ?? true;
-  const maxHighlights = Math.min(Math.max(cfg.maxProductHighlights ?? 4, 0), 4);
-  const kpis = { ...DEFAULT_KPIS, ...(cfg.kpis ?? {}) };
-  const aboutText = cfg.aboutText ?? null;
-  const website = cfg.website ?? null;
+
+  const cfg = { ...DEFAULTS, ...(opts.config ?? {}), kpis: { ...DEFAULTS.kpis, ...(opts.config?.kpis ?? {}) } };
 
   const doc = new jsPDF({ unit: "pt", format: "a4", compress: true });
 
-  // Preload assets
+  // Compact mode is the new default: enxuto, mais vendedor.
+  const compact = cfg.compactPremiumPdf;
+  const effective = {
+    showCompanyIntro: !compact,
+    showAbout: true,
+    showCftPage: cfg.showCftPage && !compact,
+    showCftvImportance: cfg.showCftvImportance && !compact,
+    showDiagnosis: cfg.showDiagnosis,
+    showSolutionSummary: cfg.showSolutionSummary,
+    showScope: cfg.showScope && !compact,
+    showProductHighlights: cfg.showProductHighlights,
+    showMaterialsTable: cfg.showMaterialsTable,
+    showExecutionProcess: cfg.showExecutionProcess && !compact,
+    showWarrantySupport: cfg.showWarrantySupport && !compact,
+    showCommercialConditions: cfg.showCommercialConditions,
+    showImportantNotes: cfg.showImportantNotes && !compact,
+    showAcceptancePage: cfg.showAcceptancePage,
+  };
+  const maxHighlights = Math.min(compact ? 3 : cfg.maxProductHighlights, 3);
+
+  // Preload images in parallel
   const logoPromise = loadLogoForDarkBg(opts.company?.logo_url ?? null);
-  const solution = detectSolution(opts.quote, opts.items);
 
-  // Items shown on materials table: no LABOR rows unless it's an IT-maintenance-style quote
-  const includeLabor = solution === "it_maintenance";
-  const materialItems = opts.items.filter((it) => (includeLabor ? true : it.kind !== "LABOR"));
+  // Strategic selection — only equipamentos principais get a página própria.
+  const solutionKey = detectSolutionKey(opts.quote, opts.items);
+  const strategicItems = effective.showProductHighlights
+    ? selectStrategicQuoteItems(opts.items, solutionKey, maxHighlights)
+    : [];
+  const strategicCategories = strategicItems.map((it) => categorizeItem(it));
+  const productImagesPromise = Promise.all(
+    strategicItems.map((it) => loadImageAsDataUrl(it.image_url)),
+  );
 
-  const highlights = selectHighlights(materialItems, solution, maxHighlights);
-  const highlightImages = await Promise.all(highlights.map((it) => loadImageAsDataUrl(it.image_url)));
-  const logoDataUrl = await logoPromise;
+  // Preload all material thumbnails (deduped by URL) for the materials table
+  const thumbUrls = Array.from(
+    new Set(
+      opts.items
+        .filter((it) => it.kind !== "LABOR" && it.image_url)
+        .map((it) => it.image_url as string),
+    ),
+  );
+  const thumbnailsPromise = Promise.all(thumbUrls.map((u) => loadImageAsDataUrl(u))).then(
+    (results) => {
+      const map = new Map<string, string>();
+      thumbUrls.forEach((u, i) => {
+        const r = results[i];
+        if (r) map.set(u, r);
+      });
+      return map;
+    },
+  );
+
+  const [logoDataUrl, productImages, thumbnails] = await Promise.all([
+    logoPromise,
+    productImagesPromise,
+    thumbnailsPromise,
+  ]);
 
   // Render pages
-  renderCoverPage(doc, {
+  await renderCoverPage(doc, {
     quote: opts.quote,
     items: opts.items,
     company: opts.company,
     customer: opts.customer,
+    cfg,
     logoDataUrl,
-    solution,
   });
-
-  renderProposalHeaderPage(doc, {
-    quote: opts.quote,
-    company: opts.company,
-    customer: opts.customer,
-    cfg: { website },
-  });
-
-  if (showAbout) {
-    renderAboutCompanyPage(doc, { company: opts.company, cfg: { aboutText, kpis } });
+  if (effective.showCompanyIntro) renderCompanyIntroPage(doc, { company: opts.company });
+  if (effective.showAbout) renderAboutPage(doc, { company: opts.company, cfg });
+  if (effective.showCftPage) renderTechnicalAuthorityPage(doc, { settings: opts.settings, company: opts.company });
+  if (effective.showCftvImportance) renderCftvImportancePage(doc, { quote: opts.quote, items: opts.items });
+  if (effective.showDiagnosis) renderDiagnosisPage(doc, { quote: opts.quote });
+  if (effective.showSolutionSummary) renderSolutionSummaryPage(doc, { quote: opts.quote, items: opts.items });
+  if (effective.showScope) renderScopePage(doc);
+  if (effective.showMaterialsTable) await renderMaterialsTablePage(doc, { items: opts.items, thumbnails });
+  if (effective.showProductHighlights) {
+    for (let i = 0; i < strategicItems.length; i++) {
+      await renderProductHighlight(doc, {
+        item: strategicItems[i],
+        imageDataUrl: productImages[i] ?? null,
+        index: i,
+        total: strategicItems.length,
+        category: strategicCategories[i],
+      });
+    }
   }
-
-  renderMaterialsTablePage(doc, { items: materialItems });
-
-  for (let i = 0; i < highlights.length; i++) {
-    renderProductHighlightPage(doc, { item: highlights[i], imageDataUrl: highlightImages[i] ?? null });
+  if (effective.showExecutionProcess) renderExecutionProcessPage(doc);
+  if (effective.showWarrantySupport) renderWarrantySupportPage(doc);
+  if (effective.showCommercialConditions) renderCommercialConditionsPage(doc, { quote: opts.quote });
+  if (effective.showImportantNotes) renderImportantNotesPage(doc, { quote: opts.quote });
+  if (effective.showAcceptancePage) {
+    await renderAcceptancePage(doc, {
+      quote: opts.quote,
+      customer: opts.customer,
+      company: opts.company,
+      publicUrl: opts.publicLink,
+      cfg,
+    });
   }
+  renderCompanyDataPage(doc, { company: opts.company, settings: opts.settings });
 
-  renderConditionsPage(doc, { quote: opts.quote });
-
-  if (showObs) renderObservationsPage(doc, { quote: opts.quote });
-
-  // Footers on every page except cover
-  applyFooters(doc, { company: opts.company, logo: logoDataUrl }, true);
+  // Footer on every page EXCEPT cover (page 1 has its own design)
+  const total = (doc as any).internal.getNumberOfPages();
+  for (let i = 2; i <= total; i++) {
+    doc.setPage(i);
+    // drawFooter pulled via helper applyFooters would overwrite cover; do manually
+  }
+  applyFooters(doc, companyName(opts.company));
+  // Re-paint cover top/bottom gold bars (footer overwrote bottom)
+  doc.setPage(1);
+  setFill(doc, PALETTE.black);
+  // bottom bar of cover
+  doc.rect(0, A4.h - 32, A4.w, 32, "F");
+  setFill(doc, PALETTE.gold);
+  doc.rect(0, A4.h - 6, A4.w, 6, "F");
+  setText(doc, PALETTE.goldSoft);
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(11);
+  doc.text(
+    "Segurança, tecnologia e execução técnica para proteger o que realmente importa.",
+    A4.w / 2,
+    A4.h - 14,
+    { align: "center", maxWidth: A4.w - 120 },
+  );
 
   if (opts.output === "blob") return doc.output("blob");
   doc.save(`Proposta-${opts.quote.quote_number}.pdf`);
 }
+

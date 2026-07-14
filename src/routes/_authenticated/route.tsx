@@ -1,115 +1,56 @@
-import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app/AppSidebar";
 import { Topbar } from "@/components/app/Topbar";
 import { getMyContext } from "@/lib/account.functions";
 import { AuthLoadingScreen } from "@/components/app/AuthLoadingScreen";
-import { AuthProvider, clearLocalAuthStorage, useAuth } from "@/lib/auth-context";
 import { PermissionsProvider } from "@/lib/permissions";
 import { FeaturesProvider, type PlanInfo } from "@/lib/features";
-import { SessionExpiredProvider } from "@/lib/session-expired";
 import { UpgradeModal } from "@/components/app/UpgradeModal";
 import { SubscriptionGuard } from "@/components/billing/SubscriptionGuard";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import { OfflineBanner } from "@/components/app/OfflineBanner";
-import { Button } from "@/components/ui/button";
-import { classifyError } from "@/lib/error-messages";
 
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  component: AuthenticatedRouteProviders,
+  beforeLoad: async () => {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) throw redirect({ to: "/auth" });
+    return { user: data.user };
+  },
+  component: AuthenticatedLayout,
 });
-
-function AuthenticatedRouteProviders() {
-  return (
-    <AuthProvider>
-      <SessionExpiredProvider>
-        <AuthenticatedLayout />
-      </SessionExpiredProvider>
-    </AuthProvider>
-  );
-}
 
 function AuthenticatedLayout() {
   const fetchCtx = useServerFn(getMyContext);
   const navigate = useNavigate();
-  const location = useLocation();
-  const queryClient = useQueryClient();
-  const { session, loading: authLoading } = useAuth();
-  const { data, isLoading, isError, error, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["me"],
     queryFn: () => fetchCtx(),
-    enabled: !authLoading && !!session,
     // Profile/permissions/plan rarely change; avoid the nested join query
     // (profiles → companies → plans) firing on every navigation/focus.
     staleTime: 5 * 60_000,
     gcTime: 30 * 60_000,
     refetchOnWindowFocus: false,
-    retry: false,
   });
-
-  useEffect(() => {
-    if (!authLoading && !session) {
-      navigate({ to: "/auth", search: { redirectTo: location.pathname }, replace: true });
-    }
-  }, [authLoading, location.pathname, session, navigate]);
-
-  useEffect(() => {
-    if (!isError || classifyError(error) !== "session_expired") return;
-    void queryClient.cancelQueries();
-    queryClient.clear();
-    clearLocalAuthStorage();
-    navigate({ to: "/auth", search: { redirectTo: location.pathname }, replace: true });
-  }, [error, isError, location.pathname, navigate, queryClient]);
 
   // Redirect to onboarding if no company
   useEffect(() => {
-    if (!session || isLoading || !data || data.company) return;
+    if (!isLoading && data && !data.company) {
       if (location.pathname !== "/onboarding") {
         navigate({ to: "/onboarding", replace: true });
       }
-  }, [data, isLoading, location.pathname, navigate, session]);
+    }
+  }, [data, isLoading, navigate]);
 
-  if (authLoading || !session || isLoading) {
+  if (isLoading) {
     return <AuthLoadingScreen message="Carregando seu perfil..." />;
   }
-
-  if (isError) {
-    if (classifyError(error) === "session_expired") {
-      return <AuthLoadingScreen message="Sessão expirada. Redirecionando..." />;
-    }
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <div className="w-full max-w-md rounded-lg border bg-card p-6 text-center shadow-sm">
-          <AlertTriangle className="mx-auto h-10 w-10 text-muted-foreground" />
-          <h1 className="mt-4 text-lg font-semibold">Não foi possível carregar seu perfil</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Verifique sua conexão e tente novamente. O app não foi interrompido.
-          </p>
-          <Button className="mt-4" variant="outline" onClick={() => refetch()}>
-            Tentar novamente
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!data?.company && location.pathname !== "/onboarding") {
-    return <AuthLoadingScreen message="Redirecionando para configuração da empresa..." />;
-  }
-
-  const content = data?.company ? (
-    <SubscriptionGuard isSuperAdmin={!!data?.isSuperAdmin}>
-      <Outlet />
-    </SubscriptionGuard>
-  ) : (
-    <Outlet />
-  );
 
   return (
     <PermissionsProvider
@@ -137,7 +78,9 @@ function AuthenticatedLayout() {
                   userId={data?.profile?.id}
                 />
                 <main className="flex-1 p-4 md:p-6 lg:p-8">
-                  {content}
+                  <SubscriptionGuard isSuperAdmin={!!data?.isSuperAdmin}>
+                    <Outlet />
+                  </SubscriptionGuard>
                 </main>
               </SidebarInset>
             </div>

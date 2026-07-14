@@ -24,8 +24,6 @@ const fmtBRL = (n: number) =>
 const fmtDate = (s?: string | null) =>
   s ? new Date(s).toLocaleDateString("pt-BR") : "—";
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
 type PublicQuote = {
   quote: {
     id: string;
@@ -84,7 +82,6 @@ function ErrorView({ message }: { message: string }) {
 function PublicQuotePage() {
   const { token } = Route.useParams();
   const qc = useQueryClient();
-  const validToken = UUID_RE.test(token);
 
   const { data, isLoading, error } = useQuery<PublicQuote | null>({
     queryKey: ["public-quote", token],
@@ -117,7 +114,6 @@ function PublicQuotePage() {
       }
       return payload;
     },
-    enabled: validToken,
   });
 
   // Register view once
@@ -168,10 +164,6 @@ function PublicQuotePage() {
         </div>
       </div>
     );
-  }
-
-  if (!validToken) {
-    return <ErrorView message="Orçamento não encontrado." />;
   }
 
   if (error || !data) {

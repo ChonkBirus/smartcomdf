@@ -5,10 +5,6 @@ import { createFileRoute } from "@tanstack/react-router";
 // aguardando revisão + retorna upload_path) → faz upload no bucket privado
 // com supabaseAdmin → em caso de falha no upload chama rollback_public_quote_receipt.
 // NUNCA aprova pagamento nem toca no financeiro.
-//
-// Rate limit (P0-07): persistente. Fail-closed — se a RPC falhar, bloqueia.
-// - 5 tentativas / 10 min por token+IP
-// - 20 tentativas / 10 min por IP
 
 const ALLOWED_MIME = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -32,37 +28,22 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function tooMany(retryAfterSec: number, msg: string) {
-  return new Response(JSON.stringify({ error: msg }), {
-    status: 429,
-    headers: {
-      "Content-Type": "application/json",
-      "Retry-After": String(Math.max(1, retryAfterSec)),
-      ...CORS,
-    },
-  });
-}
-
 export const Route = createFileRoute("/api/public/quote-receipt")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
 
       POST: async ({ request }) => {
-        const { tryConsumeRateLimit, hashBucket, clientIp } = await import(
-          "@/lib/rate-limit.server"
-        );
+        const { rateLimit, clientIp } = await import("@/lib/rate-limit.server");
         const ip = clientIp(request);
-
-        // Fail-closed: se a RPC falhar (rl.failed) tratamos como bloqueio.
-        const rlIp = await tryConsumeRateLimit(await hashBucket("qrec:ip", ip), 20, 600);
-        if (rlIp.failed) {
-          return tooMany(60, "Serviço indisponível. Tente novamente em instantes.");
-        }
+        // Rate limit por IP antes de qualquer parsing pesado: 20 uploads / 10 min.
+        const rlIp = rateLimit(`qrec:ip:${ip}`, 20, 600);
         if (!rlIp.ok) {
-          return tooMany(rlIp.retryAfterSec, "Muitas tentativas. Tente novamente em instantes.");
+          return new Response(
+            JSON.stringify({ error: "Muitas tentativas. Tente novamente em instantes." }),
+            { status: 429, headers: { "Content-Type": "application/json", "Retry-After": String(rlIp.retryAfterSec), ...CORS } },
+          );
         }
-
         let form: FormData;
         try {
           form = await request.formData();
@@ -77,23 +58,17 @@ export const Route = createFileRoute("/api/public/quote-receipt")({
         const paymentMethod = String(form.get("payment_method") ?? "PIX").trim();
         const file = form.get("file");
 
-        // Rate limit adicional por token+IP: 5 tentativas / 10 min.
+        // Rate limit adicional por token: 10 uploads / 10 min por orçamento.
         if (/^[0-9a-f-]{36}$/i.test(token)) {
-          const rlTok = await tryConsumeRateLimit(
-            await hashBucket("qrec:tokip", token, ip),
-            5,
-            600,
-          );
-          if (rlTok.failed) {
-            return tooMany(60, "Serviço indisponível. Tente novamente em instantes.");
-          }
+          const rlTok = rateLimit(`qrec:tok:${token}`, 10, 600);
           if (!rlTok.ok) {
-            return tooMany(
-              rlTok.retryAfterSec,
-              "Muitas tentativas para este orçamento. Aguarde alguns minutos.",
+            return new Response(
+              JSON.stringify({ error: "Muitas tentativas para este orçamento. Aguarde alguns minutos." }),
+              { status: 429, headers: { "Content-Type": "application/json", "Retry-After": String(rlTok.retryAfterSec), ...CORS } },
             );
           }
         }
+
 
         if (!/^[0-9a-f-]{36}$/i.test(token)) return json({ error: "Token inválido." }, 400);
         if (!Number.isFinite(amount) || amount <= 0) return json({ error: "Valor inválido." }, 400);

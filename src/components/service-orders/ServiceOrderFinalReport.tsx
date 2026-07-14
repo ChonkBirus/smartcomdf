@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   Copy, Download, FileText, Loader2, Mail, MessageCircle, Sparkles,
 } from "lucide-react";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -66,7 +68,7 @@ async function blobToBase64(blob: Blob): Promise<string> {
   return btoa(bin);
 }
 
-async function buildPdfBlob(opts: {
+function buildPdfBlob(opts: {
   reportNumber: string;
   serviceOrderNumber: string;
   customerName: string;
@@ -81,11 +83,7 @@ async function buildPdfBlob(opts: {
   materials: Array<{ name: string; quantity: number; unit: string }>;
   checklist: Array<{ title: string; is_completed: boolean; is_required: boolean }>;
   signatures: Array<{ signer_name: string; signature_type: string; signed_at: string }>;
-}): Promise<Blob> {
-  const [{ jsPDF }, { default: autoTable }] = await Promise.all([
-    import("jspdf"),
-    import("jspdf-autotable"),
-  ]);
+}): Blob {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   let y = 40;
@@ -230,7 +228,7 @@ export function ServiceOrderFinalReport({
       ]);
 
       const so = details.so;
-      const blob = await buildPdfBlob({
+      const blob = buildPdfBlob({
         reportNumber: rep.report_number,
         serviceOrderNumber: so.service_order_number,
         customerName: so.customer_name ?? customerName ?? "—",

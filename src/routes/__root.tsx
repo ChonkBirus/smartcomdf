@@ -1,18 +1,62 @@
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  Outlet, createRootRouteWithContext, HeadContent, Scripts,
+  Outlet, Link, createRootRouteWithContext, useRouter, HeadContent, Scripts,
 } from "@tanstack/react-router";
-import { type ReactNode } from "react";
+import { StrictMode, useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { reportLovableError } from "../lib/lovable-error-reporting";
+import { ThemeProvider } from "@/lib/theme";
+import { supabase } from "@/integrations/supabase/client";
+import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/lib/auth-context";
+import { SessionExpiredProvider } from "@/lib/session-expired";
 
 function NotFoundComponent() {
-  return <main style={{ padding: 40 }}><h1>404</h1><p>Página não encontrada</p></main>;
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="max-w-md text-center">
+        <h1 className="text-7xl font-bold text-foreground">404</h1>
+        <h2 className="mt-4 text-xl font-semibold">Página não encontrada</h2>
+        <p className="mt-2 text-sm text-muted-foreground">A página que você procura não existe.</p>
+        <Link to="/" className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+          Ir para o início
+        </Link>
+      </div>
+    </div>
+  );
 }
 
-function ErrorComponent({ error }: { error: Error; reset: () => void }) {
-  console.error("[ROOT_ERROR_BOUNDARY_MINIMAL]", error);
-  return <main style={{ padding: 40 }}><h1>ROOT ERROR</h1><pre>{error.message}</pre></main>;
+function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+  console.error(error);
+  const router = useRouter();
+  const isDev = import.meta.env.DEV;
+  useEffect(() => { reportLovableError(error, { boundary: "tanstack_root_error_component" }); }, [error]);
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+      <div className="w-full max-w-md text-center">
+        <h1 className="text-xl font-semibold">Algo deu errado</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Não conseguimos carregar esta tela. Tente novamente ou volte ao painel.
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <button onClick={() => { router.invalidate(); reset(); }} className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+            Tentar novamente
+          </button>
+          <a href="/dashboard" className="inline-flex items-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent">Voltar ao painel</a>
+        </div>
+        {isDev && (
+          <details className="mt-6 rounded-md border bg-muted/40 p-3 text-left text-xs">
+            <summary className="cursor-pointer font-medium">Detalhes técnicos (dev)</summary>
+            <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-words text-[11px] text-muted-foreground">
+{error?.name}: {error?.message}
+{error?.stack}
+            </pre>
+          </details>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
@@ -71,5 +115,35 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function RootComponent() {
-  return <Outlet />;
+  const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      // Only react to identity transitions — TOKEN_REFRESHED/INITIAL_SESSION
+      // fire often and must not blow away all queries.
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT") return;
+      router.invalidate();
+      if (event === "SIGNED_IN") {
+        // Refresh only user-scoped data, not every cached query.
+        queryClient.invalidateQueries({ queryKey: ["me"] });
+        queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      }
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [router, queryClient]);
+
+  const tree = (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <SessionExpiredProvider>
+            <Outlet />
+            <Toaster richColors position="top-right" />
+          </SessionExpiredProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+  return import.meta.env.DEV ? <StrictMode>{tree}</StrictMode> : tree;
 }

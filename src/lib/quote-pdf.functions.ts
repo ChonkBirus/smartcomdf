@@ -44,11 +44,10 @@ export const getQuotePdfPayload = createServerFn({ method: "GET" })
     if (itemIds.length > 0) {
       const { data: catalog, error: catErr } = await sb
         .from("items")
-        .select("id, name, sku, unit, description")
+        .select("id, name, unit, description")
         .in("id", itemIds as string[]);
       if (catErr) console.warn("[PDF PAYLOAD] items join warning:", catErr.message);
       (catalog ?? []).forEach((c: any) => catalogById.set(c.id, c));
-
 
       // Fallback: fetch primary image per item for legacy quotes without image_path snapshot
       const { data: imgs } = await sb
@@ -76,12 +75,9 @@ export const getQuotePdfPayload = createServerFn({ method: "GET" })
 
     const { data: company } = await sb
       .from("companies")
-      .select(
-        "id, corporate_name, trade_name, cnpj, email, phone, whatsapp, logo_url, zipcode, street, number, complement, district, city, state, country",
-      )
+      .select("id, corporate_name, trade_name, cnpj, email, phone, whatsapp, logo_url")
       .eq("id", q.company_id)
       .maybeSingle();
-
 
     const { data: settings } = await sb
       .from("company_settings")
@@ -122,11 +118,9 @@ export const getQuotePdfPayload = createServerFn({ method: "GET" })
         quantity: Number(it.quantity ?? 0),
         position: (it.position ?? 0) as number,
         unit: (it.items?.unit ?? "UN") as string,
-        sku: (it.items?.sku ?? null) as string | null,
         image_url,
       };
     }));
-
     console.log("[PDF PAYLOAD] enriched items:", enrichedItems.length);
 
 

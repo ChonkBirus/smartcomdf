@@ -289,7 +289,7 @@ function ProjectDetailPage() {
 
           {quote?.id && (
             <Button asChild variant="link" size="sm" className="mt-2 px-0">
-              <Link to="/quotes" search={{ new: undefined }}>Ver orçamento {quote.quote_number}</Link>
+              <Link to="/quotes">Ver orçamento {quote.quote_number}</Link>
             </Button>
           )}
         </div>

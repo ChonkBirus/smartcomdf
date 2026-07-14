@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import type { UIMessage } from "ai";
+import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 
 const SYSTEM_PROMPT = `Você é o SmartCom IA, copiloto administrativo e operacional do SmartPro, um ERP para empresas de segurança eletrônica. Ajude o usuário a criar orçamentos, descrições de serviços, mensagens para clientes, checklists de OS, relatórios técnicos e sugestões de organização operacional. Seja claro, profissional e prático. Use formatação Markdown quando útil. Não invente dados do sistema. Não diga que alterou cadastros, estoque, pagamentos ou ordens de serviço. Quando uma ação depender do sistema, oriente o usuário ou sugira o próximo passo. Domínios relevantes: CFTV, alarme, controle de acesso, redes, interfonia, energia solar e carregadores veiculares.`;
 
@@ -17,12 +19,6 @@ export const Route = createFileRoute("/api/assistant/chat")({
         if (!LOVABLE_API_KEY) {
           return new Response("Missing LOVABLE_API_KEY", { status: 500 });
         }
-
-        const [{ convertToModelMessages, streamText }, { createLovableAiGatewayProvider }, { createClient }] = await Promise.all([
-          import("ai"),
-          import("@/lib/ai-gateway.server"),
-          import("@supabase/supabase-js"),
-        ]);
 
         const authHeader = request.headers.get("authorization");
         if (!authHeader?.startsWith("Bearer ")) {

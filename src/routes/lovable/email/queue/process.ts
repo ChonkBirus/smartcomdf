@@ -1,4 +1,5 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import { sendLovableEmail } from '@lovable.dev/email-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 
 const MAX_RETRIES = 5
@@ -63,10 +64,6 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const [{ sendLovableEmail }, { createClient }] = await Promise.all([
-          import('@lovable.dev/email-js'),
-          import('@supabase/supabase-js'),
-        ])
         const apiKey = process.env.LOVABLE_API_KEY
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
         const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
