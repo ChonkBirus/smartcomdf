@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { lazy, Suspense, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Briefcase, FileText, User, Users } from "lucide-react";
@@ -23,7 +24,12 @@ import { ServiceOrderMaterials } from "@/components/service-orders/ServiceOrderM
 import { ServiceOrderCosts } from "@/components/service-orders/ServiceOrderCosts";
 import { ServiceOrderSignature } from "@/components/service-orders/ServiceOrderSignature";
 import { ServiceOrderStockDeduction } from "@/components/service-orders/ServiceOrderStockDeduction";
-import { ServiceOrderFinalReport } from "@/components/service-orders/ServiceOrderFinalReport";
+
+const ServiceOrderFinalReport = lazy(() =>
+  import("@/components/service-orders/ServiceOrderFinalReport").then((module) => ({
+    default: module.ServiceOrderFinalReport,
+  })),
+);
 
 export const Route = createFileRoute("/_authenticated/service-orders_/$id/mobile")({
   head: () => ({ meta: [{ title: "OS — SmartPro" }] }),
@@ -36,7 +42,7 @@ export const Route = createFileRoute("/_authenticated/service-orders_/$id/mobile
   ),
 });
 
-function Section({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
+function Section({ title, children, action }: { title: string; children: ReactNode; action?: ReactNode }) {
   return (
     <Card className="p-4 space-y-3">
       <div className="flex items-center justify-between gap-2">
@@ -300,18 +306,20 @@ function MobileSODetailPage() {
       </Section>
 
       <Section title="Relatório Final">
-        <ServiceOrderFinalReport
-          serviceOrderId={so.id}
-          companyId={so.company_id}
-          status={so.status}
-          canGenerate={canGenerateReport}
-          canSend={canSendReport}
-          canDownload={canDownloadReport}
-          canSeePublicLink={canSeePublicLink}
-          customerName={so.customer_name}
-          customerEmail={email ?? null}
-          customerWhatsapp={whatsapp ?? null}
-        />
+        <Suspense fallback={<p className="text-sm text-muted-foreground">Carregando relatório...</p>}>
+          <ServiceOrderFinalReport
+            serviceOrderId={so.id}
+            companyId={so.company_id}
+            status={so.status}
+            canGenerate={canGenerateReport}
+            canSend={canSendReport}
+            canDownload={canDownloadReport}
+            canSeePublicLink={canSeePublicLink}
+            customerName={so.customer_name}
+            customerEmail={email ?? null}
+            customerWhatsapp={whatsapp ?? null}
+          />
+        </Suspense>
       </Section>
 
       <Section title="Técnico responsável">

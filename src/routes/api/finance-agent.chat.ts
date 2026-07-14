@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { UIMessage } from "ai";
-import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 const SYSTEM_BASE = `Você é o SmartCom Finance IA, agente financeiro do SmartPro.
@@ -41,9 +40,10 @@ export const Route = createFileRoute("/api/finance-agent/chat")({
         if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) return new Response("Server misconfigured", { status: 500 });
         if (!LOVABLE_API_KEY) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
 
-        const [{ convertToModelMessages, streamText }, { createLovableAiGatewayProvider }] = await Promise.all([
+        const [{ convertToModelMessages, streamText }, { createLovableAiGatewayProvider }, { createClient }] = await Promise.all([
           import("ai"),
           import("@/lib/ai-gateway.server"),
+          import("@supabase/supabase-js"),
         ]);
 
         const authHeader = request.headers.get("authorization");

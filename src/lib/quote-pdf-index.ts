@@ -3,7 +3,6 @@
  * - "premium" (default): rich, persuasive multi-page proposal (SmartCom DF).
  * - "simple": legacy single-style PDF kept as fallback.
  */
-import { generateQuotePDF as generateSimplePDF } from "./quote-pdf";
 import type { PremiumPdfConfig } from "./quote-pdf-premium";
 import type { Quote, QuoteItem } from "./quotes.functions";
 
@@ -44,6 +43,7 @@ export type GenerateQuotePdfOpts = {
 export async function generateQuotePDF(opts: GenerateQuotePdfOpts): Promise<Blob | void> {
   const template: QuotePdfTemplate = opts.template ?? "premium";
   if (template === "simple") {
+    const { generateQuotePDF: generateSimplePDF } = await import("./quote-pdf");
     return generateSimplePDF({
       quote: opts.quote,
       items: opts.items,

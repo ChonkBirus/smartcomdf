@@ -7,7 +7,61 @@ type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
 
+type SsrFetchDiagnostic = {
+  url: string;
+  method: string;
+  status?: number;
+  statusText?: string;
+  errorName?: string;
+  errorMessage?: string;
+  at: number;
+};
+
 let serverEntryPromise: Promise<ServerEntry> | undefined;
+let lastFetchDiagnostic: SsrFetchDiagnostic | undefined;
+
+function describeError(error: unknown) {
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+      status: (error as Error & { status?: unknown; statusCode?: unknown }).status
+        ?? (error as Error & { statusCode?: unknown }).statusCode,
+      stack: error.stack,
+    };
+  }
+  return { name: typeof error, message: String(error), status: undefined, stack: undefined };
+}
+
+function installSsrFetchDiagnostics() {
+  const globalWithFlag = globalThis as typeof globalThis & {
+    __smartproSsrFetchDiagnosticsInstalled?: boolean;
+  };
+  if (globalWithFlag.__smartproSsrFetchDiagnosticsInstalled) return;
+  globalWithFlag.__smartproSsrFetchDiagnosticsInstalled = true;
+
+  const originalFetch = globalThis.fetch.bind(globalThis);
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === "string" || input instanceof URL ? String(input) : input.url;
+    const method = init?.method ?? (typeof input === "string" || input instanceof URL ? "GET" : input.method);
+    lastFetchDiagnostic = { url, method, at: Date.now() };
+    try {
+      const response = await originalFetch(input, init);
+      lastFetchDiagnostic = { url, method, status: response.status, statusText: response.statusText, at: Date.now() };
+      return response;
+    } catch (error) {
+      const details = describeError(error);
+      lastFetchDiagnostic = {
+        url,
+        method,
+        errorName: details.name,
+        errorMessage: details.message,
+        at: Date.now(),
+      };
+      throw error;
+    }
+  }) as typeof fetch;
+}
 
 async function getServerEntry(): Promise<ServerEntry> {
   if (!serverEntryPromise) {
@@ -47,11 +101,18 @@ async function normalizeCatastrophicSsrResponse(response: Response, request: Req
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    installSsrFetchDiagnostics();
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response, request);
     } catch (error) {
+      console.error("[SSR_THROWN_ERROR]", {
+        requestUrl: request.url,
+        route: new URL(request.url).pathname,
+        error: describeError(error),
+        lastFetch: lastFetchDiagnostic,
+      });
       console.error(error);
       return new Response(renderErrorPage({ error, route: new URL(request.url).pathname }), {
         status: 500,
