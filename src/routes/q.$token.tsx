@@ -82,9 +82,11 @@ function ErrorView({ message }: { message: string }) {
 function PublicQuotePage() {
   const { token } = Route.useParams();
   const qc = useQueryClient();
+  const isValidPublicQuoteToken = /^[0-9a-f-]{36}$/i.test(token);
 
   const { data, isLoading, error } = useQuery<PublicQuote | null>({
     queryKey: ["public-quote", token],
+    enabled: isValidPublicQuoteToken,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_public_quote_by_token", { _token: token });
       if (error) throw error;
@@ -142,6 +144,10 @@ function PublicQuotePage() {
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
   });
+
+  if (!isValidPublicQuoteToken) {
+    return <ErrorView message="Link de orçamento inválido ou expirado." />;
+  }
 
   if (isLoading) {
     return (
