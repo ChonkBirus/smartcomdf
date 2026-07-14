@@ -1092,10 +1092,11 @@ async function renderMaterialsTablePage(
   const ROW_H = 44;
   autoTable(doc, {
     startY: y,
-    head: [["#", "Foto", "Item / Descrição", "Qtd", "Un"]],
+    head: [["#", "Foto", "Código", "Item / Descrição", "Qtd", "Un"]],
     body: visible.map((it, i) => [
       String(i + 1),
       "",
+      (it.sku ?? "").toString() || "—",
       it.description ? `${it.name}\n${it.description}` : it.name,
       String(Number(it.quantity)).replace(".", ","),
       it.unit || "UN",
@@ -1110,10 +1111,11 @@ async function renderMaterialsTablePage(
     },
     alternateRowStyles: { fillColor: [248, 246, 240] },
     columnStyles: {
-      0: { cellWidth: 26, halign: "center", textColor: [120, 120, 120] },
-      1: { cellWidth: 50, halign: "center" },
-      3: { cellWidth: 46, halign: "center" },
-      4: { cellWidth: 38, halign: "center" },
+      0: { cellWidth: 24, halign: "center", textColor: [120, 120, 120] },
+      1: { cellWidth: 46, halign: "center" },
+      2: { cellWidth: 64, halign: "left", textColor: [90, 90, 90], fontStyle: "bold" },
+      4: { cellWidth: 40, halign: "center" },
+      5: { cellWidth: 34, halign: "center" },
     },
     margin: { left: MARGIN, right: MARGIN, bottom: 60 },
     didDrawCell: (data) => {
