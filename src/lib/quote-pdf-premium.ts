@@ -78,6 +78,7 @@ type PdfItem = {
   description: string | null;
   quantity: number;
   unit: string;
+  sku?: string | null;
   image_url: string | null;
   position: number;
 };
