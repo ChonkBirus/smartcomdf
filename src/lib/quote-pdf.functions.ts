@@ -44,7 +44,7 @@ export const getQuotePdfPayload = createServerFn({ method: "GET" })
     if (itemIds.length > 0) {
       const { data: catalog, error: catErr } = await sb
         .from("items")
-        .select("id, name, unit, description")
+        .select("id, name, unit, description, sku")
         .in("id", itemIds as string[]);
       if (catErr) console.warn("[PDF PAYLOAD] items join warning:", catErr.message);
       (catalog ?? []).forEach((c: any) => catalogById.set(c.id, c));
@@ -118,6 +118,7 @@ export const getQuotePdfPayload = createServerFn({ method: "GET" })
         quantity: Number(it.quantity ?? 0),
         position: (it.position ?? 0) as number,
         unit: (it.items?.unit ?? "UN") as string,
+        sku: (it.items?.sku ?? null) as string | null,
         image_url,
       };
     }));
