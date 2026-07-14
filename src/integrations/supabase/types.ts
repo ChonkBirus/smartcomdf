@@ -4748,6 +4748,27 @@ export type Database = {
           },
         ]
       }
+      public_rate_limits: {
+        Row: {
+          bucket: string
+          count: number
+          reset_at: string
+          updated_at: string
+        }
+        Insert: {
+          bucket: string
+          count?: number
+          reset_at: string
+          updated_at?: string
+        }
+        Update: {
+          bucket?: string
+          count?: number
+          reset_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       purchase_order_items: {
         Row: {
           created_at: string
@@ -7473,6 +7494,7 @@ export type Database = {
         Returns: undefined
       }
       check_project_materials: { Args: { _project_id: string }; Returns: Json }
+      cleanup_public_rate_limits: { Args: never; Returns: number }
       confirm_nota_receiving: {
         Args: {
           _doc_id: string
@@ -7526,10 +7548,18 @@ export type Database = {
       get_pilot_activation: { Args: { _company_id: string }; Returns: Json }
       get_public_quote_by_token: { Args: { _token: string }; Returns: Json }
       get_public_so_report: { Args: { _token: string }; Returns: Json }
-      has_company_role: {
-        Args: { _role: Database["public"]["Enums"]["app_role"] }
-        Returns: boolean
-      }
+      has_company_role:
+        | {
+            Args: { _role: Database["public"]["Enums"]["app_role"] }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              _company_id: string
+              _role: Database["public"]["Enums"]["app_role"]
+            }
+            Returns: boolean
+          }
       has_feature: { Args: { _code: string }; Returns: boolean }
       has_permission: { Args: { _slug: string }; Returns: boolean }
       has_role: {
@@ -8031,6 +8061,14 @@ export type Database = {
           _to_location: string
         }
         Returns: Json
+      }
+      try_consume_rate_limit: {
+        Args: { _bucket: string; _limit: number; _window_seconds: number }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          retry_after_sec: number
+        }[]
       }
       update_project_planning: {
         Args: {
