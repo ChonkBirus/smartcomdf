@@ -90,9 +90,23 @@ function CompanyPage() {
     if (!file || !c?.id) return;
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
+      const { removeLogoBackground } = await import("@/lib/image-bg-remove");
+      let uploadBlob: Blob = file;
+      let ext = "png";
+      try {
+        const res = await removeLogoBackground(file);
+        uploadBlob = res.blob;
+        ext = "png";
+        if (res.changed) toast.success("Fundo removido automaticamente.");
+      } catch (bgErr) {
+        console.warn("[logo] background removal failed, uploading original:", bgErr);
+        ext = (file.name.split(".").pop() || "png").toLowerCase();
+        toast.message("Não foi possível remover o fundo — enviando original.");
+      }
       const path = `${c.id}/logo-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("company-logos").upload(path, file, { upsert: true });
+      const { error } = await supabase.storage
+        .from("company-logos")
+        .upload(path, uploadBlob, { upsert: true, contentType: ext === "png" ? "image/png" : uploadBlob.type || undefined });
       if (error) throw error;
       setForm((f) => ({ ...f, logo_url: path }));
       toast.success("Logo enviada. Clique em Salvar para confirmar.");

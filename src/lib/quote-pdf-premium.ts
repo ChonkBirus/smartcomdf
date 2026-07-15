@@ -622,16 +622,7 @@ async function renderCoverPage(
       const logoX = (A4.w - logoW) / 2;
       const logoY = logoAreaCenterY - logoH / 2;
 
-      // Subtle white backdrop card for guaranteed contrast on graphite bg.
-      // Sized to the actual logo (with padding), never distorting it.
-      const cardPad = 14;
-      const bgW = logoW + cardPad * 2;
-      const bgH = logoH + cardPad * 2;
-      const bgX = (A4.w - bgW) / 2;
-      const bgY = logoY - cardPad;
-      setFill(doc, "#FFFFFF");
-      doc.roundedRect(bgX, bgY, bgW, bgH, 12, 12, "F");
-
+      // Render logo directly over the graphite cover — no white card, transparent PNG expected.
       const fmt = detectImageFormat(ctx.logoDataUrl);
       doc.addImage(ctx.logoDataUrl, fmt, logoX, logoY, logoW, logoH, undefined, "FAST");
       logoDrawn = true;
