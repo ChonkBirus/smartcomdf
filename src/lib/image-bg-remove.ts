@@ -31,14 +31,19 @@ function loadImage(file: File | Blob): Promise<HTMLImageElement> {
 
 export async function removeLogoBackground(file: File): Promise<BgRemoveResult> {
   const img = await loadImage(file);
-  const w = img.naturalWidth;
-  const h = img.naturalHeight;
+  const MAX_SIDE = 1200;
+  const natW = img.naturalWidth;
+  const natH = img.naturalHeight;
+  const scale = Math.min(1, MAX_SIDE / Math.max(natW, natH));
+  const w = Math.max(1, Math.round(natW * scale));
+  const h = Math.max(1, Math.round(natH * scale));
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) throw new Error("Canvas 2D indisponível.");
-  ctx.drawImage(img, 0, 0);
+  ctx.drawImage(img, 0, 0, w, h);
+
   const imageData = ctx.getImageData(0, 0, w, h);
   const data = imageData.data;
 
