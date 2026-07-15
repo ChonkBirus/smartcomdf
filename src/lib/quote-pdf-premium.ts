@@ -598,10 +598,10 @@ async function renderCoverPage(
   doc.setFontSize(8);
   doc.text("Proposta comercial", MARGIN + 12, 70);
 
-  // ------- Logo (aspect-preserved, bounded, centered) -------
-  const LOGO_MAX_W = 200;
-  const LOGO_MAX_H = 78;
-  const logoAreaTop = 110;
+  // ------- Logo (aspect-preserved, bounded, centered) — enlarged to ~half the cover width -------
+  const LOGO_MAX_W = 340;
+  const LOGO_MAX_H = 170;
+  const logoAreaTop = 95;
   const logoAreaCenterY = logoAreaTop + LOGO_MAX_H / 2;
 
   let logoDrawn = false;
@@ -625,15 +625,16 @@ async function renderCoverPage(
   if (!logoDrawn) {
     setText(doc, "#FFFFFF");
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(24);
-    doc.text(companyName(ctx.company).toUpperCase(), A4.w / 2, logoAreaCenterY + 6, {
+    doc.setFontSize(32);
+    doc.text(companyName(ctx.company).toUpperCase(), A4.w / 2, logoAreaCenterY + 8, {
       align: "center",
     });
   }
 
-  // Thin green underline below the logo area
+  // Thin green underline just under the logo area
   setFill(doc, COVER_GREEN);
-  doc.rect(A4.w / 2 - 24, logoAreaTop + LOGO_MAX_H + 16, 48, 2, "F");
+  doc.rect(A4.w / 2 - 24, logoAreaTop + LOGO_MAX_H + 8, 48, 2, "F");
+
 
   // ------- Big title -------
   setText(doc, "#FFFFFF");
