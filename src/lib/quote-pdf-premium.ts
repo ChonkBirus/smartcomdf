@@ -1741,22 +1741,31 @@ export async function generatePremiumQuotePDF(opts: {
     // drawFooter pulled via helper applyFooters would overwrite cover; do manually
   }
   applyFooters(doc, companyName(opts.company));
-  // Re-paint cover top/bottom gold bars (footer overwrote bottom)
+  // Re-paint cover bottom area (footer overwrote it) — keep the new green cover intact
   doc.setPage(1);
-  setFill(doc, PALETTE.black);
-  // bottom bar of cover
-  doc.rect(0, A4.h - 32, A4.w, 32, "F");
-  setFill(doc, PALETTE.gold);
-  doc.rect(0, A4.h - 6, A4.w, 6, "F");
-  setText(doc, PALETTE.goldSoft);
-  doc.setFont("helvetica", "italic");
-  doc.setFontSize(11);
-  doc.text(
-    "Segurança, tecnologia e execução técnica para proteger o que realmente importa.",
-    A4.w / 2,
-    A4.h - 14,
-    { align: "center", maxWidth: A4.w - 120 },
-  );
+  setFill(doc, COVER_GRAPHITE);
+  doc.rect(0, A4.h - 90, A4.w, 90, "F");
+  setFill(doc, COVER_GREEN);
+  doc.rect(0, A4.h - 3, A4.w, 3, "F");
+  // Re-draw contact strip
+  const _company = opts.company;
+  setText(doc, COVER_GREEN_SOFT);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7);
+  doc.text("CONTATO", A4.w / 2, A4.h - 60, { align: "center" });
+  const _contactBits: string[] = [];
+  const _site = (_company as any)?.website || (_company as any)?.site;
+  if (_site) _contactBits.push(String(_site));
+  const _tel = _company?.whatsapp || _company?.phone;
+  if (_tel) _contactBits.push(String(_tel));
+  if (_company?.email) _contactBits.push(String(_company.email));
+  const _line = _contactBits.join("  •  ");
+  if (_line) {
+    setText(doc, "#E5E7EB");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(_line, A4.w / 2, A4.h - 46, { align: "center", maxWidth: A4.w - 100 });
+  }
 
   if (opts.output === "blob") return doc.output("blob");
   doc.save(`Proposta-${opts.quote.quote_number}.pdf`);
