@@ -554,6 +554,12 @@ function customerName(c: PdfCustomer): string {
 // PAGES
 // ============================================================
 
+// Discreet green accent used only on the cover (Smart Pro / SmartCom vibe).
+const COVER_GREEN = "#22C55E";
+const COVER_GREEN_SOFT = "#4ADE80";
+const COVER_GRAPHITE = "#0F1216";
+const COVER_GRAPHITE_2 = "#161B22";
+
 async function renderCoverPage(
   doc: jsPDF,
   ctx: {
@@ -565,133 +571,166 @@ async function renderCoverPage(
     logoDataUrl: string | null;
   },
 ) {
-  // Black background full page
-  setFill(doc, PALETTE.black);
+  const NA = "Não informado";
+
+  // Full-page graphite background
+  setFill(doc, COVER_GRAPHITE);
   doc.rect(0, 0, A4.w, A4.h, "F");
 
-  // Gold accent bars
-  setFill(doc, PALETTE.gold);
-  doc.rect(0, 0, A4.w, 6, "F");
-  doc.rect(0, A4.h - 6, A4.w, 6, "F");
+  // Subtle inner panel for visual depth (very slight lighter graphite)
+  setFill(doc, COVER_GRAPHITE_2);
+  doc.rect(0, 0, A4.w, 300, "F");
 
-  // Logo — white background already removed in loadLogoForDarkBg.
-  // Rendered directly on the black background, no white box.
-  if (ctx.logoDataUrl) {
-    try {
-      const lw = 160;
-      const lh = 80;
-      doc.addImage(
-        ctx.logoDataUrl,
-        "PNG",
-        A4.w / 2 - lw / 2,
-        90,
-        lw,
-        lh,
-        undefined,
-        "FAST",
-      );
-    } catch {
-      /* ignore */
-    }
-  } else {
-    setText(doc, PALETTE.gold);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(28);
-    doc.text(companyName(ctx.company).toUpperCase(), A4.w / 2, 130, { align: "center" });
-  }
+  // Discreet green accent bars — thin, top and bottom
+  setFill(doc, COVER_GREEN);
+  doc.rect(0, 0, A4.w, 3, "F");
+  doc.rect(0, A4.h - 3, A4.w, 3, "F");
 
-  // Eyebrow
-  setText(doc, PALETTE.goldSoft);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.text("PROPOSTA TÉCNICA E COMERCIAL", A4.w / 2, 220, { align: "center" });
-
-  // Subtitle dynamic
-  setText(doc, PALETTE.white);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(26);
-  const subtitle = inferSubtitle(ctx.quote, ctx.items);
-  const subLines = doc.splitTextToSize(subtitle, A4.w - 120) as string[];
-  let sy = 260;
-  subLines.forEach((ln) => {
-    doc.text(ln, A4.w / 2, sy, { align: "center" });
-    sy += 32;
-  });
-
-  // Decorative gold line
-  setFill(doc, PALETTE.gold);
-  doc.rect(A4.w / 2 - 30, sy + 10, 60, 2, "F");
-
-  // White info card
-  const cardX = MARGIN + 20;
-  const cardY = 420;
-  const cardW = A4.w - (MARGIN + 20) * 2;
-  const cardH = 220;
-  setFill(doc, PALETTE.white);
-  doc.roundedRect(cardX, cardY, cardW, cardH, 8, 8, "F");
-  setFill(doc, PALETTE.gold);
-  doc.rect(cardX, cardY, cardW, 4, "F");
-
-  setText(doc, PALETTE.grayDark);
+  // Small vertical green mark on the left, right below the top bar
+  setFill(doc, COVER_GREEN);
+  doc.rect(MARGIN, 40, 3, 34, "F");
+  setText(doc, COVER_GREEN_SOFT);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
-  doc.text("PREPARADA PARA", cardX + 20, cardY + 26);
+  doc.text(companyName(ctx.company).toUpperCase(), MARGIN + 12, 58);
+  setText(doc, "#9CA3AF");
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.text("Proposta comercial", MARGIN + 12, 70);
 
-  setText(doc, PALETTE.black);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text(customerName(ctx.customer), cardX + 20, cardY + 46);
+  // ------- Logo (aspect-preserved, bounded, centered) -------
+  const LOGO_MAX_W = 200;
+  const LOGO_MAX_H = 78;
+  const logoAreaTop = 110;
+  const logoAreaCenterY = logoAreaTop + LOGO_MAX_H / 2;
 
-  if (ctx.quote.title) {
-    setText(doc, PALETTE.grayDark);
-    doc.setFont("helvetica", "italic");
-    doc.setFontSize(10);
-    const tt = doc.splitTextToSize(ctx.quote.title, cardW - 40) as string[];
-    doc.text(tt.slice(0, 2), cardX + 20, cardY + 64);
+  let logoDrawn = false;
+  if (ctx.logoDataUrl) {
+    try {
+      const props = (doc as any).getImageProperties(ctx.logoDataUrl);
+      const natW = Number(props?.width) || LOGO_MAX_W;
+      const natH = Number(props?.height) || LOGO_MAX_H;
+      const scale = Math.min(LOGO_MAX_W / natW, LOGO_MAX_H / natH);
+      const w = Math.max(1, natW * scale);
+      const h = Math.max(1, natH * scale);
+      const x = A4.w / 2 - w / 2;
+      const y = logoAreaCenterY - h / 2;
+      const fmt = detectImageFormat(ctx.logoDataUrl);
+      doc.addImage(ctx.logoDataUrl, fmt, x, y, w, h, undefined, "FAST");
+      logoDrawn = true;
+    } catch {
+      /* fall through to text */
+    }
+  }
+  if (!logoDrawn) {
+    setText(doc, "#FFFFFF");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(24);
+    doc.text(companyName(ctx.company).toUpperCase(), A4.w / 2, logoAreaCenterY + 6, {
+      align: "center",
+    });
   }
 
+  // Thin green underline below the logo area
+  setFill(doc, COVER_GREEN);
+  doc.rect(A4.w / 2 - 24, logoAreaTop + LOGO_MAX_H + 16, 48, 2, "F");
+
+  // ------- Big title -------
+  setText(doc, "#FFFFFF");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(34);
+  doc.text("PROPOSTA COMERCIAL", A4.w / 2, 300, { align: "center" });
+
+  // ------- Subtitle: quote title or solution subtitle -------
+  const subtitle = (ctx.quote.title && ctx.quote.title.trim()) || inferSubtitle(ctx.quote, ctx.items);
+  setText(doc, COVER_GREEN_SOFT);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(13);
+  const subLines = doc.splitTextToSize(subtitle, A4.w - 140) as string[];
+  let sy = 330;
+  subLines.slice(0, 2).forEach((ln) => {
+    doc.text(ln, A4.w / 2, sy, { align: "center" });
+    sy += 18;
+  });
+
+  // ------- Elegant data card (bottom half) -------
+  const cardX = MARGIN + 10;
+  const cardY = 470;
+  const cardW = A4.w - (MARGIN + 10) * 2;
+  const cardH = 230;
+  setFill(doc, "#FFFFFF");
+  doc.roundedRect(cardX, cardY, cardW, cardH, 10, 10, "F");
+  // green side accent
+  setFill(doc, COVER_GREEN);
+  doc.rect(cardX, cardY, 4, cardH, "F");
+
+  setText(doc, "#6B7280");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text("PROPOSTA PREPARADA PARA", cardX + 24, cardY + 30);
+
+  const clientLabel =
+    ctx.customer?.name ||
+    ctx.customer?.trade_name ||
+    ctx.customer?.corporate_name ||
+    NA;
+  setText(doc, "#0B0B0B");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(18);
+  const clientLines = doc.splitTextToSize(clientLabel, cardW - 48) as string[];
+  doc.text(clientLines[0], cardX + 24, cardY + 52);
+
+  // Divider inside card
+  setFill(doc, "#E5E7EB");
+  doc.rect(cardX + 24, cardY + 70, cardW - 48, 0.6, "F");
+
   // 2-col meta grid
-  const metaY = cardY + 100;
-  const colW = (cardW - 60) / 2;
+  const metaY = cardY + 96;
+  const colW = (cardW - 72) / 2;
   const drawMeta = (x: number, y: number, label: string, value: string) => {
-    setText(doc, PALETTE.gray);
+    setText(doc, "#9CA3AF");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7);
     doc.text(label.toUpperCase(), x, y);
-    setText(doc, PALETTE.black);
+    setText(doc, "#0B0B0B");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.text(value, x, y + 12);
+    const lines = doc.splitTextToSize(value, colW) as string[];
+    doc.text(lines[0], x, y + 12);
   };
 
-  drawMeta(cardX + 20, metaY, "Nº da proposta", ctx.quote.quote_number);
-  drawMeta(cardX + 20 + colW + 20, metaY, "Data", fmtDate(ctx.quote.issue_date));
-  drawMeta(cardX + 20, metaY + 36, "Validade", fmtDate(ctx.quote.valid_until));
-  drawMeta(
-    cardX + 20 + colW + 20,
-    metaY + 36,
-    "Responsável",
-    ctx.cfg.responsibleName || ctx.company?.email || "Equipe Comercial",
-  );
-  const contact = ctx.cfg.responsiblePhone || ctx.company?.whatsapp || ctx.company?.phone || "—";
-  drawMeta(cardX + 20, metaY + 72, "Contato / WhatsApp", contact);
-  drawMeta(
-    cardX + 20 + colW + 20,
-    metaY + 72,
-    "E-mail",
-    ctx.company?.email || "—",
-  );
+  const responsible =
+    ctx.cfg.responsibleName ||
+    (ctx.company?.trade_name || ctx.company?.corporate_name) ||
+    companyName(ctx.company) ||
+    NA;
 
-  // Tagline at bottom
-  setText(doc, PALETTE.goldSoft);
-  doc.setFont("helvetica", "italic");
-  doc.setFontSize(11);
-  doc.text(
-    "Segurança, tecnologia e execução técnica para proteger o que realmente importa.",
-    A4.w / 2,
-    A4.h - 80,
-    { align: "center", maxWidth: A4.w - 120 },
-  );
+  drawMeta(cardX + 24, metaY, "Nº do orçamento", ctx.quote.quote_number || NA);
+  drawMeta(cardX + 24 + colW + 24, metaY, "Responsável", responsible);
+  drawMeta(cardX + 24, metaY + 42, "Data de emissão", ctx.quote.issue_date ? fmtDate(ctx.quote.issue_date) : NA);
+  drawMeta(cardX + 24 + colW + 24, metaY + 42, "Validade", ctx.quote.valid_until ? fmtDate(ctx.quote.valid_until) : NA);
+
+  // ------- Footer contact strip -------
+  const footerY = A4.h - 60;
+  setText(doc, COVER_GREEN_SOFT);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7);
+  doc.text("CONTATO", A4.w / 2, footerY, { align: "center" });
+
+  const contactBits: string[] = [];
+  const site = (ctx.company as any)?.website || (ctx.company as any)?.site;
+  if (site) contactBits.push(String(site));
+  const tel = ctx.company?.whatsapp || ctx.company?.phone;
+  if (tel) contactBits.push(String(tel));
+  if (ctx.company?.email) contactBits.push(String(ctx.company.email));
+  const contactLine = contactBits.length ? contactBits.join("  •  ") : "";
+
+  if (contactLine) {
+    setText(doc, "#E5E7EB");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(contactLine, A4.w / 2, footerY + 14, { align: "center", maxWidth: A4.w - 100 });
+  }
 }
 
 function renderCompanyIntroPage(doc: jsPDF, ctx: { company: PdfCompany }) {
@@ -1702,22 +1741,31 @@ export async function generatePremiumQuotePDF(opts: {
     // drawFooter pulled via helper applyFooters would overwrite cover; do manually
   }
   applyFooters(doc, companyName(opts.company));
-  // Re-paint cover top/bottom gold bars (footer overwrote bottom)
+  // Re-paint cover bottom area (footer overwrote it) — keep the new green cover intact
   doc.setPage(1);
-  setFill(doc, PALETTE.black);
-  // bottom bar of cover
-  doc.rect(0, A4.h - 32, A4.w, 32, "F");
-  setFill(doc, PALETTE.gold);
-  doc.rect(0, A4.h - 6, A4.w, 6, "F");
-  setText(doc, PALETTE.goldSoft);
-  doc.setFont("helvetica", "italic");
-  doc.setFontSize(11);
-  doc.text(
-    "Segurança, tecnologia e execução técnica para proteger o que realmente importa.",
-    A4.w / 2,
-    A4.h - 14,
-    { align: "center", maxWidth: A4.w - 120 },
-  );
+  setFill(doc, COVER_GRAPHITE);
+  doc.rect(0, A4.h - 90, A4.w, 90, "F");
+  setFill(doc, COVER_GREEN);
+  doc.rect(0, A4.h - 3, A4.w, 3, "F");
+  // Re-draw contact strip
+  const _company = opts.company;
+  setText(doc, COVER_GREEN_SOFT);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7);
+  doc.text("CONTATO", A4.w / 2, A4.h - 60, { align: "center" });
+  const _contactBits: string[] = [];
+  const _site = (_company as any)?.website || (_company as any)?.site;
+  if (_site) _contactBits.push(String(_site));
+  const _tel = _company?.whatsapp || _company?.phone;
+  if (_tel) _contactBits.push(String(_tel));
+  if (_company?.email) _contactBits.push(String(_company.email));
+  const _line = _contactBits.join("  •  ");
+  if (_line) {
+    setText(doc, "#E5E7EB");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(_line, A4.w / 2, A4.h - 46, { align: "center", maxWidth: A4.w - 100 });
+  }
 
   if (opts.output === "blob") return doc.output("blob");
   doc.save(`Proposta-${opts.quote.quote_number}.pdf`);
