@@ -598,10 +598,13 @@ async function renderCoverPage(
   doc.setFontSize(8);
   doc.text("Proposta comercial", MARGIN + 12, 70);
 
-  // ------- Logo (aspect-preserved, bounded, centered) — enlarged to ~half the cover width -------
-  const LOGO_MAX_W = 340;
-  const LOGO_MAX_H = 170;
-  const logoAreaTop = 95;
+  // ------- Logo area: upper-half hero, aspect-preserved, centered -------
+  // Reserved box: ~72% of page width x ~26% of page height, y ∈ [90, 309]
+  const LOGO_MAX_W = Math.round(A4.w * 0.72); // ≈ 428pt
+  const LOGO_MAX_H = Math.round(A4.h * 0.26); // ≈ 219pt
+  const LOGO_PAD = 18;
+  const logoAreaTop = 90;
+  const logoAreaBottom = logoAreaTop + LOGO_MAX_H;
   const logoAreaCenterY = logoAreaTop + LOGO_MAX_H / 2;
 
   let logoDrawn = false;
@@ -610,48 +613,67 @@ async function renderCoverPage(
       const props = (doc as any).getImageProperties(ctx.logoDataUrl);
       const natW = Number(props?.width) || LOGO_MAX_W;
       const natH = Number(props?.height) || LOGO_MAX_H;
-      const scale = Math.min(LOGO_MAX_W / natW, LOGO_MAX_H / natH);
-      const w = Math.max(1, natW * scale);
-      const h = Math.max(1, natH * scale);
-      const x = A4.w / 2 - w / 2;
-      const y = logoAreaCenterY - h / 2;
+      // Fit inside padded box while preserving aspect ratio (no stretch / no crop)
+      const boxW = LOGO_MAX_W - LOGO_PAD * 2;
+      const boxH = LOGO_MAX_H - LOGO_PAD * 2;
+      const scale = Math.min(boxW / natW, boxH / natH);
+      const logoW = Math.max(1, natW * scale);
+      const logoH = Math.max(1, natH * scale);
+      const logoX = (A4.w - logoW) / 2;
+      const logoY = logoAreaCenterY - logoH / 2;
+
+      // Subtle white backdrop card for guaranteed contrast on graphite bg.
+      // Sized to the actual logo (with padding), never distorting it.
+      const cardPad = 14;
+      const bgW = logoW + cardPad * 2;
+      const bgH = logoH + cardPad * 2;
+      const bgX = (A4.w - bgW) / 2;
+      const bgY = logoY - cardPad;
+      setFill(doc, "#FFFFFF");
+      doc.roundedRect(bgX, bgY, bgW, bgH, 12, 12, "F");
+
       const fmt = detectImageFormat(ctx.logoDataUrl);
-      doc.addImage(ctx.logoDataUrl, fmt, x, y, w, h, undefined, "FAST");
+      doc.addImage(ctx.logoDataUrl, fmt, logoX, logoY, logoW, logoH, undefined, "FAST");
       logoDrawn = true;
     } catch {
       /* fall through to text */
     }
   }
   if (!logoDrawn) {
+    // Fallback: big centered company name in the upper half
     setText(doc, "#FFFFFF");
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(32);
-    doc.text(companyName(ctx.company).toUpperCase(), A4.w / 2, logoAreaCenterY + 8, {
-      align: "center",
+    doc.setFontSize(40);
+    const name = companyName(ctx.company).toUpperCase();
+    const nameLines = doc.splitTextToSize(name, A4.w - 120) as string[];
+    let ny = logoAreaCenterY - ((nameLines.length - 1) * 22) / 2;
+    nameLines.slice(0, 2).forEach((ln) => {
+      doc.text(ln, A4.w / 2, ny, { align: "center" });
+      ny += 44;
     });
   }
 
-  // Thin green underline just under the logo area
+  // Thin green underline just below the logo area
   setFill(doc, COVER_GREEN);
-  doc.rect(A4.w / 2 - 24, logoAreaTop + LOGO_MAX_H + 8, 48, 2, "F");
+  doc.rect(A4.w / 2 - 24, logoAreaBottom + 14, 48, 2, "F");
 
-
-  // ------- Big title -------
+  // ------- Big title (below logo, with breathing room) -------
+  const titleY = logoAreaBottom + 56;
   setText(doc, "#FFFFFF");
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(34);
-  doc.text("PROPOSTA COMERCIAL", A4.w / 2, 300, { align: "center" });
+  doc.setFontSize(30);
+  doc.text("PROPOSTA COMERCIAL", A4.w / 2, titleY, { align: "center" });
 
   // ------- Subtitle: quote title or solution subtitle -------
   const subtitle = (ctx.quote.title && ctx.quote.title.trim()) || inferSubtitle(ctx.quote, ctx.items);
   setText(doc, COVER_GREEN_SOFT);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(13);
+  doc.setFontSize(12);
   const subLines = doc.splitTextToSize(subtitle, A4.w - 140) as string[];
-  let sy = 330;
+  let sy = titleY + 24;
   subLines.slice(0, 2).forEach((ln) => {
     doc.text(ln, A4.w / 2, sy, { align: "center" });
-    sy += 18;
+    sy += 16;
   });
 
   // ------- Elegant data card (bottom half) -------
