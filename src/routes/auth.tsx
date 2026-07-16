@@ -37,9 +37,10 @@ function isEmailNotConfirmedError(msg: string | undefined | null): boolean {
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Entrar — SmartPro" }, { name: "robots", content: "noindex, nofollow" }] }),
-  validateSearch: (search: Record<string, unknown>) => ({
-    redirectTo: typeof search.redirectTo === "string" ? search.redirectTo : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { redirectTo?: string } => {
+    const r = typeof search.redirectTo === "string" ? search.redirectTo : undefined;
+    return r ? { redirectTo: r } : {};
+  },
   component: AuthPage,
 });
 
