@@ -87,7 +87,12 @@ function QuotesPage() {
       setOpen(true);
       navigate({ search: {} as never, replace: true });
     }
-  }, [searchParams.new, navigate]);
+    if (searchParams.edit) {
+      setEditing(searchParams.edit);
+      setOpen(true);
+      navigate({ search: {} as never, replace: true });
+    }
+  }, [searchParams.new, searchParams.edit, navigate]);
 
   const companyId = useCompanyId();
   const fetchList = useServerFn(listQuotes);
