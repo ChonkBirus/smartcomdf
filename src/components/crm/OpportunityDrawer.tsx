@@ -230,7 +230,7 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
                   className="mt-1 h-auto p-0"
                   onClick={() => {
                     onOpenChange(false);
-                    navigate({ to: "/quotes/$id", params: { id: quoteStatus.id } });
+                    navigate({ to: "/quotes", search: { edit: quoteStatus.id } });
                   }}
                 >
                   Abrir orçamento →
