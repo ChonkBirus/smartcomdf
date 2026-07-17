@@ -34,9 +34,12 @@ import {
 
 export const Route = createFileRoute("/_authenticated/quotes")({
   head: () => ({ meta: [{ title: "Orçamentos — SmartPro" }] }),
-  validateSearch: (search: Record<string, unknown>): { new?: 1 } => {
+  validateSearch: (search: Record<string, unknown>): { new?: 1; edit?: string } => {
     const isNew = search.new === 1 || search.new === "1" || search.new === true;
-    return isNew ? { new: 1 } : {};
+    return {
+      ...(isNew ? { new: 1 } : {}),
+      ...(typeof search.edit === "string" && search.edit.trim() ? { edit: search.edit.trim() } : {}),
+    };
   },
   component: () => (
     <PermissionRoute module="quotes">
