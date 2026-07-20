@@ -30,6 +30,8 @@ import {
 } from "@/lib/service-orders.functions";
 import { ServiceOrderFinancialSummary } from "@/components/finance/ServiceOrderFinancialSummary";
 import { ServiceOrderCosts } from "@/components/service-orders/ServiceOrderCosts";
+import { EmployeeCostsPanel } from "@/components/employees/EmployeeCostsPanel";
+import { ServiceOrderTeamPublicPanel } from "@/components/employees/ServiceOrderTeamPublicPanel";
 
 export const Route = createFileRoute("/_authenticated/service-orders_/$id")({
   head: () => ({ meta: [{ title: "Detalhe da OS — SmartPro" }] }),
@@ -357,6 +359,13 @@ function ServiceOrderDetailPage() {
           </TableBody>
         </Table>
       </div>
+
+      <EmployeeCostsPanel
+        scope="service_order"
+        projectId={so.project_id ?? null}
+        serviceOrderId={so.id}
+      />
+      <ServiceOrderTeamPublicPanel serviceOrderId={so.id} />
 
       <div className="rounded-lg border p-4 space-y-3">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
