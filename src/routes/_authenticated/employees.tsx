@@ -150,7 +150,7 @@ function EmployeesPage() {
         <p className="p-6 text-sm text-muted-foreground">Carregando…</p>
       ) : rows.length === 0 ? (
         <EmptyState
-          icon={Users}
+          icon={<Users className="h-6 w-6" />}
           title="Nenhum funcionário cadastrado"
           description="Cadastre ajudantes e funcionários operacionais para vincular a projetos e ordens de serviço."
           action={
