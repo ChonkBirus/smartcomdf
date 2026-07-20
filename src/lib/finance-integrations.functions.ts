@@ -392,6 +392,7 @@ export type ProjectMarginSummary = {
     realized: number;
     realizedMaterials: number;
     realizedExtras: number;
+    realizedEmployees: number;
   };
   profit: {
     estimated: number | null;
@@ -411,7 +412,7 @@ export type ProjectMarginSummary = {
   }>;
   realizedBreakdown: Array<{
     id: string;
-    kind: "MATERIAL" | "EXPENSE";
+    kind: "MATERIAL" | "EXPENSE" | "EMPLOYEE";
     description: string;
     service_order_id: string | null;
     service_order_number: string | null;
@@ -426,8 +427,10 @@ export type ProjectMarginSummary = {
     estimatedCost: number;
     realizedCost: number;
     extrasCost: number;
+    employeesCost: number;
   }>;
 };
+
 
 export const getProjectMarginSummary = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -507,7 +510,7 @@ export const getProjectMarginSummary = createServerFn({ method: "GET" })
     const soList = (sos ?? []) as any[];
     const soIds = soList.map((s) => s.id);
     const soMap: Record<string, any> = {};
-    soList.forEach((s) => { soMap[s.id] = { ...s, estimatedCost: 0, realizedCost: 0, extrasCost: 0 }; });
+    soList.forEach((s) => { soMap[s.id] = { ...s, estimatedCost: 0, realizedCost: 0, extrasCost: 0, employeesCost: 0 }; });
 
     // Materials realized: service_order_material_usage x items.cost_price
     let realizedMaterials = 0;
@@ -583,7 +586,48 @@ export const getProjectMarginSummary = createServerFn({ method: "GET" })
       }
     }
 
-    const realized = realizedMaterials + realizedExtras;
+    // Employee/team labor costs (project_employee_costs).
+    // RLS on this table restricts SELECT to owners/managers/financial/employees.manage
+    // via can_view_employee_costs(); for users without permission the query returns
+    // an empty set, so realizedEmployees = 0 and no monetary value leaks.
+    // NOTE: does NOT create financial_transactions — costs count only for margin.
+    let realizedEmployees = 0;
+    const { data: emps } = await sb
+      .from("project_employee_costs")
+      .select(
+        `id, service_order_id, role_snapshot,
+         daily_rate_snapshot, days_count,
+         transport_cost, meal_cost, other_cost, created_at,
+         employee:employee_id(name)`,
+      )
+      .eq("company_id", cid)
+      .eq("project_id", data.project_id)
+      .is("deleted_at", null);
+    for (const e of (emps ?? []) as any[]) {
+      const rate = Number(e.daily_rate_snapshot || 0);
+      const days = Number(e.days_count || 0);
+      const transport = Number(e.transport_cost || 0);
+      const meal = Number(e.meal_cost || 0);
+      const other = Number(e.other_cost || 0);
+      const amt = rate * days + transport + meal + other;
+      if (amt <= 0) continue;
+      realizedEmployees += amt;
+      const empName = e.employee?.name ?? "Funcionário";
+      const roleLabel = e.role_snapshot ? ` (${e.role_snapshot})` : "";
+      realizedBreakdown.push({
+        id: e.id, kind: "EMPLOYEE",
+        description: `${empName}${roleLabel} — ${days} diária(s)`,
+        service_order_id: e.service_order_id,
+        service_order_number: e.service_order_id ? (soMap[e.service_order_id]?.service_order_number ?? null) : null,
+        amount: amt, date: e.created_at,
+      });
+      if (e.service_order_id && soMap[e.service_order_id]) {
+        soMap[e.service_order_id].employeesCost += amt;
+        soMap[e.service_order_id].realizedCost += amt;
+      }
+    }
+
+    const realized = realizedMaterials + realizedExtras + realizedEmployees;
     const estimatedCost = estimatedHasData ? estimated : null;
     const profitEstimated = estimatedCost != null && revenue.total > 0 ? revenue.total - estimatedCost : null;
     const profitRealized = revenue.received > 0 ? revenue.received - realized : null;
@@ -595,7 +639,7 @@ export const getProjectMarginSummary = createServerFn({ method: "GET" })
       revenue,
       cost: {
         estimated: estimatedCost, estimatedHasData,
-        realized, realizedMaterials, realizedExtras,
+        realized, realizedMaterials, realizedExtras, realizedEmployees,
       },
       profit: { estimated: profitEstimated, realized: profitRealized },
       margin: { estimatedPct: marginEstimatedPct, realizedPct: marginRealizedPct },
@@ -609,6 +653,8 @@ export const getProjectMarginSummary = createServerFn({ method: "GET" })
         estimatedCost: s.estimatedCost,
         realizedCost: s.realizedCost,
         extrasCost: s.extrasCost,
+        employeesCost: s.employeesCost,
       })),
     };
   });
+
