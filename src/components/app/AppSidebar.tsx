@@ -103,7 +103,15 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
   const { hasFeature } = useFeatures();
 
   const visibleGroups = groups
-    .map((g) => ({ ...g, items: g.items.filter((it) => canView(it.module)) }))
+    .map((g) => ({
+      ...g,
+      items: g.items.filter((it) => {
+        const baseVisible = canView(it.module);
+        if (!baseVisible) return false;
+        if (!it.visible) return true;
+        return it.visible({ isSuperAdmin, isOwner, canView, canManage: (m) => can(m, "manage") });
+      }),
+    }))
     .filter((g) => g.items.length > 0);
 
   return (
