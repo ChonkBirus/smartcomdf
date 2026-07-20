@@ -65,10 +65,13 @@ export function ProjectMarginSummary({ projectId }: { projectId: string }) {
                     hint={!data.cost.estimatedHasData ? "Não informado" : undefined}
                   />
                   <Kpi label="Custo realizado" value={formatCurrency(data.cost.realized)} tone={data.cost.realized > 0 ? "bad" : "muted"} />
-                  <Kpi label="Materiais / Avulsos" value={`${formatCurrency(data.cost.realizedMaterials)} / ${formatCurrency(data.cost.realizedExtras)}`} />
+                  <Kpi label="Materiais" value={formatCurrency(data.cost.realizedMaterials)} />
+                  <Kpi label="Equipe / mão de obra" value={formatCurrency(data.cost.realizedEmployees)} />
+                  <Kpi label="Custos avulsos" value={formatCurrency(data.cost.realizedExtras)} />
                 </div>
               </section>
             )}
+
 
             {showCosts && (
               <section>
@@ -130,8 +133,9 @@ export function ProjectMarginSummary({ projectId }: { projectId: string }) {
                                 <p className="truncate font-medium">{r.description}</p>
                                 <p className="text-xs text-muted-foreground">
                                   <Badge variant="outline" className="mr-1">
-                                    {r.kind === "MATERIAL" ? "Material (OS)" : "Custo avulso"}
+                                    {r.kind === "MATERIAL" ? "Material (OS)" : r.kind === "EMPLOYEE" ? "Equipe" : "Custo avulso"}
                                   </Badge>
+
                                   {r.service_order_number ? `OS ${r.service_order_number}` : ""}
                                   {r.date ? ` · ${new Date(r.date).toLocaleDateString("pt-BR")}` : ""}
                                 </p>
@@ -164,6 +168,8 @@ export function ProjectMarginSummary({ projectId }: { projectId: string }) {
                         <span>Estimado: {formatCurrency(so.estimatedCost)}</span>{" · "}
                         <span>Realizado: {formatCurrency(so.realizedCost)}</span>
                         {so.extrasCost > 0 && (<> {" · "}<span>Avulsos: {formatCurrency(so.extrasCost)}</span></>)}
+                        {so.employeesCost > 0 && (<> {" · "}<span>Equipe: {formatCurrency(so.employeesCost)}</span></>)}
+
                       </div>
                     </div>
                   ))}
