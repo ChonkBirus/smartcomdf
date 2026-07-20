@@ -95,7 +95,7 @@ const groups: { label: string; items: Item[] }[] = [
   },
 ];
 
-export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
+export function AppSidebar({ isSuperAdmin: _isSuperAdminProp }: { isSuperAdmin?: boolean }) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
