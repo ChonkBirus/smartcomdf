@@ -17,7 +17,14 @@ import { usePermissions, type ModuleSlug } from "@/lib/permissions";
 import { useFeatures, type FeatureCode } from "@/lib/features";
 
 
-type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; module: ModuleSlug; feature?: FeatureCode };
+type Item = {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  module: ModuleSlug;
+  feature?: FeatureCode;
+  visible?: (ctx: { isSuperAdmin: boolean; isOwner: boolean; can: (m: ModuleSlug, a: "view" | "create" | "edit" | "delete" | "manage") => boolean }) => boolean;
+};
 
 const groups: { label: string; items: Item[] }[] = [
   {
