@@ -99,7 +99,7 @@ export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const { canView } = usePermissions();
+  const { isSuperAdmin, isOwner, can, canView } = usePermissions();
   const { hasFeature } = useFeatures();
 
   const visibleGroups = groups
