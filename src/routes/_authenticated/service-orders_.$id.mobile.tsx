@@ -21,6 +21,8 @@ import { ServiceOrderChecklist } from "@/components/service-orders/ServiceOrderC
 import { ServiceOrderPhotos } from "@/components/service-orders/ServiceOrderPhotos";
 import { ServiceOrderMaterials } from "@/components/service-orders/ServiceOrderMaterials";
 import { ServiceOrderCosts } from "@/components/service-orders/ServiceOrderCosts";
+import { EmployeeCostsPanel } from "@/components/employees/EmployeeCostsPanel";
+import { ServiceOrderTeamPublicPanel } from "@/components/employees/ServiceOrderTeamPublicPanel";
 import { ServiceOrderSignature } from "@/components/service-orders/ServiceOrderSignature";
 import { ServiceOrderStockDeduction } from "@/components/service-orders/ServiceOrderStockDeduction";
 import { ServiceOrderFinalReport } from "@/components/service-orders/ServiceOrderFinalReport";
@@ -274,6 +276,15 @@ function MobileSODetailPage() {
           status={so.status as any}
           canManage={canManageMaterials}
         />
+      </Section>
+
+      <Section title="Equipe">
+        <EmployeeCostsPanel
+          scope="service_order"
+          projectId={(so as any).project_id ?? null}
+          serviceOrderId={so.id}
+        />
+        <ServiceOrderTeamPublicPanel serviceOrderId={so.id} />
       </Section>
 
       <Section title="Custos avulsos">

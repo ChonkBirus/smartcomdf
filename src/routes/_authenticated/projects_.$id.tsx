@@ -36,6 +36,7 @@ import { ProjectFinancialSummary } from "@/components/finance/ProjectFinancialSu
 import { ProjectMarginSummary } from "@/components/finance/ProjectMarginSummary";
 import { CreateServiceOrderFromProjectButton } from "@/components/service-orders/CreateServiceOrderFromProjectButton";
 import { ProjectServiceOrdersList } from "@/components/projects/ProjectServiceOrdersList";
+import { EmployeeCostsPanel } from "@/components/employees/EmployeeCostsPanel";
 
 export const Route = createFileRoute("/_authenticated/projects_/$id")({
   head: () => ({ meta: [{ title: "Detalhe do Projeto — SmartPro" }] }),
@@ -454,6 +455,7 @@ function ProjectDetailPage() {
 
       <ProjectMarginSummary projectId={project.id} />
       <ProjectFinancialSummary projectId={project.id} />
+      <EmployeeCostsPanel scope="project" projectId={project.id} />
       <ProjectServiceOrdersList projectId={project.id} />
         </TabsContent>
 
