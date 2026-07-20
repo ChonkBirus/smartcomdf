@@ -29,6 +29,7 @@ const groups: { label: string; items: Item[] }[] = [
     items: [
       { title: "Produtos", url: "/products", icon: Package, module: "products", feature: "products" },
       { title: "Clientes", url: "/clients", icon: Users, module: "clients", feature: "customers" },
+      { title: "Funcionários", url: "/employees", icon: Users, module: "settings" },
     ],
   },
   {
