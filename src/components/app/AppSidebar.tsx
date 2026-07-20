@@ -23,7 +23,7 @@ type Item = {
   icon: React.ComponentType<{ className?: string }>;
   module: ModuleSlug;
   feature?: FeatureCode;
-  visible?: (ctx: { isSuperAdmin: boolean; isOwner: boolean; can: (m: ModuleSlug, a: "view" | "create" | "edit" | "delete" | "manage") => boolean }) => boolean;
+  visible?: (ctx: { isSuperAdmin: boolean; isOwner: boolean; canView: (m: ModuleSlug) => boolean; canManage: (m: ModuleSlug) => boolean }) => boolean;
 };
 
 const groups: { label: string; items: Item[] }[] = [
