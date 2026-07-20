@@ -36,7 +36,13 @@ const groups: { label: string; items: Item[] }[] = [
     items: [
       { title: "Produtos", url: "/products", icon: Package, module: "products", feature: "products" },
       { title: "Clientes", url: "/clients", icon: Users, module: "clients", feature: "customers" },
-      { title: "Funcionários", url: "/employees", icon: Users, module: "settings" },
+      {
+        title: "Funcionários",
+        url: "/employees",
+        icon: Users,
+        module: "settings",
+        visible: ({ isSuperAdmin, isOwner, can }) => isSuperAdmin || isOwner || can("settings", "manage") || can("employees", "manage"),
+      },
     ],
   },
   {
