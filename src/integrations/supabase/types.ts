@@ -2674,6 +2674,68 @@ export type Database = {
         }
         Relationships: []
       }
+      employees: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          created_by: string | null
+          daily_rate: number
+          deleted_at: string | null
+          document: string | null
+          id: string
+          meal_cost: number
+          name: string
+          notes: string | null
+          phone: string | null
+          role: string | null
+          transport_cost: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          daily_rate?: number
+          deleted_at?: string | null
+          document?: string | null
+          id?: string
+          meal_cost?: number
+          name: string
+          notes?: string | null
+          phone?: string | null
+          role?: string | null
+          transport_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          daily_rate?: number
+          deleted_at?: string | null
+          document?: string | null
+          id?: string
+          meal_cost?: number
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          role?: string | null
+          transport_cost?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       features: {
         Row: {
           active: boolean
@@ -4328,6 +4390,92 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_employee_costs: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          daily_rate_snapshot: number
+          days_count: number
+          deleted_at: string | null
+          employee_id: string
+          id: string
+          meal_cost: number
+          notes: string | null
+          other_cost: number
+          project_id: string
+          role_snapshot: string | null
+          service_order_id: string | null
+          transport_cost: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          daily_rate_snapshot?: number
+          days_count?: number
+          deleted_at?: string | null
+          employee_id: string
+          id?: string
+          meal_cost?: number
+          notes?: string | null
+          other_cost?: number
+          project_id: string
+          role_snapshot?: string | null
+          service_order_id?: string | null
+          transport_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          daily_rate_snapshot?: number
+          days_count?: number
+          deleted_at?: string | null
+          employee_id?: string
+          id?: string
+          meal_cost?: number
+          notes?: string | null
+          other_cost?: number
+          project_id?: string
+          role_snapshot?: string | null
+          service_order_id?: string | null
+          transport_cost?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_employee_costs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_employee_costs_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_employee_costs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_employee_costs_service_order_id_fkey"
+            columns: ["service_order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
             referencedColumns: ["id"]
           },
         ]
@@ -7481,6 +7629,9 @@ export type Database = {
         Returns: undefined
       }
       can_access_service_order: { Args: { _so_id: string }; Returns: boolean }
+      can_manage_employees: { Args: never; Returns: boolean }
+      can_manage_project_team: { Args: never; Returns: boolean }
+      can_view_employee_costs: { Args: never; Returns: boolean }
       cancel_purchase_order_finance: {
         Args: { _po_id: string }
         Returns: number
@@ -7571,6 +7722,15 @@ export type Database = {
       }
       is_company_member: { Args: { _company_id: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
+      list_service_order_team_public: {
+        Args: { _service_order_id: string }
+        Returns: {
+          employee_id: string
+          employee_name: string
+          id: string
+          role_snapshot: string
+        }[]
+      }
       log_activity: { Args: { _description: string }; Returns: string }
       log_audit: {
         Args: {
