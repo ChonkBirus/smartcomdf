@@ -41,7 +41,7 @@ const groups: { label: string; items: Item[] }[] = [
         url: "/employees",
         icon: Users,
         module: "settings",
-        visible: ({ isSuperAdmin, isOwner, can }) => isSuperAdmin || isOwner || can("settings", "manage") || can("employees", "manage"),
+        visible: ({ isSuperAdmin, isOwner, canManage }) => isSuperAdmin || isOwner || canManage("settings") || canManage("employees"),
       },
     ],
   },
