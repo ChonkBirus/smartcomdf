@@ -17,7 +17,14 @@ import { usePermissions, type ModuleSlug } from "@/lib/permissions";
 import { useFeatures, type FeatureCode } from "@/lib/features";
 
 
-type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; module: ModuleSlug; feature?: FeatureCode };
+type Item = {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  module: ModuleSlug;
+  feature?: FeatureCode;
+  visible?: (ctx: { isSuperAdmin: boolean; isOwner: boolean; canView: (m: ModuleSlug) => boolean; canManage: (m: ModuleSlug) => boolean }) => boolean;
+};
 
 const groups: { label: string; items: Item[] }[] = [
   {
@@ -29,7 +36,13 @@ const groups: { label: string; items: Item[] }[] = [
     items: [
       { title: "Produtos", url: "/products", icon: Package, module: "products", feature: "products" },
       { title: "Clientes", url: "/clients", icon: Users, module: "clients", feature: "customers" },
-      { title: "Funcionários", url: "/employees", icon: Users, module: "settings" },
+      {
+        title: "Funcionários",
+        url: "/employees",
+        icon: Users,
+        module: "settings",
+        visible: ({ isSuperAdmin, isOwner, canManage }) => isSuperAdmin || isOwner || canManage("settings") || canManage("employees"),
+      },
     ],
   },
   {
@@ -82,15 +95,23 @@ const groups: { label: string; items: Item[] }[] = [
   },
 ];
 
-export function AppSidebar({ isSuperAdmin }: { isSuperAdmin?: boolean }) {
+export function AppSidebar({ isSuperAdmin: _isSuperAdminProp }: { isSuperAdmin?: boolean }) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const { canView } = usePermissions();
+  const { isSuperAdmin, isOwner, can, canView } = usePermissions();
   const { hasFeature } = useFeatures();
 
   const visibleGroups = groups
-    .map((g) => ({ ...g, items: g.items.filter((it) => canView(it.module)) }))
+    .map((g) => ({
+      ...g,
+      items: g.items.filter((it) => {
+        const baseVisible = canView(it.module);
+        if (!baseVisible) return false;
+        if (!it.visible) return true;
+        return it.visible({ isSuperAdmin, isOwner, canView, canManage: (m) => can(m, "manage") });
+      }),
+    }))
     .filter((g) => g.items.length > 0);
 
   return (
