@@ -46,19 +46,23 @@ export const createReceivableFromQuote = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
 
-    const { data: existing } = await context.supabase
+    // Guard: any existing INCOME transaction for this quote (canonical OR legacy)
+    // means the receivable is already represented — never create a second one.
+    const { data: anyExisting } = await context.supabase
       .from("financial_transactions")
-      .select("id")
+      .select("id, origin_type")
       .eq("company_id", cid)
       .eq("quote_id", data.quote_id)
       .eq("type", "INCOME")
       .is("deleted_at", null)
-      .maybeSingle();
-    if (existing?.id) return { id: existing.id, duplicate: true };
+      .limit(1);
+    if (anyExisting && anyExisting.length > 0) {
+      return { id: (anyExisting[0] as any).id, duplicate: true };
+    }
 
     const { data: quote, error: qerr } = await context.supabase
       .from("quotes")
-      .select("id, company_id, customer_id, total_amount, status, valid_until, payment_status")
+      .select("id, company_id, customer_id, total_amount, status, valid_until, payment_status, project_id")
       .eq("id", data.quote_id)
       .eq("company_id", cid)
       .maybeSingle();
@@ -70,8 +74,10 @@ export const createReceivableFromQuote = createServerFn({ method: "POST" })
     }
 
     const due = data.due_date ?? quote.valid_until ?? addDays(new Date(), 7);
-    const isPaid = quote.payment_status === "PAYMENT_APPROVED";
 
+    // Canonical row: single QUOTE_RECEIVABLE_BALANCE with full total, PLANNED.
+    // origin_type/origin_id fill the (company_id, origin_type, origin_id)
+    // unique index for idempotency across retries.
     const { data: inserted, error } = await context.supabase
       .from("financial_transactions")
       .insert({
@@ -80,16 +86,33 @@ export const createReceivableFromQuote = createServerFn({ method: "POST" })
         description: `Recebível do orçamento`,
         amount: Number(quote.total_amount ?? 0),
         due_date: due,
-        paid_at: isPaid ? new Date().toISOString() : null,
-        status: isPaid ? "PAID" : "PLANNED",
+        status: "PLANNED",
         customer_id: quote.customer_id,
         quote_id: quote.id,
+        project_id: (quote as any).project_id ?? null,
         origin: "QUOTE",
+        origin_type: "QUOTE_RECEIVABLE_BALANCE",
+        origin_id: quote.id,
         created_by: context.userId,
       })
       .select("id")
       .single();
-    if (error) throw new Error(error.message);
+    if (error) {
+      // Idempotência: violação do índice único → tratar como duplicate.
+      const msg = error.message || "";
+      if (/duplicate key|financial_transactions_origin_uniq/i.test(msg)) {
+        const { data: again } = await context.supabase
+          .from("financial_transactions")
+          .select("id")
+          .eq("company_id", cid)
+          .eq("origin_type", "QUOTE_RECEIVABLE_BALANCE")
+          .eq("origin_id", quote.id)
+          .is("deleted_at", null)
+          .maybeSingle();
+        if (again?.id) return { id: again.id, duplicate: true };
+      }
+      throw new Error(msg);
+    }
     return { id: inserted!.id, duplicate: false };
   });
 
@@ -104,27 +127,26 @@ export const markReceivablePaidFromQuote = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
-    const { data: row } = await context.supabase
+
+    // Se já existe QUOTE_PAYMENT canônico PAID, o fluxo canônico já correu.
+    const { data: canonicalPaid } = await context.supabase
       .from("financial_transactions")
-      .select("id, status")
+      .select("id")
       .eq("company_id", cid)
       .eq("quote_id", data.quote_id)
-      .eq("type", "INCOME")
+      .eq("origin_type", "QUOTE_PAYMENT")
+      .eq("status", "PAID")
       .is("deleted_at", null)
-      .maybeSingle();
-    if (!row) return { ok: false, reason: "not_found" };
-    if (row.status === "PAID") return { ok: true, already: true };
-    const patch: any = {
-      status: "PAID",
-      paid_at: data.paid_at ?? new Date().toISOString(),
-    };
-    if (data.payment_method) patch.payment_method = data.payment_method;
-    const { error } = await context.supabase
-      .from("financial_transactions")
-      .update(patch)
-      .eq("id", row.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+      .limit(1);
+    if (canonicalPaid && canonicalPaid.length > 0) {
+      return { ok: true, already: true };
+    }
+
+    // Fluxo legado desativado: mutar uma linha origin_type NULL "à mão"
+    // era o que criava divergência com approve_quote_payment. Bloqueado no server.
+    throw new Error(
+      "Fluxo legado desativado. Registre um pagamento em quote_payments e aprove via approve_quote_payment.",
+    );
   });
 
 /* -------------------- Purchase → Payable -------------------- */
