@@ -46,17 +46,22 @@ export const createReceivableFromQuote = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
 
-    // Guard: any existing INCOME transaction for this quote (canonical OR legacy)
-    // means the receivable is already represented — never create a second one.
+    // Guard: any ACTIVE INCOME transaction for this quote (canonical OR legacy)
+    // blocks creation. CANCELED rows never block — o recebível pode ser reemitido.
     const { data: anyExisting } = await context.supabase
       .from("financial_transactions")
-      .select("id, origin_type")
+      .select("id, origin_type, status")
       .eq("company_id", cid)
       .eq("quote_id", data.quote_id)
       .eq("type", "INCOME")
       .is("deleted_at", null)
-      .limit(1);
+      .neq("status", "CANCELED")
+      .limit(5);
     if (anyExisting && anyExisting.length > 0) {
+      const legacy = anyExisting.find((r: any) => r.origin_type == null);
+      if (legacy) {
+        return { id: (legacy as any).id, duplicate: true, legacy: true };
+      }
       return { id: (anyExisting[0] as any).id, duplicate: true };
     }
 
