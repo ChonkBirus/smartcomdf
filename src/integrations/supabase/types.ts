@@ -7722,6 +7722,14 @@ export type Database = {
       }
       is_company_member: { Args: { _company_id: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
+      list_active_employees_for_picker: {
+        Args: never
+        Returns: {
+          id: string
+          name: string
+          role: string
+        }[]
+      }
       list_service_order_team_public: {
         Args: { _service_order_id: string }
         Returns: {
