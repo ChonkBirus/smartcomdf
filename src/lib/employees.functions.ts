@@ -160,14 +160,7 @@ export const listActiveEmployeesForPicker = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
-    const companyId = await getCompanyId(sb, context.userId);
-    const { data, error } = await sb
-      .from("employees")
-      .select("id, name, role")
-      .eq("company_id", companyId)
-      .eq("active", true)
-      .is("deleted_at", null)
-      .order("name", { ascending: true });
+    const { data, error } = await sb.rpc("list_active_employees_for_picker");
     if (error) throw new Error(error.message);
     return (data ?? []) as EmployeePickerItem[];
   });
