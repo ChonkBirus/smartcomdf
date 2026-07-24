@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
@@ -49,21 +49,73 @@ export function CreateServiceOrderFromProjectButton({
     if (open) setTechnicianId(projectResponsible ?? "");
   }, [open, projectResponsible]);
 
+  // D2 — Guarda síncrona: bloqueia reentrância antes do próximo render
+  // (createMut.isPending só vira true depois do re-render, permitindo
+  // duplo-clique/Enter repetido escaparem entre o clique e o setState).
+  const submittingRef = useRef(false);
+  // Client request id preparado por intenção — só é regenerado após sucesso
+  // ou nova intenção explícita. Em erro ambíguo (rede) preservamos o mesmo id
+  // para permitir retry idempotente quando D3 estiver aplicada no servidor.
+  const clientRequestIdRef = useRef<string | null>(null);
+  const navigatedRef = useRef(false);
+
+  function ensureClientRequestId(): string {
+    if (!clientRequestIdRef.current) {
+      clientRequestIdRef.current =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+    return clientRequestIdRef.current;
+  }
+
   const createMut = useMutation({
-    mutationFn: () => createFn({
-      data: {
-        project_id: projectId,
-        assigned_technician_id: technicianId || null,
-      },
-    }),
-    onSuccess: ({ service_order_id }) => {
-      toast.success("Ordem de Serviço criada.");
-      setOpen(false);
-      qc.invalidateQueries({ queryKey: ["project-service-orders", projectId] });
-      navigate({ to: "/service-orders/$id", params: { id: service_order_id } } as any);
+    mutationFn: () => {
+      // client_request_id ainda NÃO é enviado ao servidor: a assinatura RPC
+      // atual não aceita o parâmetro. Será propagado quando D3 for aplicada.
+      ensureClientRequestId();
+      return createFn({
+        data: {
+          project_id: projectId,
+          assigned_technician_id: technicianId || null,
+        },
+      });
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao gerar OS."),
   });
+
+  // Ao reabrir o diálogo (nova intenção explícita do usuário), zera o id.
+  useEffect(() => {
+    if (open) {
+      clientRequestIdRef.current = null;
+      navigatedRef.current = false;
+    }
+  }, [open]);
+
+  async function handleConfirm(e: React.MouseEvent) {
+    e.preventDefault();
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    try {
+      const result = await createMut.mutateAsync();
+      toast.success("Ordem de Serviço criada.");
+      // limpa o id só após sucesso confirmado
+      clientRequestIdRef.current = null;
+      setOpen(false);
+      qc.invalidateQueries({ queryKey: ["project-service-orders", projectId] });
+      if (!navigatedRef.current && result?.service_order_id) {
+        navigatedRef.current = true;
+        navigate({
+          to: "/service-orders/$id",
+          params: { id: result.service_order_id },
+        } as any);
+      }
+    } catch {
+      // erro ambíguo: mantém clientRequestIdRef preservado para retry idempotente
+    } finally {
+      submittingRef.current = false;
+    }
+  }
 
   const btn = (
     <Button size="sm" disabled={!planningReady}>
@@ -118,7 +170,10 @@ export function CreateServiceOrderFromProjectButton({
           <AlertDialogFooter>
             <AlertDialogCancel disabled={createMut.isPending}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={(e) => { e.preventDefault(); createMut.mutate(); }}
+              onClick={handleConfirm}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && submittingRef.current) e.preventDefault();
+              }}
               disabled={createMut.isPending || (!technicianId && !projectResponsible)}
             >
               {createMut.isPending ? "Gerando..." : "Confirmar"}
