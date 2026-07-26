@@ -73,6 +73,7 @@ export const createServiceOrderFromProject = createServerFn({ method: "POST" })
     z.object({
       project_id: z.string().uuid(),
       assigned_technician_id: z.string().uuid().nullable().optional(),
+      client_request_id: z.string().uuid().optional(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -80,6 +81,7 @@ export const createServiceOrderFromProject = createServerFn({ method: "POST" })
     const { data: id, error } = await sb.rpc("create_service_order_from_project", {
       _project_id: data.project_id,
       _assigned_technician_id: data.assigned_technician_id ?? null,
+      _client_request_id: data.client_request_id ?? null,
     });
     if (error) throw new Error(error.message);
     return { service_order_id: id as string };
