@@ -50,13 +50,12 @@ export function CreateServiceOrderFromProjectButton({
   }, [open, projectResponsible]);
 
   // D2 — Guarda síncrona: bloqueia reentrância antes do próximo render
-  // (createMut.isPending só vira true depois do re-render, permitindo
-  // duplo-clique/Enter repetido escaparem entre o clique e o setState).
   const submittingRef = useRef(false);
-  // Client request id preparado por intenção — só é regenerado após sucesso
-  // ou nova intenção explícita. Em erro ambíguo (rede) preservamos o mesmo id
-  // para permitir retry idempotente quando D3 estiver aplicada no servidor.
+  // Client request id: gerado no PRIMEIRO submit, preservado em erro para
+  // permitir retry idempotente com a MESMA chave. Só é limpo após sucesso
+  // confirmado, ou se o usuário cancelar antes de qualquer submissão.
   const clientRequestIdRef = useRef<string | null>(null);
+  const hasSubmittedRef = useRef(false);
   const navigatedRef = useRef(false);
 
   function ensureClientRequestId(): string {
@@ -71,36 +70,48 @@ export function CreateServiceOrderFromProjectButton({
 
   const createMut = useMutation({
     mutationFn: () => {
-      // client_request_id ainda NÃO é enviado ao servidor: a assinatura RPC
-      // atual não aceita o parâmetro. Será propagado quando D3 for aplicada.
-      ensureClientRequestId();
+      const clientRequestId = ensureClientRequestId();
+      hasSubmittedRef.current = true;
       return createFn({
         data: {
           project_id: projectId,
           assigned_technician_id: technicianId || null,
+          // D3.2 wiring: propaga a chave. Enquanto D3 (migration) não estiver
+          // aplicada, o server fn ignora este campo (não repassa à RPC),
+          // mantendo o comportamento legado intacto.
+          client_request_id: clientRequestId,
         },
       });
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao gerar OS."),
   });
 
-  // Ao reabrir o diálogo (nova intenção explícita do usuário), zera o id.
-  useEffect(() => {
-    if (open) {
+  // Só permite fechar o diálogo se NÃO estiver em voo.
+  // Cancelar antes de qualquer submissão limpa a chave; após sucesso, o
+  // handleConfirm já limpou tudo. Em erro, o diálogo permanece aberto.
+  function handleOpenChange(next: boolean) {
+    if (createMut.isPending) return;
+    if (!next && !hasSubmittedRef.current) {
       clientRequestIdRef.current = null;
-      navigatedRef.current = false;
     }
-  }, [open]);
+    if (next) {
+      // NÃO zera clientRequestIdRef aqui — preserva retry após erro ambíguo.
+      navigatedRef.current = false;
+    } else {
+      hasSubmittedRef.current = false;
+    }
+    setOpen(next);
+  }
 
   async function handleConfirm(e: React.MouseEvent) {
     e.preventDefault();
-    if (submittingRef.current) return;
+    if (submittingRef.current || createMut.isPending) return;
     submittingRef.current = true;
     try {
       const result = await createMut.mutateAsync();
       toast.success("Ordem de Serviço criada.");
-      // limpa o id só após sucesso confirmado
       clientRequestIdRef.current = null;
+      hasSubmittedRef.current = false;
       setOpen(false);
       qc.invalidateQueries({ queryKey: ["project-service-orders", projectId] });
       if (!navigatedRef.current && result?.service_order_id) {
@@ -111,7 +122,8 @@ export function CreateServiceOrderFromProjectButton({
         } as any);
       }
     } catch {
-      // erro ambíguo: mantém clientRequestIdRef preservado para retry idempotente
+      // Erro ambíguo: diálogo permanece aberto e clientRequestIdRef preservado
+      // para retry idempotente com a MESMA chave.
     } finally {
       submittingRef.current = false;
     }
@@ -136,7 +148,7 @@ export function CreateServiceOrderFromProjectButton({
 
   return (
     <Can module="service_orders" action="create">
-      <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialog open={open} onOpenChange={handleOpenChange}>
         <AlertDialogTrigger asChild>{btn}</AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
