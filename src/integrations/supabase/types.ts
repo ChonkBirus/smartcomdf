@@ -6420,6 +6420,7 @@ export type Database = {
           access_instructions: string | null
           assigned_technician_id: string | null
           cancelled_at: string | null
+          client_request_id: string | null
           company_id: string
           completed_at: string | null
           created_at: string
@@ -6467,6 +6468,7 @@ export type Database = {
           access_instructions?: string | null
           assigned_technician_id?: string | null
           cancelled_at?: string | null
+          client_request_id?: string | null
           company_id: string
           completed_at?: string | null
           created_at?: string
@@ -6514,6 +6516,7 @@ export type Database = {
           access_instructions?: string | null
           assigned_technician_id?: string | null
           cancelled_at?: string | null
+          client_request_id?: string | null
           company_id?: string
           completed_at?: string | null
           created_at?: string
@@ -7664,7 +7667,11 @@ export type Database = {
         Returns: string
       }
       create_service_order_from_project: {
-        Args: { _assigned_technician_id?: string; _project_id: string }
+        Args: {
+          _assigned_technician_id?: string
+          _client_request_id?: string
+          _project_id: string
+        }
         Returns: string
       }
       crm_seed_default_pipeline: {
@@ -7861,6 +7868,7 @@ export type Database = {
           access_instructions: string | null
           assigned_technician_id: string | null
           cancelled_at: string | null
+          client_request_id: string | null
           company_id: string
           completed_at: string | null
           created_at: string
