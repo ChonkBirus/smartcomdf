@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  ArrowLeft, Briefcase, FileText, Package, MapPin, User2, XCircle, Save, UserCog, AlertTriangle,
+  ArrowLeft, Briefcase, FileText, Package, MapPin, User2, XCircle, Save, UserCog, AlertTriangle, CheckCircle2,
 } from "lucide-react";
 import { updateProjectPlanning } from "@/lib/project-planning.functions";
 import { listTeam } from "@/lib/team.functions";
