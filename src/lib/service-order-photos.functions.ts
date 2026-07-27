@@ -59,6 +59,11 @@ export const registerServiceOrderPhoto = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { assertUploadedObject } = await import("@/lib/storage-validate.server");
+    await assertUploadedObject(sb, BUCKET, data.filePath, {
+      allowedMimeTypes: ["image/jpeg", "image/jpg", "image/png", "image/webp"],
+      maxBytes: 10 * 1024 * 1024,
+    });
     const { data: row, error } = await sb.rpc("so_photo_register", {
       _so_id: data.serviceOrderId,
       _photo_type: data.photoType,

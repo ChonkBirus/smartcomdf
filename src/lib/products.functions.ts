@@ -465,6 +465,11 @@ export const registerItemImage = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
+    const { assertUploadedObject } = await import("@/lib/storage-validate.server");
+    await assertUploadedObject(sb, "product-images", data.file_path, {
+      allowedMimeTypes: ["image/png", "image/jpeg", "image/jpg", "image/webp"],
+      maxBytes: 5 * 1024 * 1024,
+    });
     const company_id = await getCompanyId(sb, context.userId);
 
     const { count } = await sb
