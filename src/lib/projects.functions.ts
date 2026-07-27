@@ -326,3 +326,76 @@ export const cancelProject = createServerFn({ method: "POST" })
     await sb.rpc("log_activity", { _description: `Projeto cancelado.` });
     return { ok: true };
   });
+
+export const completeProject = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as any;
+
+    const { data: canComplete, error: permErr } = await sb.rpc("has_permission", {
+      _slug: "projects.edit",
+    });
+    if (permErr) throw new Error(permErr.message);
+    if (!canComplete) throw new Error("Você não tem permissão para finalizar projetos.");
+
+    const { data: project, error: pErr } = await sb
+      .from("projects")
+      .select("id, status, completed_at, project_number")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (pErr) throw new Error(pErr.message);
+    if (!project) throw new Error("Projeto não encontrado.");
+
+    if (project.status === "COMPLETED") {
+      return { ok: true, alreadyCompleted: true, project };
+    }
+    if (project.status === "CANCELLED") {
+      throw new Error("Projetos cancelados não podem ser finalizados.");
+    }
+
+    const OPEN_SO_STATES = ["DRAFT", "SCHEDULED", "IN_PROGRESS", "PAUSED"];
+    const { data: openSOs, error: soErr } = await sb
+      .from("service_orders")
+      .select("id, service_order_number, status")
+      .eq("project_id", data.id)
+      .is("deleted_at", null)
+      .in("status", OPEN_SO_STATES);
+    if (soErr) throw new Error(soErr.message);
+
+    if ((openSOs ?? []).length > 0) {
+      const numbers = (openSOs as any[])
+        .map((s) => s.service_order_number)
+        .filter(Boolean)
+        .join(", ");
+      const suffix = numbers ? ` (${numbers})` : "";
+      throw new Error(
+        `Este projeto ainda possui ordens de serviço em andamento ou pendentes${suffix}.`,
+      );
+    }
+
+    const nowIso = new Date().toISOString();
+    const { data: updated, error: uErr } = await sb
+      .from("projects")
+      .update({ status: "COMPLETED", completed_at: nowIso })
+      .eq("id", data.id)
+      .eq("status", project.status)
+      .select("id, status, completed_at")
+      .maybeSingle();
+    if (uErr) throw new Error(uErr.message);
+    if (!updated) {
+      throw new Error("Não foi possível finalizar o projeto. Tente novamente.");
+    }
+
+    await sb.rpc("log_audit", {
+      _module: "projects",
+      _action: "complete",
+      _record_id: data.id,
+      _old_data: { status: project.status } as any,
+      _new_data: { status: "COMPLETED", completed_at: nowIso } as any,
+    });
+    await sb.rpc("log_activity", { _description: `Projeto finalizado.` });
+
+    return { ok: true, alreadyCompleted: false, project: updated };
+  });
+

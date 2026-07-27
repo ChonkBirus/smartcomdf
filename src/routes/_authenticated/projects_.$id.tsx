@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  ArrowLeft, Briefcase, FileText, Package, MapPin, User2, XCircle, Save, UserCog, AlertTriangle,
+  ArrowLeft, Briefcase, FileText, Package, MapPin, User2, XCircle, Save, UserCog, AlertTriangle, CheckCircle2,
 } from "lucide-react";
 import { updateProjectPlanning } from "@/lib/project-planning.functions";
 import { listTeam } from "@/lib/team.functions";
@@ -28,7 +28,7 @@ import {
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  getProject, updateProjectBasics, cancelProject,
+  getProject, updateProjectBasics, cancelProject, completeProject,
   type ProjectStatus, type ProjectPriority,
 } from "@/lib/projects.functions";
 import { ProjectPlanningPanel } from "@/components/projects/ProjectPlanningPanel";
@@ -76,6 +76,7 @@ function ProjectDetailPage() {
   const fetchProject = useServerFn(getProject);
   const updateFn = useServerFn(updateProjectBasics);
   const cancelFn = useServerFn(cancelProject);
+  const completeFn = useServerFn(completeProject);
 
   const { data, isLoading } = useQuery({
     queryKey: ["project", id],
@@ -85,6 +86,7 @@ function ProjectDetailPage() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<any>({});
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [completeOpen, setCompleteOpen] = useState(false);
 
   const updateMut = useMutation({
     mutationFn: (patch: any) => updateFn({ data: { id, ...patch } }),
@@ -105,6 +107,22 @@ function ProjectDetailPage() {
       setCancelOpen(false);
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao cancelar."),
+  });
+
+  const completeMut = useMutation({
+    mutationFn: () => completeFn({ data: { id } }),
+    onSuccess: (res: any) => {
+      if (res?.alreadyCompleted) {
+        toast.info("Projeto já estava finalizado.");
+      } else {
+        toast.success("Projeto finalizado.");
+      }
+      qc.invalidateQueries({ queryKey: ["project", id] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      qc.invalidateQueries({ queryKey: ["project-service-orders", id] });
+      setCompleteOpen(false);
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao finalizar projeto."),
   });
 
   const setResponsibleFn = useServerFn(updateProjectPlanning);
@@ -176,6 +194,17 @@ function ProjectDetailPage() {
               {!editing && project.status !== "CANCELLED" && (
                 <Can module="projects" action="edit">
                   <Button variant="outline" size="sm" onClick={startEdit}>Editar</Button>
+                </Can>
+              )}
+              {project.status !== "CANCELLED" && project.status !== "COMPLETED" && (
+                <Can module="projects" action="edit">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => setCompleteOpen(true)}
+                  >
+                    <CheckCircle2 className="mr-1 h-4 w-4" />Finalizar projeto
+                  </Button>
                 </Can>
               )}
               {project.status !== "CANCELLED" && project.status !== "COMPLETED" && (
@@ -519,6 +548,26 @@ function ProjectDetailPage() {
               disabled={setRespMut.isPending}
             >
               {setRespMut.isPending ? "Salvando..." : "Salvar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={completeOpen} onOpenChange={setCompleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza que deseja finalizar este projeto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Após a finalização, novas ordens de serviço não poderão ser criadas sem reabrir o projeto.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={completeMut.isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); if (!completeMut.isPending) completeMut.mutate(); }}
+              disabled={completeMut.isPending}
+            >
+              {completeMut.isPending ? "Finalizando..." : "Finalizar projeto"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
