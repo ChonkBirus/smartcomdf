@@ -109,6 +109,22 @@ function ProjectDetailPage() {
     onError: (e: any) => toast.error(e?.message ?? "Falha ao cancelar."),
   });
 
+  const completeMut = useMutation({
+    mutationFn: () => completeFn({ data: { id } }),
+    onSuccess: (res: any) => {
+      if (res?.alreadyCompleted) {
+        toast.info("Projeto já estava finalizado.");
+      } else {
+        toast.success("Projeto finalizado.");
+      }
+      qc.invalidateQueries({ queryKey: ["project", id] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      qc.invalidateQueries({ queryKey: ["project-service-orders", id] });
+      setCompleteOpen(false);
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao finalizar projeto."),
+  });
+
   const setResponsibleFn = useServerFn(updateProjectPlanning);
   const fetchTeam = useServerFn(listTeam);
   const [respOpen, setRespOpen] = useState(false);
