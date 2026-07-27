@@ -76,6 +76,7 @@ function ProjectDetailPage() {
   const fetchProject = useServerFn(getProject);
   const updateFn = useServerFn(updateProjectBasics);
   const cancelFn = useServerFn(cancelProject);
+  const completeFn = useServerFn(completeProject);
 
   const { data, isLoading } = useQuery({
     queryKey: ["project", id],
