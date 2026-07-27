@@ -28,7 +28,7 @@ import {
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  getProject, updateProjectBasics, cancelProject,
+  getProject, updateProjectBasics, cancelProject, completeProject,
   type ProjectStatus, type ProjectPriority,
 } from "@/lib/projects.functions";
 import { ProjectPlanningPanel } from "@/components/projects/ProjectPlanningPanel";
