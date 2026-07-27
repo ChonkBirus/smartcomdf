@@ -86,6 +86,7 @@ function ProjectDetailPage() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<any>({});
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [completeOpen, setCompleteOpen] = useState(false);
 
   const updateMut = useMutation({
     mutationFn: (patch: any) => updateFn({ data: { id, ...patch } }),
