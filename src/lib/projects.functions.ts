@@ -357,7 +357,7 @@ export const completeProject = createServerFn({ method: "POST" })
     const OPEN_SO_STATES = ["DRAFT", "SCHEDULED", "IN_PROGRESS", "PAUSED"];
     const { data: openSOs, error: soErr } = await sb
       .from("service_orders")
-      .select("id, so_number, status")
+      .select("id, service_order_number, status")
       .eq("project_id", data.id)
       .is("deleted_at", null)
       .in("status", OPEN_SO_STATES);
@@ -365,7 +365,7 @@ export const completeProject = createServerFn({ method: "POST" })
 
     if ((openSOs ?? []).length > 0) {
       const numbers = (openSOs as any[])
-        .map((s) => s.so_number)
+        .map((s) => s.service_order_number)
         .filter(Boolean)
         .join(", ");
       const suffix = numbers ? ` (${numbers})` : "";
