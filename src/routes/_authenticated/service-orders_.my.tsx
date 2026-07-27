@@ -69,7 +69,7 @@ function MyServiceOrdersPage() {
   }, [filter, search]);
 
   const companyId = useCompanyId();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["my-service-orders", companyId, params],
     queryFn: () => fetchFn({ data: params }) as Promise<TechnicianOrderRow[]>,
     enabled: !!companyId,
@@ -116,6 +116,18 @@ function MyServiceOrdersPage() {
 
       {isLoading ? (
         <Card className="p-8 text-center text-sm text-muted-foreground">Carregando...</Card>
+      ) : isError ? (
+        <Card className="p-8 text-center space-y-3">
+          <p className="text-sm text-destructive">
+            Não foi possível carregar suas ordens de serviço.
+          </p>
+          <p className="text-xs text-muted-foreground break-all">
+            {(error as Error)?.message ?? "Erro desconhecido"}
+          </p>
+          <Button size="sm" variant="outline" onClick={() => refetch()} disabled={isFetching}>
+            Tentar novamente
+          </Button>
+        </Card>
       ) : list.length === 0 ? (
         <Card className="p-10 text-center">
           <Wrench className="mx-auto mb-2 h-6 w-6 text-muted-foreground" />
