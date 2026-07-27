@@ -27,7 +27,7 @@ export const listMyServiceOrders = createServerFn({ method: "GET" })
         scheduled_date, scheduled_start_time, scheduled_end_time,
         assigned_technician_id,
         customers:customer_id(name,trade_name,corporate_name),
-        address:customer_address_id(street,number,neighborhood,city,state),
+        address:customer_address_id(street,number,district,city,state),
         technician:assigned_technician_id(full_name,email)
       `)
       .eq("company_id", companyId)
@@ -52,7 +52,7 @@ export const listMyServiceOrders = createServerFn({ method: "GET" })
       const addr = r.address;
       const short = addr
         ? [addr.street, addr.number].filter(Boolean).join(", ") +
-          (addr.neighborhood ? ` — ${addr.neighborhood}` : "") +
+          (addr.district ? ` — ${addr.district}` : "") +
           (addr.city ? `, ${addr.city}/${addr.state ?? ""}` : "")
         : null;
       return {
