@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { sanitizePostgrestSearch } from "@/lib/postgrest-sanitize";
 import type { ServiceOrder, ServiceOrderItem } from "@/lib/service-orders.functions";
 
 export const listMyServiceOrders = createServerFn({ method: "GET" })
@@ -41,8 +42,8 @@ export const listMyServiceOrders = createServerFn({ method: "GET" })
     if (data.status) q = q.eq("status", data.status);
     if (data.from) q = q.gte("scheduled_date", data.from);
     if (data.to) q = q.lte("scheduled_date", data.to);
-    if (data.search?.trim()) {
-      const s = data.search.trim();
+    const s = sanitizePostgrestSearch(data.search ?? "");
+    if (s) {
       q = q.or(`service_order_number.ilike.%${s}%,title.ilike.%${s}%`);
     }
     const { data: rows, error } = await q;

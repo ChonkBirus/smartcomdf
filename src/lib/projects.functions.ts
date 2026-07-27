@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { sanitizePostgrestSearch } from "@/lib/postgrest-sanitize";
 
 export type ProjectStatus =
   | "DRAFT" | "READY_TO_SCHEDULE" | "SCHEDULED" | "IN_PROGRESS"
@@ -128,8 +129,8 @@ export const listProjects = createServerFn({ method: "GET" })
     if (data.customer_id) q = q.eq("customer_id", data.customer_id);
     if (data.from) q = q.gte("created_at", data.from);
     if (data.to) q = q.lte("created_at", data.to);
-    if (data.search?.trim()) {
-      const s = data.search.trim();
+    const s = sanitizePostgrestSearch(data.search ?? "");
+    if (s) {
       q = q.or(`project_number.ilike.%${s}%,title.ilike.%${s}%`);
     }
     const { data: rows, error } = await q;

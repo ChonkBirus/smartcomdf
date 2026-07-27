@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { sanitizePostgrestSearch } from "@/lib/postgrest-sanitize";
 
 export type QuoteStatus =
   | "DRAFT" | "SENT" | "VIEWED" | "APPROVED" | "REJECTED"
@@ -233,8 +234,8 @@ export const listQuotes = createServerFn({ method: "GET" })
     if (data.status) q = q.eq("status", data.status);
     if (data.payment_status) q = q.eq("payment_status", data.payment_status);
     if (data.customer_id) q = q.eq("customer_id", data.customer_id);
-    if (data.search?.trim()) {
-      const s = data.search.trim();
+    const s = sanitizePostgrestSearch(data.search ?? "");
+    if (s) {
       q = q.or(`quote_number.ilike.%${s}%,title.ilike.%${s}%`);
     }
     const { data: rows, error } = await q;

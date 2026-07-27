@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { sanitizePostgrestSearch } from "@/lib/postgrest-sanitize";
 
 export type NotaStatus =
   | "UPLOADED" | "PROCESSING" | "PARSED" | "REVIEWED" | "CONFIRMED" | "FAILED" | "CANCELLED";
@@ -556,7 +557,7 @@ export const searchItemsForMatch = createServerFn({ method: "GET" })
       .select("id, name, sku, unit")
       .eq("active", true).eq("controls_stock", true).eq("item_type", "PRODUCT")
       .order("name").limit(50);
-    const t = data.query?.trim();
+    const t = sanitizePostgrestSearch(data.query ?? "");
     if (t) q = q.or(`name.ilike.%${t}%,sku.ilike.%${t}%,barcode.ilike.%${t}%`);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
