@@ -552,6 +552,26 @@ function ProjectDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={completeOpen} onOpenChange={setCompleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza que deseja finalizar este projeto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Após a finalização, novas ordens de serviço não poderão ser criadas sem reabrir o projeto.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={completeMut.isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); if (!completeMut.isPending) completeMut.mutate(); }}
+              disabled={completeMut.isPending}
+            >
+              {completeMut.isPending ? "Finalizando..." : "Finalizar projeto"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
