@@ -197,6 +197,17 @@ function ProjectDetailPage() {
                 </Can>
               )}
               {project.status !== "CANCELLED" && project.status !== "COMPLETED" && (
+                <Can module="projects" action="edit">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => setCompleteOpen(true)}
+                  >
+                    <CheckCircle2 className="mr-1 h-4 w-4" />Finalizar projeto
+                  </Button>
+                </Can>
+              )}
+              {project.status !== "CANCELLED" && project.status !== "COMPLETED" && (
                 <Can module="projects" action="cancel">
                   <Button variant="destructive" size="sm" onClick={() => setCancelOpen(true)}>
                     <XCircle className="mr-1 h-4 w-4" />Cancelar
