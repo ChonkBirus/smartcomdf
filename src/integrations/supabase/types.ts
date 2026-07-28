@@ -7465,6 +7465,370 @@ export type Database = {
           },
         ]
       }
+      visit_events: {
+        Row: {
+          actor_user_id: string
+          client_request_id: string | null
+          company_id: string
+          created_at: string
+          event_data: Json
+          event_type: string
+          id: string
+          visit_id: string
+        }
+        Insert: {
+          actor_user_id: string
+          client_request_id?: string | null
+          company_id: string
+          created_at?: string
+          event_data?: Json
+          event_type: string
+          id?: string
+          visit_id: string
+        }
+        Update: {
+          actor_user_id?: string
+          client_request_id?: string | null
+          company_id?: string
+          created_at?: string
+          event_data?: Json
+          event_type?: string
+          id?: string
+          visit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_events_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_events_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visit_number_counters: {
+        Row: {
+          company_id: string
+          last_number: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          last_number?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          last_number?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_number_counters_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visit_photos: {
+        Row: {
+          caption: string | null
+          company_id: string
+          created_at: string
+          deleted_at: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          id: string
+          mime_type: string
+          photo_category: string
+          sort_order: number
+          updated_at: string
+          uploaded_by: string
+          visit_id: string
+        }
+        Insert: {
+          caption?: string | null
+          company_id: string
+          created_at?: string
+          deleted_at?: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          id?: string
+          mime_type: string
+          photo_category?: string
+          sort_order?: number
+          updated_at?: string
+          uploaded_by: string
+          visit_id: string
+        }
+        Update: {
+          caption?: string | null
+          company_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          id?: string
+          mime_type?: string
+          photo_category?: string
+          sort_order?: number
+          updated_at?: string
+          uploaded_by?: string
+          visit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_photos_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_photos_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_photos_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visits: {
+        Row: {
+          address_snapshot: Json | null
+          assigned_technician_id: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          checked_in_at: string | null
+          checked_out_at: string | null
+          checkin_accuracy_m: number | null
+          checkin_distance_m: number | null
+          checkin_latitude: number | null
+          checkin_longitude: number | null
+          checkin_manual_reason: string | null
+          checkout_accuracy_m: number | null
+          checkout_distance_m: number | null
+          checkout_latitude: number | null
+          checkout_longitude: number | null
+          checkout_manual_reason: string | null
+          client_request_id: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          customer_address_id: string | null
+          customer_contact_id: string | null
+          customer_id: string
+          deleted_at: string | null
+          description: string | null
+          id: string
+          internal_notes: string | null
+          pre_diagnosis: string | null
+          quote_id: string | null
+          recommended_solution: string | null
+          responsible_user_id: string
+          scheduled_end_at: string
+          scheduled_start_at: string
+          service_order_id: string | null
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          visit_number: string
+          visit_type: string
+        }
+        Insert: {
+          address_snapshot?: Json | null
+          assigned_technician_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          checked_in_at?: string | null
+          checked_out_at?: string | null
+          checkin_accuracy_m?: number | null
+          checkin_distance_m?: number | null
+          checkin_latitude?: number | null
+          checkin_longitude?: number | null
+          checkin_manual_reason?: string | null
+          checkout_accuracy_m?: number | null
+          checkout_distance_m?: number | null
+          checkout_latitude?: number | null
+          checkout_longitude?: number | null
+          checkout_manual_reason?: string | null
+          client_request_id?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          customer_address_id?: string | null
+          customer_contact_id?: string | null
+          customer_id: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          internal_notes?: string | null
+          pre_diagnosis?: string | null
+          quote_id?: string | null
+          recommended_solution?: string | null
+          responsible_user_id: string
+          scheduled_end_at: string
+          scheduled_start_at: string
+          service_order_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          visit_number: string
+          visit_type?: string
+        }
+        Update: {
+          address_snapshot?: Json | null
+          assigned_technician_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          checked_in_at?: string | null
+          checked_out_at?: string | null
+          checkin_accuracy_m?: number | null
+          checkin_distance_m?: number | null
+          checkin_latitude?: number | null
+          checkin_longitude?: number | null
+          checkin_manual_reason?: string | null
+          checkout_accuracy_m?: number | null
+          checkout_distance_m?: number | null
+          checkout_latitude?: number | null
+          checkout_longitude?: number | null
+          checkout_manual_reason?: string | null
+          client_request_id?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          customer_address_id?: string | null
+          customer_contact_id?: string | null
+          customer_id?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          internal_notes?: string | null
+          pre_diagnosis?: string | null
+          quote_id?: string | null
+          recommended_solution?: string | null
+          responsible_user_id?: string
+          scheduled_end_at?: string
+          scheduled_start_at?: string
+          service_order_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          visit_number?: string
+          visit_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visits_assigned_technician_id_fkey"
+            columns: ["assigned_technician_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_customer_address_id_fkey"
+            columns: ["customer_address_id"]
+            isOneToOne: false
+            referencedRelation: "customer_addresses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_customer_contact_id_fkey"
+            columns: ["customer_contact_id"]
+            isOneToOne: false
+            referencedRelation: "customer_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_responsible_user_id_fkey"
+            columns: ["responsible_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_service_order_id_fkey"
+            columns: ["service_order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       billing_provider_settings_public: {
