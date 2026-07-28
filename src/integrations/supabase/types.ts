@@ -8188,56 +8188,8 @@ export type Database = {
         }[]
       }
       list_visits_for_calendar: {
-        Args: { _from: string; _status?: string; _to: string }
-        Returns: {
-          address_snapshot: Json | null
-          assigned_technician_id: string | null
-          cancellation_reason: string | null
-          cancelled_at: string | null
-          cancelled_by: string | null
-          checked_in_at: string | null
-          checked_out_at: string | null
-          checkin_accuracy_m: number | null
-          checkin_distance_m: number | null
-          checkin_latitude: number | null
-          checkin_longitude: number | null
-          checkin_manual_reason: string | null
-          checkout_accuracy_m: number | null
-          checkout_distance_m: number | null
-          checkout_latitude: number | null
-          checkout_longitude: number | null
-          checkout_manual_reason: string | null
-          client_request_id: string | null
-          company_id: string
-          created_at: string
-          created_by: string | null
-          customer_address_id: string | null
-          customer_contact_id: string | null
-          customer_id: string
-          deleted_at: string | null
-          description: string | null
-          id: string
-          internal_notes: string | null
-          pre_diagnosis: string | null
-          quote_id: string | null
-          recommended_solution: string | null
-          responsible_user_id: string
-          scheduled_end_at: string
-          scheduled_start_at: string
-          service_order_id: string | null
-          status: string
-          title: string
-          updated_at: string
-          updated_by: string | null
-          visit_number: string
-          visit_type: string
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "visits"
-          isOneToOne: false
-          isSetofReturn: true
-        }
+        Args: { _from: string; _scope?: string; _to: string }
+        Returns: Json[]
       }
       log_activity: { Args: { _description: string }; Returns: string }
       log_audit: {
