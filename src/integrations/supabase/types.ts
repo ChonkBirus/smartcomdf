@@ -7883,6 +7883,14 @@ export type Database = {
     }
     Functions: {
       _po_expense_category: { Args: { _company: string }; Returns: string }
+      _visit_distance_m: {
+        Args: { _lat: number; _lon: number; _visit_id: string }
+        Returns: number
+      }
+      _visit_parse_ts: {
+        Args: { _field: string; _raw: string }
+        Returns: string
+      }
       _visit_path_uuid: {
         Args: { _name: string; _seg: number }
         Returns: string
@@ -7999,6 +8007,14 @@ export type Database = {
         Args: { _note?: string; _payment_id: string }
         Returns: undefined
       }
+      assign_visit_technician: {
+        Args: {
+          _client_request_id?: string
+          _technician_id: string
+          _visit_id: string
+        }
+        Returns: undefined
+      }
       can_access_service_order: { Args: { _so_id: string }; Returns: boolean }
       can_access_visit: { Args: { _visit_id: string }; Returns: boolean }
       can_manage_employees: { Args: never; Returns: boolean }
@@ -8041,6 +8057,10 @@ export type Database = {
           _client_request_id?: string
           _project_id: string
         }
+        Returns: string
+      }
+      create_visit: {
+        Args: { _client_request_id?: string; _payload: Json }
         Returns: string
       }
       crm_seed_default_pipeline: {
@@ -8106,6 +8126,58 @@ export type Database = {
           role: string
         }[]
       }
+      list_my_visits: {
+        Args: { _from: string; _status?: string; _to: string }
+        Returns: {
+          address_snapshot: Json | null
+          assigned_technician_id: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          checked_in_at: string | null
+          checked_out_at: string | null
+          checkin_accuracy_m: number | null
+          checkin_distance_m: number | null
+          checkin_latitude: number | null
+          checkin_longitude: number | null
+          checkin_manual_reason: string | null
+          checkout_accuracy_m: number | null
+          checkout_distance_m: number | null
+          checkout_latitude: number | null
+          checkout_longitude: number | null
+          checkout_manual_reason: string | null
+          client_request_id: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          customer_address_id: string | null
+          customer_contact_id: string | null
+          customer_id: string
+          deleted_at: string | null
+          description: string | null
+          id: string
+          internal_notes: string | null
+          pre_diagnosis: string | null
+          quote_id: string | null
+          recommended_solution: string | null
+          responsible_user_id: string
+          scheduled_end_at: string
+          scheduled_start_at: string
+          service_order_id: string | null
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          visit_number: string
+          visit_type: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "visits"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       list_service_order_team_public: {
         Args: { _service_order_id: string }
         Returns: {
@@ -8114,6 +8186,58 @@ export type Database = {
           id: string
           role_snapshot: string
         }[]
+      }
+      list_visits_for_calendar: {
+        Args: { _from: string; _status?: string; _to: string }
+        Returns: {
+          address_snapshot: Json | null
+          assigned_technician_id: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          checked_in_at: string | null
+          checked_out_at: string | null
+          checkin_accuracy_m: number | null
+          checkin_distance_m: number | null
+          checkin_latitude: number | null
+          checkin_longitude: number | null
+          checkin_manual_reason: string | null
+          checkout_accuracy_m: number | null
+          checkout_distance_m: number | null
+          checkout_latitude: number | null
+          checkout_longitude: number | null
+          checkout_manual_reason: string | null
+          client_request_id: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          customer_address_id: string | null
+          customer_contact_id: string | null
+          customer_id: string
+          deleted_at: string | null
+          description: string | null
+          id: string
+          internal_notes: string | null
+          pre_diagnosis: string | null
+          quote_id: string | null
+          recommended_solution: string | null
+          responsible_user_id: string
+          scheduled_end_at: string
+          scheduled_start_at: string
+          service_order_id: string | null
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          visit_number: string
+          visit_type: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "visits"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       log_activity: { Args: { _description: string }; Returns: string }
       log_audit: {
@@ -8156,6 +8280,7 @@ export type Database = {
         Returns: string
       }
       next_so_report_number: { Args: { _company_id: string }; Returns: string }
+      next_visit_number: { Args: { _company_id: string }; Returns: string }
       notify_user: {
         Args: {
           _company_id: string
@@ -8206,6 +8331,19 @@ export type Database = {
       register_public_quote_view: {
         Args: { _token: string }
         Returns: undefined
+      }
+      register_visit_photo: {
+        Args: {
+          _caption: string
+          _file_name: string
+          _file_path: string
+          _file_size: number
+          _mime_type: string
+          _photo_category: string
+          _sort_order: number
+          _visit_id: string
+        }
+        Returns: string
       }
       reject_quote_payment_receipt: {
         Args: { _payment_id: string; _reason?: string }
@@ -8577,6 +8715,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      soft_delete_visit_photo: {
+        Args: { _photo_id: string }
+        Returns: undefined
+      }
       submit_public_quote_receipt: {
         Args: {
           _amount: number
@@ -8632,9 +8774,48 @@ export type Database = {
         }
         Returns: undefined
       }
+      update_visit_photo_caption: {
+        Args: { _caption: string; _photo_id: string; _sort_order: number }
+        Returns: undefined
+      }
+      update_visit_schedule: {
+        Args: { _client_request_id?: string; _payload: Json; _visit_id: string }
+        Returns: undefined
+      }
       validate_public_quote_image_paths: {
         Args: { _paths: string[]; _token: string }
         Returns: string[]
+      }
+      visit_check_in: {
+        Args: {
+          _accuracy_m: number
+          _client_request_id?: string
+          _lat: number
+          _lon: number
+          _manual_reason: string
+          _visit_id: string
+        }
+        Returns: undefined
+      }
+      visit_check_out: {
+        Args: {
+          _accuracy_m: number
+          _client_request_id?: string
+          _lat: number
+          _lon: number
+          _manual_reason: string
+          _visit_id: string
+        }
+        Returns: undefined
+      }
+      visit_execute_transition: {
+        Args: {
+          _client_request_id?: string
+          _payload?: Json
+          _target: string
+          _visit_id: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
