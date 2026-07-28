@@ -7883,6 +7883,10 @@ export type Database = {
     }
     Functions: {
       _po_expense_category: { Args: { _company: string }; Returns: string }
+      _visit_path_uuid: {
+        Args: { _name: string; _seg: number }
+        Returns: string
+      }
       accept_invitation: { Args: { _token: string }; Returns: string }
       accept_public_quote: {
         Args: { _document?: string; _name: string; _token: string }
@@ -7996,6 +8000,7 @@ export type Database = {
         Returns: undefined
       }
       can_access_service_order: { Args: { _so_id: string }; Returns: boolean }
+      can_access_visit: { Args: { _visit_id: string }; Returns: boolean }
       can_manage_employees: { Args: never; Returns: boolean }
       can_manage_project_team: { Args: never; Returns: boolean }
       can_view_employee_costs: { Args: never; Returns: boolean }
