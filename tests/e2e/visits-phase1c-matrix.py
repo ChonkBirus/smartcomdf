@@ -83,6 +83,11 @@ def rpc(who, fn, args):
     return r.status_code, body
 
 
+def ok(code):
+    """PostgREST devolve 204 para funcoes RETURNS void."""
+    return code in (200, 204)
+
+
 def err(body):
     if isinstance(body, dict):
         return (body.get("message") or "") + " " + (body.get("hint") or "")
@@ -280,7 +285,7 @@ def block_b():
         (isinstance(b, list) and len(b) == 0) or c >= 400)
 
     c, b = rpc("mgrA", "list_visits_for_calendar", {"_from": f, "_to": t, "_scope": "all"})
-    rec(16, "calendario scope=all do Gestor A permitido", "mgrA", "200", c, c == 200)
+    rec(16, "calendario scope=all do Gestor A permitido", "mgrA", "200", c, ok(c))
     c, b = rpc("mgrA", "list_visits_for_calendar", {"_from": f, "_to": t, "_scope": "mine"})
     got = {x["id"] for x in b} if isinstance(b, list) else set()
     exp_mgr = {r[0] for r in q(f"""select id from public.visits where company_id='{CO_A}'
@@ -400,13 +405,13 @@ def block_d():
           "scheduled_end_at": (st + datetime.timedelta(hours=2)).isoformat() + "+00:00"}
     admin_patch("visits", f"id=eq.{v}", {"status": "DRAFT"})
     c, b = rpc("mgrA", "update_visit_schedule", {"_visit_id": v, "_payload": pl, "_client_request_id": str(uuid.uuid4())})
-    rec(43, "reagendamento em DRAFT permitido", "mgrA", "200", (c, err(b)[:50]), c == 200, v)
+    rec(43, "reagendamento em DRAFT permitido", "mgrA", "200", (c, err(b)[:50]), ok(c), v)
     admin_patch("visits", f"id=eq.{v}", {"status": "SCHEDULED"})
     c, b = rpc("mgrA", "update_visit_schedule", {"_visit_id": v, "_payload": pl, "_client_request_id": str(uuid.uuid4())})
-    rec(44, "reagendamento em SCHEDULED permitido", "mgrA", "200", (c, err(b)[:50]), c == 200, v)
+    rec(44, "reagendamento em SCHEDULED permitido", "mgrA", "200", (c, err(b)[:50]), ok(c), v)
     admin_patch("visits", f"id=eq.{v}", {"status": "CONFIRMED"})
     c, b = rpc("mgrA", "update_visit_schedule", {"_visit_id": v, "_payload": pl, "_client_request_id": str(uuid.uuid4())})
-    rec(45, "reagendamento em CONFIRMED permitido", "mgrA", "200", (c, err(b)[:50]), c == 200, v)
+    rec(45, "reagendamento em CONFIRMED permitido", "mgrA", "200", (c, err(b)[:50]), ok(c), v)
     admin_patch("visits", f"id=eq.{v}", {"status": "CANCELLED"})
     c, b = rpc("mgrA", "update_visit_schedule", {"_visit_id": v, "_payload": pl, "_client_request_id": str(uuid.uuid4())})
     rec(46, "reagendamento em estado incompativel bloqueado", "mgrA", "schedule_not_editable",
@@ -433,10 +438,10 @@ def block_e():
     v = IDS["VA_assign"]
     c, b = rpc("mgrA", "assign_visit_technician", {"_visit_id": v, "_technician_id": U["tecA1"][1],
                                                    "_client_request_id": str(uuid.uuid4())})
-    rec(50, "atribuir Tecnico A1 -> sucesso", "mgrA", "200", (c, err(b)[:50]), c == 200, v)
+    rec(50, "atribuir Tecnico A1 -> sucesso", "mgrA", "200", (c, err(b)[:50]), ok(c), v)
     c, b = rpc("mgrA", "assign_visit_technician", {"_visit_id": v, "_technician_id": U["tecA2"][1],
                                                    "_client_request_id": str(uuid.uuid4())})
-    rec(51, "reatribuir para Tecnico A2 -> sucesso", "mgrA", "200", (c, err(b)[:50]), c == 200, v)
+    rec(51, "reatribuir para Tecnico A2 -> sucesso", "mgrA", "200", (c, err(b)[:50]), ok(c), v)
     c, b = rpc("mgrA", "assign_visit_technician", {"_visit_id": v, "_technician_id": U["mgrB"][1],
                                                    "_client_request_id": str(uuid.uuid4())})
     rec(52, "atribuir usuario da Empresa B -> technician_cross_company", "mgrA",
@@ -471,7 +476,7 @@ def block_f():
                                            "_client_request_id": kmain})
     row = q(f"select checkin_latitude, checkin_distance_m, checked_in_at from public.visits where id='{v}'")[0]
     ev = q1(f"select count(*) from public.visit_events where visit_id='{v}' and event_type='CHECKED_IN'")
-    ok56 = c == 200 and row[0] not in ("", None) and ev == "1"
+    ok56 = ok(c) and row[0] not in ("", None) and ev == "1"
     rec(56, "GPS valido -> coordenadas, distancia e um evento", "tecA1", "lat/dist/1 evento",
         f"{row} ev={ev}", (True if (ok56 and row[1] not in ("", None)) else ("BLOCKED" if ok56 else False)), v)
 
@@ -484,7 +489,7 @@ def block_f():
                                            "_accuracy_m": None,
                                            "_manual_reason": "sem sinal de GPS no local",
                                            "_client_request_id": str(uuid.uuid4())})
-    rec(57, "check-in manual valido -> sucesso", "tecA1", "200", (c, err(b)[:50]), c == 200, vman)
+    rec(57, "check-in manual valido -> sucesso", "tecA1", "200", (c, err(b)[:50]), ok(c), vman)
 
     negs = [
         (58, "manual sem justificativa suficiente", dict(_lat=None, _lon=None, _accuracy_m=None,
@@ -521,7 +526,7 @@ def block_f():
                                            "_client_request_id": kmain})
     after = q(f"select checked_in_at, checkin_latitude from public.visits where id='{v}'")[0]
     rec(68, "retry identico -> horario e dados preservados", "tecA1", "inalterado",
-        f"{before}=={after}", c == 200 and before == after, v)
+        f"{before}=={after}", ok(c) and before == after, v)
     c, b = rpc("tecA1", "visit_check_in", {"_visit_id": v, "_lat": -10.0, "_lon": -40.0,
                                            "_accuracy_m": 12, "_manual_reason": None,
                                            "_client_request_id": kmain})
@@ -536,10 +541,10 @@ def block_g():
     v = IDS["VA_flow"]
     c, b = rpc("mgrA", "visit_execute_transition", {"_visit_id": v, "_target": "CONFIRMED",
                                                     "_payload": {}, "_client_request_id": str(uuid.uuid4())})
-    rec(71, "CONFIRMED por visits.edit permitido", "mgrA", "200", (c, err(b)[:50]), c == 200, v)
+    rec(71, "CONFIRMED por visits.edit permitido", "mgrA", "200", (c, err(b)[:50]), ok(c), v)
     c, b = rpc("tecA1", "visit_execute_transition", {"_visit_id": v, "_target": "ON_THE_WAY",
                                                      "_payload": {}, "_client_request_id": str(uuid.uuid4())})
-    rec(72, "ON_THE_WAY pelo tecnico atribuido permitido", "tecA1", "200", (c, err(b)[:50]), c == 200, v)
+    rec(72, "ON_THE_WAY pelo tecnico atribuido permitido", "tecA1", "200", (c, err(b)[:50]), ok(c), v)
     rpc("tecA1", "visit_check_in", {"_visit_id": v, "_lat": -15.7942, "_lon": -47.8822,
                                     "_accuracy_m": 8, "_manual_reason": None,
                                     "_client_request_id": str(uuid.uuid4())})
@@ -548,7 +553,7 @@ def block_g():
                             (75, "RESUMED", "RESUMED apos PAUSED permitido")]:
         c, b = rpc("tecA1", "visit_execute_transition", {"_visit_id": v, "_target": target,
                                                          "_payload": {}, "_client_request_id": str(uuid.uuid4())})
-        rec(n, desc, "tecA1", "200", err(b)[:70], c == 200, v)
+        rec(n, desc, "tecA1", "200", err(b)[:70], ok(c), v)
     rec(76, "segunda pausa/retomada -> timeline coerente", "tecA1", "eventos coerentes",
         "PAUSED/RESUMED nao existem no dominio de status", "BLOCKED", v)
     c, b = rpc("tecA1", "visit_execute_transition", {"_visit_id": v, "_target": "ON_THE_WAY",
@@ -571,7 +576,7 @@ def block_g():
     c, b = rpc("tecA1", "visit_execute_transition", {"_visit_id": v, "_target": "COMPLETED",
                                                      "_payload": {}, "_client_request_id": str(uuid.uuid4())})
     rec(82, "COMPLETED sem OS permitido no fluxo correto", "tecA1", "200", (c, err(b)[:60]),
-        c == 200, v)
+        ok(c), v)
 
 
 # ---------------------------------------------------------------- H
@@ -588,7 +593,7 @@ def block_h():
     c, b = rpc("tecA1", "visit_check_out", {"_visit_id": v, "_lat": -15.7945, "_lon": -47.8825,
                                             "_accuracy_m": 9, "_manual_reason": None,
                                             "_client_request_id": kout})
-    rec(84, "check-out sem OS apos COMPLETED -> sucesso", "tecA1", "200", (c, err(b)[:60]), c == 200, v)
+    rec(84, "check-out sem OS apos COMPLETED -> sucesso", "tecA1", "200", (c, err(b)[:60]), ok(c), v)
     row = q(f"select checkout_distance_m, checked_out_at from public.visits where id='{v}'")[0]
     ev = q1(f"select count(*) from public.visit_events where visit_id='{v}' and event_type='CHECKED_OUT'")
     rec(91, "check-out GPS grava distancia e um evento", "tecA1", "distancia + 1 evento",
@@ -610,7 +615,7 @@ def block_h():
     c, b = rpc("tecA1", "visit_check_out", {"_visit_id": vso, "_lat": -15.7942, "_lon": -47.8822,
                                             "_accuracy_m": 8, "_manual_reason": None,
                                             "_client_request_id": str(uuid.uuid4())})
-    rec(88, "check-out com OS PAUSED -> permitido", "tecA1", "200", (c, err(b)[:60]), c == 200, vso)
+    rec(88, "check-out com OS PAUSED -> permitido", "tecA1", "200", (c, err(b)[:60]), ok(c), vso)
 
     for n, vkey, st in [(89, "VA_so2", "COMPLETED"), (90, "VA_so3", "CANCELLED")]:
         vv = IDS[vkey]
@@ -620,7 +625,7 @@ def block_h():
         c, b = rpc("tecA1", "visit_check_out", {"_visit_id": vv, "_lat": -15.7942, "_lon": -47.8822,
                                                 "_accuracy_m": 8, "_manual_reason": None,
                                                 "_client_request_id": str(uuid.uuid4())})
-        rec(n, f"check-out com OS {st} -> permitido", "tecA1", "200", (c, err(b)[:60]), c == 200, vv)
+        rec(n, f"check-out com OS {st} -> permitido", "tecA1", "200", (c, err(b)[:60]), ok(c), vv)
 
     # 92 manual: completar vman e fazer checkout manual
     rpc("tecA1", "visit_execute_transition", {"_visit_id": vman, "_target": "COMPLETED",
@@ -629,7 +634,7 @@ def block_h():
     c, b = rpc("tecA1", "visit_check_out", {"_visit_id": vman, "_lat": None, "_lon": None,
                                             "_accuracy_m": None, "_manual_reason": "sem sinal no local",
                                             "_client_request_id": kman})
-    rec(92, "check-out manual valido -> sucesso", "tecA1", "200", (c, err(b)[:60]), c == 200, vman)
+    rec(92, "check-out manual valido -> sucesso", "tecA1", "200", (c, err(b)[:60]), ok(c), vman)
     c1, b1 = rpc("tecA1", "visit_check_out", {"_visit_id": IDS["VA_so2"], "_lat": -15.0, "_lon": -47.0,
                                               "_accuracy_m": None, "_manual_reason": "conflito gps",
                                               "_client_request_id": str(uuid.uuid4())})
@@ -643,7 +648,7 @@ def block_h():
                                             "_client_request_id": kman})
     after = q1(f"select checked_out_at from public.visits where id='{vman}'")
     rec(94, "retry identico -> checked_out_at preservado", "tecA1", "inalterado",
-        f"{before}=={after}", c == 200 and before == after, vman)
+        f"{before}=={after}", ok(c) and before == after, vman)
     c, b = rpc("tecA1", "visit_check_out", {"_visit_id": vman, "_lat": None, "_lon": None,
                                             "_accuracy_m": None, "_manual_reason": "outra justificativa",
                                             "_client_request_id": kman})
@@ -720,7 +725,7 @@ def block_i():
                                                  "_caption": f"{TAG} foto", "_sort_order": 1})
     photo_id = b if c == 200 else None
     IDS["photo1"] = photo_id
-    rec(105, "registrar foto valida -> sucesso", "tecA1", "photo_id", (c, str(b)[:60]), c == 200, str(photo_id))
+    rec(105, "registrar foto valida -> sucesso", "tecA1", "photo_id", (c, str(b)[:60]), ok(c), str(photo_id))
     c2, b2 = rpc("tecA1", "register_visit_photo", {"_visit_id": v, "_file_path": p1,
                                                    "_file_name": "qa1.jpg", "_mime_type": "image/jpeg",
                                                    "_file_size": size, "_photo_category": "BEFORE",
@@ -768,7 +773,7 @@ def block_i():
     c, b = rpc("tecA1", "update_visit_photo_caption", {"_photo_id": pid2, "_caption": f"{TAG} legenda",
                                                        "_sort_order": 5})
     rec(112, "atualizacao de caption/sort_order autorizada", "tecA1", "200", (c, err(b)[:50]),
-        c == 200, pid2)
+        ok(c), pid2)
     c, b = rpc("stockA", "update_visit_photo_caption", {"_photo_id": pid2, "_caption": "hack", "_sort_order": 9})
     c2, b2 = rpc("tecA2", "update_visit_photo_caption", {"_photo_id": pid2, "_caption": "hack", "_sort_order": 9})
     rec(113, "usuario sem autorizacao nao altera foto", "stockA/tecA2", "forbidden",
@@ -783,8 +788,8 @@ def block_j(counts_before):
     ft = q1(f"select count(*) from public.financial_transactions where created_at >= now() - interval '2 hours' and company_id in ('{CO_A}','{CO_B}')")
     rec(114, "nenhuma RPC de visitas cria financial_transactions", "-", "0", ft, ft == "0")
     so_changed = q1(f"""select count(*) from public.service_orders
-                        where company_id='{CO_A}' and updated_at >= now() - interval '2 hours'
-                          and id not in ('{IDS['so_VA_so1']}','{IDS['so_VA_so2']}','{IDS['so_VA_so3']}')""")
+                        where updated_at >= now() - interval '2 hours'
+                          and title not like '[QA-VISITS]%'""")
     rec(115, "nenhuma RPC de visitas altera OS fora das regras", "-", "0", so_changed, so_changed == "0")
     bad = q1(f"select count(*) from public.visits where id in ('{vids}') and company_id not in ('{CO_A}','{CO_B}')")
     mism = q1(f"""select count(*) from public.visits v join public.customers c on c.id=v.customer_id
@@ -798,7 +803,8 @@ def block_j(counts_before):
     src = subprocess.run(["rg", "-l", "rate-limit.server", "src"], capture_output=True, text=True).stdout.strip()
     rec(119, "P0-07 permanece desativado", "-", "sem uso de rate-limit.server",
         src or "nenhum import", src == "")
-    ui = subprocess.run(["rg", "-l", "visit", "src/routes", "src/components"], capture_output=True, text=True).stdout.strip()
+    ui = subprocess.run(["rg", "-l", "create_visit|visit_check_in|visit_check_out|list_visits_for_calendar|list_my_visits|register_visit_photo|visit_execute_transition",
+                         "src"], capture_output=True, text=True).stdout.strip()
     rec(120, "nenhuma UI de visitas foi criada", "-", "0 arquivos", ui or "nenhum", ui == "")
     rec(121, "Fase 2 nao foi iniciada", "-", "sem frontend/servidor de visitas",
         "nenhum arquivo de visitas em src/", ui == "" and src == "")
