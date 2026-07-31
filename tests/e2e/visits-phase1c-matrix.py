@@ -89,6 +89,11 @@ def err(body):
     return str(body)
 
 
+def no_rows(code, body):
+    """RLS sem policy de escrita: PostgREST responde 2xx afetando zero linhas."""
+    return code in (200, 204) and (body in ("", None, []) or body == [])
+
+
 def rest(who, method, path, body=None, extra=None):
     r = requests.request(method, f"{URL}/rest/v1/{path}", headers=hdr(who, extra),
                          json=body, timeout=60)
@@ -167,20 +172,31 @@ def block_a():
     vid = IDS.get("VA_main")
     c, b = rest("mgrA", "POST", "visits", {"company_id": CO_A, "title": "x"})
     rec(1, "INSERT direto em visits negado", "mgrA", "denied", (c, err(b)), denied(c, b))
-    c, b = rest("mgrA", "PATCH", f"visits?id=eq.{vid}", {"title": "x"})
-    rec(2, "UPDATE direto em visits negado", "mgrA", "denied", (c, err(b)), denied(c, b))
-    c, b = rest("mgrA", "DELETE", f"visits?id=eq.{vid}")
-    rec(3, "DELETE direto em visits negado", "mgrA", "denied", (c, err(b)), denied(c, b))
+    P = {"Prefer": "return=representation"}
+    c, b = rest("mgrA", "PATCH", f"visits?id=eq.{vid}", {"title": "HACK"}, P)
+    t_after = q1(f"select title from public.visits where id='{vid}'")
+    rec(2, "UPDATE direto em visits negado", "mgrA", "0 linhas afetadas",
+        (c, str(b)[:60], t_after), (denied(c, b) or no_rows(c, b)) and t_after != "HACK", vid)
+    c, b = rest("mgrA", "DELETE", f"visits?id=eq.{vid}", None, P)
+    alive = q1(f"select count(*) from public.visits where id='{vid}'")
+    rec(3, "DELETE direto em visits negado", "mgrA", "0 linhas afetadas",
+        (c, str(b)[:60], f"alive={alive}"), (denied(c, b) or no_rows(c, b)) and alive == "1", vid)
     c, b = rest("mgrA", "POST", "visit_events", {"company_id": CO_A, "visit_id": vid, "event_type": "X"})
     rec(4, "INSERT direto em visit_events negado", "mgrA", "denied", (c, err(b)), denied(c, b))
-    c1, b1 = rest("mgrA", "PATCH", f"visit_events?visit_id=eq.{vid}", {"event_type": "X"})
-    c2, b2 = rest("mgrA", "DELETE", f"visit_events?visit_id=eq.{vid}")
-    rec(5, "UPDATE/DELETE direto em visit_events negado", "mgrA", "denied",
-        (c1, c2), denied(c1, b1) and denied(c2, b2))
+    n_before = q1(f"select count(*) from public.visit_events where visit_id='{vid}'")
+    c1, b1 = rest("mgrA", "PATCH", f"visit_events?visit_id=eq.{vid}", {"event_type": "HACK"}, P)
+    c2, b2 = rest("mgrA", "DELETE", f"visit_events?visit_id=eq.{vid}", None, P)
+    n_after = q1(f"select count(*) from public.visit_events where visit_id='{vid}'")
+    hacked = q1(f"select count(*) from public.visit_events where event_type='HACK'")
+    rec(5, "UPDATE/DELETE direto em visit_events negado", "mgrA", "0 linhas afetadas",
+        (c1, c2, f"{n_before}->{n_after}", f"hack={hacked}"),
+        n_before == n_after and hacked == "0", vid)
     c, b = rest("mgrA", "POST", "visit_photos", {"company_id": CO_A, "visit_id": vid, "file_path": "x"})
     rec(6, "INSERT direto em visit_photos negado", "mgrA", "denied", (c, err(b)), denied(c, b))
     c, b = rest("mgrA", "GET", "visit_number_counters?select=*")
-    rec(7, "authenticated nao acessa visit_number_counters", "mgrA", "denied", (c, err(b)), denied(c, b))
+    real = q1(f"select count(*) from public.visit_number_counters")
+    rec(7, "authenticated nao acessa visit_number_counters", "mgrA", "0 linhas (RLS sem policy)",
+        (c, str(b)[:60], f"linhas_reais={real}"), denied(c, b) or (isinstance(b, list) and len(b) == 0))
     r = requests.post(f"{URL}/storage/v1/object/visit-photos/{CO_A}/visits/{vid}/direct.jpg",
                       headers={"apikey": ANON, "Authorization": f"Bearer {TOK['tecA1']}",
                                "Content-Type": "image/jpeg"}, data=b"\xff\xd8\xff", timeout=30)
@@ -243,8 +259,9 @@ def block_b():
 
     c, b = rpc("tecA1", "list_my_visits", {"_from": f, "_to": t})
     mine = {x["id"] for x in b} if isinstance(b, list) else set()
-    expected_a1 = {IDS["VA_main"], IDS["VA_ckin"], IDS["VA_flow"], IDS["VA_so1"], IDS["VA_so2"],
-                   IDS["VA_so3"], IDS["VA_photo"]}
+    expected_a1 = {r[0] for r in q(f"""select id from public.visits where company_id='{CO_A}'
+        and deleted_at is null and assigned_technician_id='{U['tecA1'][1]}'
+        and scheduled_start_at::date between '{f}' and '{t}'""")}
     rec(11, "Tecnico A1 ve somente visitas atribuidas a A1", "tecA1", "somente A1",
         f"{len(mine)} linhas", mine == expected_a1)
     c, b = rpc("tecA2", "list_my_visits", {"_from": f, "_to": t})
@@ -266,12 +283,15 @@ def block_b():
     rec(16, "calendario scope=all do Gestor A permitido", "mgrA", "200", c, c == 200)
     c, b = rpc("mgrA", "list_visits_for_calendar", {"_from": f, "_to": t, "_scope": "mine"})
     got = {x["id"] for x in b} if isinstance(b, list) else set()
+    exp_mgr = {r[0] for r in q(f"""select id from public.visits where company_id='{CO_A}'
+        and deleted_at is null and assigned_technician_id='{U['mgrA'][1]}'
+        and scheduled_start_at::date between '{f}' and '{t}'""")}
     rec(17, "calendario scope=mine do Gestor A -> somente atribuidas a ele", "mgrA",
-        {IDS["VA_mgr"]}, got, got == {IDS["VA_mgr"]}, IDS["VA_mgr"])
+        f"{len(exp_mgr)} visitas do gestor", f"{len(got)}", got == exp_mgr, IDS["VA_mgr"])
     c, b = rpc("tecA1", "list_visits_for_calendar", {"_from": f, "_to": t, "_scope": "mine"})
     got = {x["id"] for x in b} if isinstance(b, list) else set()
-    rec(18, "calendario scope=mine do Tecnico A1 -> somente A1", "tecA1", expected_a1, len(got),
-        got == expected_a1)
+    rec(18, "calendario scope=mine do Tecnico A1 -> somente A1", "tecA1",
+        f"{len(expected_a1)} visitas de A1", len(got), got == expected_a1)
     c, b = rpc("tecA1", "list_visits_for_calendar", {"_from": f, "_to": t, "_scope": "all"})
     rec(19, "calendario scope=all do Tecnico A1 -> forbidden_scope_all", "tecA1",
         "forbidden_scope_all", err(b)[:60], "forbidden_scope_all" in err(b))
@@ -368,7 +388,7 @@ def block_c():
             cnt == "1" and ev == "1", list(vids)[0])
         nt = q1(f"""select count(*) from public.notifications
                     where user_id='{U['tecA1'][1]}' and created_at >= now() - interval '10 minutes'
-                      and body like '%{q1(f"select visit_number from public.visits where id='{list(vids)[0]}'")}%'""")
+                      and message like '%{q1(f"select visit_number from public.visits where id='{list(vids)[0]}'")}%'""")
         rec(42, "exatamente uma notificacao ao tecnico", "mgrA", "1", nt, nt == "1")
 
 
@@ -427,7 +447,7 @@ def block_e():
     ev = q1(f"select count(*) from public.visit_events where client_request_id='{k}'")
     nt = q1(f"""select count(*) from public.notifications where user_id='{U['tecA1'][1]}'
                 and created_at >= now() - interval '10 minutes'
-                and body like '%{q1(f"select visit_number from public.visits where id='{v}'")}%'""")
+                and message like '%{q1(f"select visit_number from public.visits where id='{v}'")}%'""")
     rec(53, "retry identico -> um evento e uma notificacao", "mgrA", "1/1", f"ev={ev} notif={nt}",
         ev == "1" and nt == "1", v)
     c, b = rpc("mgrA", "assign_visit_technician",
