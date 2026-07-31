@@ -123,8 +123,8 @@ def setup_data():
         cid = q1(f"""insert into public.customers(company_id,name,cpf_cnpj,customer_type)
                      values('{co}','{sql_esc(TAG)} Cliente {sfx}','QA{RUN}{sfx}','INDIVIDUAL')
                      returning id""")
-        aid = q1(f"""insert into public.customer_addresses(company_id,customer_id,address_type,street,number,district,city,state,zip_code,latitude,longitude)
-                     values('{co}','{cid}','INSTALLATION','QA Street','1','QA','Brasilia','DF','70000000',-15.7942,-47.8822)
+        aid = q1(f"""insert into public.customer_addresses(company_id,customer_id,address_type,street,number,district,city,state,zipcode)
+                     values('{co}','{cid}','INSTALLATION','QA Street','1','QA','Brasilia','DF','70000000')
                      returning id""")
         ct = q1(f"""insert into public.customer_contacts(company_id,customer_id,name)
                     values('{co}','{cid}','{sql_esc(TAG)} Contato {sfx}') returning id""")
@@ -140,7 +140,6 @@ def mk_payload(co="A", **over):
     p = {
         "visit_type": "DIAGNOSIS",
         "customer_id": IDS[f"customer_{co}"],
-        "customer_address_id": IDS[f"address_{co}"],
         "customer_contact_id": IDS[f"contact_{co}"],
         "title": f"{TAG} Visita",
         "scheduled_start_at": start.isoformat() + "+00:00",
@@ -301,7 +300,6 @@ def block_c():
 
     variants = [
         (26, "customer diferente", {"customer_id": IDS["customer_B"]}),
-        (27, "endereco diferente", {"customer_address_id": None}),
         (28, "contato diferente", {"customer_contact_id": None}),
         (29, "responsavel diferente", {"responsible_user_id": U["tecA1"][1]}),
         (30, "tecnico diferente", {"assigned_technician_id": U["tecA2"][1]}),
@@ -310,6 +308,12 @@ def block_c():
                                 "scheduled_end_at": (datetime.datetime.utcnow() + datetime.timedelta(days=3, hours=2)).replace(microsecond=0).isoformat() + "+00:00"}),
         (33, "titulo diferente", {"title": f"{TAG} idem outro"}),
     ]
+    p27 = dict(base); p27["customer_address_id"] = IDS["address_A"]
+    c27, b27 = create_visit("mgrA", p27, key)
+    rec(27, "mesma chave com endereco diferente -> idempotency_key_reused", "mgrA",
+        "idempotency_key_reused", err(b27)[:90],
+        True if "idempotency_key_reused" in err(b27) else "BLOCKED")
+
     for n, label, over in variants:
         p = dict(base)
         p.update(over)
