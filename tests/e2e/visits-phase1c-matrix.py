@@ -41,6 +41,15 @@ def q1(sql):
     return rows[0][0] if rows else None
 
 
+def admin_patch(table, filt, body):
+    r = requests.patch(f"{URL}/rest/v1/{table}?{filt}",
+                       headers={"apikey": SR, "Authorization": f"Bearer {SR}",
+                                "Content-Type": "application/json", "Prefer": "return=minimal"},
+                       json=body, timeout=30)
+    if r.status_code >= 300:
+        raise RuntimeError(f"admin_patch {table}: {r.status_code} {r.text[:200]}")
+
+
 def rotate(uid, pwd):
     r = requests.put(f"{URL}/auth/v1/admin/users/{uid}",
                      headers={"apikey": SR, "Authorization": f"Bearer {SR}",
@@ -213,7 +222,7 @@ def seed_service_orders():
         soid = q1(f"""insert into public.service_orders(company_id,project_id,customer_id,service_order_number,title,status)
                       values('{CO_A}','{pid}','{cust}','QA-OS-{RUN}-{i}','{sql_esc(TAG)} OS {i}','{st}') returning id""")
         IDS[f"so_{vkey}"] = soid
-        q(f"update public.visits set service_order_id='{soid}' where id='{IDS[vkey]}'")
+        admin_patch("visits", f"id=eq.{IDS[vkey]}", {"service_order_id": soid})
 
 
 # ---------------------------------------------------------------- B
@@ -369,20 +378,20 @@ def block_d():
     st = (datetime.datetime.utcnow() + datetime.timedelta(days=4)).replace(microsecond=0)
     pl = {"scheduled_start_at": st.isoformat() + "+00:00",
           "scheduled_end_at": (st + datetime.timedelta(hours=2)).isoformat() + "+00:00"}
-    q(f"update public.visits set status='DRAFT' where id='{v}'")
+    admin_patch("visits", f"id=eq.{v}", {"status": "DRAFT"})
     c, b = rpc("mgrA", "update_visit_schedule", {"_visit_id": v, "_payload": pl, "_client_request_id": str(uuid.uuid4())})
     rec(43, "reagendamento em DRAFT permitido", "mgrA", "200", (c, err(b)[:50]), c == 200, v)
-    q(f"update public.visits set status='SCHEDULED' where id='{v}'")
+    admin_patch("visits", f"id=eq.{v}", {"status": "SCHEDULED"})
     c, b = rpc("mgrA", "update_visit_schedule", {"_visit_id": v, "_payload": pl, "_client_request_id": str(uuid.uuid4())})
     rec(44, "reagendamento em SCHEDULED permitido", "mgrA", "200", (c, err(b)[:50]), c == 200, v)
-    q(f"update public.visits set status='CONFIRMED' where id='{v}'")
+    admin_patch("visits", f"id=eq.{v}", {"status": "CONFIRMED"})
     c, b = rpc("mgrA", "update_visit_schedule", {"_visit_id": v, "_payload": pl, "_client_request_id": str(uuid.uuid4())})
     rec(45, "reagendamento em CONFIRMED permitido", "mgrA", "200", (c, err(b)[:50]), c == 200, v)
-    q(f"update public.visits set status='CANCELLED' where id='{v}'")
+    admin_patch("visits", f"id=eq.{v}", {"status": "CANCELLED"})
     c, b = rpc("mgrA", "update_visit_schedule", {"_visit_id": v, "_payload": pl, "_client_request_id": str(uuid.uuid4())})
     rec(46, "reagendamento em estado incompativel bloqueado", "mgrA", "schedule_not_editable",
         err(b)[:60], "schedule_not_editable" in err(b), v)
-    q(f"update public.visits set status='SCHEDULED' where id='{v}'")
+    admin_patch("visits", f"id=eq.{v}", {"status": "SCHEDULED"})
 
     k = str(uuid.uuid4())
     rpc("mgrA", "update_visit_schedule", {"_visit_id": v, "_payload": pl, "_client_request_id": k})
@@ -571,13 +580,13 @@ def block_h():
                                     "_accuracy_m": 8, "_manual_reason": None,
                                     "_client_request_id": str(uuid.uuid4())})
     for n, st in [(85, "DRAFT"), (86, "SCHEDULED"), (87, "IN_PROGRESS")]:
-        q(f"update public.service_orders set status='{st}' where id='{so}'")
+        admin_patch("service_orders", f"id=eq.{so}", {"status": st})
         c, b = rpc("tecA1", "visit_check_out", {"_visit_id": vso, "_lat": -15.7942, "_lon": -47.8822,
                                                 "_accuracy_m": 8, "_manual_reason": None,
                                                 "_client_request_id": str(uuid.uuid4())})
         rec(n, f"check-out com OS {st} -> blocked_by_service_order", "tecA1",
             "blocked_by_service_order", err(b)[:60], "blocked_by_service_order" in err(b), vso)
-    q(f"update public.service_orders set status='PAUSED' where id='{so}'")
+    admin_patch("service_orders", f"id=eq.{so}", {"status": "PAUSED"})
     c, b = rpc("tecA1", "visit_check_out", {"_visit_id": vso, "_lat": -15.7942, "_lon": -47.8822,
                                             "_accuracy_m": 8, "_manual_reason": None,
                                             "_client_request_id": str(uuid.uuid4())})
