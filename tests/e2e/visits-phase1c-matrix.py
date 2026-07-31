@@ -447,11 +447,12 @@ def block_e():
     rec(52, "atribuir usuario da Empresa B -> technician_cross_company", "mgrA",
         "technician_cross_company", err(b)[:60], "technician_cross_company" in err(b), v)
     k = str(uuid.uuid4())
+    mark = q1("select now()")
     rpc("mgrA", "assign_visit_technician", {"_visit_id": v, "_technician_id": U["tecA1"][1], "_client_request_id": k})
     rpc("mgrA", "assign_visit_technician", {"_visit_id": v, "_technician_id": U["tecA1"][1], "_client_request_id": k})
     ev = q1(f"select count(*) from public.visit_events where client_request_id='{k}'")
     nt = q1(f"""select count(*) from public.notifications where user_id='{U['tecA1'][1]}'
-                and created_at >= now() - interval '10 minutes'
+                and created_at >= '{mark}'::timestamptz
                 and message like '%{q1(f"select visit_number from public.visits where id='{v}'")}%'""")
     rec(53, "retry identico -> um evento e uma notificacao", "mgrA", "1/1", f"ev={ev} notif={nt}",
         ev == "1" and nt == "1", v)
@@ -570,8 +571,8 @@ def block_g():
         c, b = rpc("tecA1", "visit_execute_transition", {"_visit_id": vso, "_target": target,
                                                          "_payload": {}, "_client_request_id": str(uuid.uuid4())})
         exp = "blocked_by_service_order" if target == "COMPLETED" else "bloqueado"
-        ok = c != 200
-        rec(n, f"visita com OS bloqueia {target} pela RPC da visita", "tecA1", exp, err(b)[:70], ok, vso)
+        blocked = not ok(c)
+        rec(n, f"visita com OS bloqueia {target} pela RPC da visita", "tecA1", exp, err(b)[:70], blocked, vso)
 
     c, b = rpc("tecA1", "visit_execute_transition", {"_visit_id": v, "_target": "COMPLETED",
                                                      "_payload": {}, "_client_request_id": str(uuid.uuid4())})
