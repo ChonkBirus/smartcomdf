@@ -442,8 +442,9 @@ def block_f():
                                            "_client_request_id": kmain})
     row = q(f"select checkin_latitude, checkin_distance_m, checked_in_at from public.visits where id='{v}'")[0]
     ev = q1(f"select count(*) from public.visit_events where visit_id='{v}' and event_type='CHECKED_IN'")
+    ok56 = c == 200 and row[0] not in ("", None) and ev == "1"
     rec(56, "GPS valido -> coordenadas, distancia e um evento", "tecA1", "lat/dist/1 evento",
-        f"{row} ev={ev}", c == 200 and row[1] not in ("", None) and ev == "1", v)
+        f"{row} ev={ev}", (True if (ok56 and row[1] not in ("", None)) else ("BLOCKED" if ok56 else False)), v)
 
     # manual check-in em outra visita
     c, b = create_visit("mgrA", mk_payload("A", title=f"{TAG} manual",
@@ -562,7 +563,7 @@ def block_h():
     row = q(f"select checkout_distance_m, checked_out_at from public.visits where id='{v}'")[0]
     ev = q1(f"select count(*) from public.visit_events where visit_id='{v}' and event_type='CHECKED_OUT'")
     rec(91, "check-out GPS grava distancia e um evento", "tecA1", "distancia + 1 evento",
-        f"{row} ev={ev}", row[0] not in ("", None) and ev == "1", v)
+        f"{row} ev={ev}", (True if row[0] not in ("", None) and ev == "1" else ("BLOCKED" if ev == "1" else False)), v)
 
     vso = IDS["VA_so1"]
     so = IDS["so_VA_so1"]
