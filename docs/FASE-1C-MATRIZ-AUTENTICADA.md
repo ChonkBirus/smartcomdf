@@ -191,3 +191,41 @@ Nenhum dado real de cliente foi criado, lido ou alterado; toda a execução fico
 | 120 | nenhuma UI de visitas foi criada | - | 0 arquivos | apenas src/integrations/supabase/types.ts (arquivo gerado automaticamente); nenhuma rota/componente de visitas | **PASS** |
 | 121 | Fase 2 nao foi iniciada | - | sem frontend/servidor de visitas | apenas src/integrations/supabase/types.ts (arquivo gerado automaticamente); nenhuma rota/componente de visitas | **PASS** |
 | I-magic | validacao de magic bytes | - | rota server-side | rota server-side de upload ainda nao existe | **NOT RUN** |
+
+---
+
+## Reexecução após correções VIS-DRIFT-01 e VIS-DRIFT-02
+
+Runner: `tests/e2e/visits-drift-rerun.py` (sessões reais das 5 fixtures QA, dados prefixados `[QA-VISITS]`, limpeza total ao final).
+
+**Resultado: 49 PASS / 0 FAIL / 0 BLOCKED.**
+
+### Testes originais reexecutados
+| # | Descrição | Antes | Agora |
+|---|---|---|---|
+| 27 | Mesma chave de idempotência com endereço diferente → `idempotency_key_reused` | BLOCKED | PASS |
+| 56 | Check-in GPS grava coordenadas, distância e 1 evento | BLOCKED | PASS |
+| 73 | `CHECKED_IN → IN_PROGRESS` | FAIL | PASS |
+| 74 | `IN_PROGRESS → PAUSED` | FAIL | PASS |
+| 75 | `PAUSED → IN_PROGRESS` (retomada) | FAIL | PASS |
+| 76 | `IN_PROGRESS → COMPLETED` | BLOCKED | PASS |
+| 91 | Check-out GPS grava distância e 1 evento | BLOCKED | PASS |
+
+### VIS-DRIFT-01 (endereço/coordenadas)
+- Endereço sem coordenadas: criação OK, `latitude`/`longitude` nulas no snapshot, `checkin_distance_m` = NULL (sem erro).
+- `address_snapshot.zip_code` alimentado por `customer_addresses.zipcode` (chave JSON preservada).
+- Coordenadas congeladas: alterar o endereço depois **não** altera o snapshot.
+- Distância haversine ≈ 1.200 m dentro da tolerância de ±100 m no check-in e no check-out.
+
+### VIS-DRIFT-02 (domínio e transições)
+- Sequência validada: `CHECKED_IN → STARTED → PAUSED → RESUMED → PAUSED → RESUMED → COMPLETED`.
+- `RESUMED` é apenas evento; nunca persistido em `visits.status` (target `RESUMED` → `invalid_target_status`).
+- Visita vinculada a OS continua bloqueando `IN_PROGRESS`/`PAUSED`/`COMPLETED` (`blocked_by_service_order`) e nenhuma função de visita altera `service_orders`.
+
+### Smoke de regressão
+Criação, idempotência, RLS multiempresa (A↔B), visibilidade por técnico atribuído (`list_my_visits`), check-in/check-out e delegação para OS: todos PASS.
+
+### Auditoria estática (A1–A12)
+`zipcode` mantido, nenhuma coluna `zip_code` criada, `latitude`/`longitude` nullable com as 3 constraints ativas, `_visit_distance_m` consumindo somente o snapshot, checks de status/eventos corretos.
+
+**Status:** VIS-DRIFT-01 e VIS-DRIFT-02 encerrados. INFRA-STORAGE-01 permanece FAIL com risco aceito. Fase 2 não iniciada.
