@@ -229,3 +229,35 @@ Criação, idempotência, RLS multiempresa (A↔B), visibilidade por técnico at
 `zipcode` mantido, nenhuma coluna `zip_code` criada, `latitude`/`longitude` nullable com as 3 constraints ativas, `_visit_distance_m` consumindo somente o snapshot, checks de status/eventos corretos.
 
 **Status:** VIS-DRIFT-01 e VIS-DRIFT-02 encerrados. INFRA-STORAGE-01 permanece FAIL com risco aceito. Fase 2 não iniciada.
+
+---
+
+## Status final da Fase 1 (2026-08-01)
+
+**FASE 1 APROVADA E ENCERRADA.**
+
+| Item | Resultado |
+|---|---|
+| Reexecução dos testes afetados | 49 PASS / 0 FAIL |
+| Testes 27, 56, 73, 74, 75, 76, 91 | PASS |
+| VIS-DRIFT-01 | Encerrado |
+| VIS-DRIFT-02 | Encerrado |
+| Isolamento multiempresa | Confirmado |
+| RLS e permissões por papel | Confirmadas |
+| Idempotência e concorrência | Confirmadas |
+| Snapshot do endereço | Imutável (confirmado) |
+| Distância haversine | Validada |
+| Ciclo STARTED/PAUSED/RESUMED/COMPLETED | Validado |
+| Bloqueio de execução quando existe OS | Mantido |
+| Dados temporários de teste | Removidos |
+| Contas e empresas QA | Mantidas (5 usuários, 2 empresas) |
+| UI criada | Nenhuma |
+| Fase 2 | Não iniciada |
+
+### Exceções documentadas
+
+1. **INFRA-STORAGE-01 — FAIL, risco conhecido aceito.** Bucket `visit-photos`: `public = false`, `file_size_limit = NULL`, `allowed_mime_types = NULL`, nenhuma policy INSERT/UPDATE/DELETE para `authenticated`, somente `visit_photos_read` (SELECT). Deve ser tratado antes da liberação de upload real.
+2. **Magic bytes — NOT RUN.** A rota server-side de upload ainda não existe. Antes de liberar upload real será obrigatório validar sessão, empresa, visita, permissão, tamanho real máximo de 10 MB, magic bytes, MIME real, allow-list JPEG/PNG/WEBP e limpeza do objeto quando o registro de metadados falhar.
+
+Resumo consolidado do encerramento: `docs/FASE-1-ENCERRAMENTO.md`.
+
