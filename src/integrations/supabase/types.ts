@@ -2129,6 +2129,8 @@ export type Database = {
           district: string | null
           id: string
           is_primary: boolean
+          latitude: number | null
+          longitude: number | null
           number: string | null
           reference: string | null
           state: string | null
@@ -2147,6 +2149,8 @@ export type Database = {
           district?: string | null
           id?: string
           is_primary?: boolean
+          latitude?: number | null
+          longitude?: number | null
           number?: string | null
           reference?: string | null
           state?: string | null
@@ -2165,6 +2169,8 @@ export type Database = {
           district?: string | null
           id?: string
           is_primary?: boolean
+          latitude?: number | null
+          longitude?: number | null
           number?: string | null
           reference?: string | null
           state?: string | null
