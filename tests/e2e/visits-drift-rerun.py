@@ -42,6 +42,21 @@ def q1(sql):
     return rows[0][0] if rows else None
 
 
+def qraw(sql):
+    r = subprocess.run(["psql", "-At", "-c", sql], capture_output=True, text=True)
+    if r.returncode != 0:
+        raise RuntimeError(r.stderr.strip())
+    return r.stdout
+
+
+def fndef(name):
+    return qraw(f"select pg_get_functiondef(oid) from pg_proc where proname='{name}'")
+
+
+def condef(name):
+    return qraw(f"select pg_get_constraintdef(oid) from pg_constraint where conname='{name}'")
+
+
 def admin_patch(table, filt, body):
     r = requests.patch(f"{URL}/rest/v1/{table}?{filt}",
                        headers={"apikey": SR, "Authorization": f"Bearer {SR}",
@@ -399,11 +414,13 @@ def smoke():
     c, vt = create_visit("mgrA", mk_payload("A", assigned_technician_id=U["tecA1"][1],
                                             title=f"{TAG} smoke tec"))
     IDS["V_smoketec"] = vt
-    c, b = rpc("tecA1", "list_my_visits", {})
+    c, b = rpc("tecA1", "list_my_visits", {"_from": (datetime.date.today() - datetime.timedelta(days=1)).isoformat(),
+                             "_to": (datetime.date.today() + datetime.timedelta(days=30)).isoformat()})
     got = [x.get("id") for x in b] if isinstance(b, list) else []
     rec("S5", "smoke tecnico atribuido enxerga a propria visita", "tecA1", "contem id",
         len(got), ok(c) and vt in got, vt)
-    c, b2 = rpc("tecA2", "list_my_visits", {})
+    c, b2 = rpc("tecA2", "list_my_visits", {"_from": (datetime.date.today() - datetime.timedelta(days=1)).isoformat(),
+                             "_to": (datetime.date.today() + datetime.timedelta(days=30)).isoformat()})
     got2 = [x.get("id") for x in b2] if isinstance(b2, list) else []
     rec("S6", "smoke tecnico A2 nao enxerga visita de A1", "tecA2", "nao contem id",
         len(got2), vt not in got2, vt)
@@ -447,20 +464,21 @@ def audit():
         ("A4", "constraints geograficas ativas",
          q1("select count(*) from pg_constraint where conrelid='public.customer_addresses'::regclass and conname in ('customer_addresses_lat_range','customer_addresses_lon_range','customer_addresses_latlon_pair')") == "3"),
         ("A5", "create_visit usa v_addr_row.zipcode",
-         "v_addr_row.zipcode" in q1("select pg_get_functiondef(oid) from pg_proc where proname='create_visit'")),
+         "v_addr_row.zipcode" in fndef("create_visit")),
         ("A6", "address_snapshot mantem a chave JSON zip_code",
-         "'zip_code'" in q1("select pg_get_functiondef(oid) from pg_proc where proname='create_visit'")),
+         "'zip_code'" in fndef("create_visit")),
         ("A7", "_visit_distance_m usa address_snapshot",
-         "address_snapshot" in q1("select pg_get_functiondef(oid) from pg_proc where proname='_visit_distance_m'")
-         and "customer_addresses" not in q1("select pg_get_functiondef(oid) from pg_proc where proname='_visit_distance_m'")),
+         "address_snapshot" in fndef("_visit_distance_m")
+         and "customer_addresses" not in fndef("_visit_distance_m")),
         ("A8", "visits_status_chk contem IN_PROGRESS e PAUSED",
-         all(s in q1("select pg_get_constraintdef(oid) from pg_constraint where conname='visits_status_chk'") for s in ("IN_PROGRESS", "PAUSED"))),
+         all(s in condef("visits_status_chk") for s in ("IN_PROGRESS", "PAUSED"))),
         ("A9", "visits_status_chk nao contem RESUMED",
-         "RESUMED" not in q1("select pg_get_constraintdef(oid) from pg_constraint where conname='visits_status_chk'")),
+         "RESUMED" not in condef("visits_status_chk")),
         ("A10", "visit_events aceita RESUMED",
-         "RESUMED" in q1("select pg_get_constraintdef(oid) from pg_constraint where conname='visit_events_type_check'")),
+         "RESUMED" in condef("visit_events_type_check")),
         ("A11", "visit_execute_transition nunca persiste RESUMED em status",
-         "IF _target = 'RESUMED' THEN RAISE EXCEPTION 'invalid_target_status'" in q1("select pg_get_functiondef(oid) from pg_proc where proname='visit_execute_transition'")),
+         "invalid_target_status" in fndef("visit_execute_transition")
+         and "RESUMED" in fndef("visit_execute_transition")),
         ("A12", "nenhuma funcao de visitas altera service_orders",
          q1("""select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace
                where n.nspname='public' and (p.proname like 'visit%' or p.proname like '%_visit%')
