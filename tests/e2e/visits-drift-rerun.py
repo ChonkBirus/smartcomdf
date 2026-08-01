@@ -51,6 +51,14 @@ def admin_patch(table, filt, body):
         raise RuntimeError(f"admin_patch {table}: {r.status_code} {r.text[:200]}")
 
 
+def admin_delete(table, filt):
+    r = requests.delete(f"{URL}/rest/v1/{table}?{filt}",
+                        headers={"apikey": SR, "Authorization": f"Bearer {SR}",
+                                 "Prefer": "return=minimal"}, timeout=30)
+    if r.status_code >= 300:
+        raise RuntimeError(f"admin_delete {table}: {r.status_code} {r.text[:200]}")
+
+
 def rotate(uid, pwd):
     r = requests.put(f"{URL}/auth/v1/admin/users/{uid}",
                      headers={"apikey": SR, "Authorization": f"Bearer {SR}",
@@ -204,8 +212,8 @@ def drift01():
         abs(float(s2.get("longitude")) - REF_LON) < 1e-6, v2)
 
     # 9-10: alterar endereco depois nao muda o snapshot
-    q(f"""update public.customer_addresses set latitude=-10.000000, longitude=-40.000000
-          where id='{IDS['address_A_geo']}'""")
+    admin_patch("customer_addresses", f"id=eq.{IDS['address_A_geo']}",
+                {"latitude": -10.0, "longitude": -40.0})
     s3 = snap(v2)
     rec("D01.10", "alteracao posterior no endereco nao altera o snapshot", "mgrA",
         "snapshot inalterado", (s3.get("latitude"), s3.get("longitude")),
@@ -465,18 +473,20 @@ def audit():
 def cleanup():
     vids = [IDS[k] for k in IDS if k.startswith("V_") and IDS[k]]
     if vids:
-        lst = "','".join(vids)
-        q(f"delete from public.visit_photos where visit_id in ('{lst}')")
-        q(f"delete from public.visit_events where visit_id in ('{lst}')")
-        q(f"delete from public.visits where id in ('{lst}')")
+        lst = ",".join(vids)
+        admin_delete("visit_photos", f"visit_id=in.({lst})")
+        admin_delete("visit_events", f"visit_id=in.({lst})")
+        admin_delete("visits", f"id=in.({lst})")
     if IDS.get("so"):
-        q(f"delete from public.service_orders where id='{IDS['so']}'")
+        admin_delete("service_orders", f"id=eq.{IDS['so']}")
     if IDS.get("project"):
-        q(f"delete from public.projects where id='{IDS['project']}'")
-    q(f"delete from public.customer_contacts where name like '%{RUN}%' or name like '{sql_esc(TAG)}%'")
-    q(f"""delete from public.customer_addresses where customer_id in
-          (select id from public.customers where cpf_cnpj like 'QA{RUN}%')""")
-    q(f"delete from public.customers where cpf_cnpj like 'QA{RUN}%'")
+        admin_delete("projects", f"id=eq.{IDS['project']}")
+    custs = [IDS[k] for k in ("customer_A", "customer_B") if IDS.get(k)]
+    if custs:
+        cl = ",".join(custs)
+        admin_delete("customer_contacts", f"customer_id=in.({cl})")
+        admin_delete("customer_addresses", f"customer_id=in.({cl})")
+        admin_delete("customers", f"id=in.({cl})")
     left = q1(f"select count(*) from public.visits where title like '%{RUN}%'")
     print(f"\nlimpeza: visitas remanescentes com este run = {left}")
     return left
