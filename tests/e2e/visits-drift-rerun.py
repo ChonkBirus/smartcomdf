@@ -342,7 +342,7 @@ def drift02():
                                              title=f"{TAG} com OS"))
     IDS["V_so"] = vso
     pid = q1(f"""insert into public.projects(company_id,customer_id,project_number,title,status)
-                 values('{CO_A}','{IDS['customer_A']}','QA-{RUN}','{sql_esc(TAG)} Projeto','PLANNING')
+                 values('{CO_A}','{IDS['customer_A']}','QA-{RUN}','{sql_esc(TAG)} Projeto','DRAFT')
                  returning id""")
     IDS["project"] = pid
     soid = q1(f"""insert into public.service_orders(company_id,project_id,customer_id,service_order_number,title,status)
