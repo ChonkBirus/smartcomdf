@@ -206,13 +206,25 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
         if (aNameStarts && !bNameStarts) return -1;
         if (!aNameStarts && bNameStarts) return 1;
 
-        // 3. SKU starts with
+        // 3. Name contains
+        const aNameContains = aName.includes(searchLower);
+        const bNameContains = bName.includes(searchLower);
+        if (aNameContains && !bNameContains) return -1;
+        if (!aNameContains && bNameContains) return 1;
+
+        // 4. SKU starts with
         const aSkuStarts = aSku.startsWith(searchLower);
         const bSkuStarts = bSku.startsWith(searchLower);
         if (aSkuStarts && !bSkuStarts) return -1;
         if (!aSkuStarts && bSkuStarts) return 1;
 
-        // 4. Default: alphabetical by name
+        // 5. SKU contains
+        const aSkuContains = aSku.includes(searchLower);
+        const bSkuContains = bSku.includes(searchLower);
+        if (aSkuContains && !bSkuContains) return -1;
+        if (!aSkuContains && bSkuContains) return 1;
+
+        // 6. Default: alphabetical by name
         return aName.localeCompare(bName);
       });
     } else {
