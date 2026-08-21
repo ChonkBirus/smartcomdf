@@ -939,9 +939,7 @@ function LineRow({
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
   useEffect(() => {
-    console.log('LineRow: searchTerm changed to', searchTerm);
     const timer = setTimeout(() => {
-      console.log('LineRow: setting debouncedSearchTerm to', searchTerm);
       setDebouncedSearchTerm(searchTerm);
     }, 300);
     return () => clearTimeout(timer);
@@ -1101,10 +1099,8 @@ function CatalogPicker({
   const { data = [], isLoading } = useQuery({
     queryKey: ["quote-catalog", debouncedSearchTerm, kind],
     queryFn: async () => {
-      console.log('CatalogPicker: calling fetchCatalog with', debouncedSearchTerm);
       const items = await fetchCatalog({ data: { search: debouncedSearchTerm } });
       const normalizedKind = kind.toUpperCase();
-      console.log('CatalogPicker results:', { kind, normalizedKind, count: items.length, types: items.map(i => i.item_type) });
       return items.filter((it) => it.item_type.toUpperCase() === normalizedKind);
     },
   });
@@ -1121,7 +1117,7 @@ function CatalogPicker({
         {!isLoading && data.length === 0 && (
           <div className="p-4 text-center text-sm text-muted-foreground">Nenhum item encontrado.</div>
         )}
-        <CommandGroup heading="Resultados do Catálogo">
+        <CommandGroup>
           {data.map((it) => {
             const isProduct = it.item_type === "PRODUCT";
             const stock = it.stock_quantity;
