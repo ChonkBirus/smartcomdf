@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Plus, Trash2, ArrowUp, ArrowDown, Check, ChevronsUpDown, AlertTriangle, UserPlus, Package } from "lucide-react";
@@ -34,6 +34,7 @@ import { buildDraftKey, clearDraft, hasDraft, loadDraft, saveDraft } from "@/lib
 
 type Line = {
   id?: string;
+  tempId?: string;
   item_id: string | null;
   kind: QuoteItemKind;
   name: string;
@@ -128,6 +129,7 @@ export function QuoteFormSheet({
   const [laborCost, setLaborCost] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [lines, setLines] = useState<Line[]>([]);
+  const [addedLineId, setAddedLineId] = useState<string | null>(null);
 
   // Auto-fill valid_until = issue_date + 15 days for new quotes when user hasn't manually edited it.
   useEffect(() => {
@@ -262,6 +264,7 @@ export function QuoteFormSheet({
         })),
       );
 
+      setAddedLineId(null);
     } else if (!quoteId) {
       const today = new Date().toISOString().slice(0, 10);
       setCustomerId(""); setTitle("");
@@ -387,7 +390,12 @@ export function QuoteFormSheet({
 
   // Reseta flag quando fecha
   useEffect(() => {
-    if (!open) { setShowDraftBanner(false); setDraftRestored(false); setInitialSyncDone(false); }
+    if (!open) { 
+      setShowDraftBanner(false); 
+      setDraftRestored(false); 
+      setInitialSyncDone(false); 
+      setAddedLineId(null);
+    }
   }, [open]);
 
   const handleSheetOpenChange = (o: boolean) => {
@@ -449,10 +457,21 @@ export function QuoteFormSheet({
   });
 
   function addLine(kind: QuoteItemKind = "PRODUCT") {
+    const tempId = Math.random().toString(36).slice(2);
     setLines((s) => [
+      {
+        tempId,
+        item_id: null,
+        kind,
+        name: "",
+        description: "",
+        quantity: 1,
+        unit_price: 0,
+        cost_price: 0
+      },
       ...s,
-      { item_id: null, kind, name: "", description: "", quantity: 1, unit_price: 0, cost_price: 0 },
     ]);
+    setAddedLineId(tempId);
   }
   function setLine(i: number, patch: Partial<Line>) {
     setLines((s) => s.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
@@ -807,7 +826,7 @@ export function QuoteFormSheet({
 
               {lines.map((l, i) => (
                 <LineRow
-                  key={`line-${i}-${l.kind}`}
+                  key={l.id || l.tempId || `line-${i}`}
                   line={l}
                   index={i}
                   last={i === lines.length - 1}
@@ -819,6 +838,7 @@ export function QuoteFormSheet({
                   onPickCatalog={(id) => pickCatalogItem(i, id)}
                   onRemove={() => removeLine(i)}
                   onMove={(dir) => moveLine(i, dir)}
+                  autoFocus={l.tempId === addedLineId}
                 />
               ))}
 
@@ -920,7 +940,7 @@ export function QuoteFormSheet({
 
 function LineRow({
   line, index, last, products, services, canSeeInternal, suggestedPrice,
-  onChange, onPickCatalog, onRemove, onMove,
+  onChange, onPickCatalog, onRemove, onMove, autoFocus,
 }: {
   line: Line;
   index: number;
@@ -933,7 +953,22 @@ function LineRow({
   onPickCatalog: (id: string) => void;
   onRemove: () => void;
   onMove: (dir: -1 | 1) => void;
+  autoFocus?: boolean;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const catalogButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (autoFocus) {
+      containerRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      if (line.kind === "PRODUCT" || line.kind === "SERVICE") {
+        setTimeout(() => catalogButtonRef.current?.focus(), 150);
+      } else {
+        setTimeout(() => nameInputRef.current?.focus(), 150);
+      }
+    }
+  }, [autoFocus, line.kind]);
   const [pickOpen, setPickOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -963,7 +998,7 @@ function LineRow({
       : 0;
 
   return (
-    <div className="space-y-2 rounded-md border p-3">
+    <div ref={containerRef} className="space-y-2 rounded-md border p-3">
       <div className="flex items-center justify-between gap-2">
         <Badge variant="outline">{KIND_LABEL[line.kind]}</Badge>
         <div className="flex gap-1">
@@ -987,6 +1022,7 @@ function LineRow({
           <Popover open={pickOpen} onOpenChange={setPickOpen}>
             <PopoverTrigger asChild>
               <Button
+                ref={catalogButtonRef}
                 type="button"
                 variant="outline"
                 role="combobox"
@@ -1018,7 +1054,7 @@ function LineRow({
       <div className="grid grid-cols-12 gap-2">
         <div className="col-span-12 sm:col-span-6">
           <Label className="text-xs">Nome *</Label>
-          <Input value={line.name} onChange={(e) => onChange({ name: e.target.value })} />
+          <Input ref={nameInputRef} value={line.name} onChange={(e) => onChange({ name: e.target.value })} />
         </div>
         <div className="col-span-4 sm:col-span-2">
           <Label className="text-xs">Qtd *</Label>
