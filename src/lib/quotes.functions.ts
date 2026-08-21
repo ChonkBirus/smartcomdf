@@ -161,6 +161,8 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
     const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
     if (!profile?.company_id) throw new Error("Sem empresa.");
     
+    console.log('[listQuoteCatalog] Starting search for:', { search: inputData.search, company_id: profile.company_id });
+
     const s = sanitizePostgrestSearch(inputData.search ?? "");
     let query = sb
       .from("items")
@@ -177,6 +179,7 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
     query = query.limit(50);
 
     const { data, error } = await query;
+    console.log('[listQuoteCatalog] Result:', { count: data?.length, error });
     if (error) throw new Error(error.message);
 
     let itemsRaw = (data ?? []) as any[];
