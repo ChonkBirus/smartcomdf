@@ -226,9 +226,10 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
     const imgMap = new Map<string, string>();
     const stockMap = new Map<string, number>();
     if (ids.length > 0) {
-      const productIds = (data ?? [])
+      const productIds = topItems
         .filter((r: any) => r.item_type === "PRODUCT" && r.controls_stock)
         .map((r: any) => r.id);
+
       const [{ data: imgs }, { data: bal }] = await Promise.all([
         sb.from("item_images")
           .select("item_id, file_path, is_primary, created_at")
