@@ -41,7 +41,7 @@ type Line = {
   quantity: number;
   unit_price: number;
   cost_price: number;
-  image_path?: string | null;
+  image_url?: string | null;
 };
 
 
@@ -432,7 +432,7 @@ export function QuoteFormSheet({
             unit_price: Number(l.unit_price) || 0,
             cost_price: Number(l.cost_price) || 0,
             position: idx,
-            image_path: l.image_path ?? null,
+            image_url: l.image_url ?? null,
           })),
 
         } as any,
@@ -480,7 +480,7 @@ export function QuoteFormSheet({
       unit_price: it.sale_price,
       cost_price: it.cost_price,
       description: current?.description?.trim() ? current.description : (it.description ?? ""),
-      // image_path não existe no contrato do catálogo
+      image_url: it.image_url,
     });
   }
 
@@ -1120,6 +1120,8 @@ function CatalogPicker({
         <CommandGroup>
           {data.map((it) => {
             const isProduct = it.item_type === "PRODUCT";
+            const stock = it.stock_quantity;
+            const imageUrl = it.image_url;
 
             return (
               <CommandItem
@@ -1134,8 +1136,21 @@ function CatalogPicker({
                     selectedId === it.id ? "opacity-100" : "opacity-0"
                   )}
                 />
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border bg-muted text-muted-foreground">
-                  <Package className="h-4 w-4" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border bg-muted text-muted-foreground overflow-hidden">
+                  {imageUrl ? (
+                    <img 
+                      src={imageUrl} 
+                      alt={it.name} 
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display = 'none';
+                        (e.currentTarget.parentElement?.querySelector('.fallback-icon') as HTMLElement).style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div className={cn("fallback-icon h-full w-full items-center justify-center", imageUrl ? "hidden" : "flex")}>
+                    <Package className="h-4 w-4" />
+                  </div>
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
@@ -1148,6 +1163,14 @@ function CatalogPicker({
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                     <span>{it.unit} · {fmtBRL(it.sale_price)}</span>
+                    {it.item_type === "PRODUCT" && it.controls_stock && (
+                      <span className={cn(
+                        "font-medium",
+                        (it.stock_quantity ?? 0) <= 0 ? "text-destructive" : "text-primary"
+                      )}>
+                        {(it.stock_quantity ?? 0) <= 0 ? "Sem estoque" : `Estoque: ${it.stock_quantity}`}
+                      </span>
+                    )}
                   </div>
                 </div>
               </CommandItem>
