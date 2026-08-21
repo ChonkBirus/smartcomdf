@@ -286,7 +286,21 @@ const customerSchema = z.object({
   name: z.string().trim().min(2, "Nome é obrigatório.").max(200),
   corporate_name: nstr(200),
   trade_name: nstr(200),
-  cpf_cnpj: z.string().trim().min(11, "CPF/CNPJ é obrigatório.").max(20),
+  cpf_cnpj: z
+    .string()
+    .trim()
+    .max(20)
+    .optional()
+    .nullable()
+    .transform((v) => (v && v.trim() !== "" ? v : null))
+    .refine(
+      (v) => {
+        if (!v) return true;
+        const digits = v.replace(/\D/g, "");
+        return digits.length === 11 || digits.length === 14;
+      },
+      { message: "Documento inválido." },
+    ),
   state_registration: nstr(50),
   municipal_registration: nstr(50),
   email: z.string({ required_error: "E-mail é obrigatório." })
