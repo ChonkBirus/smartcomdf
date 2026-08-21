@@ -1078,3 +1078,109 @@ function LineRow({
     </div>
   );
 }
+
+function CatalogPicker({
+  kind,
+  searchTerm,
+  debouncedSearchTerm,
+  onSearchChange,
+  onSelect,
+  selectedId,
+}: {
+  kind: QuoteItemKind;
+  searchTerm: string;
+  debouncedSearchTerm: string;
+  onSearchChange: (val: string) => void;
+  onSelect: (id: string) => void;
+  selectedId: string | null;
+}) {
+  const fetchCatalog = useServerFn(listQuoteCatalog);
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["quote-catalog", debouncedSearchTerm, kind],
+    queryFn: async () => {
+      const items = await fetchCatalog({ data: { search: debouncedSearchTerm } });
+      return items.filter((it) => it.item_type === kind);
+    },
+  });
+
+  return (
+    <Command shouldFilter={false}>
+      <CommandInput
+        placeholder="Buscar por nome ou SKU..."
+        value={searchTerm}
+        onValueChange={onSearchChange}
+      />
+      <CommandList>
+        {isLoading && <div className="p-4 text-center text-sm text-muted-foreground">Buscando...</div>}
+        {!isLoading && data.length === 0 && <CommandEmpty>Nenhum item encontrado.</CommandEmpty>}
+        <CommandGroup>
+          {data.map((it) => {
+            const isProduct = it.item_type === "PRODUCT";
+            const stock = it.stock_quantity;
+            const stockLabel =
+              isProduct && it.controls_stock
+                ? stock == null
+                  ? null
+                  : stock <= 0
+                    ? "Sem estoque"
+                    : `${stock} em estoque`
+                : null;
+            const stockClass =
+              stock == null || !isProduct || !it.controls_stock
+                ? ""
+                : stock <= 0
+                  ? "text-destructive"
+                  : stock < 5
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-emerald-600 dark:text-emerald-400";
+
+            return (
+              <CommandItem
+                key={it.id}
+                value={it.id}
+                onSelect={() => onSelect(it.id)}
+                className="flex items-start gap-2"
+              >
+                <Check
+                  className={cn(
+                    "mt-1 h-4 w-4 shrink-0",
+                    selectedId === it.id ? "opacity-100" : "opacity-0"
+                  )}
+                />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border bg-muted text-muted-foreground">
+                  {it.image_path ? (
+                    <img
+                      src={it.image_path}
+                      alt={it.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <Package className="h-4 w-4" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate font-medium">{it.name}</span>
+                    {it.sku && (
+                      <Badge variant="secondary" className="h-4 px-1 text-[10px]">
+                        {it.sku}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>{it.unit} · {fmtBRL(it.sale_price)}</span>
+                    {stockLabel && <span className={stockClass}>{stockLabel}</span>}
+                  </div>
+                </div>
+              </CommandItem>
+            );
+          })}
+        </CommandGroup>
+      </CommandList>
+    </Command>
+  );
+}
+
+const fmtBRL = (n: number) =>
+  n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
