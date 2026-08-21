@@ -1,294 +1,256 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-const MESSAGE = `Plano aprovado com ajustes obrigatórios antes de implementar.
+const MESSAGE = `A implementação da busca server-side está aprovada, mas a correção ainda NÃO está encerrada.
 
-Pode seguir com a correção da busca, concorrência e seleção, mas antes de mexer no scroll preciso que a causa física seja confirmada.
+Antes de considerar concluído, validar os pontos abaixo.
 
 ==================================================
-1. BUSCA SERVER-SIDE — APROVADA
+1. NÃO USAR client_request_id NA PESQUISA
 ==================================================
 
-Pode alterar listQuoteCatalog para aceitar pesquisa server-side.
+A pesquisa de produtos é uma operação de leitura.
 
-Porém:
+Não usar client_request_id para:
 
-- primeiro auditar todos os callers atuais de listQuoteCatalog;
-- não quebrar outros pontos do sistema que dependam dela;
-- preferir parâmetro opcional se houver outros consumidores;
-- manter RLS e company_id da sessão;
-- não confiar em companyId enviado pelo frontend para autorização;
-- não usar service_role;
-- não criar migration.
+- pesquisa;
+- debounce;
+- controle de concorrência;
+- CatalogPicker;
+- queryKey.
 
-A pesquisa deve trabalhar somente com produtos ativos.
+client_request_id deve permanecer reservado às mutações que realmente precisam de idempotência.
 
-Campos de pesquisa:
+Para a pesquisa, usar apenas:
 
-- usar somente colunas físicas existentes;
-- auditar os nomes antes de implementar.
+- searchTerm;
+- debouncedSearchTerm;
+- queryKey;
+- cancelamento/isolamento da query conforme TanStack Query.
 
-Se SKU existir:
+Se client_request_id foi introduzido apenas para a pesquisa, remover.
+
+Não alterar os fluxos idempotentes legítimos já existentes no orçamento.
+
+==================================================
+2. CONFIRMAR CONTRATO FINAL DA BUSCA
+==================================================
+
+Informar o contrato físico final de listQuoteCatalog:
+
+- parâmetros;
+- campos retornados;
+- limite;
+- filtros;
+- ordenação;
+- RLS/company_id;
+- comportamento com termo vazio.
+
+Confirmar que:
+
+- limite = 50;
+- somente produtos ativos;
+- nenhuma empresa externa aparece;
+- não usa service_role;
+- sanitizePostgrestSearch permanece aplicado.
+
+==================================================
+3. VALIDAR PRIORIDADE DA BUSCA
+==================================================
+
+A prioridade informada foi:
 
 1. SKU exato;
-2. nome contendo o termo;
-3. SKU contendo o termo.
+2. início do nome;
+3. início do SKU.
 
-Para SKU exato, pode usar comparação case-insensitive equivalente a igualdade sem wildcard.
+Confirmar que isso é realmente implementado de forma determinística.
 
-Para buscas parciais, usar ilike com termo sanitizado.
+Testar pelo menos:
 
-Usar obrigatoriamente:
+- SKU exato;
+- início do nome;
+- início do SKU;
+- termo inexistente;
+- troca rápida entre dois termos;
+- apagar completamente a busca.
 
-sanitizePostgrestSearch
-
-Não interpolar o texto bruto na consulta.
-
-Adicionar limite explícito de resultados.
-
-Sugestão inicial:
-
-LIMIT 50
-
-Não devolver milhares de produtos para o autocomplete.
+A lista final deve sempre corresponder ao último termo digitado.
 
 ==================================================
-2. DEBOUNCE / TANSTACK QUERY
+4. SCROLL — O PROBLEMA ORIGINAL AINDA PRECISA SER VALIDADO
 ==================================================
 
-Aprovado debounce de 300 ms.
+O problema relatado originalmente incluía:
 
-Implementar estados separados:
+- mouse wheel não funcionando;
+- scroll no celular não funcionando.
 
-searchTerm
-debouncedSearchTerm
+Informar a CAUSA FÍSICA encontrada.
 
-O input deve usar searchTerm.
+Não basta informar que foi criado CatalogPicker.
 
-A consulta deve usar debouncedSearchTerm.
+Precisamos saber:
 
-A queryKey deve utilizar o termo efetivamente consultado:
+- onde o PopoverContent está montado;
+- se existe Portal;
+- onde o CommandList está montado;
+- qual elemento tem overflow-y-auto;
+- qual elemento recebe wheel;
+- qual elemento recebe touchmove;
+- se havia conflito com Sheet/Dialog/Radix;
+- qual alteração exata resolveu.
 
-["quote-catalog", debouncedSearchTerm]
-
-ou equivalente dentro da convenção já usada no projeto.
-
-Não usar o searchTerm não-debounced na queryKey se a query estiver consultando debouncedSearchTerm.
-
-Se o company_id já vem obrigatoriamente da sessão autenticada no servidor, não usar companyId do frontend como mecanismo de segurança.
-
-Pode existir na queryKey somente se houver necessidade real de segregação do cache após auditoria.
-
-Garantir que:
-
-- pesquisa anterior não sobrescreva a atual;
-- resultados anteriores não sejam apresentados como pertencentes ao novo termo;
-- loading não apague o texto digitado.
+Depois testar de fato.
 
 ==================================================
-3. CMDK — APROVADO
+5. TESTE DESKTOP — MOUSE
 ==================================================
 
-Como os resultados passarão a ser filtrados no servidor:
+Abrir o seletor com quantidade de resultados suficiente para existir scroll.
 
-usar:
+Testar:
 
-<Command shouldFilter={false}>
-
-se confirmado que esse é o Command usado fisicamente.
-
-CommandItem:
-
-- key={it.id}
-- value={it.id}
-
-A seleção deve continuar baseada exclusivamente em:
-
-it.id
-
-Não usar nome, SKU, descrição ou índice como identidade.
-
-==================================================
-4. SCROLL — NÃO CORRIGIR POR HIPÓTESE
-==================================================
-
-Neste ponto o diagnóstico apresentado ainda não comprova a causa raiz.
-
-A frase:
-
-“o problema ocorre frequentemente em Popover dentro de Sheet devido ao bloqueio de scroll/pointer-events”
-
-é uma hipótese.
-
-Antes de alterar CSS, Portal, pointer-events, touch-action ou FocusScope:
-
-REPRODUZIR E IDENTIFICAR A CAUSA FÍSICA.
-
-Auditar no componente montado:
-
-1. QuoteFormSheet é realmente um Sheet/Dialog modal?
-2. Onde PopoverContent é renderizado?
-3. Existe Portal?
-4. Em qual elemento o CommandList fica montado?
-5. Qual elemento possui overflow-y-auto?
-6. Qual elemento está recebendo wheel?
-7. Existe preventDefault em wheel/touchmove?
-8. Existe ancestor com overflow-hidden?
-9. Existe pointer-events bloqueando o conteúdo?
-10. Radix está aplicando body pointer-events:none?
-11. O Popover está sendo considerado conteúdo externo ao Sheet?
-12. O problema acontece porque o portal do Popover está fora do container modal?
-13. O CommandList possui altura real suficiente para overflow?
-14. Algum overlay está acima da lista por z-index?
-15. No mobile, quem recebe touchmove durante o gesto?
-
-Usar inspeção do DOM/CSS e reprodução real.
-
-Não aplicar:
-
-pointer-events-auto
-touch-action
-onWheel stopPropagation
-preventDefault
-mudança de Portal
-z-index arbitrário
-
-sem comprovar que isso resolve a causa encontrada.
-
-Quero no relatório:
-
-CAUSA FÍSICA DO SCROLL:
-[explicação objetiva]
-
-e não apenas “possível conflito do Radix”.
-
-==================================================
-5. NÃO CRIAR HANDLERS ARTIFICIAIS DE SCROLL
-==================================================
-
-Prioridade:
-
-scroll nativo.
-
-Evitar soluções como:
-
-onWheel={(e) => ...}
-onTouchMove={(e) => ...}
-preventDefault()
-scrollTop manual
-
-salvo se tecnicamente indispensável e justificado.
-
-O resultado deve funcionar naturalmente com:
-
-- mouse wheel;
+- roda do mouse;
 - trackpad;
-- touch.
+- clicar após rolar;
+- clicar no primeiro item;
+- clicar em item do meio;
+- clicar no último item visível.
+
+Esperado:
+
+- scroll funciona;
+- dropdown não fecha durante scroll;
+- item correto é selecionado;
+- nenhuma seleção acidental;
+- formulário não é submetido.
 
 ==================================================
-6. BOTÕES
+6. TESTE MOBILE / TOUCH
 ==================================================
 
-Auditar todos os botões dentro do formulário relacionados ao seletor e LineRow.
+Executar em viewport mobile e, se disponível, dispositivo real.
 
-Botões que não submetem o orçamento:
+Testar:
 
-type="button"
+1. abrir CatalogPicker;
+2. fazer swipe vertical;
+3. rolar vários itens;
+4. parar;
+5. tocar em produto;
+6. repetir em outro termo de busca.
 
-Não alterar o botão legítimo de submit/salvar.
+Esperado:
 
-==================================================
-7. NÃO ALTERAR REGRAS DO ORÇAMENTO
-==================================================
-
-Não alterar:
-
-- cálculo;
-- preço;
-- custo;
-- margem;
-- desconto;
-- impostos;
-- quantidade;
-- snapshots;
-- salvamento do orçamento;
-- estrutura do banco.
-
-Após selecionar um produto, todos os dados atuais devem continuar sendo preenchidos da mesma forma.
+- gesto rola a lista;
+- não seleciona produto durante swipe;
+- depois do scroll, o toque seleciona exatamente o item escolhido;
+- Sheet não trava;
+- página não fica congelada;
+- dropdown continua utilizável.
 
 ==================================================
-8. IMPLEMENTAÇÃO AUTORIZADA
+7. SELEÇÃO POR ID
 ==================================================
 
-Depois de confirmar a causa física do scroll, pode implementar somente:
+Confirmar fisicamente no CatalogPicker:
 
-- busca server-side;
-- limite dos resultados;
-- sanitizePostgrestSearch;
-- debounce;
-- queryKey correta;
-- proteção contra resultado obsoleto;
-- shouldFilter={false};
-- seleção por product.id;
-- correção física comprovada do scroll;
-- type="button" onde necessário.
+- React key = product.id;
+- CommandItem value = product.id;
+- onSelect resolve pelo product.id;
+- nenhum índice é usado como identidade;
+- nome/SKU não são usados como identidade.
 
-Arquivos esperados:
+Testar dois produtos com nomes semelhantes.
 
-- src/lib/quotes.functions.ts
-- src/components/quotes/QuoteFormSheet.tsx
+Esperado:
 
-Se descobrir necessidade de alterar outro arquivo:
-
-- informar o motivo;
-- manter a alteração estritamente relacionada ao bug.
+cada um seleciona seu próprio product_id.
 
 ==================================================
-9. VALIDAÇÃO DESTA PARTE
+8. IMAGENS
 ==================================================
 
-Após implementar executar:
+Foi citado “suporte a imagens”.
+
+Auditar se isso já existia ou se foi introduzido agora.
+
+Não ampliar o escopo desnecessariamente.
+
+Se a imagem:
+
+- já fazia parte do catálogo atual: manter;
+- foi adicionada agora sem necessidade para corrigir o bug: justificar.
+
+Garantir fallback quando não existir imagem.
+
+Imagem nunca deve impedir:
+
+- pesquisa;
+- seleção;
+- scroll;
+- renderização do item.
+
+==================================================
+9. REGRESSÃO BÁSICA DO ORÇAMENTO
+==================================================
+
+Executar:
+
+- abrir orçamento existente;
+- pesquisar produto;
+- selecionar produto;
+- adicionar ao orçamento;
+- editar quantidade;
+- editar preço/desconto dentro das regras atuais;
+- salvar;
+- reabrir;
+- confirmar item e total.
+
+Não alterar cálculos.
+
+==================================================
+10. VALIDAÇÃO TÉCNICA
+==================================================
+
+Executar:
 
 - typecheck;
 - lint;
 - build.
 
-Fazer também smoke test básico:
-
-1. pesquisar um produto pelo nome;
-2. pesquisar outro logo em seguida;
-3. selecionar resultado específico;
-4. confirmar product_id correto;
-5. testar wheel;
-6. testar touch/mobile;
-7. confirmar que selecionar não submete o orçamento.
+Informar resultado individual.
 
 ==================================================
 ENTREGA
 ==================================================
 
-Informar:
+Responder com:
 
-1. causa física confirmada da busca inconsistente;
-2. causa física confirmada do scroll;
+1. causa física do bug de busca;
+2. causa física do bug de scroll;
 3. arquivos alterados;
 4. contrato final de listQuoteCatalog;
-5. limite de resultados aplicado;
-6. debounce utilizado;
-7. queryKey final;
-8. confirmação de shouldFilter={false};
-9. confirmação de key/value por product.id;
-10. correção exata aplicada ao scroll;
-11. resultado do smoke test;
-12. typecheck;
-13. lint;
-14. build;
-15. confirmação de nenhuma migration;
-16. confirmação de nenhuma alteração nas regras comerciais.
+5. queryKey final;
+6. debounce final;
+7. confirmação de shouldFilter={false};
+8. confirmação de seleção por product.id;
+9. resultado do teste de mouse;
+10. resultado do teste de trackpad;
+11. resultado do teste mobile/touch;
+12. resultado da regressão do orçamento;
+13. typecheck;
+14. lint;
+15. build;
+16. confirmação de que não foi criada migration;
+17. confirmação de que nenhuma regra comercial foi alterada;
+18. confirmação de que client_request_id não está sendo usado para a pesquisa.
 
-Depois parar.
+Somente após esses pontos passarem declarar:
 
-Não executar ainda a Parte 2 completa dos 14 testes.
-Não trabalhar nos problemas 2 e 3.`;
+PESQUISA DE PRODUTOS NO ORÇAMENTO — CORREÇÃO CONCLUÍDA
+
+Não iniciar ainda os problemas 2 e 3.`;
 
 export const Route = createFileRoute("/")({
   component: () => (
