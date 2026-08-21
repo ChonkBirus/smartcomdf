@@ -182,12 +182,47 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
       query = query.or(`sku.ilike.${s},name.ilike.%${s}%,sku.ilike.%${s}%`);
     }
 
-    const { data, error } = await query
-      .order("name")
-      .limit(50);
-
+    const { data, error } = await query;
     if (error) throw new Error(error.message);
-    const ids = (data ?? []).map((r: any) => r.id);
+
+    let itemsRaw = (data ?? []) as any[];
+    if (s) {
+      const searchLower = s.toLowerCase();
+      itemsRaw.sort((a, b) => {
+        const aSku = (a.sku || "").toLowerCase();
+        const bSku = (b.sku || "").toLowerCase();
+        const aName = (a.name || "").toLowerCase();
+        const bName = (b.name || "").toLowerCase();
+
+        // 1. SKU exact match
+        const aSkuExact = aSku === searchLower;
+        const bSkuExact = bSku === searchLower;
+        if (aSkuExact && !bSkuExact) return -1;
+        if (!aSkuExact && bSkuExact) return 1;
+
+        // 2. Name starts with
+        const aNameStarts = aName.startsWith(searchLower);
+        const bNameStarts = bName.startsWith(searchLower);
+        if (aNameStarts && !bNameStarts) return -1;
+        if (!aNameStarts && bNameStarts) return 1;
+
+        // 3. SKU starts with
+        const aSkuStarts = aSku.startsWith(searchLower);
+        const bSkuStarts = bSku.startsWith(searchLower);
+        if (aSkuStarts && !bSkuStarts) return -1;
+        if (!aSkuStarts && bSkuStarts) return 1;
+
+        // 4. Default: alphabetical by name
+        return aName.localeCompare(bName);
+      });
+    } else {
+      itemsRaw.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    }
+
+    // Keep only the top 50 after sorting
+    const topItems = itemsRaw.slice(0, 50);
+    const ids = topItems.map((r: any) => r.id);
+
     const imgMap = new Map<string, string>();
     const stockMap = new Map<string, number>();
     if (ids.length > 0) {
