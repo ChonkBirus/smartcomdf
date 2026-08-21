@@ -847,7 +847,7 @@ export const createCustomerTag = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const sb = context.supabase as any;
+    const sb = context.supabase as SupabaseClient<Database>;
     const { data: profile } = await sb
       .from("profiles")
       .select("company_id")
