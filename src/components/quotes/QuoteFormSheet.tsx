@@ -451,9 +451,10 @@ export function QuoteFormSheet({
   });
 
   function addLine(kind: QuoteItemKind = "PRODUCT") {
+    const tempId = Math.random().toString(36).slice(2);
     setLines((s) => [
       {
-        tempId: Math.random().toString(36).slice(2),
+        tempId,
         item_id: null,
         kind,
         name: "",
@@ -464,6 +465,7 @@ export function QuoteFormSheet({
       },
       ...s,
     ]);
+    setAddedLineId(tempId);
   }
   function setLine(i: number, patch: Partial<Line>) {
     setLines((s) => s.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
