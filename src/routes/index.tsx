@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/")({
-  component: () => (
-    <div style={{ whiteSpace: "pre-wrap", padding: "20px", fontFamily: "monospace" }}>
-      Plano aprovado com ajustes obrigatórios antes de implementar.
+const MESSAGE = `Plano aprovado com ajustes obrigatórios antes de implementar.
 
 Pode seguir com a correção da busca, concorrência e seleção, mas antes de mexer no scroll preciso que a causa física seja confirmada.
 
@@ -291,7 +288,12 @@ Informar:
 Depois parar.
 
 Não executar ainda a Parte 2 completa dos 14 testes.
-Não trabalhar nos problemas 2 e 3.
+Não trabalhar nos problemas 2 e 3.`;
+
+export const Route = createFileRoute("/")({
+  component: () => (
+    <div style={{ whiteSpace: "pre-wrap", padding: "20px", fontFamily: "monospace" }}>
+      {MESSAGE}
     </div>
   ),
 });
