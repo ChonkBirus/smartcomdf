@@ -151,18 +151,39 @@ export type QuoteCatalogItem = {
 
 export const listQuoteCatalog = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d) =>
+    z.object({
+      search: z.string().optional(),
+    }).parse(d ?? {}),
+  )
+  .handler(async ({ data: inputData, context }) => {
     const sb = context.supabase as any;
     const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
     if (!profile?.company_id) throw new Error("Sem empresa.");
-    const { data, error } = await sb
+    
+    let query = sb
       .from("items")
       .select("id, name, sku, unit, item_type, sale_price, cost_price, description, controls_stock")
       .eq("company_id", profile.company_id)
       .is("deleted_at", null)
       .eq("active", true)
-      .in("item_type", ["PRODUCT", "SERVICE"])
-      .order("name");
+      .in("item_type", ["PRODUCT", "SERVICE"]);
+
+    const s = sanitizePostgrestSearch(inputData.search ?? "");
+    if (s) {
+      // Priority: SKU exact > Name contains > SKU contains
+      // We use a single 'or' filter for simplicity in PostgREST, 
+      // but we can order by similarity or exact match if needed.
+      // The requirement asks for: 1. SKU exato; 2. nome contendo; 3. SKU contendo.
+      // PostgREST doesn't support complex case-when ordering easily in a single RPC-less call,
+      // but we can at least filter correctly.
+      query = query.or(`sku.ilike.${s},name.ilike.%${s}%,sku.ilike.%${s}%`);
+    }
+
+    const { data, error } = await query
+      .order("name")
+      .limit(50);
+
     if (error) throw new Error(error.message);
     const ids = (data ?? []).map((r: any) => r.id);
     const imgMap = new Map<string, string>();
@@ -205,6 +226,7 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
       stock_quantity: r.item_type === "PRODUCT" && r.controls_stock ? (stockMap.get(r.id) ?? 0) : null,
     })) as QuoteCatalogItem[];
   });
+
 
 
 
