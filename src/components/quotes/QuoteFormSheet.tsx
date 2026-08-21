@@ -264,6 +264,7 @@ export function QuoteFormSheet({
         })),
       );
 
+      setAddedLineId(null);
     } else if (!quoteId) {
       const today = new Date().toISOString().slice(0, 10);
       setCustomerId(""); setTitle("");
