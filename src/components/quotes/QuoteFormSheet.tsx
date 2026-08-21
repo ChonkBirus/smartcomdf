@@ -1101,6 +1101,7 @@ function CatalogPicker({
     queryFn: async () => {
       const items = await fetchCatalog({ data: { search: debouncedSearchTerm } });
       const normalizedKind = kind.toUpperCase();
+      console.log('CatalogPicker results:', { kind, normalizedKind, count: items.length, types: items.map(i => i.item_type) });
       return items.filter((it) => it.item_type.toUpperCase() === normalizedKind);
     },
   });
