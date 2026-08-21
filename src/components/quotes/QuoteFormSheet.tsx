@@ -451,7 +451,16 @@ export function QuoteFormSheet({
 
   function addLine(kind: QuoteItemKind = "PRODUCT") {
     setLines((s) => [
-      { item_id: null, kind, name: "", description: "", quantity: 1, unit_price: 0, cost_price: 0 },
+      {
+        tempId: Math.random().toString(36).slice(2),
+        item_id: null,
+        kind,
+        name: "",
+        description: "",
+        quantity: 1,
+        unit_price: 0,
+        cost_price: 0
+      },
       ...s,
     ]);
   }
@@ -808,7 +817,7 @@ export function QuoteFormSheet({
 
               {lines.map((l, i) => (
                 <LineRow
-                  key={l.id || `line-${i}-${l.kind}-${l.item_id}`}
+                  key={l.id || l.tempId || `line-${i}`}
                   line={l}
                   index={i}
                   last={i === lines.length - 1}
