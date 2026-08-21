@@ -263,7 +263,7 @@ export function CustomerFormSheet({
       set("tag_ids", [...form.tag_ids, t.id]);
       setNewTagName("");
     },
-    onError: (e: any) => toast.error(e?.message ?? "Falha."),
+    onError: (e: Error) => toast.error(e.message ?? "Falha."),
   });
 
   function onSubmit(e: React.FormEvent) {
@@ -307,7 +307,7 @@ export function CustomerFormSheet({
       toast.error("Verifique os campos destacados.");
       return;
     }
-    mutation.mutate({ ...form, contacts: cleanedContacts as any });
+    mutation.mutate({ ...form, contacts: cleanedContacts });
   }
 
   const isCompany = form.customer_type === "COMPANY";
