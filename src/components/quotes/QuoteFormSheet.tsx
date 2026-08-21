@@ -807,7 +807,7 @@ export function QuoteFormSheet({
 
               {lines.map((l, i) => (
                 <LineRow
-                  key={i}
+                  key={`line-${i}-${l.kind}`}
                   line={l}
                   index={i}
                   last={i === lines.length - 1}
