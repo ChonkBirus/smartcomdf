@@ -129,6 +129,7 @@ export function QuoteFormSheet({
   const [laborCost, setLaborCost] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [lines, setLines] = useState<Line[]>([]);
+  const [addedLineId, setAddedLineId] = useState<string | null>(null);
 
   // Auto-fill valid_until = issue_date + 15 days for new quotes when user hasn't manually edited it.
   useEffect(() => {
