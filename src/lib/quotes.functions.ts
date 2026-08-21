@@ -145,6 +145,8 @@ export type QuoteCatalogItem = {
   cost_price: number;
   description: string | null;
   controls_stock: boolean;
+  image_url: string | null;
+  stock_quantity: number | null;
 };
 
 export const listQuoteCatalog = createServerFn({ method: "GET" })
@@ -226,6 +228,36 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
     const topItems = itemsRaw.slice(0, 50);
     const ids = topItems.map((r: any) => r.id);
 
+    // Fetch primary images and stock balances in parallel
+    const [imagesRes, stockRes] = await Promise.all([
+      sb.from("item_images")
+        .select("item_id, file_path")
+        .in("item_id", ids)
+        .eq("is_primary", true),
+      sb.from("stock_balances")
+        .select("item_id, quantity")
+        .in("item_id", ids)
+        .eq("company_id", profile.company_id)
+    ]);
+
+    const imageMap = new Map<string, string>();
+    (imagesRes.data ?? []).forEach((img: any) => imageMap.set(img.item_id, img.file_path));
+
+    const stockMap = new Map<string, number>();
+    (stockRes.data ?? []).forEach((s: any) => {
+      stockMap.set(s.item_id, (stockMap.get(s.item_id) ?? 0) + Number(s.quantity));
+    });
+
+    // Sign URLs for the images (helper function from products.functions.ts is not exported here, we use manual signing)
+    const SIGNED_TTL = 60 * 60;
+    const signedImages = new Map<string, string | null>();
+    await Promise.all(
+      Array.from(imageMap.entries()).map(async ([itemId, path]) => {
+        const { data } = await sb.storage.from("product-images").createSignedUrl(path, SIGNED_TTL);
+        signedImages.set(itemId, data?.signedUrl ?? null);
+      })
+    );
+
     return topItems.map((r: any) => ({
       id: r.id,
       name: r.name,
@@ -236,6 +268,8 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
       cost_price: Number(r.cost_price || 0),
       description: r.description ?? null,
       controls_stock: Boolean(r.controls_stock),
+      image_url: signedImages.get(r.id) ?? null,
+      stock_quantity: r.controls_stock ? (stockMap.get(r.id) ?? 0) : null,
     })) as QuoteCatalogItem[];
   });
 

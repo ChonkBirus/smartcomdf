@@ -41,7 +41,7 @@ type Line = {
   quantity: number;
   unit_price: number;
   cost_price: number;
-  image_path?: string | null;
+  image_url?: string | null;
 };
 
 
@@ -1134,8 +1134,21 @@ function CatalogPicker({
                     selectedId === it.id ? "opacity-100" : "opacity-0"
                   )}
                 />
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border bg-muted text-muted-foreground">
-                  <Package className="h-4 w-4" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border bg-muted text-muted-foreground overflow-hidden">
+                  {imageUrl ? (
+                    <img 
+                      src={imageUrl} 
+                      alt={it.name} 
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display = 'none';
+                        (e.currentTarget.parentElement?.querySelector('.fallback-icon') as HTMLElement).style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div className={cn("fallback-icon h-full w-full items-center justify-center", imageUrl ? "hidden" : "flex")}>
+                    <Package className="h-4 w-4" />
+                  </div>
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
