@@ -258,7 +258,7 @@ export function QuoteFormSheet({
           quantity: Number(it.quantity),
           unit_price: Number(it.unit_price),
           cost_price: Number(it.cost_price || 0),
-          image_path: (it as any).image_path ?? null,
+          // image_path removido do contrato e do banco
         })),
       );
 
@@ -1120,7 +1120,7 @@ function CatalogPicker({
         <CommandGroup>
           {data.map((it) => {
             const isProduct = it.item_type === "PRODUCT";
-            const stock = (it as any).stock_quantity;
+            const stock = it.stock_quantity;
             const stockLabel =
               isProduct && it.controls_stock
                 ? stock == null
@@ -1152,15 +1152,7 @@ function CatalogPicker({
                   )}
                 />
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border bg-muted text-muted-foreground">
-                  {(it as any).image_path ? (
-                    <img
-                      src={(it as any).image_path}
-                      alt={it.name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <Package className="h-4 w-4" />
-                  )}
+                  <Package className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">

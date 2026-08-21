@@ -144,7 +144,6 @@ export type QuoteCatalogItem = {
   sale_price: number;
   cost_price: number;
   description: string | null;
-  image_path: string | null;
   controls_stock: boolean;
   stock_quantity: number | null;
 };
