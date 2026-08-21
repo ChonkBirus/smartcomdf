@@ -258,7 +258,7 @@ export function QuoteFormSheet({
           quantity: Number(it.quantity),
           unit_price: Number(it.unit_price),
           cost_price: Number(it.cost_price || 0),
-          image_path: (it as any).image_path ?? null,
+          // image_path removido do contrato e do banco
         })),
       );
 
@@ -480,7 +480,7 @@ export function QuoteFormSheet({
       unit_price: it.sale_price,
       cost_price: it.cost_price,
       description: current?.description?.trim() ? current.description : (it.description ?? ""),
-      image_path: it.image_path ?? null,
+      // image_path não existe no contrato do catálogo
     });
   }
 
@@ -1120,23 +1120,6 @@ function CatalogPicker({
         <CommandGroup>
           {data.map((it) => {
             const isProduct = it.item_type === "PRODUCT";
-            const stock = (it as any).stock_quantity;
-            const stockLabel =
-              isProduct && it.controls_stock
-                ? stock == null
-                  ? null
-                  : stock <= 0
-                    ? "Sem estoque"
-                    : `${stock} em estoque`
-                : null;
-            const stockClass =
-              stock == null || !isProduct || !it.controls_stock
-                ? ""
-                : stock <= 0
-                  ? "text-destructive"
-                  : stock < 5
-                    ? "text-amber-600 dark:text-amber-400"
-                    : "text-emerald-600 dark:text-emerald-400";
 
             return (
               <CommandItem
@@ -1152,15 +1135,7 @@ function CatalogPicker({
                   )}
                 />
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border bg-muted text-muted-foreground">
-                  {(it as any).image_path ? (
-                    <img
-                      src={(it as any).image_path}
-                      alt={it.name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <Package className="h-4 w-4" />
-                  )}
+                  <Package className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
@@ -1173,7 +1148,6 @@ function CatalogPicker({
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                     <span>{it.unit} · {fmtBRL(it.sale_price)}</span>
-                    {stockLabel && <span className={stockClass}>{stockLabel}</span>}
                   </div>
                 </div>
               </CommandItem>
