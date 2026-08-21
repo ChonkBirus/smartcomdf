@@ -1096,17 +1096,24 @@ function CatalogPicker({
   selectedId: string | null;
 }) {
   const fetchCatalog = useServerFn(listQuoteCatalog);
-  const { data = [], isLoading } = useQuery({
+  const { data = [], isLoading, error } = useQuery({
     queryKey: ["quote-catalog", debouncedSearchTerm, kind],
     queryFn: async () => {
-      const items = await fetchCatalog({ data: { search: debouncedSearchTerm } });
-      const normalizedKind = kind.toUpperCase();
-      console.log('CatalogPicker RAW items:', items.length, 'Kind:', normalizedKind);
-      const filtered = items.filter((it) => it.item_type.toUpperCase() === normalizedKind);
-      console.log('CatalogPicker FILTERED items:', filtered.length);
-      return filtered;
+      console.log('CatalogPicker: Query started for', debouncedSearchTerm);
+      try {
+        const items = await fetchCatalog({ data: { search: debouncedSearchTerm } });
+        const normalizedKind = kind.toUpperCase();
+        console.log('CatalogPicker RAW items:', items.length, 'Kind:', normalizedKind);
+        const filtered = items.filter((it) => it.item_type.toUpperCase() === normalizedKind);
+        console.log('CatalogPicker FILTERED items:', filtered.length);
+        return filtered;
+      } catch (err) {
+        console.error('CatalogPicker fetch error:', err);
+        throw err;
+      }
     },
   });
+  console.log('CatalogPicker: data state:', data.length, 'loading:', isLoading, 'error:', error);
 
   return (
     <Command shouldFilter={false}>
