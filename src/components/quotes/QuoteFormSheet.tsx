@@ -480,7 +480,7 @@ export function QuoteFormSheet({
       unit_price: it.sale_price,
       cost_price: it.cost_price,
       description: current?.description?.trim() ? current.description : (it.description ?? ""),
-      // image_path não existe no contrato do catálogo
+      image_url: it.image_url,
     });
   }
 
@@ -1163,6 +1163,14 @@ function CatalogPicker({
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                     <span>{it.unit} · {fmtBRL(it.sale_price)}</span>
+                    {it.item_type === "PRODUCT" && it.controls_stock && (
+                      <span className={cn(
+                        "font-medium",
+                        (it.stock_quantity ?? 0) <= 0 ? "text-destructive" : "text-primary"
+                      )}>
+                        {(it.stock_quantity ?? 0) <= 0 ? "Sem estoque" : `Estoque: ${it.stock_quantity}`}
+                      </span>
+                    )}
                   </div>
                 </div>
               </CommandItem>
