@@ -939,7 +939,9 @@ function LineRow({
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
   useEffect(() => {
+    console.log('LineRow: searchTerm changed to', searchTerm);
     const timer = setTimeout(() => {
+      console.log('LineRow: setting debouncedSearchTerm to', searchTerm);
       setDebouncedSearchTerm(searchTerm);
     }, 300);
     return () => clearTimeout(timer);
