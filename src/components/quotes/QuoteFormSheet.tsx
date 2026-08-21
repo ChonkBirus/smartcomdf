@@ -1010,35 +1010,9 @@ function LineRow({
               />
             </PopoverContent>
           </Popover>
-
-                          <Check className={cn("mt-1 h-4 w-4 shrink-0", line.item_id === it.id ? "opacity-100" : "opacity-0")} />
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border bg-muted text-muted-foreground">
-                            <Package className="h-4 w-4" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="truncate font-medium">{it.name}</span>
-                              {it.sku && <span className="shrink-0 text-[11px] text-muted-foreground">({it.sku})</span>}
-                            </div>
-                            {it.description && (
-                              <p className="line-clamp-1 text-xs text-muted-foreground">{it.description}</p>
-                            )}
-                            <div className="mt-0.5 flex items-center gap-3 text-[11px]">
-                              <span className="font-semibold text-foreground">{fmtBRL(it.sale_price)}</span>
-                              {stockLabel && <span className={stockClass}>{stockLabel}</span>}
-                            </div>
-                          </div>
-                        </CommandItem>
-                      );
-                    })}
-                  </CommandGroup>
-
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
         </div>
       )}
+
 
       <div className="grid grid-cols-12 gap-2">
         <div className="col-span-12 sm:col-span-6">
