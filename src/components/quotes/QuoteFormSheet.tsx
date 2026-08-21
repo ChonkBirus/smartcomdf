@@ -432,7 +432,7 @@ export function QuoteFormSheet({
             unit_price: Number(l.unit_price) || 0,
             cost_price: Number(l.cost_price) || 0,
             position: idx,
-            image_path: l.image_path ?? null,
+            image_url: l.image_url ?? null,
           })),
 
         } as any,
@@ -1120,6 +1120,8 @@ function CatalogPicker({
         <CommandGroup>
           {data.map((it) => {
             const isProduct = it.item_type === "PRODUCT";
+            const stock = it.stock_quantity;
+            const imageUrl = it.image_url;
 
             return (
               <CommandItem
