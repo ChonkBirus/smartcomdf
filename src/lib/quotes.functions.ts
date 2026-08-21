@@ -161,26 +161,19 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
     const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
     if (!profile?.company_id) throw new Error("Sem empresa.");
     
+    const s = sanitizePostgrestSearch(inputData.search ?? "");
     let query = sb
       .from("items")
-      .select("id, name, sku, unit, item_type, sale_price, cost_price, description, controls_stock, stock_quantity, image_path")
+      .select("id, name, sku, unit, item_type, sale_price, cost_price, description, controls_stock, image_path")
       .eq("company_id", profile.company_id)
       .is("deleted_at", null)
-      .eq("active", true)
-      .in("item_type", ["PRODUCT", "SERVICE"])
-      .limit(50);
+      .eq("active", true);
 
-
-    const s = sanitizePostgrestSearch(inputData.search ?? "");
     if (s) {
-      // Priority: SKU exact > Name contains > SKU contains
-      // We use a single 'or' filter for simplicity in PostgREST, 
-      // but we can order by similarity or exact match if needed.
-      // The requirement asks for: 1. SKU exato; 2. nome contendo; 3. SKU contendo.
-      // PostgREST doesn't support complex case-when ordering easily in a single RPC-less call,
-      // but we can at least filter correctly.
-      query = query.or(`sku.ilike.${s},name.ilike.%${s}%,sku.ilike.%${s}%`);
+      query = query.or(`sku.ilike.%${s}%,name.ilike.%${s}%`);
     }
+
+    query = query.limit(50);
 
     const { data, error } = await query;
     if (error) throw new Error(error.message);

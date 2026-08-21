@@ -807,7 +807,7 @@ export function QuoteFormSheet({
 
               {lines.map((l, i) => (
                 <LineRow
-                  key={i}
+                  key={`line-${i}-${l.kind}`}
                   line={l}
                   index={i}
                   last={i === lines.length - 1}
@@ -1100,7 +1100,8 @@ function CatalogPicker({
     queryKey: ["quote-catalog", debouncedSearchTerm, kind],
     queryFn: async () => {
       const items = await fetchCatalog({ data: { search: debouncedSearchTerm } });
-      return items.filter((it) => it.item_type === kind);
+      const normalizedKind = kind.toUpperCase();
+      return items.filter((it) => it.item_type.toUpperCase() === normalizedKind);
     },
   });
 
@@ -1111,13 +1112,15 @@ function CatalogPicker({
         value={searchTerm}
         onValueChange={onSearchChange}
       />
-      <CommandList>
+      <CommandList className="max-h-[300px] overflow-y-auto pointer-events-auto">
         {isLoading && <div className="p-4 text-center text-sm text-muted-foreground">Buscando...</div>}
-        {!isLoading && data.length === 0 && <CommandEmpty>Nenhum item encontrado.</CommandEmpty>}
+        {!isLoading && data.length === 0 && (
+          <div className="p-4 text-center text-sm text-muted-foreground">Nenhum item encontrado.</div>
+        )}
         <CommandGroup>
           {data.map((it) => {
             const isProduct = it.item_type === "PRODUCT";
-            const stock = it.stock_quantity;
+            const stock = (it as any).stock_quantity;
             const stockLabel =
               isProduct && it.controls_stock
                 ? stock == null
