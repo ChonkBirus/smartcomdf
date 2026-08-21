@@ -170,8 +170,7 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
       .eq("active", true);
 
     if (s) {
-      const searchPattern = `%${s}%`;
-      query = query.or(`sku.ilike.${searchPattern},name.ilike.${searchPattern}`);
+      query = query.or(`sku.ilike.%${s}%,name.ilike.%${s}%`);
     }
 
     query = query.limit(50);
