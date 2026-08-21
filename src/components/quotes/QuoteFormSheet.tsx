@@ -1121,7 +1121,7 @@ function CatalogPicker({
         {!isLoading && data.length === 0 && (
           <div className="p-4 text-center text-sm text-muted-foreground">Nenhum item encontrado.</div>
         )}
-        <CommandGroup>
+        <CommandGroup heading="Resultados do Catálogo">
           {data.map((it) => {
             const isProduct = it.item_type === "PRODUCT";
             const stock = it.stock_quantity;
