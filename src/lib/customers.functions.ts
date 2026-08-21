@@ -869,7 +869,7 @@ export const createCustomerTag = createServerFn({ method: "POST" })
 export const customerMetrics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const sb = context.supabase as any;
+    const sb = context.supabase as SupabaseClient<Database>;
     const { data: prof } = await sb
       .from("profiles")
       .select("company_id")
