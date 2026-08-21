@@ -256,7 +256,6 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
     }
     return topItems.map((r: any) => ({
       id: r.id,
-
       name: r.name,
       sku: r.sku,
       unit: r.unit,
@@ -264,7 +263,6 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
       sale_price: Number(r.sale_price || 0),
       cost_price: Number(r.cost_price || 0),
       description: r.description ?? null,
-      image_path: imgMap.get(r.id) ?? null,
       controls_stock: Boolean(r.controls_stock),
       stock_quantity: r.item_type === "PRODUCT" && r.controls_stock ? (stockMap.get(r.id) ?? 0) : null,
     })) as QuoteCatalogItem[];

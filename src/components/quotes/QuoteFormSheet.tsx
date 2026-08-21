@@ -480,7 +480,7 @@ export function QuoteFormSheet({
       unit_price: it.sale_price,
       cost_price: it.cost_price,
       description: current?.description?.trim() ? current.description : (it.description ?? ""),
-      image_path: it.image_path ?? null,
+      // image_path não existe no contrato do catálogo
     });
   }
 
