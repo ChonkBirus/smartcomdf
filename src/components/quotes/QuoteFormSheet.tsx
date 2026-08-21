@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Plus, Trash2, ArrowUp, ArrowDown, Check, ChevronsUpDown, AlertTriangle, UserPlus, Package } from "lucide-react";
@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getActiveCustomersForQuote, type QuoteCustomerOption } from "@/lib/customers.functions";
 import { getQuote, saveQuote, listQuoteCatalog, type QuoteItemKind, type QuoteCatalogItem } from "@/lib/quotes.functions";
+
 import { getCompanyCostSettings, computeSuggestedPrice } from "@/lib/pricing.functions";
 import { usePermissions } from "@/lib/permissions";
 import { useAuth } from "@/lib/auth-context";
@@ -934,7 +935,18 @@ function LineRow({
   onMove: (dir: -1 | 1) => void;
 }) {
   const [pickOpen, setPickOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const source = line.kind === "SERVICE" ? services : products;
+
   const showCatalog = line.kind === "PRODUCT" || line.kind === "SERVICE";
   const selected = source.find((s) => s.id === line.item_id);
   const margin = line.cost_price > 0
@@ -985,31 +997,20 @@ function LineRow({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Buscar por nome ou SKU..." />
-                <CommandList>
-                  <CommandEmpty>Nenhum item encontrado.</CommandEmpty>
-                  <CommandGroup>
-                    {source.map((it) => {
-                      const isProduct = it.item_type === "PRODUCT";
-                      const stock = it.stock_quantity;
-                      const stockLabel = isProduct && it.controls_stock
-                        ? (stock == null ? null : stock <= 0 ? "Sem estoque" : `${stock} em estoque`)
-                        : null;
-                      const stockClass = stock == null || !isProduct || !it.controls_stock
-                        ? ""
-                        : stock <= 0
-                        ? "text-destructive"
-                        : stock < 5
-                        ? "text-amber-600 dark:text-amber-400"
-                        : "text-emerald-600 dark:text-emerald-400";
-                      return (
-                        <CommandItem
-                          key={it.id}
-                          value={`${it.name} ${it.sku ?? ""} ${it.description ?? ""}`}
-                          onSelect={() => { onPickCatalog(it.id); setPickOpen(false); }}
-                          className="flex items-start gap-2"
-                        >
+              <CatalogPicker
+                kind={line.kind}
+                debouncedSearchTerm={debouncedSearchTerm}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                onSelect={(id) => {
+                  onPickCatalog(id);
+                  setPickOpen(false);
+                }}
+                selectedId={line.item_id}
+              />
+            </PopoverContent>
+          </Popover>
+
                           <Check className={cn("mt-1 h-4 w-4 shrink-0", line.item_id === it.id ? "opacity-100" : "opacity-0")} />
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border bg-muted text-muted-foreground">
                             <Package className="h-4 w-4" />
