@@ -1120,7 +1120,7 @@ function CatalogPicker({
         <CommandGroup>
           {data.map((it) => {
             const isProduct = it.item_type === "PRODUCT";
-            const stock = it.stock_quantity;
+            const stock = (it as any).stock_quantity;
             const stockLabel =
               isProduct && it.controls_stock
                 ? stock == null
