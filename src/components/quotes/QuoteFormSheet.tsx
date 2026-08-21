@@ -1120,8 +1120,6 @@ function CatalogPicker({
         <CommandGroup>
           {data.map((it) => {
             const isProduct = it.item_type === "PRODUCT";
-            const stockLabel = null;
-            const stockClass = "";
 
             return (
               <CommandItem
@@ -1150,7 +1148,6 @@ function CatalogPicker({
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                     <span>{it.unit} · {fmtBRL(it.sale_price)}</span>
-                    {stockLabel && <span className={stockClass}>{stockLabel}</span>}
                   </div>
                 </div>
               </CommandItem>
