@@ -11,7 +11,12 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type ConnectionStatus =
-  | "PENDING" | "CONNECTED" | "SYNCING" | "ERROR" | "EXPIRED" | "REVOKED";
+  | "PENDING"
+  | "CONNECTED"
+  | "SYNCING"
+  | "ERROR"
+  | "EXPIRED"
+  | "REVOKED";
 
 export type OpenFinanceConnection = {
   id: string;
@@ -64,7 +69,11 @@ export type BankTransaction = {
 };
 
 async function getCompanyId(supabase: any, userId: string): Promise<string> {
-  const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  const { data } = await supabase
+    .from("profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .maybeSingle();
   const cid = data?.company_id as string | undefined;
   if (!cid) throw new Error("Sem empresa vinculada.");
   return cid;
@@ -121,13 +130,15 @@ export const listBankAccounts = createServerFn({ method: "POST" })
     return (data ?? []) as BankAccount[];
   });
 
-const TxFilters = z.object({
-  status: z.enum(["PENDING", "SUGGESTED", "RECONCILED", "IGNORED"]).optional(),
-  bankAccountId: z.string().uuid().optional(),
-  from: z.string().optional(),
-  to: z.string().optional(),
-  limit: z.number().int().min(1).max(500).default(200),
-}).default({ limit: 200 });
+const TxFilters = z
+  .object({
+    status: z.enum(["PENDING", "SUGGESTED", "RECONCILED", "IGNORED"]).optional(),
+    bankAccountId: z.string().uuid().optional(),
+    from: z.string().optional(),
+    to: z.string().optional(),
+    limit: z.number().int().min(1).max(500).default(200),
+  })
+  .default({ limit: 200 });
 
 export const listOpenFinanceTransactions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -153,9 +164,12 @@ export const listOpenFinanceTransactions = createServerFn({ method: "POST" })
 export const createOpenFinanceConnection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      provider: z.enum(["PLUGGY", "BELVO", "MANUAL", "OTHER"]).optional(),
-    }).default({}).parse(d ?? {})
+    z
+      .object({
+        provider: z.enum(["PLUGGY", "BELVO", "MANUAL", "OTHER"]).optional(),
+      })
+      .default({})
+      .parse(d ?? {}),
   )
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
@@ -182,12 +196,14 @@ export const createOpenFinanceConnection = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     let init: { connectToken: string | null; providerConnectionId: string | null } = {
-      connectToken: null, providerConnectionId: null,
+      connectToken: null,
+      providerConnectionId: null,
     };
     try {
       init = await provider.initConnection(companyId);
     } catch (e: any) {
-      await sb.from("openfinance_connections")
+      await sb
+        .from("openfinance_connections")
         .update({ status: "ERROR", error_message: e?.message ?? String(e) })
         .eq("id", row.id);
       throw e;
@@ -198,9 +214,7 @@ export const createOpenFinanceConnection = createServerFn({ method: "POST" })
 
 export const syncOpenFinanceAccounts = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ connectionId: z.string().uuid() }).parse(d)
-  )
+  .inputValidator((d: unknown) => z.object({ connectionId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
@@ -215,17 +229,24 @@ export const syncOpenFinanceAccounts = createServerFn({ method: "POST" })
     const { getOpenFinanceProvider } = await import("./open-finance/provider");
     const provider = getOpenFinanceProvider();
     if (!provider.status().configured) throw new Error("Provedor não configurado.");
-    if (!conn.provider_connection_id) throw new Error("Conexão ainda não autorizada pelo provedor.");
+    if (!conn.provider_connection_id)
+      throw new Error("Conexão ainda não autorizada pelo provedor.");
 
     await sb.from("openfinance_connections").update({ status: "SYNCING" }).eq("id", conn.id);
     try {
       await provider.syncAccounts(conn.provider_connection_id);
-      await sb.from("openfinance_connections")
-        .update({ status: "CONNECTED", last_sync_at: new Date().toISOString(), error_message: null })
+      await sb
+        .from("openfinance_connections")
+        .update({
+          status: "CONNECTED",
+          last_sync_at: new Date().toISOString(),
+          error_message: null,
+        })
         .eq("id", conn.id);
       return { ok: true };
     } catch (e: any) {
-      await sb.from("openfinance_connections")
+      await sb
+        .from("openfinance_connections")
         .update({ status: "ERROR", error_message: e?.message ?? String(e) })
         .eq("id", conn.id);
       throw e;
@@ -235,11 +256,13 @@ export const syncOpenFinanceAccounts = createServerFn({ method: "POST" })
 export const syncOpenFinanceTransactions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      connectionId: z.string().uuid(),
-      from: z.string().optional(),
-      to: z.string().optional(),
-    }).parse(d)
+    z
+      .object({
+        connectionId: z.string().uuid(),
+        from: z.string().optional(),
+        to: z.string().optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -255,10 +278,12 @@ export const syncOpenFinanceTransactions = createServerFn({ method: "POST" })
     const { getOpenFinanceProvider } = await import("./open-finance/provider");
     const provider = getOpenFinanceProvider();
     if (!provider.status().configured) throw new Error("Provedor não configurado.");
-    if (!conn.provider_connection_id) throw new Error("Conexão ainda não autorizada pelo provedor.");
+    if (!conn.provider_connection_id)
+      throw new Error("Conexão ainda não autorizada pelo provedor.");
 
     await provider.syncTransactions(conn.provider_connection_id, { from: data.from, to: data.to });
-    await sb.from("openfinance_connections")
+    await sb
+      .from("openfinance_connections")
       .update({ last_sync_at: new Date().toISOString() })
       .eq("id", conn.id);
     return { ok: true };
@@ -266,9 +291,7 @@ export const syncOpenFinanceTransactions = createServerFn({ method: "POST" })
 
 export const revokeOpenFinanceConnection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ connectionId: z.string().uuid() }).parse(d)
-  )
+  .inputValidator((d: unknown) => z.object({ connectionId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
@@ -283,13 +306,19 @@ export const revokeOpenFinanceConnection = createServerFn({ method: "POST" })
     const { getOpenFinanceProvider } = await import("./open-finance/provider");
     const provider = getOpenFinanceProvider();
     if (provider.status().configured && conn.provider_connection_id) {
-      try { await provider.revoke(conn.provider_connection_id); } catch { /* best effort */ }
+      try {
+        await provider.revoke(conn.provider_connection_id);
+      } catch {
+        /* best effort */
+      }
     }
 
-    await sb.from("openfinance_connections")
+    await sb
+      .from("openfinance_connections")
       .update({ status: "REVOKED", revoked_at: new Date().toISOString() })
       .eq("id", conn.id);
-    await sb.from("financial_bank_accounts")
+    await sb
+      .from("financial_bank_accounts")
       .update({ active: false, consent_status: "REVOKED" })
       .eq("openfinance_connection_id", conn.id)
       .eq("company_id", companyId);

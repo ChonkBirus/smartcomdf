@@ -10,7 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -34,8 +40,14 @@ import {
   updateOpportunity,
 } from "@/lib/crm.functions";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
@@ -93,7 +105,6 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
     enabled: !!opportunityId,
     staleTime: 15_000,
   });
-
 
   const [form, setForm] = useState<any>(null);
   useEffect(() => {
@@ -209,7 +220,10 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
                 <Badge variant="outline">Sem cliente</Badge>
               )}
               <span className="text-muted-foreground">
-                Valor: <span className="font-medium text-foreground">{brl(Number(form.estimated_value || 0))}</span>
+                Valor:{" "}
+                <span className="font-medium text-foreground">
+                  {brl(Number(form.estimated_value || 0))}
+                </span>
               </span>
             </div>
 
@@ -217,7 +231,9 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
               <div className="mt-3 rounded-md border bg-muted/40 p-3 text-sm">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <div className="text-xs uppercase text-muted-foreground">Orçamento vinculado</div>
+                    <div className="text-xs uppercase text-muted-foreground">
+                      Orçamento vinculado
+                    </div>
                     <div className="font-medium">
                       Nº {quoteStatus.quote_number} · {brl(Number(quoteStatus.total_amount || 0))}
                     </div>
@@ -270,11 +286,14 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
               <div className="mt-3 rounded-md border bg-muted/40 p-3 text-sm">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <div className="text-xs uppercase text-muted-foreground">Ordem de serviço vinculada</div>
+                    <div className="text-xs uppercase text-muted-foreground">
+                      Ordem de serviço vinculada
+                    </div>
                     <div className="font-medium">Nº {soStatus.service_order_number}</div>
                     {soStatus.scheduled_date && (
                       <div className="text-xs text-muted-foreground">
-                        Agendada para {new Date(soStatus.scheduled_date).toLocaleDateString("pt-BR")}
+                        Agendada para{" "}
+                        {new Date(soStatus.scheduled_date).toLocaleDateString("pt-BR")}
                       </div>
                     )}
                   </div>
@@ -324,7 +343,8 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Cliente possivelmente já cadastrado</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Encontramos {dupList.length} cliente(s) parecido(s). Vincule a um existente para evitar duplicidade.
+                    Encontramos {dupList.length} cliente(s) parecido(s). Vincule a um existente para
+                    evitar duplicidade.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <ul className="max-h-64 space-y-2 overflow-y-auto">
@@ -368,7 +388,6 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
               </AlertDialogContent>
             </AlertDialog>
 
-
             <Tabs defaultValue="info" className="mt-4">
               <TabsList>
                 <TabsTrigger value="info">Dados</TabsTrigger>
@@ -381,16 +400,25 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
               <TabsContent value="info" className="mt-4 space-y-4">
                 <div className="grid gap-2">
                   <Label>Nome</Label>
-                  <Input value={form.lead_name} onChange={(e) => setForm({ ...form, lead_name: e.target.value })} />
+                  <Input
+                    value={form.lead_name}
+                    onChange={(e) => setForm({ ...form, lead_name: e.target.value })}
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="grid gap-2">
                     <Label>Telefone</Label>
-                    <Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                    <Input
+                      value={form.phone ?? ""}
+                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    />
                   </div>
                   <div className="grid gap-2">
                     <Label>E-mail</Label>
-                    <Input value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                    <Input
+                      value={form.email ?? ""}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    />
                   </div>
                 </div>
                 <div className="grid gap-2">
@@ -406,13 +434,23 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
                     <Input
                       inputMode="decimal"
                       value={form.estimated_value}
-                      onChange={(e) => setForm({ ...form, estimated_value: e.target.value.replace(/[^0-9.,]/g, "") })}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          estimated_value: e.target.value.replace(/[^0-9.,]/g, ""),
+                        })
+                      }
                     />
                   </div>
                   <div className="grid gap-2">
                     <Label>Temperatura</Label>
-                    <Select value={form.temperature} onValueChange={(v) => setForm({ ...form, temperature: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                    <Select
+                      value={form.temperature}
+                      onValueChange={(v) => setForm({ ...form, temperature: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="cold">Frio</SelectItem>
                         <SelectItem value="warm">Morno</SelectItem>
@@ -424,11 +462,18 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="grid gap-2">
                     <Label>Responsável</Label>
-                    <Select value={form.assigned_to ?? ""} onValueChange={(v) => setForm({ ...form, assigned_to: v })}>
-                      <SelectTrigger><SelectValue placeholder="Sem responsável" /></SelectTrigger>
+                    <Select
+                      value={form.assigned_to ?? ""}
+                      onValueChange={(v) => setForm({ ...form, assigned_to: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sem responsável" />
+                      </SelectTrigger>
                       <SelectContent>
                         {team.map((m: any) => (
-                          <SelectItem key={m.id} value={m.id}>{m.full_name ?? m.email}</SelectItem>
+                          <SelectItem key={m.id} value={m.id}>
+                            {m.full_name ?? m.email}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -461,13 +506,17 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => { if (confirm("Remover este lead?")) del.mutate(); }}
+                    onClick={() => {
+                      if (confirm("Remover este lead?")) del.mutate();
+                    }}
                     disabled={del.isPending}
                   >
                     Excluir
                   </Button>
                   <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Fechar</Button>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>
+                      Fechar
+                    </Button>
                     <Button onClick={() => save.mutate()} disabled={save.isPending}>
                       {save.isPending ? "Salvando…" : "Salvar"}
                     </Button>
@@ -494,7 +543,10 @@ export function OpportunityDrawer({ opportunityId, onOpenChange }: Props) {
               <TabsContent value="timeline" className="mt-4">
                 <ul className="space-y-2 text-sm">
                   {(data?.timeline ?? []).map((t: any) => (
-                    <li key={t.id} className="rounded-md border border-border bg-muted/40 px-3 py-2">
+                    <li
+                      key={t.id}
+                      className="rounded-md border border-border bg-muted/40 px-3 py-2"
+                    >
                       <div className="flex items-center justify-between">
                         <span className="font-medium">{t.title}</span>
                         <span className="text-xs text-muted-foreground">
@@ -552,7 +604,11 @@ function CustomerLinkPanel({
           Vincule um cliente já cadastrado para poder gerar orçamento a partir deste lead.
         </p>
       )}
-      <Input placeholder="Buscar cliente por nome, CPF/CNPJ, e-mail…" value={q} onChange={(e) => setQ(e.target.value)} />
+      <Input
+        placeholder="Buscar cliente por nome, CPF/CNPJ, e-mail…"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+      />
       <div className="max-h-72 space-y-1 overflow-y-auto rounded-md border border-border">
         {isFetching && <div className="p-3 text-xs text-muted-foreground">Buscando…</div>}
         {!isFetching && data.length === 0 && (
@@ -596,7 +652,8 @@ function NotesPanel({ opportunityId }: { opportunityId: string }) {
   });
 
   const addMut = useMutation({
-    mutationFn: async () => await add({ data: { opportunity_id: opportunityId, note: text.trim() } }),
+    mutationFn: async () =>
+      await add({ data: { opportunity_id: opportunityId, note: text.trim() } }),
     onSuccess: () => {
       setText("");
       qc.invalidateQueries({ queryKey: ["crm"] });
@@ -611,9 +668,18 @@ function NotesPanel({ opportunityId }: { opportunityId: string }) {
 
   return (
     <div className="space-y-3">
-      <Textarea rows={3} placeholder="Escreva uma nota…" value={text} onChange={(e) => setText(e.target.value)} />
+      <Textarea
+        rows={3}
+        placeholder="Escreva uma nota…"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+      />
       <div className="flex justify-end">
-        <Button size="sm" onClick={() => addMut.mutate()} disabled={!text.trim() || addMut.isPending}>
+        <Button
+          size="sm"
+          onClick={() => addMut.mutate()}
+          disabled={!text.trim() || addMut.isPending}
+        >
           <Plus className="mr-1 h-4 w-4" /> Adicionar
         </Button>
       </div>
@@ -712,45 +778,95 @@ function ActivitiesPanel({ opportunityId, team }: { opportunityId: string; team:
         <div className="mb-2 text-xs font-medium text-muted-foreground">Nova atividade</div>
         <div className="grid gap-2">
           <div className="grid grid-cols-3 gap-2">
-            <Select value={form.activity_type} onValueChange={(v) => setForm({ ...form, activity_type: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+            <Select
+              value={form.activity_type}
+              onValueChange={(v) => setForm({ ...form, activity_type: v })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {["call","whatsapp","email","meeting","visit","follow_up","task"].map((t) => (
-                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                {["call", "whatsapp", "email", "meeting", "visit", "follow_up", "task"].map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="low">Baixa</SelectItem>
                 <SelectItem value="medium">Média</SelectItem>
                 <SelectItem value="high">Alta</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={form.assigned_to} onValueChange={(v) => setForm({ ...form, assigned_to: v })}>
-              <SelectTrigger><SelectValue placeholder="Responsável" /></SelectTrigger>
+            <Select
+              value={form.assigned_to}
+              onValueChange={(v) => setForm({ ...form, assigned_to: v })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Responsável" />
+              </SelectTrigger>
               <SelectContent>
                 {team.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>{m.full_name ?? m.email}</SelectItem>
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.full_name ?? m.email}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <Input placeholder="Título" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-          <Textarea rows={2} placeholder="Descrição (opcional)" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-          <Input type="datetime-local" value={form.due_at} onChange={(e) => setForm({ ...form, due_at: e.target.value })} />
+          <Input
+            placeholder="Título"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+          />
+          <Textarea
+            rows={2}
+            placeholder="Descrição (opcional)"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+          />
+          <Input
+            type="datetime-local"
+            value={form.due_at}
+            onChange={(e) => setForm({ ...form, due_at: e.target.value })}
+          />
           <div className="flex justify-end">
-            <Button size="sm" onClick={() => addMut.mutate()} disabled={!form.title.trim() || addMut.isPending}>
+            <Button
+              size="sm"
+              onClick={() => addMut.mutate()}
+              disabled={!form.title.trim() || addMut.isPending}
+            >
               <Plus className="mr-1 h-4 w-4" /> Adicionar
             </Button>
           </div>
         </div>
       </div>
 
-      <ActivityList title="Atrasadas" items={grouped.overdue} onToggle={toggle.mutate} onDelete={delMut.mutate} tone="destructive" />
-      <ActivityList title="Próximas" items={grouped.upcoming} onToggle={toggle.mutate} onDelete={delMut.mutate} />
-      <ActivityList title="Concluídas" items={grouped.completed} onToggle={toggle.mutate} onDelete={delMut.mutate} tone="muted" />
+      <ActivityList
+        title="Atrasadas"
+        items={grouped.overdue}
+        onToggle={toggle.mutate}
+        onDelete={delMut.mutate}
+        tone="destructive"
+      />
+      <ActivityList
+        title="Próximas"
+        items={grouped.upcoming}
+        onToggle={toggle.mutate}
+        onDelete={delMut.mutate}
+      />
+      <ActivityList
+        title="Concluídas"
+        items={grouped.completed}
+        onToggle={toggle.mutate}
+        onDelete={delMut.mutate}
+        tone="muted"
+      />
     </div>
   );
 }
@@ -771,33 +887,53 @@ function ActivityList({
   if (items.length === 0) return null;
   return (
     <div>
-      <div className={cn(
-        "mb-1 text-xs font-semibold uppercase tracking-wide",
-        tone === "destructive" ? "text-destructive" : tone === "muted" ? "text-muted-foreground" : "text-foreground",
-      )}>
+      <div
+        className={cn(
+          "mb-1 text-xs font-semibold uppercase tracking-wide",
+          tone === "destructive"
+            ? "text-destructive"
+            : tone === "muted"
+              ? "text-muted-foreground"
+              : "text-foreground",
+        )}
+      >
         {title} ({items.length})
       </div>
       <ul className="space-y-1.5">
         {items.map((a) => {
           const isDone = a.status === "done";
           return (
-            <li key={a.id} className="flex items-start gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 text-sm">
+            <li
+              key={a.id}
+              className="flex items-start gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 text-sm"
+            >
               <button
                 onClick={() => onToggle({ id: a.id, done: !isDone })}
                 className="mt-0.5 text-muted-foreground hover:text-primary"
                 aria-label={isDone ? "Marcar como pendente" : "Concluir"}
               >
-                {isDone ? <Check className="h-4 w-4 text-success" /> : <Circle className="h-4 w-4" />}
+                {isDone ? (
+                  <Check className="h-4 w-4 text-success" />
+                ) : (
+                  <Circle className="h-4 w-4" />
+                )}
               </button>
               <div className="min-w-0 flex-1">
-                <div className={cn("truncate font-medium", isDone && "text-muted-foreground line-through")}>
+                <div
+                  className={cn(
+                    "truncate font-medium",
+                    isDone && "text-muted-foreground line-through",
+                  )}
+                >
                   {a.title}
                 </div>
                 <div className="text-xs text-muted-foreground">
                   {a.activity_type} · {a.priority}
                   {a.due_at && ` · ${new Date(a.due_at).toLocaleString("pt-BR")}`}
                 </div>
-                {a.description && <p className="mt-1 text-xs text-muted-foreground">{a.description}</p>}
+                {a.description && (
+                  <p className="mt-1 text-xs text-muted-foreground">{a.description}</p>
+                )}
               </div>
               <button
                 onClick={() => onDelete(a.id)}
@@ -830,9 +966,15 @@ function QuoteStatusBadge({ status }: { status: string | null | undefined }) {
 function ProjectStatusBadge({ status }: { status: string | null | undefined }) {
   const map: Record<string, { label: string; cls: string }> = {
     DRAFT: { label: "Rascunho", cls: "bg-muted text-muted-foreground" },
-    READY_TO_SCHEDULE: { label: "Pronto p/ agendar", cls: "bg-blue-500/15 text-blue-700 dark:text-blue-300" },
+    READY_TO_SCHEDULE: {
+      label: "Pronto p/ agendar",
+      cls: "bg-blue-500/15 text-blue-700 dark:text-blue-300",
+    },
     SCHEDULED: { label: "Agendado", cls: "bg-blue-500/15 text-blue-700 dark:text-blue-300" },
-    IN_PROGRESS: { label: "Em execução", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
+    IN_PROGRESS: {
+      label: "Em execução",
+      cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    },
     PAUSED: { label: "Pausado", cls: "bg-muted text-muted-foreground" },
     COMPLETED: { label: "Concluído", cls: "bg-success text-success-foreground" },
     CANCELLED: { label: "Cancelado", cls: "bg-destructive text-destructive-foreground" },
@@ -845,7 +987,10 @@ function SoStatusBadge({ status }: { status: string | null | undefined }) {
   const map: Record<string, { label: string; cls: string }> = {
     DRAFT: { label: "Rascunho", cls: "bg-muted text-muted-foreground" },
     SCHEDULED: { label: "Agendada", cls: "bg-blue-500/15 text-blue-700 dark:text-blue-300" },
-    IN_PROGRESS: { label: "Em execução", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
+    IN_PROGRESS: {
+      label: "Em execução",
+      cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    },
     ON_HOLD: { label: "Pausada", cls: "bg-muted text-muted-foreground" },
     COMPLETED: { label: "Concluída", cls: "bg-success text-success-foreground" },
     CLOSED: { label: "Encerrada", cls: "bg-success text-success-foreground" },

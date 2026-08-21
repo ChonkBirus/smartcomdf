@@ -3,7 +3,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  Sparkles, FileText, RefreshCw, Trash2, Eye, Loader2, AlertCircle, CheckCircle2,
+  Sparkles,
+  FileText,
+  RefreshCw,
+  Trash2,
+  Eye,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
 } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/EmptyState";
@@ -13,14 +20,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { NotaUploader } from "@/components/smart-receiving/NotaUploader";
 import { NotaReviewSheet } from "@/components/smart-receiving/NotaReviewSheet";
 import {
-  listNotaDocuments, parseNotaDocument, deleteNotaDocument,
-  type NotaDocument, type NotaStatus,
+  listNotaDocuments,
+  parseNotaDocument,
+  deleteNotaDocument,
+  type NotaDocument,
+  type NotaStatus,
 } from "@/lib/smart-receiving.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
 
@@ -46,7 +62,7 @@ const STATUS_META: Record<NotaStatus, { label: string; variant: any; icon?: any 
 };
 
 const brl = (n: number | null | undefined) =>
-  (Number(n ?? 0)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  Number(n ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 function SmartReceivingPage() {
   const qc = useQueryClient();
@@ -70,13 +86,20 @@ function SmartReceivingPage() {
 
   const reparse = useMutation({
     mutationFn: (id: string) => parse({ data: { id } }),
-    onSuccess: () => { toast.success("Reprocessamento concluído."); qc.invalidateQueries({ queryKey: ["nota_documents"] }); },
+    onSuccess: () => {
+      toast.success("Reprocessamento concluído.");
+      qc.invalidateQueries({ queryKey: ["nota_documents"] });
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
   });
 
   const delMut = useMutation({
     mutationFn: (id: string) => remove({ data: { id } }),
-    onSuccess: () => { toast.success("Documento excluído."); qc.invalidateQueries({ queryKey: ["nota_documents"] }); setConfirmDel(null); },
+    onSuccess: () => {
+      toast.success("Documento excluído.");
+      qc.invalidateQueries({ queryKey: ["nota_documents"] });
+      setConfirmDel(null);
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
   });
 
@@ -88,7 +111,12 @@ function SmartReceivingPage() {
       />
 
       <Can module="smart_receiving" action="upload">
-        <NotaUploader onCreated={(id) => { qc.invalidateQueries({ queryKey: ["nota_documents"] }); setReviewId(id); }} />
+        <NotaUploader
+          onCreated={(id) => {
+            qc.invalidateQueries({ queryKey: ["nota_documents"] });
+            setReviewId(id);
+          }}
+        />
       </Can>
 
       <div className="mt-4">
@@ -132,33 +160,52 @@ function SmartReceivingPage() {
                       </td>
                       <td className="px-3 py-2">{d.ai_supplier_name ?? "—"}</td>
                       <td className="px-3 py-2">{d.ai_invoice_number ?? "—"}</td>
-                      <td className="px-3 py-2 text-right">{d.ai_total_amount !== null ? brl(d.ai_total_amount) : "—"}</td>
+                      <td className="px-3 py-2 text-right">
+                        {d.ai_total_amount !== null ? brl(d.ai_total_amount) : "—"}
+                      </td>
                       <td className="px-3 py-2">
                         <Badge variant={meta?.variant}>
-                          {Icon && <Icon className={`mr-1 h-3 w-3 ${d.status === "PROCESSING" ? "animate-spin" : ""}`} />}
+                          {Icon && (
+                            <Icon
+                              className={`mr-1 h-3 w-3 ${d.status === "PROCESSING" ? "animate-spin" : ""}`}
+                            />
+                          )}
                           {meta?.label ?? d.status}
                         </Badge>
                       </td>
                       <td className="px-3 py-2">
                         <div className="flex justify-end gap-1">
-                          <Button size="icon" variant="ghost" onClick={() => setReviewId(d.id)} title="Revisar">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setReviewId(d.id)}
+                            title="Revisar"
+                          >
                             <Eye className="h-4 w-4" />
                           </Button>
                           {(d.status === "FAILED" || d.status === "PARSED") && (
                             <Can module="smart_receiving" action="process">
                               <Button
-                                size="icon" variant="ghost"
+                                size="icon"
+                                variant="ghost"
                                 onClick={() => reparse.mutate(d.id)}
                                 disabled={reparse.isPending}
                                 title="Reprocessar com IA"
                               >
-                                <RefreshCw className={`h-4 w-4 ${reparse.isPending ? "animate-spin" : ""}`} />
+                                <RefreshCw
+                                  className={`h-4 w-4 ${reparse.isPending ? "animate-spin" : ""}`}
+                                />
                               </Button>
                             </Can>
                           )}
                           {d.status !== "CONFIRMED" && (
                             <Can module="smart_receiving" action="delete">
-                              <Button size="icon" variant="ghost" onClick={() => setConfirmDel(d)} title="Excluir">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => setConfirmDel(d)}
+                                title="Excluir"
+                              >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </Can>
@@ -174,7 +221,11 @@ function SmartReceivingPage() {
         )}
       </div>
 
-      <NotaReviewSheet open={!!reviewId} onOpenChange={(o) => !o && setReviewId(null)} docId={reviewId} />
+      <NotaReviewSheet
+        open={!!reviewId}
+        onOpenChange={(o) => !o && setReviewId(null)}
+        docId={reviewId}
+      />
 
       <AlertDialog open={!!confirmDel} onOpenChange={(o) => !o && setConfirmDel(null)}>
         <AlertDialogContent>
@@ -186,7 +237,9 @@ function SmartReceivingPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => confirmDel && delMut.mutate(confirmDel.id)}>Excluir</AlertDialogAction>
+            <AlertDialogAction onClick={() => confirmDel && delMut.mutate(confirmDel.id)}>
+              Excluir
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

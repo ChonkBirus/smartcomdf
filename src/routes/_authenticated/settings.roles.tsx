@@ -40,16 +40,21 @@ function RolesPage() {
       <CardHeader>
         <CardTitle className="text-base">Matriz de permissões</CardTitle>
         <p className="text-xs text-muted-foreground">
-          Marque para liberar uma permissão para o papel. O proprietário tem acesso total e não pode ser alterado.
+          Marque para liberar uma permissão para o papel. O proprietário tem acesso total e não pode
+          ser alterado.
         </p>
       </CardHeader>
       <CardContent className="overflow-x-auto p-0">
         <table className="w-full text-sm">
           <thead className="border-b border-border bg-muted/40">
             <tr>
-              <th className="sticky left-0 z-10 bg-muted/40 px-4 py-2 text-left font-medium">Permissão</th>
+              <th className="sticky left-0 z-10 bg-muted/40 px-4 py-2 text-left font-medium">
+                Permissão
+              </th>
               {roles.map((r: any) => (
-                <th key={r.id} className="px-3 py-2 text-center font-medium capitalize">{r.name}</th>
+                <th key={r.id} className="px-3 py-2 text-center font-medium capitalize">
+                  {r.name}
+                </th>
               ))}
             </tr>
           </thead>
@@ -57,7 +62,10 @@ function RolesPage() {
             {Object.entries(grouped).map(([mod, perms]) => (
               <>
                 <tr key={`m-${mod}`} className="bg-muted/20">
-                  <td colSpan={roles.length + 1} className="px-4 py-1.5 text-xs uppercase tracking-wider text-muted-foreground">
+                  <td
+                    colSpan={roles.length + 1}
+                    className="px-4 py-1.5 text-xs uppercase tracking-wider text-muted-foreground"
+                  >
                     {mod}
                   </td>
                 </tr>

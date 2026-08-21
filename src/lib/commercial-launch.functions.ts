@@ -73,19 +73,16 @@ export const getLaunchReadiness = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const [checklistRes, providerRes, plansRes, dunningRes, pilotsRes] = await Promise.all([
-      supabaseAdmin
-        .from("commercial_launch_checklist")
-        .select("completed", { count: "exact" }),
+      supabaseAdmin.from("commercial_launch_checklist").select("completed", { count: "exact" }),
       supabaseAdmin
         .from("billing_provider_settings")
-        .select("provider, active, terms_of_use_url, privacy_policy_url, support_whatsapp, support_email")
+        .select(
+          "provider, active, terms_of_use_url, privacy_policy_url, support_whatsapp, support_email",
+        )
         .eq("active", true)
         .limit(1)
         .maybeSingle(),
-      supabaseAdmin
-        .from("plans")
-        .select("id", { count: "exact", head: true })
-        .eq("active", true),
+      supabaseAdmin.from("plans").select("id", { count: "exact", head: true }).eq("active", true),
       supabaseAdmin
         .from("billing_dunning_rules")
         .select("id", { count: "exact", head: true })
@@ -108,7 +105,8 @@ export const getLaunchReadiness = createServerFn({ method: "GET" })
       hasTermsAndPrivacy: !!provider?.terms_of_use_url && !!provider?.privacy_policy_url,
       hasSupportChannels: !!(provider?.support_whatsapp || provider?.support_email),
       hasActiveDunningRules: (dunningRes.count ?? 0) > 0,
-      activePilots: pilots.filter((p) => p.status === "active" || p.status === "in_progress").length,
+      activePilots: pilots.filter((p) => p.status === "active" || p.status === "in_progress")
+        .length,
       convertedPilots: pilots.filter((p) => p.status === "converted").length,
       lostPilots: pilots.filter((p) => p.status === "lost").length,
     };

@@ -2,8 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  Users, Package, ClipboardCheck, Calendar, AlertTriangle, CheckCircle2,
-  Loader2, Trash2, Plus, ShieldCheck,
+  Users,
+  Package,
+  ClipboardCheck,
+  Calendar,
+  AlertTriangle,
+  CheckCircle2,
+  Loader2,
+  Trash2,
+  Plus,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,26 +19,49 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { usePermissions } from "@/lib/permissions";
 import {
-  getProjectPlanning, updateProjectPlanning, addTeamMember, removeTeamMember,
-  checkProjectMaterials, markReadyForOS, listCompanyUsers,
+  getProjectPlanning,
+  updateProjectPlanning,
+  addTeamMember,
+  removeTeamMember,
+  checkProjectMaterials,
+  markReadyForOS,
+  listCompanyUsers,
   type MaterialCheckStatus,
 } from "@/lib/project-planning.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
 
 const PRIORITY_LABEL: Record<string, string> = {
-  LOW: "Baixa", NORMAL: "Normal", HIGH: "Alta", URGENT: "Urgente",
+  LOW: "Baixa",
+  NORMAL: "Normal",
+  HIGH: "Alta",
+  URGENT: "Urgente",
 };
 const ROLES = ["Técnico", "Auxiliar", "Supervisor", "Responsável comercial", "Outro"];
 
@@ -55,7 +86,13 @@ const PLAN_LABEL: Record<string, { label: string; cls: string }> = {
   READY_FOR_SERVICE_ORDER: { label: "Pronto para OS", cls: "bg-success/15 text-success" },
 };
 
-export function ProjectPlanningPanel({ project, onChanged }: { project: any; onChanged: () => void }) {
+export function ProjectPlanningPanel({
+  project,
+  onChanged,
+}: {
+  project: any;
+  onChanged: () => void;
+}) {
   const qc = useQueryClient();
   const { can } = usePermissions();
   const fetchPlanning = useServerFn(getProjectPlanning);
@@ -113,27 +150,37 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
 
   const saveMut = useMutation({
     mutationFn: () =>
-      updateFn({ data: {
-        id: project.id,
-        responsible_user_id: form.responsible_user_id || null,
-        planned_start_date: form.planned_start_date || null,
-        planned_end_date: form.planned_end_date || null,
-        planned_start_time: form.planned_start_time || null,
-        planned_end_time: form.planned_end_time || null,
-        priority: form.priority as any,
-        operational_notes: form.operational_notes || null,
-        customer_instructions: form.customer_instructions || null,
-        access_instructions: form.access_instructions || null,
-        parking_instructions: form.parking_instructions || null,
-      } }),
-    onSuccess: () => { toast.success("Planejamento salvo."); onChanged(); },
+      updateFn({
+        data: {
+          id: project.id,
+          responsible_user_id: form.responsible_user_id || null,
+          planned_start_date: form.planned_start_date || null,
+          planned_end_date: form.planned_end_date || null,
+          planned_start_time: form.planned_start_time || null,
+          planned_end_time: form.planned_end_time || null,
+          priority: form.priority as any,
+          operational_notes: form.operational_notes || null,
+          customer_instructions: form.customer_instructions || null,
+          access_instructions: form.access_instructions || null,
+          parking_instructions: form.parking_instructions || null,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Planejamento salvo.");
+      onChanged();
+    },
     onError: (e: any) => toast.error(e?.message ?? "Erro ao salvar."),
   });
 
   const addMut = useMutation({
-    mutationFn: () => addMemberFn({ data: {
-      project_id: project.id, user_id: newMember.user_id, role: newMember.role,
-    } }),
+    mutationFn: () =>
+      addMemberFn({
+        data: {
+          project_id: project.id,
+          user_id: newMember.user_id,
+          role: newMember.role,
+        },
+      }),
     onSuccess: () => {
       toast.success("Membro adicionado.");
       setNewMember({ user_id: "", role: "Técnico" });
@@ -203,7 +250,9 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
             <span className="truncate">Planejamento do projeto</span>
           </div>
           <div className="flex flex-wrap gap-2">
-            <span className={`rounded px-2 py-0.5 text-xs ${planBadge.cls}`}>{planBadge.label}</span>
+            <span className={`rounded px-2 py-0.5 text-xs ${planBadge.cls}`}>
+              {planBadge.label}
+            </span>
             <span className={`rounded px-2 py-0.5 text-xs ${matBadge.cls}`}>{matBadge.label}</span>
           </div>
         </div>
@@ -220,32 +269,47 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
       {/* Dados de execução */}
       <div className="rounded-lg border bg-card p-4">
         <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-          <Calendar className="h-4 w-4" />Dados de execução
+          <Calendar className="h-4 w-4" />
+          Dados de execução
         </div>
         <div className="grid gap-3 md:grid-cols-2">
           <div>
             <Label>Responsável pelo projeto</Label>
             <Select
               value={form.responsible_user_id || "none"}
-              onValueChange={(v) => setForm({ ...form, responsible_user_id: v === "none" ? "" : v })}
+              onValueChange={(v) =>
+                setForm({ ...form, responsible_user_id: v === "none" ? "" : v })
+              }
               disabled={locked}
             >
-              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">— Sem responsável —</SelectItem>
                 {users.map((u) => (
-                  <SelectItem key={u.id} value={u.id}>{u.full_name || u.email}</SelectItem>
+                  <SelectItem key={u.id} value={u.id}>
+                    {u.full_name || u.email}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div>
             <Label>Prioridade</Label>
-            <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })} disabled={locked}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+            <Select
+              value={form.priority}
+              onValueChange={(v) => setForm({ ...form, priority: v })}
+              disabled={locked}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 {Object.entries(PRIORITY_LABEL).map(([k, v]) => (
-                  <SelectItem key={k} value={k}>{v}</SelectItem>
+                  <SelectItem key={k} value={k}>
+                    {v}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -253,32 +317,55 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
           <div className="grid grid-cols-2 gap-2">
             <div className="min-w-0">
               <Label>Início previsto</Label>
-              <Input type="date" className="w-full min-w-0" value={form.planned_start_date} disabled={locked}
-                onChange={(e) => setForm({ ...form, planned_start_date: e.target.value })} />
+              <Input
+                type="date"
+                className="w-full min-w-0"
+                value={form.planned_start_date}
+                disabled={locked}
+                onChange={(e) => setForm({ ...form, planned_start_date: e.target.value })}
+              />
             </div>
             <div className="min-w-0">
               <Label>Hora início</Label>
-              <Input type="time" className="w-full min-w-0" value={form.planned_start_time} disabled={locked}
-                onChange={(e) => setForm({ ...form, planned_start_time: e.target.value })} />
+              <Input
+                type="time"
+                className="w-full min-w-0"
+                value={form.planned_start_time}
+                disabled={locked}
+                onChange={(e) => setForm({ ...form, planned_start_time: e.target.value })}
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="min-w-0">
               <Label>Conclusão prevista</Label>
-              <Input type="date" className="w-full min-w-0" value={form.planned_end_date} disabled={locked}
-                onChange={(e) => setForm({ ...form, planned_end_date: e.target.value })} />
+              <Input
+                type="date"
+                className="w-full min-w-0"
+                value={form.planned_end_date}
+                disabled={locked}
+                onChange={(e) => setForm({ ...form, planned_end_date: e.target.value })}
+              />
             </div>
             <div className="min-w-0">
               <Label>Hora término</Label>
-              <Input type="time" className="w-full min-w-0" value={form.planned_end_time} disabled={locked}
-                onChange={(e) => setForm({ ...form, planned_end_time: e.target.value })} />
+              <Input
+                type="time"
+                className="w-full min-w-0"
+                value={form.planned_end_time}
+                disabled={locked}
+                onChange={(e) => setForm({ ...form, planned_end_time: e.target.value })}
+              />
             </div>
           </div>
 
           <div className="md:col-span-2">
             <Label>Observações operacionais</Label>
-            <Textarea value={form.operational_notes} disabled={locked}
-              onChange={(e) => setForm({ ...form, operational_notes: e.target.value })} />
+            <Textarea
+              value={form.operational_notes}
+              disabled={locked}
+              onChange={(e) => setForm({ ...form, operational_notes: e.target.value })}
+            />
           </div>
         </div>
 
@@ -287,23 +374,35 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
         <div className="grid gap-3 md:grid-cols-2">
           <div>
             <Label>Instruções do cliente</Label>
-            <Textarea value={form.customer_instructions} disabled={locked}
-              onChange={(e) => setForm({ ...form, customer_instructions: e.target.value })} />
+            <Textarea
+              value={form.customer_instructions}
+              disabled={locked}
+              onChange={(e) => setForm({ ...form, customer_instructions: e.target.value })}
+            />
           </div>
           <div>
             <Label>Instruções de acesso</Label>
-            <Textarea value={form.access_instructions} disabled={locked}
-              onChange={(e) => setForm({ ...form, access_instructions: e.target.value })} />
+            <Textarea
+              value={form.access_instructions}
+              disabled={locked}
+              onChange={(e) => setForm({ ...form, access_instructions: e.target.value })}
+            />
           </div>
           <div className="md:col-span-2">
             <Label>Instruções de estacionamento</Label>
-            <Textarea value={form.parking_instructions} disabled={locked}
-              onChange={(e) => setForm({ ...form, parking_instructions: e.target.value })} />
+            <Textarea
+              value={form.parking_instructions}
+              disabled={locked}
+              onChange={(e) => setForm({ ...form, parking_instructions: e.target.value })}
+            />
           </div>
         </div>
 
         <div className="mt-3 flex justify-end">
-          <Button onClick={() => saveMut.mutate()} disabled={locked || saveMut.isPending || !can("projects", "plan")}>
+          <Button
+            onClick={() => saveMut.mutate()}
+            disabled={locked || saveMut.isPending || !can("projects", "plan")}
+          >
             {saveMut.isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
             Salvar planejamento
           </Button>
@@ -313,34 +412,56 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
       {/* Equipe */}
       <div className="rounded-lg border bg-card p-4">
         <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-          <Users className="h-4 w-4" />Equipe
+          <Users className="h-4 w-4" />
+          Equipe
         </div>
         <div className="mb-3 flex flex-wrap items-end gap-2">
           <div className="min-w-56 flex-1">
             <Label>Usuário</Label>
-            <Select value={newMember.user_id} onValueChange={(v) => setNewMember({ ...newMember, user_id: v })} disabled={locked}>
-              <SelectTrigger><SelectValue placeholder="Selecione um usuário" /></SelectTrigger>
+            <Select
+              value={newMember.user_id}
+              onValueChange={(v) => setNewMember({ ...newMember, user_id: v })}
+              disabled={locked}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um usuário" />
+              </SelectTrigger>
               <SelectContent>
                 {users.map((u) => (
-                  <SelectItem key={u.id} value={u.id}>{u.full_name || u.email}</SelectItem>
+                  <SelectItem key={u.id} value={u.id}>
+                    {u.full_name || u.email}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="w-48">
             <Label>Função</Label>
-            <Select value={newMember.role} onValueChange={(v) => setNewMember({ ...newMember, role: v })} disabled={locked}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+            <Select
+              value={newMember.role}
+              onValueChange={(v) => setNewMember({ ...newMember, role: v })}
+              disabled={locked}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                {ROLES.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {r}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <Button
             onClick={() => addMut.mutate()}
-            disabled={locked || !newMember.user_id || addMut.isPending || !can("projects", "manage_team")}
+            disabled={
+              locked || !newMember.user_id || addMut.isPending || !can("projects", "manage_team")
+            }
           >
-            <Plus className="mr-1 h-4 w-4" />Adicionar
+            <Plus className="mr-1 h-4 w-4" />
+            Adicionar
           </Button>
         </div>
         {team.length === 0 ? (
@@ -358,10 +479,16 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
               {team.map((m) => (
                 <TableRow key={m.id}>
                   <TableCell className="font-medium">{m.full_name || m.email}</TableCell>
-                  <TableCell><Badge variant="outline">{m.role || "—"}</Badge></TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{m.role || "—"}</Badge>
+                  </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" disabled={locked || !can("projects", "manage_team")}
-                      onClick={() => removeMut.mutate(m.id)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={locked || !can("projects", "manage_team")}
+                      onClick={() => removeMut.mutate(m.id)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
@@ -379,13 +506,20 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
             <Package className="h-4 w-4 shrink-0" />
             <span className="truncate">Materiais</span>
           </div>
-          <Button variant="outline" size="sm" onClick={() => checkMut.mutate()}
-            disabled={locked || checkMut.isPending || !can("projects", "check_materials")}>
-            {checkMut.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <ClipboardCheck className="mr-1 h-4 w-4" />}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => checkMut.mutate()}
+            disabled={locked || checkMut.isPending || !can("projects", "check_materials")}
+          >
+            {checkMut.isPending ? (
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+            ) : (
+              <ClipboardCheck className="mr-1 h-4 w-4" />
+            )}
             Verificar disponibilidade
           </Button>
         </div>
-
 
         {insufficient && missingItems.length > 0 && (
           <div className="mb-3 flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-3 text-sm">
@@ -397,8 +531,9 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
               <ul className="mt-1 text-warning">
                 {missingItems.map((m) => (
                   <li key={m.id}>
-                    {m.name}: faltam {Number(m.missing_quantity).toLocaleString("pt-BR")} {m.unit}
-                    {" "}(necessário {Number(m.required_quantity).toLocaleString("pt-BR")}, disponível {Number(m.available_quantity).toLocaleString("pt-BR")})
+                    {m.name}: faltam {Number(m.missing_quantity).toLocaleString("pt-BR")} {m.unit}{" "}
+                    (necessário {Number(m.required_quantity).toLocaleString("pt-BR")}, disponível{" "}
+                    {Number(m.available_quantity).toLocaleString("pt-BR")})
                   </li>
                 ))}
               </ul>
@@ -437,9 +572,15 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
                       )}
                     </TableCell>
                     <TableCell className="font-medium">{m.name}</TableCell>
-                    <TableCell className="text-right">{Number(m.required_quantity).toLocaleString("pt-BR")} {m.unit}</TableCell>
-                    <TableCell className="text-right">{Number(m.available_quantity).toLocaleString("pt-BR")}</TableCell>
-                    <TableCell className="text-right">{Number(m.missing_quantity).toLocaleString("pt-BR")}</TableCell>
+                    <TableCell className="text-right">
+                      {Number(m.required_quantity).toLocaleString("pt-BR")} {m.unit}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {Number(m.available_quantity).toLocaleString("pt-BR")}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {Number(m.missing_quantity).toLocaleString("pt-BR")}
+                    </TableCell>
                     <TableCell>
                       <span className={`rounded px-2 py-0.5 text-xs ${b.cls}`}>{b.label}</span>
                     </TableCell>
@@ -466,7 +607,11 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
             else readyMut.mutate(false);
           }}
         >
-          {readyMut.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1 h-4 w-4" />}
+          {readyMut.isPending ? (
+            <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+          ) : (
+            <CheckCircle2 className="mr-1 h-4 w-4" />
+          )}
           {isReady ? "Já está pronto para OS" : "Marcar como pronto para OS"}
         </Button>
       </div>
@@ -477,14 +622,17 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
             <AlertDialogTitle>Materiais insuficientes</AlertDialogTitle>
             <AlertDialogDescription>
               Existem materiais insuficientes para este projeto. Deseja continuar mesmo assim?
-              Empresas de segurança eletrônica podem comprar materiais no caminho ou usar
-              estoque de veículo.
+              Empresas de segurança eletrônica podem comprar materiais no caminho ou usar estoque de
+              veículo.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={readyMut.isPending}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={(e) => { e.preventDefault(); readyMut.mutate(true); }}
+              onClick={(e) => {
+                e.preventDefault();
+                readyMut.mutate(true);
+              }}
               disabled={readyMut.isPending}
             >
               Continuar mesmo assim
@@ -498,7 +646,9 @@ export function ProjectPlanningPanel({ project, onChanged }: { project: any; onC
 
 function Step({ done, label }: { done: boolean; label: string }) {
   return (
-    <div className={`flex items-center gap-2 rounded-md border p-2 ${done ? "border-success/40 bg-success/10" : "border-dashed"}`}>
+    <div
+      className={`flex items-center gap-2 rounded-md border p-2 ${done ? "border-success/40 bg-success/10" : "border-dashed"}`}
+    >
       <CheckCircle2 className={`h-4 w-4 ${done ? "text-success" : "text-muted-foreground"}`} />
       <span className={done ? "" : "text-muted-foreground"}>{label}</span>
     </div>

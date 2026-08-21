@@ -52,16 +52,19 @@ export function TechnicianServiceOrderCard({ so }: { so: TechnicianOrderRow }) {
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground">
           {date && (
             <span className="inline-flex items-center gap-1">
-              <Calendar className="h-4 w-4" />{date}
+              <Calendar className="h-4 w-4" />
+              {date}
             </span>
           )}
           {time && (
             <span className="inline-flex items-center gap-1">
-              <Clock className="h-4 w-4" />{time}
+              <Clock className="h-4 w-4" />
+              {time}
             </span>
           )}
           <span className="inline-flex items-center gap-1">
-            <User className="h-4 w-4" />{so.technician_name ?? "Técnico não definido"}
+            <User className="h-4 w-4" />
+            {so.technician_name ?? "Técnico não definido"}
           </span>
         </div>
       </div>

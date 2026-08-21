@@ -12,14 +12,25 @@ import { FeatureGate } from "@/components/app/FeatureGate";
 import { Input } from "@/components/ui/input";
 
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import {
-  listServiceOrders, type ServiceOrderStatus, type ServiceOrderPriority,
+  listServiceOrders,
+  type ServiceOrderStatus,
+  type ServiceOrderPriority,
 } from "@/lib/service-orders.functions";
 
 export const Route = createFileRoute("/_authenticated/service-orders")({
@@ -34,11 +45,18 @@ export const Route = createFileRoute("/_authenticated/service-orders")({
 });
 
 const STATUS_LABEL: Record<ServiceOrderStatus, string> = {
-  DRAFT: "Rascunho", SCHEDULED: "Agendada", IN_PROGRESS: "Em execução",
-  PAUSED: "Pausada", COMPLETED: "Concluída", CANCELLED: "Cancelada",
+  DRAFT: "Rascunho",
+  SCHEDULED: "Agendada",
+  IN_PROGRESS: "Em execução",
+  PAUSED: "Pausada",
+  COMPLETED: "Concluída",
+  CANCELLED: "Cancelada",
 };
 const PRIORITY_LABEL: Record<ServiceOrderPriority, string> = {
-  LOW: "Baixa", NORMAL: "Normal", HIGH: "Alta", URGENT: "Urgente",
+  LOW: "Baixa",
+  NORMAL: "Normal",
+  HIGH: "Alta",
+  URGENT: "Urgente",
 };
 
 function ServiceOrdersListPage() {
@@ -52,7 +70,14 @@ function ServiceOrdersListPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["service-orders", companyId, { status, priority, search }],
     enabled: !!companyId,
-    queryFn: () => fetchFn({ data: { status: status || undefined, priority: priority || undefined, search: search || undefined } }),
+    queryFn: () =>
+      fetchFn({
+        data: {
+          status: status || undefined,
+          priority: priority || undefined,
+          search: search || undefined,
+        },
+      }),
   });
 
   return (
@@ -70,20 +95,28 @@ function ServiceOrdersListPage() {
           />
         </div>
         <Select value={status || "ALL"} onValueChange={(v) => setStatus(v === "ALL" ? "" : v)}>
-          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">Todos os status</SelectItem>
             {Object.entries(STATUS_LABEL).map(([k, v]) => (
-              <SelectItem key={k} value={k}>{v}</SelectItem>
+              <SelectItem key={k} value={k}>
+                {v}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={priority || "ALL"} onValueChange={(v) => setPriority(v === "ALL" ? "" : v)}>
-          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Prioridade" /></SelectTrigger>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Prioridade" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">Todas</SelectItem>
             {Object.entries(PRIORITY_LABEL).map(([k, v]) => (
-              <SelectItem key={k} value={k}>{v}</SelectItem>
+              <SelectItem key={k} value={k}>
+                {v}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -105,7 +138,11 @@ function ServiceOrdersListPage() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Carregando...</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
+                  Carregando...
+                </TableCell>
+              </TableRow>
             ) : !data || data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="p-0">
@@ -117,27 +154,49 @@ function ServiceOrdersListPage() {
                   />
                 </TableCell>
               </TableRow>
-            ) : data.map((so) => (
-              <TableRow key={so.id} className="cursor-pointer"
-                onClick={() => navigate({ to: "/service-orders/$id", params: { id: so.id } } as any)}>
-                <TableCell className="font-medium">{so.service_order_number}</TableCell>
-                <TableCell>{so.customer_name}</TableCell>
-                <TableCell>{so.project_number ?? "—"}</TableCell>
-                <TableCell>{so.technician_name ?? "—"}</TableCell>
-                <TableCell>
-                  {so.scheduled_date ? new Date(so.scheduled_date).toLocaleDateString("pt-BR") : "—"}
-                  {so.scheduled_start_time ? ` ${so.scheduled_start_time.slice(0,5)}` : ""}
-                </TableCell>
-                <TableCell><StatusBadge status={so.status} label={STATUS_LABEL[so.status]} /></TableCell>
-                <TableCell><StatusBadge status={so.priority} tone="neutral" label={PRIORITY_LABEL[so.priority]} /></TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <Button variant="ghost" size="sm"
-                    onClick={() => navigate({ to: "/service-orders/$id", params: { id: so.id } } as any)}>
-                    Abrir
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            ) : (
+              data.map((so) => (
+                <TableRow
+                  key={so.id}
+                  className="cursor-pointer"
+                  onClick={() =>
+                    navigate({ to: "/service-orders/$id", params: { id: so.id } } as any)
+                  }
+                >
+                  <TableCell className="font-medium">{so.service_order_number}</TableCell>
+                  <TableCell>{so.customer_name}</TableCell>
+                  <TableCell>{so.project_number ?? "—"}</TableCell>
+                  <TableCell>{so.technician_name ?? "—"}</TableCell>
+                  <TableCell>
+                    {so.scheduled_date
+                      ? new Date(so.scheduled_date).toLocaleDateString("pt-BR")
+                      : "—"}
+                    {so.scheduled_start_time ? ` ${so.scheduled_start_time.slice(0, 5)}` : ""}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={so.status} label={STATUS_LABEL[so.status]} />
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge
+                      status={so.priority}
+                      tone="neutral"
+                      label={PRIORITY_LABEL[so.priority]}
+                    />
+                  </TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        navigate({ to: "/service-orders/$id", params: { id: so.id } } as any)
+                      }
+                    >
+                      Abrir
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

@@ -198,7 +198,10 @@ function PilotDetailPage() {
           <div className="text-xs text-muted-foreground">Score de ativação</div>
           <div className="mt-1 flex items-center gap-2">
             <div className="text-2xl font-semibold">{activation?.score ?? 0}</div>
-            <StatusBadge tone={tierTone(activation?.tier ?? "LOW")} status={activation?.tier ?? "LOW"} />
+            <StatusBadge
+              tone={tierTone(activation?.tier ?? "LOW")}
+              status={activation?.tier ?? "LOW"}
+            />
           </div>
         </Card>
         <Card className="card-elevated p-4">
@@ -242,20 +245,28 @@ function PilotDetailPage() {
           <h3 className="text-sm font-medium">Feedback e bugs</h3>
           <div className="flex flex-wrap gap-2">
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Todos os tipos</SelectItem>
                 {PILOT_FEEDBACK_TYPES.map((t) => (
-                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Todos os status</SelectItem>
                 {PILOT_FEEDBACK_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -284,17 +295,27 @@ function PilotDetailPage() {
                   <TableCell className="max-w-[300px]">
                     <div className="font-medium">{row.title}</div>
                     {row.description ? (
-                      <div className="line-clamp-1 text-xs text-muted-foreground">{row.description}</div>
+                      <div className="line-clamp-1 text-xs text-muted-foreground">
+                        {row.description}
+                      </div>
                     ) : null}
                   </TableCell>
-                  <TableCell><Badge variant="outline">{row.feedback_type}</Badge></TableCell>
-                  <TableCell><StatusBadge tone={priorityTone(row.priority)} status={row.priority} /></TableCell>
-                  <TableCell><StatusBadge tone={statusTone(row.status)} status={row.status} /></TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{row.feedback_type}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge tone={priorityTone(row.priority)} status={row.priority} />
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge tone={statusTone(row.status)} status={row.status} />
+                  </TableCell>
                   <TableCell>{row.module ?? "—"}</TableCell>
                   <TableCell>{fmt(row.created_at)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button size="sm" variant="ghost" onClick={() => setEditing(row)}>Editar</Button>
+                      <Button size="sm" variant="ghost" onClick={() => setEditing(row)}>
+                        Editar
+                      </Button>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -365,7 +386,12 @@ function FeedbackDialog({
   const [assignee, setAssignee] = useState(initial?.assignee ?? "");
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) onClose();
+      }}
+    >
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{initial ? "Editar registro" : "Novo registro"}</DialogTitle>
@@ -375,10 +401,14 @@ function FeedbackDialog({
             <div className="space-y-2">
               <Label>Tipo</Label>
               <Select value={feedbackType} onValueChange={setFeedbackType}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {PILOT_FEEDBACK_TYPES.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -386,10 +416,14 @@ function FeedbackDialog({
             <div className="space-y-2">
               <Label>Prioridade</Label>
               <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {PILOT_FEEDBACK_PRIORITIES.map((p) => (
-                    <SelectItem key={p} value={p}>{p}</SelectItem>
+                    <SelectItem key={p} value={p}>
+                      {p}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -397,10 +431,14 @@ function FeedbackDialog({
             <div className="space-y-2">
               <Label>Status</Label>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {PILOT_FEEDBACK_STATUSES.map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -412,16 +450,28 @@ function FeedbackDialog({
           </div>
           <div className="space-y-2">
             <Label>Descrição</Label>
-            <Textarea rows={3} value={description ?? ""} onChange={(e) => setDescription(e.target.value)} />
+            <Textarea
+              rows={3}
+              value={description ?? ""}
+              onChange={(e) => setDescription(e.target.value)}
+            />
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div className="space-y-2">
               <Label>Módulo</Label>
-              <Input value={module ?? ""} onChange={(e) => setModule(e.target.value)} placeholder="Orçamentos, OS…" />
+              <Input
+                value={module ?? ""}
+                onChange={(e) => setModule(e.target.value)}
+                placeholder="Orçamentos, OS…"
+              />
             </div>
             <div className="space-y-2">
               <Label>Tela</Label>
-              <Input value={screen ?? ""} onChange={(e) => setScreen(e.target.value)} placeholder="/quotes" />
+              <Input
+                value={screen ?? ""}
+                onChange={(e) => setScreen(e.target.value)}
+                placeholder="/quotes"
+              />
             </div>
           </div>
           {feedbackType === "BUG" ? (
@@ -433,11 +483,19 @@ function FeedbackDialog({
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Resultado esperado</Label>
-                  <Textarea rows={2} value={expected ?? ""} onChange={(e) => setExpected(e.target.value)} />
+                  <Textarea
+                    rows={2}
+                    value={expected ?? ""}
+                    onChange={(e) => setExpected(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Resultado atual</Label>
-                  <Textarea rows={2} value={actual ?? ""} onChange={(e) => setActual(e.target.value)} />
+                  <Textarea
+                    rows={2}
+                    value={actual ?? ""}
+                    onChange={(e) => setActual(e.target.value)}
+                  />
                 </div>
               </div>
             </>
@@ -448,7 +506,9 @@ function FeedbackDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancelar
+          </Button>
           <Button
             disabled={pending || !title.trim()}
             onClick={() =>

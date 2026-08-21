@@ -7,12 +7,12 @@ export type AuthDevFlow = "signup" | "reset_password" | "invite" | "invite_resen
 export type AuthDevStatus = "attempt" | "success" | "error";
 
 export interface AuthDevEntry {
-  ts: string;            // ISO timestamp
+  ts: string; // ISO timestamp
   flow: AuthDevFlow;
   status: AuthDevStatus;
-  emailMasked?: string;  // e.g. "j***@gmail.com"
-  redirectUrl?: string;  // safe — public URL
-  message?: string;      // error.message or short note
+  emailMasked?: string; // e.g. "j***@gmail.com"
+  redirectUrl?: string; // safe — public URL
+  message?: string; // error.message or short note
 }
 
 const KEY = "smartcom:auth-dev-log";

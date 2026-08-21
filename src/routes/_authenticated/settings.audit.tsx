@@ -7,7 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/app/PageHeader";
 import { listAuditLogs } from "@/lib/audit.functions";
@@ -70,10 +75,18 @@ function AuditPage() {
           </TableHeader>
           <TableBody>
             {isLoading && (
-              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">Carregando…</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                  Carregando…
+                </TableCell>
+              </TableRow>
             )}
             {!isLoading && (data ?? []).length === 0 && (
-              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">Sem registros.</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                  Sem registros.
+                </TableCell>
+              </TableRow>
             )}
             {(data ?? []).map((l: any) => (
               <TableRow key={l.id}>
@@ -84,9 +97,13 @@ function AuditPage() {
                   <div className="text-sm">{l.user?.full_name ?? "—"}</div>
                   <div className="text-xs text-muted-foreground">{l.user?.email}</div>
                 </TableCell>
-                <TableCell><Badge variant="outline">{l.module}</Badge></TableCell>
                 <TableCell>
-                  <Badge className={ACTION_COLORS[l.action] ?? ""} variant="secondary">{l.action}</Badge>
+                  <Badge variant="outline">{l.module}</Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge className={ACTION_COLORS[l.action] ?? ""} variant="secondary">
+                    {l.action}
+                  </Badge>
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">
                   {l.record_id ? l.record_id.slice(0, 8) : "—"}

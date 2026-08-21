@@ -31,13 +31,9 @@ export function EmptyState({
           {icon}
         </div>
       )}
-      <h3 className="font-display text-lg font-semibold tracking-tight text-foreground">
-        {title}
-      </h3>
+      <h3 className="font-display text-lg font-semibold tracking-tight text-foreground">{title}</h3>
       {description && (
-        <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-          {description}
-        </p>
+        <p className="max-w-md text-sm leading-relaxed text-muted-foreground">{description}</p>
       )}
       {(action || secondaryAction) && (
         <div className="mt-2 flex flex-wrap items-center justify-center gap-2">

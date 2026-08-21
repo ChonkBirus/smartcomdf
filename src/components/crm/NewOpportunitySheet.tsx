@@ -2,12 +2,24 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { LabelWithHelp } from "@/components/ui/FieldHelp";
 import { createOpportunity, listCrmTeam } from "@/lib/crm.functions";
 
@@ -36,7 +48,13 @@ const empty = {
   next_follow_up_at: "",
 };
 
-export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultStageId, onCreated }: Props) {
+export function NewOpportunitySheet({
+  open,
+  onOpenChange,
+  pipelineId,
+  defaultStageId,
+  onCreated,
+}: Props) {
   const [form, setForm] = useState(empty);
   const qc = useQueryClient();
   const fetchTeam = useServerFn(listCrmTeam);
@@ -108,8 +126,13 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
               <LabelWithHelp label="Tipo" help="Pessoa Física (CPF) ou Pessoa Jurídica (CNPJ)." />
-              <Select value={form.lead_type} onValueChange={(v) => setForm({ ...form, lead_type: v as any })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={form.lead_type}
+                onValueChange={(v) => setForm({ ...form, lead_type: v as any })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="pf">Pessoa Física</SelectItem>
                   <SelectItem value="pj">Pessoa Jurídica</SelectItem>
@@ -121,8 +144,13 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
                 label="Temperatura"
                 help="Quão pronto o lead está para fechar: Frio (só olhou), Morno (interessado), Quente (quer fechar já)."
               />
-              <Select value={form.temperature} onValueChange={(v) => setForm({ ...form, temperature: v as any })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={form.temperature}
+                onValueChange={(v) => setForm({ ...form, temperature: v as any })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="cold">Frio</SelectItem>
                   <SelectItem value="warm">Morno</SelectItem>
@@ -135,18 +163,28 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
           {form.lead_type === "pj" && (
             <div className="grid gap-2">
               <Label>Empresa</Label>
-              <Input value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} />
+              <Input
+                value={form.company_name}
+                onChange={(e) => setForm({ ...form, company_name: e.target.value })}
+              />
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
               <Label>Telefone / WhatsApp</Label>
-              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <Input
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              />
             </div>
             <div className="grid gap-2">
               <Label>E-mail</Label>
-              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <Input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+              />
             </div>
           </div>
 
@@ -171,7 +209,9 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
               <Input
                 inputMode="decimal"
                 value={form.estimated_value}
-                onChange={(e) => setForm({ ...form, estimated_value: e.target.value.replace(/[^0-9.,]/g, "") })}
+                onChange={(e) =>
+                  setForm({ ...form, estimated_value: e.target.value.replace(/[^0-9.,]/g, "") })
+                }
               />
             </div>
             <div className="grid gap-2">
@@ -180,10 +220,25 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
                 help="De onde veio o lead. Ajuda a saber quais canais trazem mais clientes."
               />
               <Select value={form.source} onValueChange={(v) => setForm({ ...form, source: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
                 <SelectContent>
-                  {["site","indicacao","whatsapp","instagram","facebook","google","ligacao","visita","evento","outro"].map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  {[
+                    "site",
+                    "indicacao",
+                    "whatsapp",
+                    "instagram",
+                    "facebook",
+                    "google",
+                    "ligacao",
+                    "visita",
+                    "evento",
+                    "outro",
+                  ].map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -192,23 +247,43 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <LabelWithHelp label="Segmento" help="Perfil do cliente: residencial, comercial, industrial, condomínio." />
-              <Select value={form.customer_type} onValueChange={(v) => setForm({ ...form, customer_type: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <LabelWithHelp
+                label="Segmento"
+                help="Perfil do cliente: residencial, comercial, industrial, condomínio."
+              />
+              <Select
+                value={form.customer_type}
+                onValueChange={(v) => setForm({ ...form, customer_type: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
                 <SelectContent>
-                  {["residencial","comercial","industrial","condominio","outro"].map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  {["residencial", "comercial", "industrial", "condominio", "outro"].map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
-              <LabelWithHelp label="Responsável" help="Quem da sua equipe vai cuidar deste lead até o fechamento." />
-              <Select value={form.assigned_to} onValueChange={(v) => setForm({ ...form, assigned_to: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <LabelWithHelp
+                label="Responsável"
+                help="Quem da sua equipe vai cuidar deste lead até o fechamento."
+              />
+              <Select
+                value={form.assigned_to}
+                onValueChange={(v) => setForm({ ...form, assigned_to: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
                 <SelectContent>
                   {team.map((m: any) => (
-                    <SelectItem key={m.id} value={m.id}>{m.full_name ?? m.email}</SelectItem>
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.full_name ?? m.email}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -221,7 +296,10 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
                 label="Próxima ação"
                 help="O que precisa ser feito depois. Ex.: enviar orçamento, agendar visita, ligar."
               />
-              <Input value={form.next_action} onChange={(e) => setForm({ ...form, next_action: e.target.value })} />
+              <Input
+                value={form.next_action}
+                onChange={(e) => setForm({ ...form, next_action: e.target.value })}
+              />
             </div>
             <div className="grid gap-2">
               <LabelWithHelp
@@ -249,7 +327,11 @@ export function NewOpportunitySheet({ open, onOpenChange, pipelineId, defaultSta
           </div>
 
           <div className="mt-2 flex justify-end gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={mutation.isPending}>
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={mutation.isPending}
+            >
               Cancelar
             </Button>
             <Button

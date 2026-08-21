@@ -4,21 +4,35 @@ import { useServerFn } from "@tanstack/react-start";
 import { Play, Pause, RefreshCw, CheckCircle2, AlertTriangle, Ban, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { usePermissions } from "@/lib/permissions";
 import { useAuth } from "@/lib/auth-context";
 import { useCompanyId } from "@/hooks/use-company-id";
-import { buildDraftKey, saveDraft, loadDraft, clearDraft, getDraftSavedAt } from "@/lib/draft-storage";
+import {
+  buildDraftKey,
+  saveDraft,
+  loadDraft,
+  clearDraft,
+  getDraftSavedAt,
+} from "@/lib/draft-storage";
 import { executeServiceOrderTransition } from "@/lib/service-order-execution.functions";
 import { listPendingRequiredChecklist } from "@/lib/service-order-checklist.functions";
-
 
 type Status = "DRAFT" | "SCHEDULED" | "IN_PROGRESS" | "PAUSED" | "COMPLETED" | "CANCELLED";
 
@@ -43,9 +57,14 @@ export function ExecutionActions({
   const qc = useQueryClient();
   const fn = useServerFn(executeServiceOrderTransition);
   const { can, isOwner, isSuperAdmin } = usePermissions();
-  const isManager = isOwner || isSuperAdmin || can("service_orders", "edit") || can("service_orders", "assign_technician");
+  const isManager =
+    isOwner ||
+    isSuperAdmin ||
+    can("service_orders", "edit") ||
+    can("service_orders", "assign_technician");
 
-  const canOverride = isOwner || isSuperAdmin || can("service_orders", "override_required_checklist");
+  const canOverride =
+    isOwner || isSuperAdmin || can("service_orders", "override_required_checklist");
 
   const [open, setOpen] = useState<null | "start" | "pause" | "resume" | "finish">(null);
   const [reason, setReason] = useState("");
@@ -83,7 +102,10 @@ export function ExecutionActions({
     }
     if (open === "finish" && !hydratedRef.current.finish) {
       const d = loadDraft<{
-        report: string; issue: string; solution: string; overrideJustification: string;
+        report: string;
+        issue: string;
+        solution: string;
+        overrideJustification: string;
       }>(finishDraftKey);
       if (d) {
         if (d.report) setReport(d.report);
@@ -113,7 +135,8 @@ export function ExecutionActions({
 
   useEffect(() => {
     if (open !== "finish") return;
-    const hasContent = report.trim() || issue.trim() || solution.trim() || overrideJustification.trim();
+    const hasContent =
+      report.trim() || issue.trim() || solution.trim() || overrideJustification.trim();
     if (!hasContent) return;
     const t = setTimeout(
       () => saveDraft(finishDraftKey, { report, issue, solution, overrideJustification }),
@@ -124,11 +147,16 @@ export function ExecutionActions({
 
   const discardPauseDraft = () => {
     clearDraft(pauseDraftKey);
-    setReason(""); setReasonOther(""); setPauseRestoredAt(null);
+    setReason("");
+    setReasonOther("");
+    setPauseRestoredAt(null);
   };
   const discardFinishDraft = () => {
     clearDraft(finishDraftKey);
-    setReport(""); setIssue(""); setSolution(""); setOverrideJustification("");
+    setReport("");
+    setIssue("");
+    setSolution("");
+    setOverrideJustification("");
     setFinishRestoredAt(null);
   };
 
@@ -138,7 +166,6 @@ export function ExecutionActions({
     queryFn: () => pendingFn({ data: { id: serviceOrderId } }),
     enabled: open === "finish",
   });
-
 
   const mutation = useMutation({
     mutationFn: fn,
@@ -151,9 +178,14 @@ export function ExecutionActions({
       if (action === "PAUSED") clearDraft(pauseDraftKey);
       if (action === "FINISHED_EXECUTION") clearDraft(finishDraftKey);
       setOpen(null);
-      setReason(""); setReasonOther(""); setReport(""); setIssue(""); setSolution("");
+      setReason("");
+      setReasonOther("");
+      setReport("");
+      setIssue("");
+      setSolution("");
       setOverrideJustification("");
-      setPauseRestoredAt(null); setFinishRestoredAt(null);
+      setPauseRestoredAt(null);
+      setFinishRestoredAt(null);
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao executar ação"),
   });
@@ -161,12 +193,18 @@ export function ExecutionActions({
   const submit = (action: "STARTED" | "PAUSED" | "RESUMED" | "FINISHED_EXECUTION") => {
     if (action === "PAUSED") {
       const r = reason === "Outro" ? reasonOther.trim() : reason;
-      if (!r) { toast.error("Informe o motivo da pausa."); return; }
+      if (!r) {
+        toast.error("Informe o motivo da pausa.");
+        return;
+      }
       mutation.mutate({ data: { id: serviceOrderId, action, reason: r } });
       return;
     }
     if (action === "FINISHED_EXECUTION") {
-      if (!report.trim()) { toast.error("Informe o relatório técnico antes de finalizar."); return; }
+      if (!report.trim()) {
+        toast.error("Informe o relatório técnico antes de finalizar.");
+        return;
+      }
       if (pendingRequired.length > 0) {
         if (!canOverride) {
           toast.error("Existem itens obrigatórios do checklist não concluídos.");
@@ -179,7 +217,8 @@ export function ExecutionActions({
       }
       mutation.mutate({
         data: {
-          id: serviceOrderId, action,
+          id: serviceOrderId,
+          action,
           technicianReport: report.trim(),
           issueFound: issue.trim() || undefined,
           solutionApplied: solution.trim() || undefined,
@@ -221,7 +260,12 @@ export function ExecutionActions({
       )}
 
       {status === "SCHEDULED" && (
-        <Button size="lg" className="w-full h-12" disabled={blockStart} onClick={() => setOpen("start")}>
+        <Button
+          size="lg"
+          className="w-full h-12"
+          disabled={blockStart}
+          onClick={() => setOpen("start")}
+        >
           <Play className="h-5 w-5 mr-2" /> Iniciar Atendimento
         </Button>
       )}
@@ -248,11 +292,17 @@ export function ExecutionActions({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Iniciar atendimento?</DialogTitle>
-            <DialogDescription>A Ordem de Serviço será marcada como em andamento.</DialogDescription>
+            <DialogDescription>
+              A Ordem de Serviço será marcada como em andamento.
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(null)}>Cancelar</Button>
-            <Button onClick={() => submit("STARTED")} disabled={mutation.isPending}>Iniciar</Button>
+            <Button variant="outline" onClick={() => setOpen(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => submit("STARTED")} disabled={mutation.isPending}>
+              Iniciar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -262,7 +312,9 @@ export function ExecutionActions({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Pausar atendimento?</DialogTitle>
-            <DialogDescription>Informe o motivo para registrar no histórico da OS.</DialogDescription>
+            <DialogDescription>
+              Informe o motivo para registrar no histórico da OS.
+            </DialogDescription>
           </DialogHeader>
           {pauseRestoredAt && (
             <div className="flex items-center justify-between gap-2 rounded-md border border-info/40 bg-info/10 p-2 text-xs">
@@ -279,22 +331,36 @@ export function ExecutionActions({
             <div>
               <Label>Motivo da pausa *</Label>
               <Select value={reason} onValueChange={setReason}>
-                <SelectTrigger><SelectValue placeholder="Selecione um motivo" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um motivo" />
+                </SelectTrigger>
                 <SelectContent>
-                  {PAUSE_REASONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                  {PAUSE_REASONS.map((r) => (
+                    <SelectItem key={r} value={r}>
+                      {r}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             {reason === "Outro" && (
               <div>
                 <Label>Descreva o motivo *</Label>
-                <Textarea value={reasonOther} onChange={(e) => setReasonOther(e.target.value)} rows={3} />
+                <Textarea
+                  value={reasonOther}
+                  onChange={(e) => setReasonOther(e.target.value)}
+                  rows={3}
+                />
               </div>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(null)}>Cancelar</Button>
-            <Button onClick={() => submit("PAUSED")} disabled={mutation.isPending}>Pausar</Button>
+            <Button variant="outline" onClick={() => setOpen(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => submit("PAUSED")} disabled={mutation.isPending}>
+              Pausar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -304,11 +370,17 @@ export function ExecutionActions({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Retomar atendimento?</DialogTitle>
-            <DialogDescription>A Ordem de Serviço voltará para o status Em andamento.</DialogDescription>
+            <DialogDescription>
+              A Ordem de Serviço voltará para o status Em andamento.
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(null)}>Cancelar</Button>
-            <Button onClick={() => submit("RESUMED")} disabled={mutation.isPending}>Retomar</Button>
+            <Button variant="outline" onClick={() => setOpen(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => submit("RESUMED")} disabled={mutation.isPending}>
+              Retomar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -319,8 +391,8 @@ export function ExecutionActions({
           <DialogHeader>
             <DialogTitle>Finalizar execução técnica?</DialogTitle>
             <DialogDescription>
-              A OS será marcada como concluída tecnicamente. O relatório final, assinatura
-              do cliente e envio serão tratados na próxima fase.
+              A OS será marcada como concluída tecnicamente. O relatório final, assinatura do
+              cliente e envio serão tratados na próxima fase.
             </DialogDescription>
           </DialogHeader>
           {finishRestoredAt && (
@@ -341,7 +413,9 @@ export function ExecutionActions({
                   <AlertTriangle className="h-4 w-4" /> Itens obrigatórios não concluídos
                 </div>
                 <ul className="list-disc list-inside">
-                  {pendingRequired.map((i: any) => <li key={i.id}>{i.title}</li>)}
+                  {pendingRequired.map((i: any) => (
+                    <li key={i.id}>{i.title}</li>
+                  ))}
                 </ul>
                 {canOverride ? (
                   <div className="pt-2">
@@ -372,8 +446,12 @@ export function ExecutionActions({
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(null)}>Cancelar</Button>
-            <Button onClick={() => submit("FINISHED_EXECUTION")} disabled={mutation.isPending}>Finalizar</Button>
+            <Button variant="outline" onClick={() => setOpen(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => submit("FINISHED_EXECUTION")} disabled={mutation.isPending}>
+              Finalizar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

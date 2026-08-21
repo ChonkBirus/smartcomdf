@@ -3,21 +3,45 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  CheckCircle2, AlertCircle, Plus, Sparkles, ExternalLink, RefreshCw, Loader2, X, FileText,
+  CheckCircle2,
+  AlertCircle,
+  Plus,
+  Sparkles,
+  ExternalLink,
+  RefreshCw,
+  Loader2,
+  X,
+  FileText,
 } from "lucide-react";
 import {
-  getNotaDocument, parseNotaDocument, updateNotaItem, updateNotaDocumentReview,
-  confirmNotaReceiving, searchItemsForMatch, type NotaItem,
+  getNotaDocument,
+  parseNotaDocument,
+  updateNotaItem,
+  updateNotaDocumentReview,
+  confirmNotaReceiving,
+  searchItemsForMatch,
+  type NotaItem,
 } from "@/lib/smart-receiving.functions";
 import { listSuppliers } from "@/lib/suppliers.functions";
 import { listLocations } from "@/lib/stock.functions";
@@ -40,7 +64,7 @@ const STATUS_BADGE: Record<string, { label: string; variant: any }> = {
 };
 
 const brl = (n: number | null | undefined) =>
-  (Number(n ?? 0)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  Number(n ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export function NotaReviewSheet({ open, onOpenChange, docId }: Props) {
   const qc = useQueryClient();
@@ -84,7 +108,10 @@ export function NotaReviewSheet({ open, onOpenChange, docId }: Props) {
 
   const parseMut = useMutation({
     mutationFn: () => parse({ data: { id: docId! } }),
-    onSuccess: () => { toast.success("Releitura concluída."); refetch(); },
+    onSuccess: () => {
+      toast.success("Releitura concluída.");
+      refetch();
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
   });
 
@@ -109,7 +136,9 @@ export function NotaReviewSheet({ open, onOpenChange, docId }: Props) {
       });
     },
     onSuccess: (r) => {
-      toast.success(`Confirmado — ${r.movements.length} entrada(s), ${r.created_items.length} item(s) novo(s).`);
+      toast.success(
+        `Confirmado — ${r.movements.length} entrada(s), ${r.created_items.length} item(s) novo(s).`,
+      );
       qc.invalidateQueries({ queryKey: ["nota_documents"] });
       qc.invalidateQueries({ queryKey: ["stock_balances"] });
       onOpenChange(false);
@@ -121,7 +150,11 @@ export function NotaReviewSheet({ open, onOpenChange, docId }: Props) {
   const totals = useMemo(() => {
     const active = items.filter((i: NotaItem) => i.status !== "IGNORED");
     return {
-      total: active.reduce((s: number, i: NotaItem) => s + Number(i.raw_total ?? (Number(i.raw_quantity ?? 0) * Number(i.raw_unit_cost ?? 0))), 0),
+      total: active.reduce(
+        (s: number, i: NotaItem) =>
+          s + Number(i.raw_total ?? Number(i.raw_quantity ?? 0) * Number(i.raw_unit_cost ?? 0)),
+        0,
+      ),
       newCount: items.filter((i: NotaItem) => i.status === "NEW").length,
       matchedCount: items.filter((i: NotaItem) => i.status === "MATCHED").length,
       pending: items.filter((i: NotaItem) => i.status === "PENDING").length,
@@ -140,9 +173,15 @@ export function NotaReviewSheet({ open, onOpenChange, docId }: Props) {
               <Sparkles className="h-5 w-5 text-primary" />
               Revisar Nota Fiscal
             </SheetTitle>
-            {doc && <Badge variant={STATUS_BADGE[doc.status]?.variant}>{STATUS_BADGE[doc.status]?.label ?? doc.status}</Badge>}
+            {doc && (
+              <Badge variant={STATUS_BADGE[doc.status]?.variant}>
+                {STATUS_BADGE[doc.status]?.label ?? doc.status}
+              </Badge>
+            )}
           </div>
-          <SheetDescription>Confira os dados extraídos pela IA antes de dar entrada no estoque.</SheetDescription>
+          <SheetDescription>
+            Confira os dados extraídos pela IA antes de dar entrada no estoque.
+          </SheetDescription>
         </SheetHeader>
 
         <ScrollArea className="flex-1 -mx-6 px-6">
@@ -160,8 +199,17 @@ export function NotaReviewSheet({ open, onOpenChange, docId }: Props) {
                     <p className="font-medium text-destructive">Erro no processamento</p>
                     <p className="text-xs text-muted-foreground">{doc.error_message}</p>
                   </div>
-                  <Button size="sm" variant="outline" onClick={() => parseMut.mutate()} disabled={parseMut.isPending}>
-                    {parseMut.isPending ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-1 h-3 w-3" />}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => parseMut.mutate()}
+                    disabled={parseMut.isPending}
+                  >
+                    {parseMut.isPending ? (
+                      <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                    ) : (
+                      <RefreshCw className="mr-1 h-3 w-3" />
+                    )}
                     Reprocessar
                   </Button>
                 </div>
@@ -172,7 +220,9 @@ export function NotaReviewSheet({ open, onOpenChange, docId }: Props) {
                 <div>
                   <Label className="text-xs">Fornecedor extraído</Label>
                   <p className="text-sm font-medium">{doc.ai_supplier_name ?? "—"}</p>
-                  {doc.ai_supplier_cnpj && <p className="text-xs text-muted-foreground">CNPJ: {doc.ai_supplier_cnpj}</p>}
+                  {doc.ai_supplier_cnpj && (
+                    <p className="text-xs text-muted-foreground">CNPJ: {doc.ai_supplier_cnpj}</p>
+                  )}
                 </div>
                 <div>
                   <Label className="text-xs">Nº da Nota</Label>
@@ -190,9 +240,14 @@ export function NotaReviewSheet({ open, onOpenChange, docId }: Props) {
                   </p>
                 </div>
                 {data?.signedUrl && (
-                  <a href={data.signedUrl} target="_blank" rel="noreferrer"
-                     className="col-span-full inline-flex items-center gap-1 text-xs text-primary hover:underline">
-                    <FileText className="h-3 w-3" />Ver arquivo original
+                  <a
+                    href={data.signedUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="col-span-full inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                  >
+                    <FileText className="h-3 w-3" />
+                    Ver arquivo original
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 )}
@@ -202,8 +257,13 @@ export function NotaReviewSheet({ open, onOpenChange, docId }: Props) {
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <Label>Fornecedor</Label>
-                  <Select value={supplierId || "NONE"} onValueChange={(v) => setSupplierId(v === "NONE" ? "" : v)}>
-                    <SelectTrigger><SelectValue placeholder="Vincular fornecedor" /></SelectTrigger>
+                  <Select
+                    value={supplierId || "NONE"}
+                    onValueChange={(v) => setSupplierId(v === "NONE" ? "" : v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Vincular fornecedor" />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="NONE">— Sem vínculo —</SelectItem>
                       {suppliers.map((s: any) => (
@@ -217,10 +277,14 @@ export function NotaReviewSheet({ open, onOpenChange, docId }: Props) {
                 <div>
                   <Label>Local de estoque *</Label>
                   <Select value={locationId} onValueChange={setLocationId}>
-                    <SelectTrigger><SelectValue placeholder="Selecionar local" /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecionar local" />
+                    </SelectTrigger>
                     <SelectContent>
                       {(locations as any[]).map((l: any) => (
-                        <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
+                        <SelectItem key={l.id} value={l.id}>
+                          {l.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -234,9 +298,13 @@ export function NotaReviewSheet({ open, onOpenChange, docId }: Props) {
                 <div className="mb-2 flex items-center justify-between">
                   <p className="text-sm font-medium">Itens ({items.length})</p>
                   <div className="flex gap-1 text-xs">
-                    <Badge variant="default" className="bg-success">{totals.matchedCount} OK</Badge>
+                    <Badge variant="default" className="bg-success">
+                      {totals.matchedCount} OK
+                    </Badge>
                     <Badge variant="secondary">{totals.newCount} novos</Badge>
-                    {totals.pending > 0 && <Badge variant="destructive">{totals.pending} pendentes</Badge>}
+                    {totals.pending > 0 && (
+                      <Badge variant="destructive">{totals.pending} pendentes</Badge>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -244,7 +312,9 @@ export function NotaReviewSheet({ open, onOpenChange, docId }: Props) {
                     <ItemReviewRow
                       key={it.id}
                       item={it}
-                      onChange={(patch) => updateItem({ data: { id: it.id, ...patch } }).then(() => refetch())}
+                      onChange={(patch) =>
+                        updateItem({ data: { id: it.id, ...patch } }).then(() => refetch())
+                      }
                     />
                   ))}
                   {items.length === 0 && (
@@ -257,7 +327,11 @@ export function NotaReviewSheet({ open, onOpenChange, docId }: Props) {
 
               <div>
                 <Label>Observações</Label>
-                <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Opcional" />
+                <Input
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Opcional"
+                />
               </div>
 
               <div className="rounded-md border bg-muted/30 p-3 text-sm">
@@ -272,10 +346,20 @@ export function NotaReviewSheet({ open, onOpenChange, docId }: Props) {
 
         <SheetFooter className="border-t pt-3">
           <div className="flex w-full gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">Fechar</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+              Fechar
+            </Button>
             {doc && doc.status === "FAILED" && (
-              <Button onClick={() => parseMut.mutate()} disabled={parseMut.isPending} className="flex-1">
-                {parseMut.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-1 h-4 w-4" />}
+              <Button
+                onClick={() => parseMut.mutate()}
+                disabled={parseMut.isPending}
+                className="flex-1"
+              >
+                {parseMut.isPending ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="mr-1 h-4 w-4" />
+                )}
                 Reprocessar
               </Button>
             )}
@@ -285,7 +369,11 @@ export function NotaReviewSheet({ open, onOpenChange, docId }: Props) {
                 disabled={!canConfirm || confirmMut.isPending}
                 className="flex-1"
               >
-                {confirmMut.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1 h-4 w-4" />}
+                {confirmMut.isPending ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="mr-1 h-4 w-4" />
+                )}
                 Confirmar entrada
               </Button>
             )}
@@ -302,13 +390,15 @@ function ItemReviewRow({
   onChange,
 }: {
   item: NotaItem;
-  onChange: (patch: Partial<{
-    status: "PENDING" | "MATCHED" | "NEW" | "IGNORED";
-    matched_item_id: string | null;
-    confirmed_quantity: number | null;
-    confirmed_unit_cost: number | null;
-    new_item_payload: any;
-  }>) => void;
+  onChange: (
+    patch: Partial<{
+      status: "PENDING" | "MATCHED" | "NEW" | "IGNORED";
+      matched_item_id: string | null;
+      confirmed_quantity: number | null;
+      confirmed_unit_cost: number | null;
+      new_item_payload: any;
+    }>,
+  ) => void;
 }) {
   const searchFn = useServerFn(searchItemsForMatch);
   const [search, setSearch] = useState("");
@@ -320,7 +410,9 @@ function ItemReviewRow({
     enabled: showSearch && !!companyId,
   });
 
-  const total = Number(item.raw_total ?? (Number(item.raw_quantity ?? 0) * Number(item.raw_unit_cost ?? 0)));
+  const total = Number(
+    item.raw_total ?? Number(item.raw_quantity ?? 0) * Number(item.raw_unit_cost ?? 0),
+  );
 
   return (
     <div className="rounded-md border p-3">
@@ -329,12 +421,16 @@ function ItemReviewRow({
           <p className="truncate text-sm font-medium">{item.raw_name}</p>
           <p className="text-xs text-muted-foreground">
             {item.raw_code && <>Cód: {item.raw_code} · </>}
-            {Number(item.raw_quantity ?? 0)} {item.raw_unit ?? "UN"} × {brl(item.raw_unit_cost)} = <b>{brl(total)}</b>
+            {Number(item.raw_quantity ?? 0)} {item.raw_unit ?? "UN"} × {brl(item.raw_unit_cost)} ={" "}
+            <b>{brl(total)}</b>
           </p>
           {item.matched_item_id && item.status === "MATCHED" && (
             <p className="mt-1 text-xs text-success">
-              ✓ Vinculado: {item.matched_item_name} {item.matched_item_sku && `(${item.matched_item_sku})`}
-              {item.match_reason && <span className="text-muted-foreground"> · {item.match_reason}</span>}
+              ✓ Vinculado: {item.matched_item_name}{" "}
+              {item.matched_item_sku && `(${item.matched_item_sku})`}
+              {item.match_reason && (
+                <span className="text-muted-foreground"> · {item.match_reason}</span>
+              )}
             </p>
           )}
           {item.status === "NEW" && (
@@ -368,16 +464,25 @@ function ItemReviewRow({
               }
             }}
           >
-            <SelectTrigger className="h-8 w-32 text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-32 text-xs">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="PENDING">Pendente</SelectItem>
-              <SelectItem value="MATCHED" disabled={!item.matched_item_id}>Vinculado</SelectItem>
+              <SelectItem value="MATCHED" disabled={!item.matched_item_id}>
+                Vinculado
+              </SelectItem>
               <SelectItem value="NEW">Criar novo</SelectItem>
               <SelectItem value="IGNORED">Ignorar</SelectItem>
             </SelectContent>
           </Select>
           {item.status !== "IGNORED" && (
-            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setShowSearch((s) => !s)}>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs"
+              onClick={() => setShowSearch((s) => !s)}
+            >
               {item.matched_item_id ? "Trocar" : "Vincular"}
             </Button>
           )}
@@ -387,13 +492,17 @@ function ItemReviewRow({
       {showSearch && (
         <div className="mt-2 rounded-md border bg-muted/30 p-2">
           <Input
-            autoFocus value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar item no catálogo..." className="h-8"
+            autoFocus
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar item no catálogo..."
+            className="h-8"
           />
           <div className="mt-2 max-h-40 overflow-y-auto">
             {results.map((r: any) => (
               <button
-                key={r.id} type="button"
+                key={r.id}
+                type="button"
                 className="block w-full rounded px-2 py-1 text-left text-xs hover:bg-accent"
                 onClick={() => {
                   onChange({ matched_item_id: r.id, status: "MATCHED" });
@@ -409,8 +518,14 @@ function ItemReviewRow({
             )}
           </div>
           <div className="mt-1 flex justify-end">
-            <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => setShowSearch(false)}>
-              <X className="mr-1 h-3 w-3" />Fechar
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 text-xs"
+              onClick={() => setShowSearch(false)}
+            >
+              <X className="mr-1 h-3 w-3" />
+              Fechar
             </Button>
           </div>
         </div>
@@ -423,9 +538,11 @@ function ItemReviewRow({
             <Input
               className="h-7 text-xs"
               defaultValue={item.new_item_payload?.name ?? item.raw_name}
-              onBlur={(e) => onChange({
-                new_item_payload: { ...(item.new_item_payload ?? {}), name: e.target.value },
-              })}
+              onBlur={(e) =>
+                onChange({
+                  new_item_payload: { ...(item.new_item_payload ?? {}), name: e.target.value },
+                })
+              }
             />
           </div>
           <div>
@@ -433,19 +550,28 @@ function ItemReviewRow({
             <Input
               className="h-7 text-xs"
               defaultValue={item.new_item_payload?.sku ?? item.raw_code ?? ""}
-              onBlur={(e) => onChange({
-                new_item_payload: { ...(item.new_item_payload ?? {}), sku: e.target.value },
-              })}
+              onBlur={(e) =>
+                onChange({
+                  new_item_payload: { ...(item.new_item_payload ?? {}), sku: e.target.value },
+                })
+              }
             />
           </div>
           <div>
             <Label className="text-xs">Preço de venda</Label>
             <Input
-              className="h-7 text-xs" type="number" step="0.01"
+              className="h-7 text-xs"
+              type="number"
+              step="0.01"
               defaultValue={item.new_item_payload?.sale_price ?? 0}
-              onBlur={(e) => onChange({
-                new_item_payload: { ...(item.new_item_payload ?? {}), sale_price: Number(e.target.value) },
-              })}
+              onBlur={(e) =>
+                onChange({
+                  new_item_payload: {
+                    ...(item.new_item_payload ?? {}),
+                    sale_price: Number(e.target.value),
+                  },
+                })
+              }
             />
           </div>
         </div>

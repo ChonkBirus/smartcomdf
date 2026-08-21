@@ -116,15 +116,7 @@ export function CustomerCommercialHistory({ customerId }: { customerId: string }
   );
 }
 
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: any;
-  label: string;
-  value: string;
-}) {
+function MetricCard({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
     <div className="rounded-md border p-3">
       <div className="flex items-center justify-between text-xs text-muted-foreground">

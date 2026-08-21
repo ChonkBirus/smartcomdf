@@ -5,83 +5,83 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 // ============= Header aliases → target fields =============
 const HEADER_ALIASES: Record<string, string> = {
   // type
-  "tipo": "customer_type",
+  tipo: "customer_type",
   "tipo cliente": "customer_type",
-  "tipo_cliente": "customer_type",
+  tipo_cliente: "customer_type",
   "tipo de cliente": "customer_type",
-  "pessoa": "customer_type",
+  pessoa: "customer_type",
   "pessoa fisica": "customer_type",
   "pessoa juridica": "customer_type",
   // names
-  "nome": "name",
+  nome: "name",
   "nome do cliente": "name",
-  "cliente": "name",
+  cliente: "name",
   "nome razao social": "name",
-  "nome_razao_social": "name",
+  nome_razao_social: "name",
   "razao social": "corporate_name",
   "razão social": "corporate_name",
   "nome fantasia": "trade_name",
   // doc
-  "cpf": "cpf_cnpj",
-  "cnpj": "cpf_cnpj",
+  cpf: "cpf_cnpj",
+  cnpj: "cpf_cnpj",
   "cpf/cnpj": "cpf_cnpj",
   "cpf cnpj": "cpf_cnpj",
-  "documento": "cpf_cnpj",
+  documento: "cpf_cnpj",
   "inscricao estadual": "state_registration",
   "inscrição estadual": "state_registration",
-  "ie": "state_registration",
+  ie: "state_registration",
   "inscricao municipal": "municipal_registration",
   "inscrição municipal": "municipal_registration",
-  "im": "municipal_registration",
+  im: "municipal_registration",
   // contact
-  "email": "email",
+  email: "email",
   "e-mail": "email",
-  "telefone": "phone",
-  "fone": "phone",
-  "whatsapp": "whatsapp",
-  "celular": "whatsapp",
+  telefone: "phone",
+  fone: "phone",
+  whatsapp: "whatsapp",
+  celular: "whatsapp",
   // misc
-  "origem": "customer_origin",
-  "status": "customer_status",
-  "observacoes": "notes",
-  "observações": "notes",
+  origem: "customer_origin",
+  status: "customer_status",
+  observacoes: "notes",
+  observações: "notes",
   // address
-  "cep": "addr_zipcode",
-  "rua": "addr_street",
-  "logradouro": "addr_street",
-  "endereco": "addr_street",
-  "endereço": "addr_street",
-  "numero": "addr_number",
-  "número": "addr_number",
-  "complemento": "addr_complement",
-  "bairro": "addr_district",
-  "cidade": "addr_city",
-  "municipio": "addr_city",
-  "uf": "addr_state",
-  "estado": "addr_state",
-  "pais": "addr_country",
-  "país": "addr_country",
-  "referencia": "addr_reference",
-  "referência": "addr_reference",
+  cep: "addr_zipcode",
+  rua: "addr_street",
+  logradouro: "addr_street",
+  endereco: "addr_street",
+  endereço: "addr_street",
+  numero: "addr_number",
+  número: "addr_number",
+  complemento: "addr_complement",
+  bairro: "addr_district",
+  cidade: "addr_city",
+  municipio: "addr_city",
+  uf: "addr_state",
+  estado: "addr_state",
+  pais: "addr_country",
+  país: "addr_country",
+  referencia: "addr_reference",
+  referência: "addr_reference",
   // contact extra
-  "contato": "contact_name",
+  contato: "contact_name",
   "contato nome": "contact_name",
-  "contato_nome": "contact_name",
+  contato_nome: "contact_name",
   "nome do contato": "contact_name",
-  "responsavel": "contact_name",
-  "responsável": "contact_name",
-  "cargo": "contact_role",
+  responsavel: "contact_name",
+  responsável: "contact_name",
+  cargo: "contact_role",
   "contato telefone": "contact_phone",
-  "contato_telefone": "contact_phone",
+  contato_telefone: "contact_phone",
   "telefone do contato": "contact_phone",
   "whatsapp do contato": "contact_whatsapp",
   "contato email": "contact_email",
-  "contato_email": "contact_email",
+  contato_email: "contact_email",
   "email do contato": "contact_email",
   "e-mail do contato": "contact_email",
   // tags
-  "tags": "tags",
-  "segmento": "tags",
+  tags: "tags",
+  segmento: "tags",
   "categoria do cliente": "tags",
 };
 
@@ -120,7 +120,33 @@ export const TARGET_FIELDS = [
 export type TargetField = (typeof TARGET_FIELDS)[number];
 
 const UFS_BR = new Set([
-  "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO",
+  "AC",
+  "AL",
+  "AM",
+  "AP",
+  "BA",
+  "CE",
+  "DF",
+  "ES",
+  "GO",
+  "MA",
+  "MG",
+  "MS",
+  "MT",
+  "PA",
+  "PB",
+  "PE",
+  "PI",
+  "PR",
+  "RJ",
+  "RN",
+  "RO",
+  "RR",
+  "RS",
+  "SC",
+  "SE",
+  "SP",
+  "TO",
 ]);
 
 function normalizeHeader(h: string): string {
@@ -162,7 +188,11 @@ function isValidEmail(v: string): boolean {
 const CUSTOMER_STATUS_VALUES = new Set(["ACTIVE", "INACTIVE", "LEAD", "BLOCKED"]);
 function normalizeCustomerStatus(v: any): "ACTIVE" | "INACTIVE" | "LEAD" | "BLOCKED" | null {
   if (v == null || v === "") return null;
-  const t = String(v).normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+  const t = String(v)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
   if (!t) return null;
   if (CUSTOMER_STATUS_VALUES.has(t.toUpperCase())) return t.toUpperCase() as any;
   if (t.startsWith("ativ")) return "ACTIVE";
@@ -174,9 +204,20 @@ function normalizeCustomerStatus(v: any): "ACTIVE" | "INACTIVE" | "LEAD" | "BLOC
 
 function detectType(rawTipo: any, doc: string): "INDIVIDUAL" | "COMPANY" | null {
   if (rawTipo) {
-    const t = String(rawTipo).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (t.includes("jurid") || t === "pj" || t === "j" || t === "company" || t === "empresa") return "COMPANY";
-    if (t.includes("fisic") || t === "pf" || t === "f" || t === "individual" || t === "pessoa fisica") return "INDIVIDUAL";
+    const t = String(rawTipo)
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+    if (t.includes("jurid") || t === "pj" || t === "j" || t === "company" || t === "empresa")
+      return "COMPANY";
+    if (
+      t.includes("fisic") ||
+      t === "pf" ||
+      t === "f" ||
+      t === "individual" ||
+      t === "pessoa fisica"
+    )
+      return "INDIVIDUAL";
   }
   if (doc.length === 14) return "COMPANY";
   if (doc.length === 11) return "INDIVIDUAL";
@@ -211,7 +252,13 @@ async function getCompanyId(sb: any, userId: string): Promise<string> {
   return data.company_id as string;
 }
 
-async function logAudit(sb: any, module: string, action: string, recordId?: string | null, newData?: any) {
+async function logAudit(
+  sb: any,
+  module: string,
+  action: string,
+  recordId?: string | null,
+  newData?: any,
+) {
   try {
     await sb.rpc("log_audit", {
       _module: module,
@@ -286,8 +333,14 @@ export const createCustomerImportJob = createServerFn({ method: "POST" })
       }
     }
 
-    await logAudit(sb, "customer_imports", "upload", job.id, { file_name: data.file_name, total: data.rows.length });
-    await logActivity(sb, `Importação de clientes iniciada: ${data.file_name} (${data.rows.length} linhas)`);
+    await logAudit(sb, "customer_imports", "upload", job.id, {
+      file_name: data.file_name,
+      total: data.rows.length,
+    });
+    await logActivity(
+      sb,
+      `Importação de clientes iniciada: ${data.file_name} (${data.rows.length} linhas)`,
+    );
 
     return { job_id: job.id, headers: data.headers, mapping };
   });
@@ -315,7 +368,10 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
       .maybeSingle();
     if (jobErr || !job) throw new Error("Importação não encontrada.");
 
-    await sb.from("customer_import_jobs").update({ column_mapping: data.mapping, status: "MAPPED" }).eq("id", job.id);
+    await sb
+      .from("customer_import_jobs")
+      .update({ column_mapping: data.mapping, status: "MAPPED" })
+      .eq("id", job.id);
 
     const { data: rows, error } = await sb
       .from("customer_import_rows")
@@ -365,11 +421,21 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
 
     const customerSelect = "id, cpf_cnpj, email, phone, whatsapp, name, corporate_name";
     if (docs.size) {
-      const { data: existing } = await sb.from("customers").select(customerSelect).eq("company_id", company_id).is("deleted_at", null).in("cpf_cnpj", [...docs]);
+      const { data: existing } = await sb
+        .from("customers")
+        .select(customerSelect)
+        .eq("company_id", company_id)
+        .is("deleted_at", null)
+        .in("cpf_cnpj", [...docs]);
       rememberExisting(existing);
     }
     if (emails.size) {
-      const { data: existing } = await sb.from("customers").select(customerSelect).eq("company_id", company_id).is("deleted_at", null).in("email", [...emails]);
+      const { data: existing } = await sb
+        .from("customers")
+        .select(customerSelect)
+        .eq("company_id", company_id)
+        .is("deleted_at", null)
+        .in("email", [...emails]);
       rememberExisting(existing);
     }
     if (phones.size || names.size) {
@@ -405,8 +471,13 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
     }
 
     const newTags = new Set<string>();
-    const { data: existingTags } = await sb.from("customer_tags").select("id, name").eq("company_id", company_id);
-    const tagMap = new Map<string, string>((existingTags ?? []).map((t: any) => [String(t.name).toLowerCase(), t.id]));
+    const { data: existingTags } = await sb
+      .from("customer_tags")
+      .select("id, name")
+      .eq("company_id", company_id);
+    const tagMap = new Map<string, string>(
+      (existingTags ?? []).map((t: any) => [String(t.name).toLowerCase(), t.id]),
+    );
 
     let valid = 0;
     let invalid = 0;
@@ -427,7 +498,8 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
       const type = detectedType ?? "INDIVIDUAL";
       m.customer_type = type;
 
-      const displayName = type === "COMPANY" ? (m.corporate_name ?? m.name) : (m.name ?? m.corporate_name);
+      const displayName =
+        type === "COMPANY" ? (m.corporate_name ?? m.name) : (m.name ?? m.corporate_name);
       if (!displayName) errors.push("Nome ou Razão Social obrigatório.");
       else m.name = displayName;
 
@@ -440,10 +512,12 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
       // E-mail é opcional — quando informado, valida formato
       if (m.email && !isValidEmail(String(m.email))) errors.push("Informe um e-mail válido.");
 
-
       if (m.addr_state) {
         const country = (m.addr_country ?? "Brasil").toString().toLowerCase();
-        if ((country.startsWith("bra") || country === "br") && !UFS_BR.has(String(m.addr_state).toUpperCase())) {
+        if (
+          (country.startsWith("bra") || country === "br") &&
+          !UFS_BR.has(String(m.addr_state).toUpperCase())
+        ) {
           errors.push(`UF inválida: ${m.addr_state}.`);
         }
       }
@@ -453,12 +527,16 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
       }
       // Dados de contato são opcionais; sem contact_name, apenas não criamos o contato.
 
-      if (doc && (docCount.get(doc) ?? 0) > 1) duplicateReasons.push("CPF/CNPJ duplicado no arquivo.");
-      if (m.email && (emailCount.get(String(m.email).toLowerCase()) ?? 0) > 1) duplicateReasons.push("E-mail duplicado no arquivo.");
+      if (doc && (docCount.get(doc) ?? 0) > 1)
+        duplicateReasons.push("CPF/CNPJ duplicado no arquivo.");
+      if (m.email && (emailCount.get(String(m.email).toLowerCase()) ?? 0) > 1)
+        duplicateReasons.push("E-mail duplicado no arquivo.");
       const phone = onlyDigits(m.phone || m.whatsapp);
-      if (phone && (phoneCount.get(phone) ?? 0) > 1) duplicateReasons.push("Telefone duplicado no arquivo.");
+      if (phone && (phoneCount.get(phone) ?? 0) > 1)
+        duplicateReasons.push("Telefone duplicado no arquivo.");
       const normalizedName = normText(m.name || m.corporate_name);
-      if (normalizedName && (nameCount.get(normalizedName) ?? 0) > 1) duplicateReasons.push("Nome/Razão social duplicado no arquivo.");
+      if (normalizedName && (nameCount.get(normalizedName) ?? 0) > 1)
+        duplicateReasons.push("Nome/Razão social duplicado no arquivo.");
 
       // Match existing
       let matched: string | null = null;
@@ -466,7 +544,8 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
       else if (m.email && existingByEmail.has(String(m.email).toLowerCase()))
         matched = existingByEmail.get(String(m.email).toLowerCase())!;
       else if (phone && existingByPhone.has(phone)) matched = existingByPhone.get(phone)!;
-      else if (normalizedName && existingByName.has(normalizedName)) matched = existingByName.get(normalizedName)!;
+      else if (normalizedName && existingByName.has(normalizedName))
+        matched = existingByName.get(normalizedName)!;
       if (matched) duplicateReasons.push("Duplicado já cadastrado nesta empresa.");
 
       if (Array.isArray(m.tags)) {
@@ -487,7 +566,11 @@ export const validateCustomerImport = createServerFn({ method: "POST" })
       updates.push({
         id: r.id,
         mapped_data: m,
-        validation_errors: errors.length ? errors : duplicateReasons.length ? duplicateReasons : null,
+        validation_errors: errors.length
+          ? errors
+          : duplicateReasons.length
+            ? duplicateReasons
+            : null,
         action,
         matched_customer_id: matched,
         status,
@@ -543,7 +626,9 @@ export const listCustomerImportRows = createServerFn({ method: "POST" })
     const sb = context.supabase as any;
     let q = sb
       .from("customer_import_rows")
-      .select("id, row_number, raw_data, mapped_data, validation_errors, action, matched_customer_id, status")
+      .select(
+        "id, row_number, raw_data, mapped_data, validation_errors, action, matched_customer_id, status",
+      )
       .eq("import_job_id", data.job_id)
       .order("row_number");
     if (data.filter !== "all") q = q.eq("action", data.filter);
@@ -593,13 +678,16 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
     const company_id = await getCompanyId(sb, context.userId);
 
     // Check permission
-    const { data: canConfirm } = await sb.rpc("has_permission", { _slug: "clients.import.confirm" });
+    const { data: canConfirm } = await sb.rpc("has_permission", {
+      _slug: "clients.import.confirm",
+    });
     if (canConfirm === false) {
-      const [{ data: canImport }, { data: canCustomersImport }, { data: canCustomersConfirm }] = await Promise.all([
-        sb.rpc("has_permission", { _slug: "clients.import" }),
-        sb.rpc("has_permission", { _slug: "customers.import" }),
-        sb.rpc("has_permission", { _slug: "customers.import.confirm" }),
-      ]);
+      const [{ data: canImport }, { data: canCustomersImport }, { data: canCustomersConfirm }] =
+        await Promise.all([
+          sb.rpc("has_permission", { _slug: "clients.import" }),
+          sb.rpc("has_permission", { _slug: "customers.import" }),
+          sb.rpc("has_permission", { _slug: "customers.import.confirm" }),
+        ]);
       if (canImport === false && canCustomersImport === false && canCustomersConfirm === false) {
         throw new Error("Você não tem permissão para importar clientes.");
       }
@@ -625,7 +713,10 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
         .order("row_number");
       if (error) throw new Error(error.message);
 
-      const { data: existingTags } = await sb.from("customer_tags").select("id, name").eq("company_id", company_id);
+      const { data: existingTags } = await sb
+        .from("customer_tags")
+        .select("id, name")
+        .eq("company_id", company_id);
       const tagMap = new Map<string, string>(
         (existingTags ?? []).map((t: any) => [String(t.name).toLowerCase(), t.id]),
       );
@@ -818,7 +909,10 @@ export const confirmCustomerImport = createServerFn({ method: "POST" })
           company_id,
           user_id: context.userId,
           type: skipped > 0 ? "warning" : "success",
-          title: skipped > 0 ? "Importação concluída com pendências" : "Importação de clientes concluída",
+          title:
+            skipped > 0
+              ? "Importação concluída com pendências"
+              : "Importação de clientes concluída",
           message: `${created} criados · ${updated} atualizados · ${skipped} ignorados`,
         });
       } catch {}

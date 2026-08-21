@@ -19,8 +19,15 @@ type Props = {
 };
 
 export function CepInput({
-  value, onChange, onResolve, placeholder = "00000-000",
-  disabled, autoLookup = true, id, className, ...rest
+  value,
+  onChange,
+  onResolve,
+  placeholder = "00000-000",
+  disabled,
+  autoLookup = true,
+  id,
+  className,
+  ...rest
 }: Props) {
   const [loading, setLoading] = React.useState(false);
   const lastQueried = React.useRef<string>("");

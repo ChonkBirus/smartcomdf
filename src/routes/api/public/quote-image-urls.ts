@@ -52,7 +52,7 @@ export const Route = createFileRoute("/api/public/quote-image-urls")({
         // Nunca vazamos a mensagem interna: se a validação falhar, respondemos
         // como se nada estivesse disponível — evita enumeração.
         if (vErr) return json({ urls: {} });
-        const validPaths = new Set<string>(((valid as string[]) ?? []));
+        const validPaths = new Set<string>((valid as string[]) ?? []);
         const urls: Record<string, string> = {};
         for (const p of paths) {
           if (!validPaths.has(p)) continue;

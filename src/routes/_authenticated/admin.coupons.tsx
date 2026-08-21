@@ -7,12 +7,7 @@ import { Plus, Edit2, Power, Ticket } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -80,8 +75,7 @@ function AdminCouponsPage() {
   });
 
   const toggle = useMutation({
-    mutationFn: (row: CouponRow) =>
-      toggleFn({ data: { id: row.id, is_active: !row.is_active } }),
+    mutationFn: (row: CouponRow) => toggleFn({ data: { id: row.id, is_active: !row.is_active } }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "coupons"] });
       toast.success("Status atualizado.");
@@ -116,9 +110,7 @@ function AdminCouponsPage() {
           {isLoading ? (
             <div className="text-sm text-muted-foreground">Carregando…</div>
           ) : !data || data.length === 0 ? (
-            <div className="text-sm text-muted-foreground">
-              Nenhum cupom cadastrado.
-            </div>
+            <div className="text-sm text-muted-foreground">Nenhum cupom cadastrado.</div>
           ) : (
             <Table>
               <TableHeader>
@@ -135,9 +127,7 @@ function AdminCouponsPage() {
               <TableBody>
                 {data.map((c: any) => (
                   <TableRow key={c.id}>
-                    <TableCell className="font-mono font-medium">
-                      {c.code}
-                    </TableCell>
+                    <TableCell className="font-mono font-medium">{c.code}</TableCell>
                     <TableCell>
                       {c.discount_type === "percent"
                         ? `${Number(c.discount_value)}%`
@@ -152,9 +142,7 @@ function AdminCouponsPage() {
                     </TableCell>
                     <TableCell>
                       {c.redemption_count}
-                      {c.max_redemptions != null
-                        ? ` / ${c.max_redemptions}`
-                        : ""}
+                      {c.max_redemptions != null ? ` / ${c.max_redemptions}` : ""}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {c.valid_until
@@ -201,9 +189,7 @@ function AdminCouponsPage() {
         open={open}
         onOpenChange={setOpen}
         editing={editing}
-        onSaved={() =>
-          qc.invalidateQueries({ queryKey: ["admin", "coupons"] })
-        }
+        onSaved={() => qc.invalidateQueries({ queryKey: ["admin", "coupons"] })}
       />
     </div>
   );
@@ -227,14 +213,9 @@ function CouponFormDialog({
     () => ({
       code: editing?.code ?? "",
       description: editing?.description ?? "",
-      discount_type: (editing?.discount_type ?? "percent") as
-        | "percent"
-        | "fixed",
+      discount_type: (editing?.discount_type ?? "percent") as "percent" | "fixed",
       discount_value: editing?.discount_value ?? 10,
-      duration: (editing?.duration ?? "once") as
-        | "once"
-        | "repeating"
-        | "forever",
+      duration: (editing?.duration ?? "once") as "once" | "repeating" | "forever",
       duration_months: editing?.duration_months ?? null,
       max_redemptions: editing?.max_redemptions ?? null,
       max_redemptions_per_company: (editing?.max_redemptions_per_company ?? 1) as number | null,
@@ -260,9 +241,7 @@ function CouponFormDialog({
           form.duration === "repeating" && form.duration_months
             ? Number(form.duration_months)
             : null,
-        max_redemptions: form.max_redemptions
-          ? Number(form.max_redemptions)
-          : null,
+        max_redemptions: form.max_redemptions ? Number(form.max_redemptions) : null,
         max_redemptions_per_company: form.max_redemptions_per_company
           ? Number(form.max_redemptions_per_company)
           : null,
@@ -288,9 +267,7 @@ function CouponFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>
-            {editing ? "Editar cupom" : "Novo cupom"}
-          </DialogTitle>
+          <DialogTitle>{editing ? "Editar cupom" : "Novo cupom"}</DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-4">
@@ -299,9 +276,7 @@ function CouponFormDialog({
             <Input
               id="code"
               value={form.code}
-              onChange={(e) =>
-                setForm({ ...form, code: e.target.value.toUpperCase() })
-              }
+              onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
               placeholder="PROMO10"
               disabled={!!editing}
             />
@@ -312,9 +287,7 @@ function CouponFormDialog({
             <Textarea
               id="desc"
               value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={2}
             />
           </div>
@@ -324,9 +297,7 @@ function CouponFormDialog({
               <Label>Tipo de desconto</Label>
               <Select
                 value={form.discount_type}
-                onValueChange={(v: any) =>
-                  setForm({ ...form, discount_type: v })
-                }
+                onValueChange={(v: any) => setForm({ ...form, discount_type: v })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -338,17 +309,13 @@ function CouponFormDialog({
               </Select>
             </div>
             <div className="grid gap-1">
-              <Label>
-                Valor {form.discount_type === "percent" ? "(%)" : "(R$)"}
-              </Label>
+              <Label>Valor {form.discount_type === "percent" ? "(%)" : "(R$)"}</Label>
               <Input
                 type="number"
                 min="0"
                 step="0.01"
                 value={form.discount_value ?? 0}
-                onChange={(e) =>
-                  setForm({ ...form, discount_value: Number(e.target.value) })
-                }
+                onChange={(e) => setForm({ ...form, discount_value: Number(e.target.value) })}
               />
             </div>
           </div>
@@ -380,9 +347,7 @@ function CouponFormDialog({
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      duration_months: e.target.value
-                        ? Number(e.target.value)
-                        : null,
+                      duration_months: e.target.value ? Number(e.target.value) : null,
                     })
                   }
                 />
@@ -400,9 +365,7 @@ function CouponFormDialog({
                 onChange={(e) =>
                   setForm({
                     ...form,
-                    max_redemptions: e.target.value
-                      ? Number(e.target.value)
-                      : null,
+                    max_redemptions: e.target.value ? Number(e.target.value) : null,
                   })
                 }
                 placeholder="Ilimitado"
@@ -417,9 +380,7 @@ function CouponFormDialog({
                 onChange={(e) =>
                   setForm({
                     ...form,
-                    max_redemptions_per_company: e.target.value
-                      ? Number(e.target.value)
-                      : null,
+                    max_redemptions_per_company: e.target.value ? Number(e.target.value) : null,
                   })
                 }
                 placeholder="Ilimitado"
@@ -432,9 +393,7 @@ function CouponFormDialog({
             <Input
               type="date"
               value={form.valid_until}
-              onChange={(e) =>
-                setForm({ ...form, valid_until: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
             />
           </div>
 

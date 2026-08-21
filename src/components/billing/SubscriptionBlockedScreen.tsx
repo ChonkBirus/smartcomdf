@@ -15,7 +15,8 @@ const COPY: Record<string, { title: string; description: string; cta: string }> 
   },
   CANCELED: {
     title: "Assinatura cancelada",
-    description: "Sua assinatura foi cancelada. Reative sua assinatura para continuar usando o sistema.",
+    description:
+      "Sua assinatura foi cancelada. Reative sua assinatura para continuar usando o sistema.",
     cta: "Reativar assinatura",
   },
   EXPIRED: {

@@ -104,11 +104,7 @@ export const createEmployee = createServerFn({ method: "POST" })
       active: data.active,
       created_by: context.userId,
     };
-    const { data: row, error } = await sb
-      .from("employees")
-      .insert(payload)
-      .select("id")
-      .single();
+    const { data: row, error } = await sb.from("employees").insert(payload).select("id").single();
     if (error) throw new Error(error.message);
     return { id: row.id as string };
   });
@@ -141,9 +137,7 @@ export const updateEmployee = createServerFn({ method: "POST" })
 
 export const toggleEmployeeActive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z.object({ id: z.string().uuid(), active: z.boolean() }).parse(d),
-  )
+  .inputValidator((d) => z.object({ id: z.string().uuid(), active: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);

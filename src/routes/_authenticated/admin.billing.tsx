@@ -8,12 +8,7 @@ import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -59,7 +54,6 @@ const CHARGE_STATUSES = [
   "DELETED",
 ];
 const EVENT_STATUSES = ["PROCESSED", "ERROR", "DUPLICATE", "RECEIVED"];
-
 
 function fmtDate(d: string | null | undefined) {
   return d ? new Date(d).toLocaleString("pt-BR") : "—";
@@ -190,9 +184,7 @@ function ChargesTab() {
                   <StatusBadge status={c.status} />
                 </TableCell>
                 <TableCell>{fmtMoney(c.amount)}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">
-                  {c.due_date ?? "—"}
-                </TableCell>
+                <TableCell className="text-xs text-muted-foreground">{c.due_date ?? "—"}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">
                   {fmtDate(c.paid_at)}
                 </TableCell>
@@ -210,12 +202,7 @@ function ChargesTab() {
                       <Eye className="h-4 w-4" />
                     </Button>
                     {c.invoice_url && (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        title="Abrir fatura"
-                        asChild
-                      >
+                      <Button size="icon" variant="ghost" title="Abrir fatura" asChild>
                         <a href={c.invoice_url} target="_blank" rel="noreferrer">
                           <ExternalLink className="h-4 w-4" />
                         </a>
@@ -239,10 +226,7 @@ function ChargesTab() {
       </Card>
 
       {viewingCharge && (
-        <ChargeDetailDialog
-          id={viewingCharge}
-          onClose={() => setViewingCharge(null)}
-        />
+        <ChargeDetailDialog id={viewingCharge} onClose={() => setViewingCharge(null)} />
       )}
     </div>
   );
@@ -309,7 +293,9 @@ function ChargeDetailDialog({ id, onClose }: { id: string; onClose: () => void }
           </div>
         )}
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Fechar</Button>
+          <Button variant="outline" onClick={onClose}>
+            Fechar
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -320,9 +306,7 @@ function Info({ label, value, mono }: { label: string; value: any; mono?: boolea
   return (
     <div>
       <div className="text-xs text-muted-foreground">{label}</div>
-      <div className={mono ? "font-mono text-xs break-all" : "text-sm"}>
-        {value ?? "—"}
-      </div>
+      <div className={mono ? "font-mono text-xs break-all" : "text-sm"}>{value ?? "—"}</div>
     </div>
   );
 }
@@ -335,10 +319,7 @@ function EventsTab() {
   const [status, setStatus] = useState("ALL");
   const [viewing, setViewing] = useState<string | null>(null);
 
-  const filters = useMemo(
-    () => ({ status: status === "ALL" ? null : status }),
-    [status],
-  );
+  const filters = useMemo(() => ({ status: status === "ALL" ? null : status }), [status]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "billing-webhook-events", filters],
@@ -406,9 +387,7 @@ function EventsTab() {
               <TableRow key={e.id}>
                 <TableCell className="text-xs">{e.provider}</TableCell>
                 <TableCell className="text-xs font-mono">{e.event_type}</TableCell>
-                <TableCell className="text-xs font-mono">
-                  {e.provider_object_id ?? "—"}
-                </TableCell>
+                <TableCell className="text-xs font-mono">{e.provider_object_id ?? "—"}</TableCell>
                 <TableCell>
                   <StatusBadge status={e.status} />
                 </TableCell>

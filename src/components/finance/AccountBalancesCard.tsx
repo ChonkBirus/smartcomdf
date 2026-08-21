@@ -31,7 +31,8 @@ export function AccountBalancesCard() {
           <p className="text-sm text-muted-foreground">Carregando…</p>
         ) : rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Nenhuma conta cadastrada. Vá em <strong>Configurações → Contas financeiras</strong> para criar Carteira, Banco X, etc.
+            Nenhuma conta cadastrada. Vá em <strong>Configurações → Contas financeiras</strong> para
+            criar Carteira, Banco X, etc.
           </p>
         ) : (
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -44,7 +45,9 @@ export function AccountBalancesCard() {
                       + {BRL(a.income)} · − {BRL(a.expense)}
                     </div>
                   </div>
-                  <div className={`text-right font-mono text-sm ${a.balance < 0 ? "text-destructive" : "text-foreground"}`}>
+                  <div
+                    className={`text-right font-mono text-sm ${a.balance < 0 ? "text-destructive" : "text-foreground"}`}
+                  >
                     {BRL(a.balance)}
                   </div>
                 </div>

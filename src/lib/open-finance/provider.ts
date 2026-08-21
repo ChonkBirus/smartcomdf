@@ -31,7 +31,7 @@ export interface OpenFinanceProvider {
   syncAccounts(providerConnectionId: string): Promise<unknown[]>;
   syncTransactions(
     providerConnectionId: string,
-    filters?: { from?: string; to?: string }
+    filters?: { from?: string; to?: string },
   ): Promise<unknown[]>;
   revoke(providerConnectionId: string): Promise<void>;
   verifyWebhookSignature(rawBody: string, headers: Headers): boolean;
@@ -71,7 +71,7 @@ class PluggyProvider implements OpenFinanceProvider {
   constructor(
     private readonly clientId: string,
     private readonly clientSecret: string,
-    private readonly webhookSecret: string | null
+    private readonly webhookSecret: string | null,
   ) {}
   status(): ProviderStatus {
     return { configured: true, provider: "PLUGGY" };
@@ -79,7 +79,7 @@ class PluggyProvider implements OpenFinanceProvider {
   async initConnection(): Promise<ProviderConnectInit> {
     // TODO: real Pluggy /connect_token call once integration is enabled.
     throw new Error(
-      "Integração Pluggy reconhecida, mas a chamada de criação de connect-token ainda não foi habilitada."
+      "Integração Pluggy reconhecida, mas a chamada de criação de connect-token ainda não foi habilitada.",
     );
   }
   async syncAccounts(): Promise<unknown[]> {
@@ -112,7 +112,7 @@ class BelvoProvider implements OpenFinanceProvider {
   constructor(
     private readonly secretId: string,
     private readonly secretPassword: string,
-    private readonly webhookSecret: string | null
+    private readonly webhookSecret: string | null,
   ) {}
   status(): ProviderStatus {
     return { configured: true, provider: "BELVO" };
@@ -151,7 +151,7 @@ export function getOpenFinanceProvider(): OpenFinanceProvider {
     const sec = process.env.PLUGGY_CLIENT_SECRET;
     if (!cid || !sec) {
       cached = new NullProvider(
-        "Pluggy selecionado mas PLUGGY_CLIENT_ID/PLUGGY_CLIENT_SECRET não estão configurados."
+        "Pluggy selecionado mas PLUGGY_CLIENT_ID/PLUGGY_CLIENT_SECRET não estão configurados.",
       );
       return cached;
     }
@@ -163,7 +163,7 @@ export function getOpenFinanceProvider(): OpenFinanceProvider {
     const pw = process.env.BELVO_SECRET_PASSWORD;
     if (!id || !pw) {
       cached = new NullProvider(
-        "Belvo selecionado mas BELVO_SECRET_ID/BELVO_SECRET_PASSWORD não estão configurados."
+        "Belvo selecionado mas BELVO_SECRET_ID/BELVO_SECRET_PASSWORD não estão configurados.",
       );
       return cached;
     }
@@ -172,7 +172,7 @@ export function getOpenFinanceProvider(): OpenFinanceProvider {
   }
 
   cached = new NullProvider(
-    "Defina OPEN_FINANCE_PROVIDER=pluggy ou belvo e configure as credenciais do provedor."
+    "Defina OPEN_FINANCE_PROVIDER=pluggy ou belvo e configure as credenciais do provedor.",
   );
   return cached;
 }

@@ -16,7 +16,11 @@ export type OnboardingProgress = {
 const tourKeySchema = z.object({ tourKey: z.string().min(1).max(64) });
 
 async function getCompanyId(supabase: any, userId: string): Promise<string | null> {
-  const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  const { data } = await supabase
+    .from("profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .maybeSingle();
   return data?.company_id ?? null;
 }
 
@@ -80,7 +84,6 @@ export const upsertOnboardingProgress = createServerFn({ method: "POST" })
     return row as OnboardingProgress;
   });
 
-
 export type GettingStartedStatus = {
   hasCustomer: boolean;
   hasProduct: boolean;
@@ -99,32 +102,44 @@ export const getGettingStartedStatus = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<GettingStartedStatus> => {
     const companyId = await getCompanyId(context.supabase, context.userId);
     const empty: GettingStartedStatus = {
-      hasCustomer: false, hasProduct: false, hasCompanyData: false,
+      hasCustomer: false,
+      hasProduct: false,
+      hasCompanyData: false,
       hasCrmOpportunity: false,
-      hasQuote: false, hasQuotePdf: false, hasQuoteSent: false,
-      hasQuoteApproved: false, hasCrmWon: false, hasServiceOrder: false,
+      hasQuote: false,
+      hasQuotePdf: false,
+      hasQuoteSent: false,
+      hasQuoteApproved: false,
+      hasCrmWon: false,
+      hasServiceOrder: false,
     };
     if (!companyId) return empty;
 
     const count = async (table: string, filters: Record<string, unknown> = {}) => {
-      let q: any = (context.supabase as any).from(table).select("id", { count: "exact", head: true }).eq("company_id", companyId);
+      let q: any = (context.supabase as any)
+        .from(table)
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", companyId);
       for (const [k, v] of Object.entries(filters)) q = q.eq(k, v);
       const { count: c } = await q;
       return (c ?? 0) > 0;
     };
 
-
-    const [hasCustomer, hasProduct, hasQuote, hasServiceOrder, hasCrmOpportunity, hasCrmWon] = await Promise.all([
-      count("customers"),
-      count("items"),
-      count("quotes"),
-      count("service_orders"),
-      count("crm_opportunities"),
-      count("crm_opportunities", { status: "WON" }),
-    ]);
+    const [hasCustomer, hasProduct, hasQuote, hasServiceOrder, hasCrmOpportunity, hasCrmWon] =
+      await Promise.all([
+        count("customers"),
+        count("items"),
+        count("quotes"),
+        count("service_orders"),
+        count("crm_opportunities"),
+        count("crm_opportunities", { status: "WON" }),
+      ]);
 
     const { data: company } = await context.supabase
-      .from("companies").select("corporate_name,cnpj,phone").eq("id", companyId).maybeSingle();
+      .from("companies")
+      .select("corporate_name,cnpj,phone")
+      .eq("id", companyId)
+      .maybeSingle();
     const hasCompanyData = Boolean(company?.corporate_name && company?.cnpj && company?.phone);
 
     const { data: quoteFlags } = await context.supabase
@@ -132,16 +147,33 @@ export const getGettingStartedStatus = createServerFn({ method: "GET" })
       .select("status,sent_at,accepted_at,pdf_generated_at")
       .eq("company_id", companyId)
       .limit(50);
-    const flags = (quoteFlags ?? []) as Array<{ status?: string; sent_at?: string | null; accepted_at?: string | null; pdf_generated_at?: string | null }>;
+    const flags = (quoteFlags ?? []) as Array<{
+      status?: string;
+      sent_at?: string | null;
+      accepted_at?: string | null;
+      pdf_generated_at?: string | null;
+    }>;
     const hasQuotePdf = flags.some((q) => !!q.pdf_generated_at);
-    const hasQuoteSent = flags.some((q) => !!q.sent_at || ["sent", "viewed", "accepted", "approved"].includes((q.status ?? "").toLowerCase()));
-    const hasQuoteApproved = flags.some((q) => !!q.accepted_at || ["accepted", "approved", "won"].includes((q.status ?? "").toLowerCase()));
+    const hasQuoteSent = flags.some(
+      (q) =>
+        !!q.sent_at ||
+        ["sent", "viewed", "accepted", "approved"].includes((q.status ?? "").toLowerCase()),
+    );
+    const hasQuoteApproved = flags.some(
+      (q) =>
+        !!q.accepted_at || ["accepted", "approved", "won"].includes((q.status ?? "").toLowerCase()),
+    );
 
     return {
-      hasCustomer, hasProduct, hasCompanyData,
+      hasCustomer,
+      hasProduct,
+      hasCompanyData,
       hasCrmOpportunity,
-      hasQuote, hasQuotePdf, hasQuoteSent, hasQuoteApproved,
-      hasCrmWon, hasServiceOrder,
+      hasQuote,
+      hasQuotePdf,
+      hasQuoteSent,
+      hasQuoteApproved,
+      hasCrmWon,
+      hasServiceOrder,
     };
   });
-

@@ -7,29 +7,37 @@ import type { ServiceOrder, ServiceOrderItem } from "@/lib/service-orders.functi
 export const listMyServiceOrders = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      status: z.string().optional(),
-      search: z.string().optional(),
-      from: z.string().optional(),
-      to: z.string().optional(),
-      scope: z.enum(["mine", "all"]).optional(),
-    }).parse(d ?? {}),
+    z
+      .object({
+        status: z.string().optional(),
+        search: z.string().optional(),
+        from: z.string().optional(),
+        to: z.string().optional(),
+        scope: z.enum(["mine", "all"]).optional(),
+      })
+      .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     const companyId = prof?.company_id;
     if (!companyId) throw new Error("Sem empresa vinculada.");
     let q = sb
       .from("service_orders")
-      .select(`
+      .select(
+        `
         id, company_id, service_order_number, title, status, priority,
         scheduled_date, scheduled_start_time, scheduled_end_time,
         assigned_technician_id,
         customers:customer_id(name,trade_name,corporate_name),
         address:customer_address_id(street,number,district,city,state),
         technician:assigned_technician_id(full_name,email)
-      `)
+      `,
+      )
       .eq("company_id", companyId)
       .is("deleted_at", null)
       .order("scheduled_date", { ascending: true, nullsFirst: false })
@@ -81,12 +89,17 @@ export const getMobileServiceOrderDetails = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }): Promise<MobileServiceOrderDetails | null> => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     const companyId = prof?.company_id;
     if (!companyId) throw new Error("Sem empresa vinculada.");
     const { data: so, error } = await sb
       .from("service_orders")
-      .select(`*,
+      .select(
+        `*,
         customers:customer_id(id,name,trade_name,corporate_name,cpf_cnpj,email,phone,whatsapp),
         address:customer_address_id(*),
         contact:customer_contact_id(*),
@@ -94,7 +107,8 @@ export const getMobileServiceOrderDetails = createServerFn({ method: "GET" })
         quotes:quote_id(id,quote_number),
         technician:assigned_technician_id(full_name,email),
         company:company_id(name,trade_name)
-      `)
+      `,
+      )
       .eq("id", data.id)
       .eq("company_id", companyId)
       .maybeSingle();

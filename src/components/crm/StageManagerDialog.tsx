@@ -3,28 +3,54 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
-  DndContext, PointerSensor, useSensor, useSensors, closestCenter,
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
   type DragEndEvent,
 } from "@dnd-kit/core";
 import {
-  SortableContext, useSortable, verticalListSortingStrategy, arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Plus, Trash2, Trophy, XCircle, CircleDot } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  listPipelineStages, createStage, deleteStage, reorderStages, updateStage,
+  listPipelineStages,
+  createStage,
+  deleteStage,
+  reorderStages,
+  updateStage,
   type CrmStage,
 } from "@/lib/crm.functions";
 import { cn } from "@/lib/utils";
@@ -52,7 +78,9 @@ export function StageManagerDialog({ open, onOpenChange, pipelineId }: Props) {
   const [toDelete, setToDelete] = useState<CrmStage | null>(null);
   const [moveTarget, setMoveTarget] = useState<string>("");
 
-  useEffect(() => { if (data) setItems(data); }, [data]);
+  useEffect(() => {
+    if (data) setItems(data);
+  }, [data]);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["crm"] });
@@ -60,8 +88,14 @@ export function StageManagerDialog({ open, onOpenChange, pipelineId }: Props) {
   };
 
   const createMut = useMutation({
-    mutationFn: () => create({ data: { pipeline_id: pipelineId, name: newName.trim(), stage_type: newType } }),
-    onSuccess: () => { setNewName(""); setNewType("open"); invalidate(); toast.success("Estágio criado."); },
+    mutationFn: () =>
+      create({ data: { pipeline_id: pipelineId, name: newName.trim(), stage_type: newType } }),
+    onSuccess: () => {
+      setNewName("");
+      setNewType("open");
+      invalidate();
+      toast.success("Estágio criado.");
+    },
     onError: (e: any) => toast.error(e?.message ?? "Erro ao criar estágio."),
   });
 
@@ -72,14 +106,20 @@ export function StageManagerDialog({ open, onOpenChange, pipelineId }: Props) {
   });
 
   const reorderMut = useMutation({
-    mutationFn: (ordered_ids: string[]) => reorder({ data: { pipeline_id: pipelineId, ordered_ids } }),
+    mutationFn: (ordered_ids: string[]) =>
+      reorder({ data: { pipeline_id: pipelineId, ordered_ids } }),
     onSuccess: invalidate,
     onError: (e: any) => toast.error(e?.message ?? "Erro ao reordenar."),
   });
 
   const deleteMut = useMutation({
     mutationFn: (v: { id: string; move_to_stage_id: string }) => remove({ data: v }),
-    onSuccess: () => { setToDelete(null); setMoveTarget(""); invalidate(); toast.success("Estágio removido."); },
+    onSuccess: () => {
+      setToDelete(null);
+      setMoveTarget("");
+      invalidate();
+      toast.success("Estágio removido.");
+    },
     onError: (e: any) => toast.error(e?.message ?? "Erro ao remover."),
   });
 
@@ -130,7 +170,9 @@ export function StageManagerDialog({ open, onOpenChange, pipelineId }: Props) {
               onChange={(e) => setNewName(e.target.value)}
             />
             <Select value={newType} onValueChange={(v: any) => setNewType(v)}>
-              <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[130px]">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="open">Aberto</SelectItem>
                 <SelectItem value="won">Ganho</SelectItem>
@@ -146,7 +188,9 @@ export function StageManagerDialog({ open, onOpenChange, pipelineId }: Props) {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Fechar</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Fechar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -160,11 +204,17 @@ export function StageManagerDialog({ open, onOpenChange, pipelineId }: Props) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Select value={moveTarget} onValueChange={setMoveTarget}>
-            <SelectTrigger><SelectValue placeholder="Mover leads para…" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder="Mover leads para…" />
+            </SelectTrigger>
             <SelectContent>
-              {items.filter((s) => s.id !== toDelete?.id).map((s) => (
-                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-              ))}
+              {items
+                .filter((s) => s.id !== toDelete?.id)
+                .map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
           <AlertDialogFooter>
@@ -187,19 +237,28 @@ export function StageManagerDialog({ open, onOpenChange, pipelineId }: Props) {
 }
 
 function SortableStageRow({
-  stage, onRename, onDelete, canDelete,
+  stage,
+  onRename,
+  onDelete,
+  canDelete,
 }: {
   stage: CrmStage;
   onRename: (name: string) => void;
   onDelete: () => void;
   canDelete: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: stage.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: stage.id,
+  });
   const style = { transform: CSS.Transform.toString(transform), transition };
   const [name, setName] = useState(stage.name);
   useEffect(() => setName(stage.name), [stage.name]);
   const TypeIcon = stage.is_won ? Trophy : stage.is_lost ? XCircle : CircleDot;
-  const iconClass = stage.is_won ? "text-success" : stage.is_lost ? "text-destructive" : "text-primary";
+  const iconClass = stage.is_won
+    ? "text-success"
+    : stage.is_lost
+      ? "text-destructive"
+      : "text-primary";
 
   return (
     <div
@@ -217,12 +276,17 @@ function SortableStageRow({
       <Input
         value={name}
         onChange={(e) => setName(e.target.value)}
-        onBlur={() => { if (name.trim() && name !== stage.name) onRename(name.trim()); }}
+        onBlur={() => {
+          if (name.trim() && name !== stage.name) onRename(name.trim());
+        }}
         className="h-8 flex-1"
       />
       <Button
-        variant="ghost" size="icon" className="h-8 w-8 text-destructive"
-        disabled={!canDelete} onClick={onDelete}
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 text-destructive"
+        disabled={!canDelete}
+        onClick={onDelete}
       >
         <Trash2 className="h-4 w-4" />
       </Button>

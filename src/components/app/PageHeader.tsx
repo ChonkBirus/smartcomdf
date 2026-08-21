@@ -1,8 +1,16 @@
 import type { ReactNode } from "react";
 import { ModuleHelpButton } from "@/components/onboarding/ModuleHelpButton";
 
-export function PageHeader({ title, description, actions, tourKey }: {
-  title: string; description?: string; actions?: ReactNode; tourKey?: string;
+export function PageHeader({
+  title,
+  description,
+  actions,
+  tourKey,
+}: {
+  title: string;
+  description?: string;
+  actions?: ReactNode;
+  tourKey?: string;
 }) {
   return (
     <div className="flex flex-col gap-3 pb-4 md:flex-row md:items-center md:justify-between">

@@ -29,4 +29,3 @@ export function publicShareUrl(path = "/"): string {
   const p = path.startsWith("/") ? path : `/${path}`;
   return `${base}${p}`;
 }
-

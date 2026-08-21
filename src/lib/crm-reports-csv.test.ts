@@ -6,9 +6,7 @@ const sample: CrmReportsData = {
     { key: "site", label: "Site", count: 3, value: 1500 },
     { key: "indicacao", label: "Indicação; VIP", count: 2, value: 999.5 },
   ],
-  byAssigned: [
-    { key: "u1", label: "Ana", count: 5, won: 2, lost: 1, value: 2500 },
-  ],
+  byAssigned: [{ key: "u1", label: "Ana", count: 5, won: 2, lost: 1, value: 2500 }],
   lostReasons: [
     { reason: "Preço alto", count: 4 },
     { reason: 'Cliente disse "não"', count: 1 },

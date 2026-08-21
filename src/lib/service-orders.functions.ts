@@ -4,7 +4,12 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { sanitizePostgrestSearch } from "@/lib/postgrest-sanitize";
 
 export type ServiceOrderStatus =
-  | "DRAFT" | "SCHEDULED" | "IN_PROGRESS" | "PAUSED" | "COMPLETED" | "CANCELLED";
+  | "DRAFT"
+  | "SCHEDULED"
+  | "IN_PROGRESS"
+  | "PAUSED"
+  | "COMPLETED"
+  | "CANCELLED";
 export type ServiceOrderPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
 
 export type ServiceOrder = {
@@ -71,11 +76,13 @@ export type ServiceOrderItem = {
 export const createServiceOrderFromProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      project_id: z.string().uuid(),
-      assigned_technician_id: z.string().uuid().nullable().optional(),
-      client_request_id: z.string().uuid().optional(),
-    }).parse(d),
+    z
+      .object({
+        project_id: z.string().uuid(),
+        assigned_technician_id: z.string().uuid().nullable().optional(),
+        client_request_id: z.string().uuid().optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -91,27 +98,35 @@ export const createServiceOrderFromProject = createServerFn({ method: "POST" })
 export const listServiceOrders = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      status: z.string().optional(),
-      priority: z.string().optional(),
-      customer_id: z.string().uuid().optional(),
-      technician_id: z.string().uuid().optional(),
-      search: z.string().optional(),
-      from: z.string().optional(),
-      to: z.string().optional(),
-    }).parse(d ?? {}),
+    z
+      .object({
+        status: z.string().optional(),
+        priority: z.string().optional(),
+        customer_id: z.string().uuid().optional(),
+        technician_id: z.string().uuid().optional(),
+        search: z.string().optional(),
+        from: z.string().optional(),
+        to: z.string().optional(),
+      })
+      .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     let q = sb
       .from("service_orders")
-      .select(`*,
+      .select(
+        `*,
         customers:customer_id(name,trade_name,corporate_name),
         projects:project_id(project_number),
         technician:assigned_technician_id(full_name,email)
-      `)
+      `,
+      )
       .eq("company_id", prof.company_id)
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
@@ -141,18 +156,24 @@ export const getServiceOrder = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: so, error } = await sb
       .from("service_orders")
-      .select(`*,
+      .select(
+        `*,
         customers:customer_id(id,name,trade_name,corporate_name,cpf_cnpj,email,phone,whatsapp),
         address:customer_address_id(*),
         contact:customer_contact_id(*),
         projects:project_id(id,project_number,title),
         quotes:quote_id(id,quote_number),
         technician:assigned_technician_id(full_name,email)
-      `)
+      `,
+      )
       .eq("id", data.id)
       .eq("company_id", prof.company_id)
       .maybeSingle();
@@ -188,18 +209,20 @@ export const getServiceOrder = createServerFn({ method: "GET" })
 export const updateServiceOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      id: z.string().uuid(),
-      assigned_technician_id: z.string().uuid().nullable().optional(),
-      scheduled_date: z.string().nullable().optional(),
-      scheduled_start_time: z.string().nullable().optional(),
-      scheduled_end_time: z.string().nullable().optional(),
-      priority: z.enum(["LOW", "NORMAL", "HIGH", "URGENT"]).optional(),
-      customer_instructions: z.string().nullable().optional(),
-      access_instructions: z.string().nullable().optional(),
-      parking_instructions: z.string().nullable().optional(),
-      technical_notes: z.string().nullable().optional(),
-    }).parse(d),
+    z
+      .object({
+        id: z.string().uuid(),
+        assigned_technician_id: z.string().uuid().nullable().optional(),
+        scheduled_date: z.string().nullable().optional(),
+        scheduled_start_time: z.string().nullable().optional(),
+        scheduled_end_time: z.string().nullable().optional(),
+        priority: z.enum(["LOW", "NORMAL", "HIGH", "URGENT"]).optional(),
+        customer_instructions: z.string().nullable().optional(),
+        access_instructions: z.string().nullable().optional(),
+        parking_instructions: z.string().nullable().optional(),
+        technical_notes: z.string().nullable().optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -207,8 +230,11 @@ export const updateServiceOrder = createServerFn({ method: "POST" })
     const { error } = await sb.from("service_orders").update(patch).eq("id", id);
     if (error) throw new Error(error.message);
     await sb.rpc("log_audit", {
-      _module: "service_orders", _action: "update", _record_id: id,
-      _old_data: null, _new_data: patch as any,
+      _module: "service_orders",
+      _action: "update",
+      _record_id: id,
+      _old_data: null,
+      _new_data: patch as any,
     });
     return { ok: true };
   });
@@ -221,7 +247,8 @@ export const cancelServiceOrder = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { error } = await sb.rpc("cancel_service_order", {
-      _id: data.id, _reason: data.reason ?? null,
+      _id: data.id,
+      _reason: data.reason ?? null,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -249,16 +276,21 @@ export const listServiceOrdersByProject = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { data: prof } = await sb
-      .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: rows, error } = await sb
       .from("service_orders")
-      .select(`
+      .select(
+        `
         id, service_order_number, title, status, priority,
         scheduled_date, scheduled_start_time, completed_at, created_at,
         assigned_technician_id,
         technician:assigned_technician_id(full_name,email)
-      `)
+      `,
+      )
       .eq("company_id", prof.company_id)
       .eq("project_id", data.project_id)
       .is("deleted_at", null)

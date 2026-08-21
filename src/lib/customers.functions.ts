@@ -137,7 +137,9 @@ export type QuoteCustomersResult = {
 
 const onlyDigits = (s: string) => s.replace(/\D/g, "");
 
-const customerDisplayName = (customer: Pick<Customer, "customer_type" | "name" | "trade_name" | "corporate_name">) => {
+const customerDisplayName = (
+  customer: Pick<Customer, "customer_type" | "name" | "trade_name" | "corporate_name">,
+) => {
   if (customer.customer_type === "COMPANY") {
     return customer.trade_name || customer.corporate_name || customer.name || "Cliente sem nome";
   }
@@ -230,7 +232,8 @@ const getActiveCustomersForQuoteFromDb = async ({
           companyIdExists: !!companyId,
           customersTableRecordsInCompany: companyCount ?? customers.length,
           activeTrueCount: customers.filter((customer) => customer.active === true).length,
-          statusActiveCount: customers.filter((customer) => customer.customer_status === "ACTIVE").length,
+          statusActiveCount: customers.filter((customer) => customer.customer_status === "ACTIVE")
+            .length,
           queryReturnedEmpty: customers.length === 0,
           componentExpectedShape: "options: { value, label, description, raw }[]",
           error: null,
@@ -244,7 +247,9 @@ export const customerService = {
 };
 
 const nstr = (max: number) =>
-  z.preprocess((v) => (v === null || v === undefined ? "" : v), z.string().trim().max(max)).optional();
+  z
+    .preprocess((v) => (v === null || v === undefined ? "" : v), z.string().trim().max(max))
+    .optional();
 
 const addressSchema = z.object({
   id: z.string().uuid().optional(),
@@ -265,62 +270,64 @@ const contactSchema = z.object({
   id: z.string().uuid().optional(),
   name: z.preprocess((v) => (v == null ? "" : v), z.string().trim().max(150)).default(""),
   role: nstr(100),
-  email: z.preprocess(
-    (v) => {
+  email: z
+    .preprocess((v) => {
       if (v === null || v === undefined) return undefined;
       const s = String(v).trim();
       return s === "" ? undefined : s;
-    },
-    z.string().email("Informe um e-mail válido.").max(200).optional(),
-  ).optional().nullable(),
+    }, z.string().email("Informe um e-mail válido.").max(200).optional())
+    .optional()
+    .nullable(),
   phone: nstr(30),
   whatsapp: nstr(30),
   is_primary: z.boolean().default(false),
   active: z.boolean().default(true),
 });
 
-
-const customerSchema = z.object({
-  id: z.string().uuid().optional(),
-  customer_type: z.enum(["INDIVIDUAL", "COMPANY"]),
-  name: z.string().trim().min(2, "Nome é obrigatório.").max(200),
-  corporate_name: nstr(200),
-  trade_name: nstr(200),
-  cpf_cnpj: z
-    .string()
-    .trim()
-    .max(20)
-    .optional()
-    .nullable()
-    .transform((v) => (v && v.trim() !== "" ? v : null))
-    .refine(
-      (v) => {
-        if (!v) return true;
-        const digits = v.replace(/\D/g, "");
-        return digits.length === 11 || digits.length === 14;
-      },
-      { message: "Documento inválido." },
-    ),
-  state_registration: nstr(50),
-  municipal_registration: nstr(50),
-  email: z.string({ required_error: "E-mail é obrigatório." })
-    .trim()
-    .min(1, "E-mail é obrigatório.")
-    .email("Informe um e-mail válido.")
-    .max(200),
-  phone: nstr(30),
-  whatsapp: nstr(30),
-  customer_status: z.enum(["LEAD", "ACTIVE", "INACTIVE", "BLOCKED"]).default("ACTIVE"),
-  customer_origin: nstr(100),
-  notes: nstr(4000),
-  active: z.boolean().default(true),
-  addresses: z.array(addressSchema).default([]),
-  contacts: z.array(contactSchema).default([]),
-  tag_ids: z.array(z.string().uuid()).default([]),
-}).refine((d) => (d.phone && d.phone.length > 0) || (d.whatsapp && d.whatsapp.length > 0), {
-  message: "Informe WhatsApp ou Telefone.",
-  path: ["whatsapp"],
-});
+const customerSchema = z
+  .object({
+    id: z.string().uuid().optional(),
+    customer_type: z.enum(["INDIVIDUAL", "COMPANY"]),
+    name: z.string().trim().min(2, "Nome é obrigatório.").max(200),
+    corporate_name: nstr(200),
+    trade_name: nstr(200),
+    cpf_cnpj: z
+      .string()
+      .trim()
+      .max(20)
+      .optional()
+      .nullable()
+      .transform((v) => (v && v.trim() !== "" ? v : null))
+      .refine(
+        (v) => {
+          if (!v) return true;
+          const digits = v.replace(/\D/g, "");
+          return digits.length === 11 || digits.length === 14;
+        },
+        { message: "Documento inválido." },
+      ),
+    state_registration: nstr(50),
+    municipal_registration: nstr(50),
+    email: z
+      .string({ required_error: "E-mail é obrigatório." })
+      .trim()
+      .min(1, "E-mail é obrigatório.")
+      .email("Informe um e-mail válido.")
+      .max(200),
+    phone: nstr(30),
+    whatsapp: nstr(30),
+    customer_status: z.enum(["LEAD", "ACTIVE", "INACTIVE", "BLOCKED"]).default("ACTIVE"),
+    customer_origin: nstr(100),
+    notes: nstr(4000),
+    active: z.boolean().default(true),
+    addresses: z.array(addressSchema).default([]),
+    contacts: z.array(contactSchema).default([]),
+    tag_ids: z.array(z.string().uuid()).default([]),
+  })
+  .refine((d) => (d.phone && d.phone.length > 0) || (d.whatsapp && d.whatsapp.length > 0), {
+    message: "Informe WhatsApp ou Telefone.",
+    path: ["whatsapp"],
+  });
 
 // ============================================================
 // LIST
@@ -328,22 +335,28 @@ const customerSchema = z.object({
 export const listCustomers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      search: z.string().optional(),
-      customer_type: z.enum(["INDIVIDUAL", "COMPANY"]).optional(),
-      customer_status: z.enum(["LEAD", "ACTIVE", "INACTIVE", "BLOCKED"]).optional(),
-      city: z.string().optional(),
-      tag_id: z.string().uuid().optional(),
-      origin: z.string().optional(),
-      active: z.boolean().optional(),
-      sort: z.enum(["name", "created_at", "city", "status"]).default("created_at"),
-      page: z.number().int().min(1).default(1),
-      page_size: z.number().int().min(1).max(100).default(20),
-    }).parse(d ?? {}),
+    z
+      .object({
+        search: z.string().optional(),
+        customer_type: z.enum(["INDIVIDUAL", "COMPANY"]).optional(),
+        customer_status: z.enum(["LEAD", "ACTIVE", "INACTIVE", "BLOCKED"]).optional(),
+        city: z.string().optional(),
+        tag_id: z.string().uuid().optional(),
+        origin: z.string().optional(),
+        active: z.boolean().optional(),
+        sort: z.enum(["name", "created_at", "city", "status"]).default("created_at"),
+        page: z.number().int().min(1).default(1),
+        page_size: z.number().int().min(1).max(100).default(20),
+      })
+      .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     const from = (data.page - 1) * data.page_size;
     const to = from + data.page_size - 1;
@@ -402,9 +415,7 @@ export const listCustomers = createServerFn({ method: "GET" })
           (r.customer_addresses ?? []).find((a: any) => a.is_primary) ??
           (r.customer_addresses ?? [])[0] ??
           null,
-        tags: (r.customer_tag_relations ?? [])
-          .map((t: any) => t.customer_tags)
-          .filter(Boolean),
+        tags: (r.customer_tag_relations ?? []).map((t: any) => t.customer_tags).filter(Boolean),
       })),
     };
   });
@@ -415,10 +426,12 @@ export const listCustomers = createServerFn({ method: "GET" })
 export const getActiveCustomersForQuote = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      companyId: z.string().uuid().optional(),
-      company_id: z.string().uuid().optional(),
-    }).parse(d ?? {}),
+    z
+      .object({
+        companyId: z.string().uuid().optional(),
+        company_id: z.string().uuid().optional(),
+      })
+      .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -433,7 +446,9 @@ export const getActiveCustomersForQuote = createServerFn({ method: "GET" })
 
     const companyId = data.companyId ?? data.company_id ?? null;
     if (!companyId || !profile?.company_id) {
-      console.log("[QuoteCustomers] companyId ainda não carregado. Query de clientes não executada.");
+      console.log(
+        "[QuoteCustomers] companyId ainda não carregado. Query de clientes não executada.",
+      );
       throw new Error("Empresa não identificada.");
     }
 
@@ -441,7 +456,13 @@ export const getActiveCustomersForQuote = createServerFn({ method: "GET" })
       throw new Error("Empresa inválida para o usuário autenticado.");
     }
 
-    return customerService.getActiveCustomersForQuote({ sb, companyId, userId: context.userId, profile, dev });
+    return customerService.getActiveCustomersForQuote({
+      sb,
+      companyId,
+      userId: context.userId,
+      profile,
+      dev,
+    });
   });
 
 // ============================================================
@@ -452,7 +473,11 @@ export const getCustomer = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: customer, error } = await sb
       .from("customers")
@@ -465,9 +490,20 @@ export const getCustomer = createServerFn({ method: "GET" })
     if (!customer) return null;
 
     const [{ data: addresses }, { data: contacts }, { data: tagRels }] = await Promise.all([
-      sb.from("customer_addresses").select("*").eq("customer_id", data.id).order("is_primary", { ascending: false }),
-      sb.from("customer_contacts").select("*").eq("customer_id", data.id).order("is_primary", { ascending: false }),
-      sb.from("customer_tag_relations").select("tag_id, customer_tags(id, name, color)").eq("customer_id", data.id),
+      sb
+        .from("customer_addresses")
+        .select("*")
+        .eq("customer_id", data.id)
+        .order("is_primary", { ascending: false }),
+      sb
+        .from("customer_contacts")
+        .select("*")
+        .eq("customer_id", data.id)
+        .order("is_primary", { ascending: false }),
+      sb
+        .from("customer_tag_relations")
+        .select("tag_id, customer_tags(id, name, color)")
+        .eq("customer_id", data.id),
     ]);
 
     return {
@@ -626,7 +662,6 @@ export const saveCustomer = createServerFn({ method: "POST" })
       if (errC) throw new Error(errC.message);
     }
 
-
     // Tags: replace strategy
     await sb.from("customer_tag_relations").delete().eq("customer_id", customerId);
     if (data.tag_ids.length > 0) {
@@ -646,9 +681,7 @@ export const saveCustomer = createServerFn({ method: "POST" })
 // ============================================================
 export const toggleCustomer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z.object({ id: z.string().uuid(), active: z.boolean() }).parse(d),
-  )
+  .inputValidator((d) => z.object({ id: z.string().uuid(), active: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { error } = await sb
@@ -708,7 +741,11 @@ export const listCustomerHistory = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ customer_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: rows, error } = await sb
       .from("customer_history")
@@ -723,12 +760,14 @@ export const listCustomerHistory = createServerFn({ method: "GET" })
 export const addCustomerHistory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      customer_id: z.string().uuid(),
-      history_type: z.enum(["NOTE", "CALL", "WHATSAPP", "EMAIL", "MEETING", "SYSTEM"]),
-      title: z.string().trim().min(1).max(200),
-      description: z.string().trim().max(4000).optional().or(z.literal("")),
-    }).parse(d),
+    z
+      .object({
+        customer_id: z.string().uuid(),
+        history_type: z.enum(["NOTE", "CALL", "WHATSAPP", "EMAIL", "MEETING", "SYSTEM"]),
+        title: z.string().trim().min(1).max(200),
+        description: z.string().trim().max(4000).optional().or(z.literal("")),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -774,7 +813,11 @@ export const listCustomerTags = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: rows, error } = await sb
       .from("customer_tags")
@@ -788,10 +831,16 @@ export const listCustomerTags = createServerFn({ method: "GET" })
 export const createCustomerTag = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      name: z.string().trim().min(1).max(50),
-      color: z.string().trim().regex(/^#[0-9A-Fa-f]{6}$/).default("#3B82F6"),
-    }).parse(d),
+    z
+      .object({
+        name: z.string().trim().min(1).max(50),
+        color: z
+          .string()
+          .trim()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .default("#3B82F6"),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -817,21 +866,35 @@ export const customerMetrics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     const cid = prof.company_id;
     const now = new Date();
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-    const base = () => sb.from("customers").select("*", { count: "exact", head: true }).eq("company_id", cid).is("deleted_at", null);
-    const [{ count: total }, { count: active }, { count: individual }, { count: company }, { count: newMonth }] =
-      await Promise.all([
-        base(),
-        base().eq("active", true),
-        base().eq("customer_type", "INDIVIDUAL"),
-        base().eq("customer_type", "COMPANY"),
-        base().gte("created_at", firstOfMonth),
-      ]);
+    const base = () =>
+      sb
+        .from("customers")
+        .select("*", { count: "exact", head: true })
+        .eq("company_id", cid)
+        .is("deleted_at", null);
+    const [
+      { count: total },
+      { count: active },
+      { count: individual },
+      { count: company },
+      { count: newMonth },
+    ] = await Promise.all([
+      base(),
+      base().eq("active", true),
+      base().eq("customer_type", "INDIVIDUAL"),
+      base().eq("customer_type", "COMPANY"),
+      base().gte("created_at", firstOfMonth),
+    ]);
 
     return {
       total: total ?? 0,

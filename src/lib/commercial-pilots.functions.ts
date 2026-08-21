@@ -77,12 +77,7 @@ export const PILOT_STATUSES = [
   "paused",
 ] as const;
 
-export const ONBOARDING_STATUSES = [
-  "NOT_STARTED",
-  "IN_PROGRESS",
-  "COMPLETED",
-  "STUCK",
-] as const;
+export const ONBOARDING_STATUSES = ["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "STUCK"] as const;
 
 export const listCommercialPilots = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -208,10 +203,7 @@ export const updateCommercialPilot = createServerFn({ method: "POST" })
     if (data.expected_conversion_date !== undefined)
       patch.expected_conversion_date = data.expected_conversion_date;
     if (data.loss_reason !== undefined) patch.loss_reason = data.loss_reason;
-    const { error } = await supabaseAdmin
-      .from("commercial_pilots")
-      .update(patch)
-      .eq("id", data.id);
+    const { error } = await supabaseAdmin.from("commercial_pilots").update(patch).eq("id", data.id);
     if (error) throw error;
     return { ok: true };
   });
@@ -222,10 +214,7 @@ export const deleteCommercialPilot = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
-      .from("commercial_pilots")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await supabaseAdmin.from("commercial_pilots").delete().eq("id", data.id);
     if (error) throw error;
     return { ok: true };
   });
@@ -238,7 +227,9 @@ export const listPilotContactLogs = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("commercial_contact_logs")
-      .select("id, contact_type, contact_channel, subject, message, result, contacted_at, next_follow_up_at")
+      .select(
+        "id, contact_type, contact_channel, subject, message, result, contacted_at, next_follow_up_at",
+      )
       .eq("company_id", data.company_id)
       .order("contacted_at", { ascending: false })
       .limit(50);
@@ -292,9 +283,7 @@ export const getCommercialPilotMetrics = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<PilotMetrics> => {
     await assertSuperAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: pilots } = await supabaseAdmin
-      .from("commercial_pilots")
-      .select("status");
+    const { data: pilots } = await supabaseAdmin.from("commercial_pilots").select("status");
     const list = (pilots ?? []) as Array<{ status: string }>;
     const count = (s: string) => list.filter((p) => p.status === s).length;
     const total = list.length;
@@ -309,7 +298,12 @@ export const getCommercialPilotMetrics = createServerFn({ method: "GET" })
       .not("next_follow_up_at", "is", null);
     return {
       total,
-      active: count("active") + count("ACTIVE_TRIAL") + count("USING") + count("ONBOARDING") + count("INVITED"),
+      active:
+        count("active") +
+        count("ACTIVE_TRIAL") +
+        count("USING") +
+        count("ONBOARDING") +
+        count("INVITED"),
       inProgress: count("in_progress") + count("ONBOARDING") + count("READY_TO_CONVERT"),
       converted: converted + count("CONVERTED"),
       lost: count("lost") + count("LOST"),

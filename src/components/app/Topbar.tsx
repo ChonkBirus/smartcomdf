@@ -5,8 +5,12 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationsBell } from "./NotificationsBell";
@@ -14,20 +18,32 @@ import { supabase } from "@/integrations/supabase/client";
 import { useContext, useEffect, useState } from "react";
 import { OnboardingCtx } from "@/components/onboarding/OnboardingProvider";
 import { resolveAvatarUrl } from "@/lib/resolveAvatarUrl";
-function useOnboardingSafe() { return useContext(OnboardingCtx) as null | { startTour: (k: string) => void }; }
+function useOnboardingSafe() {
+  return useContext(OnboardingCtx) as null | { startTour: (k: string) => void };
+}
 
-
-
-
-
-export function Topbar({ name, email, avatarUrl, companyName, userId }: {
-  name?: string | null; email?: string | null; avatarUrl?: string | null;
-  companyName?: string | null; userId?: string | null;
+export function Topbar({
+  name,
+  email,
+  avatarUrl,
+  companyName,
+  userId,
+}: {
+  name?: string | null;
+  email?: string | null;
+  avatarUrl?: string | null;
+  companyName?: string | null;
+  userId?: string | null;
 }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const onboarding = useOnboardingSafe();
-  const initials = (name ?? email ?? "U").split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase();
+  const initials = (name ?? email ?? "U")
+    .split(" ")
+    .map((s) => s[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   const [resolvedAvatar, setResolvedAvatar] = useState<string | null>(null);
   const [imgFailed, setImgFailed] = useState(false);
@@ -38,10 +54,10 @@ export function Topbar({ name, email, avatarUrl, companyName, userId }: {
     resolveAvatarUrl(avatarUrl).then((url) => {
       if (!cancelled) setResolvedAvatar(url);
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [avatarUrl]);
-
-
 
   const signOut = async () => {
     await qc.cancelQueries();
@@ -69,9 +85,10 @@ export function Topbar({ name, email, avatarUrl, companyName, userId }: {
                 {resolvedAvatar && !imgFailed && (
                   <AvatarImage src={resolvedAvatar} onError={() => setImgFailed(true)} />
                 )}
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs">{initials}</AvatarFallback>
+                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                  {initials}
+                </AvatarFallback>
               </Avatar>
-
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
@@ -91,8 +108,6 @@ export function Topbar({ name, email, avatarUrl, companyName, userId }: {
                 <RefreshCw className="mr-2 h-4 w-4" /> Reiniciar tour
               </DropdownMenuItem>
             )}
-
-
 
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut} className="text-destructive">

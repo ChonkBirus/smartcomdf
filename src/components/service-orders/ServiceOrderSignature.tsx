@@ -51,9 +51,7 @@ export function ServiceOrderSignature({
   return (
     <div className="space-y-3">
       {signatures.length === 0 && !editable && (
-        <p className="text-sm text-muted-foreground">
-          Nenhuma assinatura coletada ainda.
-        </p>
+        <p className="text-sm text-muted-foreground">Nenhuma assinatura coletada ainda.</p>
       )}
 
       {signatures.map((s) => (
@@ -113,9 +111,7 @@ export function ServiceOrderSignature({
       )}
 
       {hasCustomerSig && canCollect && (
-        <p className="text-xs text-muted-foreground">
-          Assinatura do cliente já foi coletada.
-        </p>
+        <p className="text-xs text-muted-foreground">Assinatura do cliente já foi coletada.</p>
       )}
     </div>
   );
@@ -188,7 +184,9 @@ function SignaturePad({
     ctx.stroke();
     hasStrokes.current = true;
   };
-  const onUp = () => { drawing.current = false; };
+  const onUp = () => {
+    drawing.current = false;
+  };
 
   const clear = () => {
     const canvas = canvasRef.current!;
@@ -243,19 +241,36 @@ function SignaturePad({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <div>
           <Label className="text-xs">Nome do assinante *</Label>
-          <Input value={signerName} onChange={(e) => setSignerName(e.target.value)} maxLength={120} />
+          <Input
+            value={signerName}
+            onChange={(e) => setSignerName(e.target.value)}
+            maxLength={120}
+          />
         </div>
         <div>
           <Label className="text-xs">CPF/CNPJ</Label>
-          <Input value={signerDocument} onChange={(e) => setSignerDocument(e.target.value)} maxLength={32} />
+          <Input
+            value={signerDocument}
+            onChange={(e) => setSignerDocument(e.target.value)}
+            maxLength={32}
+          />
         </div>
         <div>
           <Label className="text-xs">E-mail</Label>
-          <Input type="email" value={signerEmail} onChange={(e) => setSignerEmail(e.target.value)} maxLength={120} />
+          <Input
+            type="email"
+            value={signerEmail}
+            onChange={(e) => setSignerEmail(e.target.value)}
+            maxLength={120}
+          />
         </div>
         <div>
           <Label className="text-xs">Telefone</Label>
-          <Input value={signerPhone} onChange={(e) => setSignerPhone(e.target.value)} maxLength={32} />
+          <Input
+            value={signerPhone}
+            onChange={(e) => setSignerPhone(e.target.value)}
+            maxLength={32}
+          />
         </div>
       </div>
 
@@ -279,7 +294,11 @@ function SignaturePad({
           <Eraser className="h-4 w-4 mr-1" /> Limpar
         </Button>
         <Button onClick={save} disabled={saving}>
-          {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <ShieldCheck className="h-4 w-4 mr-1" />}
+          {saving ? (
+            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+          ) : (
+            <ShieldCheck className="h-4 w-4 mr-1" />
+          )}
           Salvar assinatura
         </Button>
       </div>

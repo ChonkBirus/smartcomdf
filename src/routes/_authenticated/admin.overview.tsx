@@ -20,8 +20,7 @@ export const Route = createFileRoute("/_authenticated/admin/overview")({
   component: OverviewPage,
 });
 
-const brl = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 function Metric({
   icon: Icon,
@@ -43,9 +42,7 @@ function Metric({
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {label}
-        </CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
         <Icon className={`h-4 w-4 ${toneCls}`} />
       </CardHeader>
       <CardContent>
@@ -73,9 +70,18 @@ function OverviewPage() {
         <Metric icon={Building2} label="Empresas totais" value={data.totalCompanies} />
         <Metric icon={Sparkles} label="Em trial" value={data.trialingCount} />
         <Metric icon={CheckCircle2} label="Ativas" value={data.activeCount} tone="success" />
-        <Metric icon={AlertCircle} label="Pagamento pendente" value={data.pastDueCount} tone="warning" />
+        <Metric
+          icon={AlertCircle}
+          label="Pagamento pendente"
+          value={data.pastDueCount}
+          tone="warning"
+        />
         <Metric icon={PauseCircle} label="Suspensas" value={data.suspendedCount} tone="danger" />
-        <Metric icon={Receipt} label="Pagamentos no mês" value={`${data.paymentsThisMonthCount} · ${brl(data.paymentsThisMonthAmount)}`} />
+        <Metric
+          icon={Receipt}
+          label="Pagamentos no mês"
+          value={`${data.paymentsThisMonthCount} · ${brl(data.paymentsThisMonthAmount)}`}
+        />
         <Metric icon={TrendingUp} label="MRR estimado" value={brl(data.mrr)} tone="success" />
         <Metric icon={TrendingUp} label="ARR estimado" value={brl(data.arr)} tone="success" />
       </div>

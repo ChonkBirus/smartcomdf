@@ -9,14 +9,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { usePermissions } from "@/lib/permissions";
 import {
@@ -111,8 +126,7 @@ export function EmployeeCostsPanel(props: EmployeeCostsPanelProps) {
     enabled: canManage,
   });
 
-  const projectIdForNew =
-    props.scope === "project" ? props.projectId : props.projectId ?? null;
+  const projectIdForNew = props.scope === "project" ? props.projectId : (props.projectId ?? null);
 
   const { data: projectSOs = [] } = useQuery({
     queryKey: ["project-sos-picker", projectIdForNew ?? "none"],
@@ -141,8 +155,7 @@ export function EmployeeCostsPanel(props: EmployeeCostsPanelProps) {
     } else {
       setForm({
         ...EMPTY_FORM,
-        service_order_id:
-          props.scope === "service_order" ? props.serviceOrderId : null,
+        service_order_id: props.scope === "service_order" ? props.serviceOrderId : null,
       });
     }
   }, [openForm, editing, props]);
@@ -193,8 +206,7 @@ export function EmployeeCostsPanel(props: EmployeeCostsPanelProps) {
       if (editing) {
         return updFn({ data: { id: editing.id, ...payload } });
       }
-      if (!projectIdForNew)
-        throw new Error("Projeto obrigatório para vincular funcionário.");
+      if (!projectIdForNew) throw new Error("Projeto obrigatório para vincular funcionário.");
       return addFn({
         data: {
           ...payload,
@@ -250,9 +262,7 @@ export function EmployeeCostsPanel(props: EmployeeCostsPanelProps) {
       {isLoading ? (
         <p className="p-4 text-sm text-muted-foreground">Carregando…</p>
       ) : rows.length === 0 ? (
-        <p className="p-4 text-sm text-muted-foreground">
-          Nenhum funcionário vinculado ainda.
-        </p>
+        <p className="p-4 text-sm text-muted-foreground">Nenhum funcionário vinculado ainda.</p>
       ) : (
         <>
           {/* Desktop */}
@@ -282,9 +292,7 @@ export function EmployeeCostsPanel(props: EmployeeCostsPanelProps) {
                         </div>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-muted-foreground">
-                      {r.role_snapshot ?? "—"}
-                    </td>
+                    <td className="px-3 py-2 text-muted-foreground">{r.role_snapshot ?? "—"}</td>
                     <td className="px-3 py-2 text-right">{r.days_count}</td>
                     <td className="px-3 py-2 text-right">{brl(r.daily_rate_snapshot)}</td>
                     <td className="px-3 py-2 text-right">{brl(r.transport_cost)}</td>
@@ -351,9 +359,7 @@ export function EmployeeCostsPanel(props: EmployeeCostsPanelProps) {
                   Passagem {brl(r.transport_cost)} · Almoço {brl(r.meal_cost)} · Outros{" "}
                   {brl(r.other_cost)}
                 </div>
-                {r.notes && (
-                  <div className="text-xs text-muted-foreground italic">{r.notes}</div>
-                )}
+                {r.notes && <div className="text-xs text-muted-foreground italic">{r.notes}</div>}
                 {canManage && (
                   <div className="flex gap-2 pt-1">
                     <Button
@@ -387,15 +393,19 @@ export function EmployeeCostsPanel(props: EmployeeCostsPanelProps) {
         </>
       )}
 
-      <Dialog open={openForm} onOpenChange={(o) => { setOpenForm(o); if (!o) setEditing(null); }}>
+      <Dialog
+        open={openForm}
+        onOpenChange={(o) => {
+          setOpenForm(o);
+          if (!o) setEditing(null);
+        }}
+      >
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>
-              {editing ? "Editar vínculo" : "Vincular funcionário"}
-            </DialogTitle>
+            <DialogTitle>{editing ? "Editar vínculo" : "Vincular funcionário"}</DialogTitle>
             <DialogDescription>
-              Custos entram apenas na margem do projeto. Nenhum lançamento financeiro é
-              criado automaticamente.
+              Custos entram apenas na margem do projeto. Nenhum lançamento financeiro é criado
+              automaticamente.
             </DialogDescription>
           </DialogHeader>
 
@@ -403,10 +413,7 @@ export function EmployeeCostsPanel(props: EmployeeCostsPanelProps) {
             {!editing && (
               <div className="space-y-1">
                 <Label>Funcionário ativo *</Label>
-                <Select
-                  value={form.employee_id || undefined}
-                  onValueChange={handlePickEmployee}
-                >
+                <Select value={form.employee_id || undefined} onValueChange={handlePickEmployee}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione…" />
                   </SelectTrigger>
@@ -424,8 +431,8 @@ export function EmployeeCostsPanel(props: EmployeeCostsPanelProps) {
                   </Badge>
                 )}
                 <p className="text-[11px] text-muted-foreground">
-                  Se deixar valores em 0, o servidor usa o padrão do cadastro do
-                  funcionário como snapshot.
+                  Se deixar valores em 0, o servidor usa o padrão do cadastro do funcionário como
+                  snapshot.
                 </p>
               </div>
             )}
@@ -433,9 +440,7 @@ export function EmployeeCostsPanel(props: EmployeeCostsPanelProps) {
             {editing && (
               <div className="rounded-md border p-2 text-sm">
                 <div className="font-medium">{editing.employee_name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {editing.role_snapshot ?? "—"}
-                </div>
+                <div className="text-xs text-muted-foreground">{editing.role_snapshot ?? "—"}</div>
               </div>
             )}
 
@@ -453,9 +458,7 @@ export function EmployeeCostsPanel(props: EmployeeCostsPanelProps) {
                 <Input
                   inputMode="decimal"
                   value={form.daily_rate_snapshot}
-                  onChange={(e) =>
-                    setForm({ ...form, daily_rate_snapshot: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, daily_rate_snapshot: e.target.value })}
                 />
               </div>
               <div className="space-y-1">
@@ -530,10 +533,7 @@ export function EmployeeCostsPanel(props: EmployeeCostsPanelProps) {
             <Button variant="outline" onClick={() => setOpenForm(false)}>
               Cancelar
             </Button>
-            <Button
-              onClick={() => saveMut.mutate()}
-              disabled={saveMut.isPending}
-            >
+            <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending}>
               {saveMut.isPending ? "Salvando…" : "Salvar"}
             </Button>
           </DialogFooter>
@@ -545,8 +545,8 @@ export function EmployeeCostsPanel(props: EmployeeCostsPanelProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Remover vínculo?</AlertDialogTitle>
             <AlertDialogDescription>
-              O custo deixará de aparecer na margem do projeto. Esta ação pode ser
-              revertida apenas no banco de dados.
+              O custo deixará de aparecer na margem do projeto. Esta ação pode ser revertida apenas
+              no banco de dados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

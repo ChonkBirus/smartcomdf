@@ -39,8 +39,8 @@ export const getQuotePdfPayload = createServerFn({ method: "GET" })
     const itemIds = Array.from(
       new Set((itemsRaw ?? []).map((r: any) => r.item_id).filter(Boolean)),
     );
-    let catalogById = new Map<string, any>();
-    let primaryImageByItem = new Map<string, string>();
+    const catalogById = new Map<string, any>();
+    const primaryImageByItem = new Map<string, string>();
     if (itemIds.length > 0) {
       const { data: catalog, error: catErr } = await sb
         .from("items")
@@ -64,13 +64,16 @@ export const getQuotePdfPayload = createServerFn({ method: "GET" })
     }
     const items = (itemsRaw ?? []).map((r: any) => ({
       ...r,
-      items: r.item_id ? catalogById.get(r.item_id) ?? null : null,
+      items: r.item_id ? (catalogById.get(r.item_id) ?? null) : null,
     }));
 
     console.log(
-      "[PDF PAYLOAD] quote_id:", data.quote_id,
-      "items_count:", items.length,
-      "kinds:", items.map((i: any) => i.kind),
+      "[PDF PAYLOAD] quote_id:",
+      data.quote_id,
+      "items_count:",
+      items.length,
+      "kinds:",
+      items.map((i: any) => i.kind),
     );
 
     const { data: company } = await sb
@@ -100,30 +103,31 @@ export const getQuotePdfPayload = createServerFn({ method: "GET" })
     }
 
     // Resolve each item's image: prefer quote_items.image_path snapshot, fallback to current primary
-    const enrichedItems = await Promise.all((items ?? []).map(async (it: any) => {
-      const path: string | null =
-        it.image_path ?? (it.item_id ? primaryImageByItem.get(it.item_id) ?? null : null);
-      let image_url: string | null = null;
-      if (path) {
-        const { data: signed } = await sb.storage
-          .from("product-images")
-          .createSignedUrl(path, 60 * 60);
-        image_url = signed?.signedUrl ?? null;
-      }
-      return {
-        id: it.id as string,
-        kind: (it.kind ?? "PRODUCT") as string,
-        name: (it.name ?? it.items?.name ?? "Item") as string,
-        description: (it.description ?? it.items?.description ?? null) as string | null,
-        quantity: Number(it.quantity ?? 0),
-        position: (it.position ?? 0) as number,
-        unit: (it.items?.unit ?? "UN") as string,
-        sku: (it.items?.sku ?? null) as string | null,
-        image_url,
-      };
-    }));
+    const enrichedItems = await Promise.all(
+      (items ?? []).map(async (it: any) => {
+        const path: string | null =
+          it.image_path ?? (it.item_id ? (primaryImageByItem.get(it.item_id) ?? null) : null);
+        let image_url: string | null = null;
+        if (path) {
+          const { data: signed } = await sb.storage
+            .from("product-images")
+            .createSignedUrl(path, 60 * 60);
+          image_url = signed?.signedUrl ?? null;
+        }
+        return {
+          id: it.id as string,
+          kind: (it.kind ?? "PRODUCT") as string,
+          name: (it.name ?? it.items?.name ?? "Item") as string,
+          description: (it.description ?? it.items?.description ?? null) as string | null,
+          quantity: Number(it.quantity ?? 0),
+          position: (it.position ?? 0) as number,
+          unit: (it.items?.unit ?? "UN") as string,
+          sku: (it.items?.sku ?? null) as string | null,
+          image_url,
+        };
+      }),
+    );
     console.log("[PDF PAYLOAD] enriched items:", enrichedItems.length);
-
 
     return {
       quote: {
@@ -137,9 +141,7 @@ export const getQuotePdfPayload = createServerFn({ method: "GET" })
         remaining_amount: Number(q.remaining_amount || 0),
       },
       customer: q.customers ?? null,
-      company: company
-        ? { ...company, logo_url: logoSignedUrl ?? company.logo_url }
-        : null,
+      company: company ? { ...company, logo_url: logoSignedUrl ?? company.logo_url } : null,
       settings: settings ?? null,
       items: enrichedItems,
     };

@@ -13,10 +13,13 @@ type Props = {
   disabled?: boolean;
 };
 
-const fmt = (n: number) =>
-  n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const fmt = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-const LIMIT_LABELS: { key: keyof NonNullable<PlanWithFeatures["limits"]>; label: string; suffix?: string }[] = [
+const LIMIT_LABELS: {
+  key: keyof NonNullable<PlanWithFeatures["limits"]>;
+  label: string;
+  suffix?: string;
+}[] = [
   { key: "max_users", label: "Usuários" },
   { key: "storage_gb", label: "Armazenamento", suffix: " GB" },
   { key: "monthly_ocr_limit", label: "OCR/mês" },
@@ -27,9 +30,7 @@ export function PlanCard({ plan, cycle, recommended, current, onSelect, disabled
   const monthlyEquivalent =
     cycle === "YEARLY" && plan.annual_price > 0 ? plan.annual_price / 12 : plan.monthly_price;
   const totalLabel =
-    cycle === "YEARLY"
-      ? `${fmt(plan.annual_price)}/ano`
-      : `${fmt(plan.monthly_price)}/mês`;
+    cycle === "YEARLY" ? `${fmt(plan.annual_price)}/ano` : `${fmt(plan.monthly_price)}/mês`;
 
   const features = plan.features.filter((f) => f.enabled).slice(0, 8);
 

@@ -38,9 +38,7 @@ async function assertCanManageCost(sb: any, userId: string) {
     .select("roles(slug)")
     .eq("user_id", userId);
   const roleSlugs = new Set<string>(
-    (roleRows ?? [])
-      .map((r: any) => r?.roles?.slug)
-      .filter(Boolean),
+    (roleRows ?? []).map((r: any) => r?.roles?.slug).filter(Boolean),
   );
   if (roleSlugs.has("owner") || roleSlugs.has("admin")) return;
 
@@ -92,28 +90,32 @@ export const listServiceOrderCosts = createServerFn({ method: "GET" })
     await loadServiceOrder(context.supabase, company_id, data.service_order_id);
     const { data: rows, error } = await context.supabase
       .from("financial_transactions")
-      .select("id, service_order_id, project_id, description, amount, status, due_date, paid_at, category_id, bank_account_id, payment_method, created_at, financial_categories(name)")
+      .select(
+        "id, service_order_id, project_id, description, amount, status, due_date, paid_at, category_id, bank_account_id, payment_method, created_at, financial_categories(name)",
+      )
       .eq("company_id", company_id)
       .eq("service_order_id", data.service_order_id)
       .eq("origin_type", "SERVICE_ORDER_COST")
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return (rows ?? []).map((r: any): ServiceOrderCost => ({
-      id: r.id,
-      service_order_id: r.service_order_id,
-      project_id: r.project_id,
-      description: r.description,
-      amount: Number(r.amount ?? 0),
-      status: r.status,
-      due_date: r.due_date,
-      paid_at: r.paid_at,
-      category_id: r.category_id,
-      category_name: r.financial_categories?.name ?? null,
-      bank_account_id: r.bank_account_id,
-      payment_method: r.payment_method,
-      created_at: r.created_at,
-    }));
+    return (rows ?? []).map(
+      (r: any): ServiceOrderCost => ({
+        id: r.id,
+        service_order_id: r.service_order_id,
+        project_id: r.project_id,
+        description: r.description,
+        amount: Number(r.amount ?? 0),
+        status: r.status,
+        due_date: r.due_date,
+        paid_at: r.paid_at,
+        category_id: r.category_id,
+        category_name: r.financial_categories?.name ?? null,
+        bank_account_id: r.bank_account_id,
+        payment_method: r.payment_method,
+        created_at: r.created_at,
+      }),
+    );
   });
 
 const CreateSchema = z.object({
@@ -179,7 +181,9 @@ export const createServiceOrderCost = createServerFn({ method: "POST" })
         category_id: data.category_id,
         description: data.description,
         amount: data.amount,
-        due_date: !isPaid ? data.due_date : (data.due_date ?? new Date().toISOString().slice(0, 10)),
+        due_date: !isPaid
+          ? data.due_date
+          : (data.due_date ?? new Date().toISOString().slice(0, 10)),
         paid_at: isPaid ? (data.paid_at ?? new Date().toISOString()) : null,
         bank_account_id: isPaid ? (data.bank_account_id ?? null) : null,
         payment_method: isPaid ? (data.payment_method ?? null) : null,
@@ -207,11 +211,13 @@ export const updateServiceOrderCost = createServerFn({ method: "POST" })
       .maybeSingle();
     if (eerr) throw new Error(eerr.message);
     if (!existing || existing.company_id !== company_id) throw new Error("Custo não encontrado.");
-    if (existing.origin_type !== "SERVICE_ORDER_COST") throw new Error("Transação não é custo de OS.");
+    if (existing.origin_type !== "SERVICE_ORDER_COST")
+      throw new Error("Transação não é custo de OS.");
     if (existing.status === "CANCELED") throw new Error("Custo cancelado.");
 
     if (data.category_id) await validateCategory(context.supabase, company_id, data.category_id);
-    if (data.bank_account_id) await validateBankAccount(context.supabase, company_id, data.bank_account_id);
+    if (data.bank_account_id)
+      await validateBankAccount(context.supabase, company_id, data.bank_account_id);
 
     const patch: Record<string, any> = { updated_at: new Date().toISOString() };
     if (data.description !== undefined) patch.description = data.description;
@@ -248,7 +254,8 @@ export const cancelServiceOrderCost = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .maybeSingle();
     if (!existing || existing.company_id !== company_id) throw new Error("Custo não encontrado.");
-    if (existing.origin_type !== "SERVICE_ORDER_COST") throw new Error("Transação não é custo de OS.");
+    if (existing.origin_type !== "SERVICE_ORDER_COST")
+      throw new Error("Transação não é custo de OS.");
     const { error } = await context.supabase
       .from("financial_transactions")
       .update({ status: "CANCELED", updated_at: new Date().toISOString() })

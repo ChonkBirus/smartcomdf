@@ -3,7 +3,12 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type PurchaseOrderStatus =
-  | "DRAFT" | "PENDING" | "APPROVED" | "PARTIALLY_RECEIVED" | "RECEIVED" | "CANCELLED";
+  | "DRAFT"
+  | "PENDING"
+  | "APPROVED"
+  | "PARTIALLY_RECEIVED"
+  | "RECEIVED"
+  | "CANCELLED";
 
 export type PurchaseOrder = {
   id: string;
@@ -62,21 +67,25 @@ async function getCompanyId(sb: any, userId: string): Promise<string> {
   return data.company_id as string;
 }
 
-
 // ============================================================
 // LIST
 // ============================================================
 export const listPurchaseOrders = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({
-    status: z.string().optional(),
-    supplier_id: z.string().uuid().optional(),
-    search: z.string().optional(),
-  }).parse(d ?? {}))
+  .inputValidator((d) =>
+    z
+      .object({
+        status: z.string().optional(),
+        supplier_id: z.string().uuid().optional(),
+        search: z.string().optional(),
+      })
+      .parse(d ?? {}),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
-    let q = sb.from("purchase_orders")
+    let q = sb
+      .from("purchase_orders")
       .select("*, suppliers:supplier_id(corporate_name, trade_name)")
       .eq("company_id", companyId)
       .order("issue_date", { ascending: false })
@@ -157,40 +166,56 @@ export const savePurchaseOrder = createServerFn({ method: "POST" })
   .inputValidator((d) => orderSchema.parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: profile } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!profile?.company_id) throw new Error("Sem empresa.");
 
     let orderId = data.id;
 
     if (orderId) {
       // Update existing — only allowed in DRAFT or PENDING
-      const { data: existing } = await sb.from("purchase_orders").select("status").eq("id", orderId).maybeSingle();
+      const { data: existing } = await sb
+        .from("purchase_orders")
+        .select("status")
+        .eq("id", orderId)
+        .maybeSingle();
       if (!existing) throw new Error("Pedido não encontrado.");
       if (!["DRAFT", "PENDING"].includes(existing.status)) {
         throw new Error("Pedido não pode ser editado neste status.");
       }
-      const { error } = await sb.from("purchase_orders").update({
-        supplier_id: data.supplier_id,
-        issue_date: data.issue_date,
-        expected_delivery_date: data.expected_delivery_date || null,
-        notes: data.notes || null,
-      }).eq("id", orderId);
+      const { error } = await sb
+        .from("purchase_orders")
+        .update({
+          supplier_id: data.supplier_id,
+          issue_date: data.issue_date,
+          expected_delivery_date: data.expected_delivery_date || null,
+          notes: data.notes || null,
+        })
+        .eq("id", orderId);
       if (error) throw new Error(error.message);
 
       // Replace items
       await sb.from("purchase_order_items").delete().eq("purchase_order_id", orderId);
     } else {
-      const orderNumber = data.order_number?.trim() || await generateOrderNumber(sb, profile.company_id);
-      const { data: row, error } = await sb.from("purchase_orders").insert({
-        company_id: profile.company_id,
-        supplier_id: data.supplier_id,
-        order_number: orderNumber,
-        status: "DRAFT",
-        issue_date: data.issue_date,
-        expected_delivery_date: data.expected_delivery_date || null,
-        notes: data.notes || null,
-        created_by: context.userId,
-      }).select("id").single();
+      const orderNumber =
+        data.order_number?.trim() || (await generateOrderNumber(sb, profile.company_id));
+      const { data: row, error } = await sb
+        .from("purchase_orders")
+        .insert({
+          company_id: profile.company_id,
+          supplier_id: data.supplier_id,
+          order_number: orderNumber,
+          status: "DRAFT",
+          issue_date: data.issue_date,
+          expected_delivery_date: data.expected_delivery_date || null,
+          notes: data.notes || null,
+          created_by: context.userId,
+        })
+        .select("id")
+        .single();
       if (error) throw new Error(error.message);
       orderId = row.id as string;
     }
@@ -226,14 +251,26 @@ async function transitionStatus(
   to: PurchaseOrderStatus,
   extra: Record<string, any> = {},
 ) {
-  const { data: current } = await sb.from("purchase_orders").select("status, order_number").eq("id", id).maybeSingle();
+  const { data: current } = await sb
+    .from("purchase_orders")
+    .select("status, order_number")
+    .eq("id", id)
+    .maybeSingle();
   if (!current) throw new Error("Pedido não encontrado.");
   if (!from.includes(current.status)) {
     throw new Error(`Transição inválida (de ${current.status} para ${to}).`);
   }
-  const { error } = await sb.from("purchase_orders").update({ status: to, ...extra }).eq("id", id);
+  const { error } = await sb
+    .from("purchase_orders")
+    .update({ status: to, ...extra })
+    .eq("id", id);
   if (error) throw new Error(error.message);
-  await sb.rpc("log_audit", { _module: "purchases", _action: to.toLowerCase(), _record_id: id, _new_data: { ...extra, status: to } });
+  await sb.rpc("log_audit", {
+    _module: "purchases",
+    _action: to.toLowerCase(),
+    _record_id: id,
+    _new_data: { ...extra, status: to },
+  });
   return current.order_number as string;
 }
 
@@ -260,14 +297,22 @@ export const approvePurchaseOrder = createServerFn({ method: "POST" })
 
 export const cancelPurchaseOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ id: z.string().uuid(), reason: z.string().trim().max(500).optional() }).parse(d))
+  .inputValidator((d) =>
+    z.object({ id: z.string().uuid(), reason: z.string().trim().max(500).optional() }).parse(d),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     await transitionStatus(
-      sb, context.userId, data.id,
+      sb,
+      context.userId,
+      data.id,
       ["DRAFT", "PENDING", "APPROVED", "PARTIALLY_RECEIVED"],
       "CANCELLED",
-      { cancelled_by: context.userId, cancelled_at: new Date().toISOString(), cancellation_reason: data.reason || null },
+      {
+        cancelled_by: context.userId,
+        cancelled_at: new Date().toISOString(),
+        cancellation_reason: data.reason || null,
+      },
     );
     return { ok: true };
   });
@@ -278,10 +323,19 @@ export const deletePurchaseOrder = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
-    const { data: po } = await sb.from("purchase_orders").select("status").eq("id", data.id).eq("company_id", companyId).maybeSingle();
+    const { data: po } = await sb
+      .from("purchase_orders")
+      .select("status")
+      .eq("id", data.id)
+      .eq("company_id", companyId)
+      .maybeSingle();
     if (!po) throw new Error("Pedido não encontrado.");
     if (po.status !== "DRAFT") throw new Error("Apenas rascunhos podem ser excluídos.");
-    const { error } = await sb.from("purchase_orders").delete().eq("id", data.id).eq("company_id", companyId);
+    const { error } = await sb
+      .from("purchase_orders")
+      .delete()
+      .eq("id", data.id)
+      .eq("company_id", companyId);
     if (error) throw new Error(error.message);
     await sb.rpc("log_audit", { _module: "purchases", _action: "delete", _record_id: data.id });
     return { ok: true };
@@ -292,33 +346,51 @@ export const duplicatePurchaseOrder = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: profile } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!profile?.company_id) throw new Error("Sem empresa.");
 
-    const { data: po } = await sb.from("purchase_orders").select("*").eq("id", data.id).eq("company_id", profile.company_id).maybeSingle();
+    const { data: po } = await sb
+      .from("purchase_orders")
+      .select("*")
+      .eq("id", data.id)
+      .eq("company_id", profile.company_id)
+      .maybeSingle();
     if (!po) throw new Error("Pedido não encontrado.");
-    const { data: items } = await sb.from("purchase_order_items").select("item_id, quantity, unit_cost").eq("purchase_order_id", data.id);
+    const { data: items } = await sb
+      .from("purchase_order_items")
+      .select("item_id, quantity, unit_cost")
+      .eq("purchase_order_id", data.id);
 
     const orderNumber = await generateOrderNumber(sb, profile.company_id);
-    const { data: row, error } = await sb.from("purchase_orders").insert({
-      company_id: profile.company_id,
-      supplier_id: po.supplier_id,
-      order_number: orderNumber,
-      status: "DRAFT",
-      issue_date: new Date().toISOString().slice(0, 10),
-      expected_delivery_date: null,
-      notes: po.notes,
-      created_by: context.userId,
-    }).select("id").single();
+    const { data: row, error } = await sb
+      .from("purchase_orders")
+      .insert({
+        company_id: profile.company_id,
+        supplier_id: po.supplier_id,
+        order_number: orderNumber,
+        status: "DRAFT",
+        issue_date: new Date().toISOString().slice(0, 10),
+        expected_delivery_date: null,
+        notes: po.notes,
+        created_by: context.userId,
+      })
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
 
     if (items?.length) {
-      await sb.from("purchase_order_items").insert(items.map((it: any) => ({
-        purchase_order_id: row.id,
-        item_id: it.item_id,
-        quantity: it.quantity,
-        unit_cost: it.unit_cost,
-      })));
+      await sb.from("purchase_order_items").insert(
+        items.map((it: any) => ({
+          purchase_order_id: row.id,
+          item_id: it.item_id,
+          quantity: it.quantity,
+          unit_cost: it.unit_cost,
+        })),
+      );
     }
     return { id: row.id as string };
   });
@@ -330,10 +402,14 @@ const receiveSchema = z.object({
   id: z.string().uuid(),
   location_id: z.string().uuid(),
   notes: z.string().trim().max(500).optional().or(z.literal("")),
-  items: z.array(z.object({
-    poi_id: z.string().uuid(),
-    quantity: z.number().min(0),
-  })).min(1),
+  items: z
+    .array(
+      z.object({
+        poi_id: z.string().uuid(),
+        quantity: z.number().min(0),
+      }),
+    )
+    .min(1),
 });
 
 export const receivePurchaseOrder = createServerFn({ method: "POST" })
@@ -361,16 +437,25 @@ export const purchaseOverview = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
-    const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
     const { data: rows } = await sb
       .from("purchase_orders")
       .select("status, total_amount, issue_date")
       .eq("company_id", companyId)
       .gte("issue_date", monthStart.toISOString().slice(0, 10));
     const total = (rows ?? []).reduce((s: number, r: any) => s + Number(r.total_amount || 0), 0);
-    const pending = (rows ?? []).filter((r: any) => ["PENDING", "APPROVED", "PARTIALLY_RECEIVED"].includes(r.status)).length;
+    const pending = (rows ?? []).filter((r: any) =>
+      ["PENDING", "APPROVED", "PARTIALLY_RECEIVED"].includes(r.status),
+    ).length;
     const received = (rows ?? []).filter((r: any) => r.status === "RECEIVED").length;
-    return { monthTotal: total, monthPending: pending, monthReceived: received, count: rows?.length ?? 0 };
+    return {
+      monthTotal: total,
+      monthPending: pending,
+      monthReceived: received,
+      count: rows?.length ?? 0,
+    };
   });
 
 // ============================================================
@@ -379,22 +464,40 @@ export const purchaseOverview = createServerFn({ method: "GET" })
 export type PurchaseAnalyticsRange = "30d" | "90d" | "6m" | "12m" | "ytd";
 
 function rangeStart(range: PurchaseAnalyticsRange): Date {
-  const d = new Date(); d.setHours(0, 0, 0, 0);
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
   switch (range) {
-    case "30d": d.setDate(d.getDate() - 30); break;
-    case "90d": d.setDate(d.getDate() - 90); break;
-    case "6m": d.setMonth(d.getMonth() - 6); d.setDate(1); break;
-    case "12m": d.setMonth(d.getMonth() - 12); d.setDate(1); break;
-    case "ytd": d.setMonth(0); d.setDate(1); break;
+    case "30d":
+      d.setDate(d.getDate() - 30);
+      break;
+    case "90d":
+      d.setDate(d.getDate() - 90);
+      break;
+    case "6m":
+      d.setMonth(d.getMonth() - 6);
+      d.setDate(1);
+      break;
+    case "12m":
+      d.setMonth(d.getMonth() - 12);
+      d.setDate(1);
+      break;
+    case "ytd":
+      d.setMonth(0);
+      d.setDate(1);
+      break;
   }
   return d;
 }
 
 export const purchaseAnalytics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({
-    range: z.enum(["30d", "90d", "6m", "12m", "ytd"]).default("90d"),
-  }).parse(d ?? {}))
+  .inputValidator((d) =>
+    z
+      .object({
+        range: z.enum(["30d", "90d", "6m", "12m", "ytd"]).default("90d"),
+      })
+      .parse(d ?? {}),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
@@ -404,7 +507,9 @@ export const purchaseAnalytics = createServerFn({ method: "GET" })
     // Orders in range
     const { data: orders, error } = await sb
       .from("purchase_orders")
-      .select("id, status, total_amount, issue_date, approved_at, supplier_id, updated_at, suppliers:supplier_id(corporate_name, trade_name)")
+      .select(
+        "id, status, total_amount, issue_date, approved_at, supplier_id, updated_at, suppliers:supplier_id(corporate_name, trade_name)",
+      )
       .eq("company_id", companyId)
       .gte("issue_date", startISO)
       .order("issue_date", { ascending: true });
@@ -418,7 +523,9 @@ export const purchaseAnalytics = createServerFn({ method: "GET" })
     const ordersCount = nonCancelled.length;
     const avgTicket = ordersCount ? totalAmount / ordersCount : 0;
     const receivedCount = nonCancelled.filter((o) => o.status === "RECEIVED").length;
-    const pendingCount = nonCancelled.filter((o) => ["DRAFT", "PENDING", "APPROVED", "PARTIALLY_RECEIVED"].includes(o.status)).length;
+    const pendingCount = nonCancelled.filter((o) =>
+      ["DRAFT", "PENDING", "APPROVED", "PARTIALLY_RECEIVED"].includes(o.status),
+    ).length;
     const cancelledCount = list.length - nonCancelled.length;
     const fillRate = ordersCount ? (receivedCount / ordersCount) * 100 : 0;
 
@@ -449,14 +556,25 @@ export const purchaseAnalytics = createServerFn({ method: "GET" })
     // Status distribution (all incl. cancelled)
     const statusMap = new Map<string, number>();
     for (const o of list) statusMap.set(o.status, (statusMap.get(o.status) || 0) + 1);
-    const statusDist = Array.from(statusMap.entries()).map(([status, count]) => ({ status, count }));
+    const statusDist = Array.from(statusMap.entries()).map(([status, count]) => ({
+      status,
+      count,
+    }));
 
     // Top suppliers (by amount, non-cancelled)
-    const supMap = new Map<string, { supplier_id: string; name: string; total: number; orders: number }>();
+    const supMap = new Map<
+      string,
+      { supplier_id: string; name: string; total: number; orders: number }
+    >();
     for (const o of nonCancelled) {
       if (!o.supplier_id) continue;
       const name = o.suppliers?.trade_name || o.suppliers?.corporate_name || "—";
-      const rec = supMap.get(o.supplier_id) || { supplier_id: o.supplier_id, name, total: 0, orders: 0 };
+      const rec = supMap.get(o.supplier_id) || {
+        supplier_id: o.supplier_id,
+        name,
+        total: 0,
+        orders: 0,
+      };
       rec.total += Number(o.total_amount || 0);
       rec.orders += 1;
       supMap.set(o.supplier_id, rec);
@@ -467,13 +585,22 @@ export const purchaseAnalytics = createServerFn({ method: "GET" })
 
     // Top items (need line items)
     const orderIds = nonCancelled.map((o) => o.id);
-    let topItems: { item_id: string; name: string; sku: string | null; qty: number; total: number }[] = [];
+    let topItems: {
+      item_id: string;
+      name: string;
+      sku: string | null;
+      qty: number;
+      total: number;
+    }[] = [];
     if (orderIds.length) {
       const { data: lines } = await sb
         .from("purchase_order_items")
         .select("item_id, quantity, total_cost, items:item_id(name, sku)")
         .in("purchase_order_id", orderIds);
-      const itMap = new Map<string, { item_id: string; name: string; sku: string | null; qty: number; total: number }>();
+      const itMap = new Map<
+        string,
+        { item_id: string; name: string; sku: string | null; qty: number; total: number }
+      >();
       for (const l of (lines ?? []) as any[]) {
         const rec = itMap.get(l.item_id) || {
           item_id: l.item_id,
@@ -486,7 +613,9 @@ export const purchaseAnalytics = createServerFn({ method: "GET" })
         rec.total += Number(l.total_cost || 0);
         itMap.set(l.item_id, rec);
       }
-      topItems = Array.from(itMap.values()).sort((a, b) => b.total - a.total).slice(0, 10);
+      topItems = Array.from(itMap.values())
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 10);
     }
 
     return {

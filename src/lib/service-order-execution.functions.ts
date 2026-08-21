@@ -50,11 +50,13 @@ export const listServiceOrderExecutionLogs = createServerFn({ method: "GET" })
     const sb = context.supabase as any;
     const { data: rows, error } = await sb
       .from("service_order_execution_logs")
-      .select(`
+      .select(
+        `
         id, service_order_id, user_id, action, previous_status, new_status,
         notes, metadata, created_at,
         user:user_id(full_name,email)
-      `)
+      `,
+      )
       .eq("service_order_id", data.id)
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);

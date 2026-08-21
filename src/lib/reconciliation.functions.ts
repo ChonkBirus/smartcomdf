@@ -40,11 +40,13 @@ async function getCompanyId(sb: any, userId: string): Promise<string> {
   return cid;
 }
 
-const ListSchema = z.object({
-  bankAccountId: z.string().uuid().optional(),
-  minScore: z.number().min(0).max(100).default(50),
-  limit: z.number().int().min(1).max(100).default(50),
-}).default({ minScore: 50, limit: 50 });
+const ListSchema = z
+  .object({
+    bankAccountId: z.string().uuid().optional(),
+    minScore: z.number().min(0).max(100).default(50),
+    limit: z.number().int().min(1).max(100).default(50),
+  })
+  .default({ minScore: 50, limit: 50 });
 
 /** List PENDING bank transactions with their top financial-transaction matches. */
 export const listReconciliationSuggestions = createServerFn({ method: "POST" })
@@ -56,7 +58,9 @@ export const listReconciliationSuggestions = createServerFn({ method: "POST" })
 
     let q = sb
       .from("openfinance_transactions")
-      .select("id, transaction_date, description, amount, type, reconciliation_status, bank_account_id, customer_hint:provider_transaction_id")
+      .select(
+        "id, transaction_date, description, amount, type, reconciliation_status, bank_account_id, customer_hint:provider_transaction_id",
+      )
       .eq("company_id", companyId)
       .in("reconciliation_status", ["PENDING", "SUGGESTED"])
       .order("transaction_date", { ascending: false })
@@ -68,10 +72,18 @@ export const listReconciliationSuggestions = createServerFn({ method: "POST" })
 
     // Pull a window of candidate financial transactions (PLANNED/PAID/OVERDUE),
     // dated within ±15 days of the earliest bank tx date for coarse pre-filter.
-    const minDate = bankTxs.reduce((m: string, t: any) => t.transaction_date < m ? t.transaction_date : m, bankTxs[0].transaction_date);
-    const maxDate = bankTxs.reduce((m: string, t: any) => t.transaction_date > m ? t.transaction_date : m, bankTxs[0].transaction_date);
-    const wStart = new Date(minDate); wStart.setDate(wStart.getDate() - 15);
-    const wEnd = new Date(maxDate); wEnd.setDate(wEnd.getDate() + 15);
+    const minDate = bankTxs.reduce(
+      (m: string, t: any) => (t.transaction_date < m ? t.transaction_date : m),
+      bankTxs[0].transaction_date,
+    );
+    const maxDate = bankTxs.reduce(
+      (m: string, t: any) => (t.transaction_date > m ? t.transaction_date : m),
+      bankTxs[0].transaction_date,
+    );
+    const wStart = new Date(minDate);
+    wStart.setDate(wStart.getDate() - 15);
+    const wEnd = new Date(maxDate);
+    wEnd.setDate(wEnd.getDate() + 15);
 
     const { data: finTxs } = await sb
       .from("financial_transactions")
@@ -134,9 +146,7 @@ export const listReconciliationSuggestions = createServerFn({ method: "POST" })
 
 export const suggestBankReconciliation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ bankTransactionId: z.string().uuid() }).parse(d)
-  )
+  .inputValidator((d: unknown) => z.object({ bankTransactionId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
@@ -148,8 +158,10 @@ export const suggestBankReconciliation = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!b) throw new Error("Transação bancária não encontrada.");
 
-    const wStart = new Date(b.transaction_date); wStart.setDate(wStart.getDate() - 15);
-    const wEnd = new Date(b.transaction_date); wEnd.setDate(wEnd.getDate() + 15);
+    const wStart = new Date(b.transaction_date);
+    wStart.setDate(wStart.getDate() - 15);
+    const wEnd = new Date(b.transaction_date);
+    wEnd.setDate(wEnd.getDate() + 15);
     const { data: finTxs } = await sb
       .from("financial_transactions")
       .select("id, description, amount, due_date, paid_at, type, status")
@@ -160,15 +172,23 @@ export const suggestBankReconciliation = createServerFn({ method: "POST" })
       .lte("due_date", wEnd.toISOString().slice(0, 10))
       .limit(300);
 
-    const ranked = (finTxs ?? []).map((f: any) => ({
-      f,
-      score: scoreMatch({
-        bankAmount: Number(b.amount), bankDate: b.transaction_date,
-        bankDescription: b.description ?? "", bankType: b.type,
-        finAmount: Number(f.amount), finDate: f.paid_at ?? f.due_date,
-        finDescription: f.description ?? "", finType: f.type, finStatus: f.status,
-      }),
-    })).filter((x: any) => x.score >= 50).sort((a: any, b: any) => b.score - a.score);
+    const ranked = (finTxs ?? [])
+      .map((f: any) => ({
+        f,
+        score: scoreMatch({
+          bankAmount: Number(b.amount),
+          bankDate: b.transaction_date,
+          bankDescription: b.description ?? "",
+          bankType: b.type,
+          finAmount: Number(f.amount),
+          finDate: f.paid_at ?? f.due_date,
+          finDescription: f.description ?? "",
+          finType: f.type,
+          finStatus: f.status,
+        }),
+      }))
+      .filter((x: any) => x.score >= 50)
+      .sort((a: any, b: any) => b.score - a.score);
 
     return ranked.slice(0, 5).map((x: any) => ({
       financialTransactionId: x.f.id,
@@ -185,20 +205,33 @@ export const suggestBankReconciliation = createServerFn({ method: "POST" })
 export const confirmReconciliation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      bankTransactionId: z.string().uuid(),
-      financialTransactionId: z.string().uuid(),
-      confidenceScore: z.number().min(0).max(100).optional(),
-      matchedBy: z.enum(["SYSTEM", "MANUAL"]).default("MANUAL"),
-    }).parse(d)
+    z
+      .object({
+        bankTransactionId: z.string().uuid(),
+        financialTransactionId: z.string().uuid(),
+        confidenceScore: z.number().min(0).max(100).optional(),
+        matchedBy: z.enum(["SYSTEM", "MANUAL"]).default("MANUAL"),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
 
     const [{ data: bank }, { data: fin }] = await Promise.all([
-      sb.from("openfinance_transactions").select("*").eq("id", data.bankTransactionId).eq("company_id", companyId).maybeSingle(),
-      sb.from("financial_transactions").select("id, type, status, paid_at").eq("id", data.financialTransactionId).eq("company_id", companyId).is("deleted_at", null).maybeSingle(),
+      sb
+        .from("openfinance_transactions")
+        .select("*")
+        .eq("id", data.bankTransactionId)
+        .eq("company_id", companyId)
+        .maybeSingle(),
+      sb
+        .from("financial_transactions")
+        .select("id, type, status, paid_at")
+        .eq("id", data.financialTransactionId)
+        .eq("company_id", companyId)
+        .is("deleted_at", null)
+        .maybeSingle(),
     ]);
     if (!bank) throw new Error("Transação bancária não encontrada.");
     if (!fin) throw new Error("Lançamento financeiro não encontrado.");
@@ -216,11 +249,13 @@ export const confirmReconciliation = createServerFn({ method: "POST" })
     });
     if (bErr) throw new Error(bErr.message);
 
-    await sb.from("openfinance_transactions")
+    await sb
+      .from("openfinance_transactions")
       .update({ reconciliation_status: "RECONCILED", reconciled_transaction_id: fin.id })
       .eq("id", bank.id);
 
-    await sb.from("financial_transactions")
+    await sb
+      .from("financial_transactions")
       .update({
         status: "RECONCILED",
         paid_at: fin.paid_at ?? bank.transaction_date,
@@ -234,15 +269,18 @@ export const confirmReconciliation = createServerFn({ method: "POST" })
 export const ignoreBankTransaction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      bankTransactionId: z.string().uuid(),
-      reason: z.string().trim().max(280).optional(),
-    }).parse(d)
+    z
+      .object({
+        bankTransactionId: z.string().uuid(),
+        reason: z.string().trim().max(280).optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
-    const { error } = await sb.from("openfinance_transactions")
+    const { error } = await sb
+      .from("openfinance_transactions")
       .update({ reconciliation_status: "IGNORED", ignore_reason: data.reason ?? null })
       .eq("id", data.bankTransactionId)
       .eq("company_id", companyId);
@@ -253,12 +291,14 @@ export const ignoreBankTransaction = createServerFn({ method: "POST" })
 export const createFinancialTransactionFromBankTransaction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      bankTransactionId: z.string().uuid(),
-      categoryId: z.string().uuid().nullable().optional(),
-      customerId: z.string().uuid().nullable().optional(),
-      supplierId: z.string().uuid().nullable().optional(),
-    }).parse(d)
+    z
+      .object({
+        bankTransactionId: z.string().uuid(),
+        categoryId: z.string().uuid().nullable().optional(),
+        customerId: z.string().uuid().nullable().optional(),
+        supplierId: z.string().uuid().nullable().optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -275,21 +315,25 @@ export const createFinancialTransactionFromBankTransaction = createServerFn({ me
     const type = b.type === "CREDIT" ? "INCOME" : "EXPENSE";
     const amount = Math.abs(Number(b.amount));
 
-    const { data: fin, error } = await sb.from("financial_transactions").insert({
-      company_id: companyId,
-      type,
-      category_id: data.categoryId ?? null,
-      customer_id: data.customerId ?? null,
-      supplier_id: data.supplierId ?? null,
-      description: b.description,
-      amount,
-      due_date: b.transaction_date,
-      paid_at: new Date(b.transaction_date).toISOString(),
-      status: "RECONCILED",
-      origin: "OPEN_FINANCE",
-      openfinance_transaction_id: b.id,
-      created_by: context.userId,
-    }).select("id").single();
+    const { data: fin, error } = await sb
+      .from("financial_transactions")
+      .insert({
+        company_id: companyId,
+        type,
+        category_id: data.categoryId ?? null,
+        customer_id: data.customerId ?? null,
+        supplier_id: data.supplierId ?? null,
+        description: b.description,
+        amount,
+        due_date: b.transaction_date,
+        paid_at: new Date(b.transaction_date).toISOString(),
+        status: "RECONCILED",
+        origin: "OPEN_FINANCE",
+        openfinance_transaction_id: b.id,
+        created_by: context.userId,
+      })
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
 
     await sb.from("bank_reconciliations").insert({
@@ -302,7 +346,8 @@ export const createFinancialTransactionFromBankTransaction = createServerFn({ me
       confirmed_at: new Date().toISOString(),
     });
 
-    await sb.from("openfinance_transactions")
+    await sb
+      .from("openfinance_transactions")
       .update({ reconciliation_status: "RECONCILED", reconciled_transaction_id: fin.id })
       .eq("id", b.id);
 
@@ -311,9 +356,7 @@ export const createFinancialTransactionFromBankTransaction = createServerFn({ me
 
 export const undoReconciliation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ reconciliationId: z.string().uuid() }).parse(d)
-  )
+  .inputValidator((d: unknown) => z.object({ reconciliationId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
@@ -325,17 +368,17 @@ export const undoReconciliation = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!rec) throw new Error("Conciliação não encontrada.");
 
-    await sb.from("bank_reconciliations")
-      .update({ status: "CANCELED" })
-      .eq("id", rec.id);
+    await sb.from("bank_reconciliations").update({ status: "CANCELED" }).eq("id", rec.id);
 
     if (rec.bank_transaction_id) {
-      await sb.from("openfinance_transactions")
+      await sb
+        .from("openfinance_transactions")
         .update({ reconciliation_status: "PENDING", reconciled_transaction_id: null })
         .eq("id", rec.bank_transaction_id);
     }
     if (rec.financial_transaction_id) {
-      await sb.from("financial_transactions")
+      await sb
+        .from("financial_transactions")
         .update({ status: "PLANNED", openfinance_transaction_id: null })
         .eq("id", rec.financial_transaction_id);
     }

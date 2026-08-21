@@ -1,7 +1,14 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, TrendingUp, TrendingDown, Wallet, AlertTriangle, FileBarChart } from "lucide-react";
+import {
+  Download,
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  AlertTriangle,
+  FileBarChart,
+} from "lucide-react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -18,7 +25,14 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 
@@ -43,7 +57,10 @@ function downloadCsv(filename: string, rows: Array<Record<string, unknown>>) {
     const s = String(v).replace(/"/g, '""');
     return /[",;\n]/.test(s) ? `"${s}"` : s;
   };
-  const csv = [headers.join(";"), ...rows.map((r) => headers.map((h) => escape(r[h])).join(";"))].join("\n");
+  const csv = [
+    headers.join(";"),
+    ...rows.map((r) => headers.map((h) => escape(r[h])).join(";")),
+  ].join("\n");
   const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -53,20 +70,35 @@ function downloadCsv(filename: string, rows: Array<Record<string, unknown>>) {
   URL.revokeObjectURL(url);
 }
 
-function Metric({ title, value, hint, tone, icon }: {
-  title: string; value: string; hint?: string;
-  tone?: "success" | "danger" | "warning"; icon: React.ReactNode;
+function Metric({
+  title,
+  value,
+  hint,
+  tone,
+  icon,
+}: {
+  title: string;
+  value: string;
+  hint?: string;
+  tone?: "success" | "danger" | "warning";
+  icon: React.ReactNode;
 }) {
   const t =
-    tone === "success" ? "text-success" :
-    tone === "danger" ? "text-destructive" :
-    tone === "warning" ? "text-amber-500" : "text-foreground";
+    tone === "success"
+      ? "text-success"
+      : tone === "danger"
+        ? "text-destructive"
+        : tone === "warning"
+          ? "text-amber-500"
+          : "text-foreground";
   return (
     <Card>
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {title}
+            </p>
             <p className={`mt-1 text-2xl font-bold tracking-tight ${t}`}>{value}</p>
             {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
           </div>
@@ -77,7 +109,13 @@ function Metric({ title, value, hint, tone, icon }: {
   );
 }
 
-function CategoryTable({ title, rows }: { title: string; rows: Array<{ name: string; total: number; count: number }> }) {
+function CategoryTable({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: Array<{ name: string; total: number; count: number }>;
+}) {
   return (
     <Card>
       <CardContent className="p-0">
@@ -148,7 +186,7 @@ export function FinanceReportsPage({ filters }: { filters: Filters }) {
       return;
     }
     const rows = list.map((t) => ({
-      data: t.paid_at ? t.paid_at.slice(0, 10) : t.due_date ?? "",
+      data: t.paid_at ? t.paid_at.slice(0, 10) : (t.due_date ?? ""),
       tipo: t.type === "INCOME" ? "Entrada" : "Saída",
       descricao: t.description,
       categoria: t.category_name ?? "",
@@ -169,7 +207,11 @@ export function FinanceReportsPage({ filters }: { filters: Filters }) {
         icon={<AlertTriangle className="h-5 w-5" />}
         title="Não foi possível carregar os relatórios"
         description="Tente novamente em alguns instantes."
-        action={<Button variant="outline" onClick={() => report.refetch()}>Tentar novamente</Button>}
+        action={
+          <Button variant="outline" onClick={() => report.refetch()}>
+            Tentar novamente
+          </Button>
+        }
       />
     );
   }
@@ -186,14 +228,53 @@ export function FinanceReportsPage({ filters }: { filters: Filters }) {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Metric title="Entradas" value={BRL(r?.income ?? 0)} tone="success" icon={<TrendingUp className="h-5 w-5" />} hint="Pagos no período" />
-        <Metric title="Saídas" value={BRL(r?.expense ?? 0)} tone="danger" icon={<TrendingDown className="h-5 w-5" />} hint="Pagos no período" />
-        <Metric title="Saldo" value={BRL(r?.balance ?? 0)} tone={(r?.balance ?? 0) >= 0 ? "success" : "danger"} icon={<Wallet className="h-5 w-5" />} />
-        <Metric title="A receber" value={BRL(r?.receivables ?? 0)} icon={<TrendingUp className="h-5 w-5" />} />
-        <Metric title="A pagar" value={BRL(r?.payables ?? 0)} icon={<TrendingDown className="h-5 w-5" />} />
-        <Metric title="Recebimentos atrasados" value={BRL(r?.overdueReceivables ?? 0)} tone="warning" icon={<AlertTriangle className="h-5 w-5" />} />
-        <Metric title="Contas vencidas" value={BRL(r?.overduePayables ?? 0)} tone="warning" icon={<AlertTriangle className="h-5 w-5" />} />
-        <Metric title="Total de lançamentos" value={String(r?.count ?? 0)} icon={<FileBarChart className="h-5 w-5" />} />
+        <Metric
+          title="Entradas"
+          value={BRL(r?.income ?? 0)}
+          tone="success"
+          icon={<TrendingUp className="h-5 w-5" />}
+          hint="Pagos no período"
+        />
+        <Metric
+          title="Saídas"
+          value={BRL(r?.expense ?? 0)}
+          tone="danger"
+          icon={<TrendingDown className="h-5 w-5" />}
+          hint="Pagos no período"
+        />
+        <Metric
+          title="Saldo"
+          value={BRL(r?.balance ?? 0)}
+          tone={(r?.balance ?? 0) >= 0 ? "success" : "danger"}
+          icon={<Wallet className="h-5 w-5" />}
+        />
+        <Metric
+          title="A receber"
+          value={BRL(r?.receivables ?? 0)}
+          icon={<TrendingUp className="h-5 w-5" />}
+        />
+        <Metric
+          title="A pagar"
+          value={BRL(r?.payables ?? 0)}
+          icon={<TrendingDown className="h-5 w-5" />}
+        />
+        <Metric
+          title="Recebimentos atrasados"
+          value={BRL(r?.overdueReceivables ?? 0)}
+          tone="warning"
+          icon={<AlertTriangle className="h-5 w-5" />}
+        />
+        <Metric
+          title="Contas vencidas"
+          value={BRL(r?.overduePayables ?? 0)}
+          tone="warning"
+          icon={<AlertTriangle className="h-5 w-5" />}
+        />
+        <Metric
+          title="Total de lançamentos"
+          value={String(r?.count ?? 0)}
+          icon={<FileBarChart className="h-5 w-5" />}
+        />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -205,12 +286,42 @@ export function FinanceReportsPage({ filters }: { filters: Filters }) {
       <div className="space-y-3">
         <h3 className="text-sm font-semibold">Resumo por origem</h3>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Metric title="Receitas de orçamento" value={BRL(r?.originCards.quotePaymentsPaid ?? 0)} tone="success" icon={<TrendingUp className="h-5 w-5" />} hint="QUOTE_PAYMENT · pagos" />
-          <Metric title="A receber de orçamento" value={BRL(r?.originCards.quoteReceivables ?? 0)} icon={<TrendingUp className="h-5 w-5" />} hint="Saldos previstos/atrasados" />
-          <Metric title="Compras a pagar" value={BRL(r?.originCards.purchasesPlanned ?? 0)} tone="warning" icon={<TrendingDown className="h-5 w-5" />} hint="Pedidos previstos/atrasados" />
-          <Metric title="Compras pagas" value={BRL(r?.originCards.purchasesPaid ?? 0)} tone="danger" icon={<TrendingDown className="h-5 w-5" />} />
-          <Metric title="Despesas manuais" value={BRL(r?.originCards.manualExpense ?? 0)} icon={<Wallet className="h-5 w-5" />} />
-          <Metric title="Custos avulsos de OS" value={BRL(r?.originCards.serviceOrderCosts ?? 0)} icon={<FileBarChart className="h-5 w-5" />} />
+          <Metric
+            title="Receitas de orçamento"
+            value={BRL(r?.originCards.quotePaymentsPaid ?? 0)}
+            tone="success"
+            icon={<TrendingUp className="h-5 w-5" />}
+            hint="QUOTE_PAYMENT · pagos"
+          />
+          <Metric
+            title="A receber de orçamento"
+            value={BRL(r?.originCards.quoteReceivables ?? 0)}
+            icon={<TrendingUp className="h-5 w-5" />}
+            hint="Saldos previstos/atrasados"
+          />
+          <Metric
+            title="Compras a pagar"
+            value={BRL(r?.originCards.purchasesPlanned ?? 0)}
+            tone="warning"
+            icon={<TrendingDown className="h-5 w-5" />}
+            hint="Pedidos previstos/atrasados"
+          />
+          <Metric
+            title="Compras pagas"
+            value={BRL(r?.originCards.purchasesPaid ?? 0)}
+            tone="danger"
+            icon={<TrendingDown className="h-5 w-5" />}
+          />
+          <Metric
+            title="Despesas manuais"
+            value={BRL(r?.originCards.manualExpense ?? 0)}
+            icon={<Wallet className="h-5 w-5" />}
+          />
+          <Metric
+            title="Custos avulsos de OS"
+            value={BRL(r?.originCards.serviceOrderCosts ?? 0)}
+            icon={<FileBarChart className="h-5 w-5" />}
+          />
         </div>
 
         <Card>
@@ -220,7 +331,11 @@ export function FinanceReportsPage({ filters }: { filters: Filters }) {
             </div>
             {!r?.originSummary?.length ? (
               <div className="p-6">
-                <EmptyState icon={<FileBarChart className="h-5 w-5" />} title="Sem dados por origem" description="Nenhum lançamento no período." />
+                <EmptyState
+                  icon={<FileBarChart className="h-5 w-5" />}
+                  title="Sem dados por origem"
+                  description="Nenhum lançamento no período."
+                />
               </div>
             ) : (
               <>
@@ -242,12 +357,18 @@ export function FinanceReportsPage({ filters }: { filters: Filters }) {
                         <TableRow key={`${o.origin_type}-${o.type}`}>
                           <TableCell>{o.label}</TableCell>
                           <TableCell>
-                            <span className={o.type === "INCOME" ? "text-success" : "text-destructive"}>
+                            <span
+                              className={o.type === "INCOME" ? "text-success" : "text-destructive"}
+                            >
                               {o.type === "INCOME" ? "Entrada" : "Saída"}
                             </span>
                           </TableCell>
-                          <TableCell className="text-right font-mono">{BRL(o.planned_total)}</TableCell>
-                          <TableCell className="text-right font-mono">{BRL(o.realized_total)}</TableCell>
+                          <TableCell className="text-right font-mono">
+                            {BRL(o.planned_total)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono">
+                            {BRL(o.realized_total)}
+                          </TableCell>
                           <TableCell className="text-right font-mono">{BRL(o.total)}</TableCell>
                           <TableCell className="text-right">{o.count}</TableCell>
                         </TableRow>
@@ -261,15 +382,29 @@ export function FinanceReportsPage({ filters }: { filters: Filters }) {
                     <div key={`${o.origin_type}-${o.type}-m`} className="p-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">{o.label}</span>
-                        <Badge variant="outline" className={o.type === "INCOME" ? "text-success" : "text-destructive"}>
+                        <Badge
+                          variant="outline"
+                          className={o.type === "INCOME" ? "text-success" : "text-destructive"}
+                        >
                           {o.type === "INCOME" ? "Entrada" : "Saída"}
                         </Badge>
                       </div>
                       <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-                        <div><span className="text-muted-foreground">Previsto:</span> <span className="font-mono">{BRL(o.planned_total)}</span></div>
-                        <div><span className="text-muted-foreground">Realizado:</span> <span className="font-mono">{BRL(o.realized_total)}</span></div>
-                        <div><span className="text-muted-foreground">Total:</span> <span className="font-mono">{BRL(o.total)}</span></div>
-                        <div><span className="text-muted-foreground">Qtd:</span> {o.count}</div>
+                        <div>
+                          <span className="text-muted-foreground">Previsto:</span>{" "}
+                          <span className="font-mono">{BRL(o.planned_total)}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Realizado:</span>{" "}
+                          <span className="font-mono">{BRL(o.realized_total)}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Total:</span>{" "}
+                          <span className="font-mono">{BRL(o.total)}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Qtd:</span> {o.count}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -292,11 +427,24 @@ export function FinanceReportsPage({ filters }: { filters: Filters }) {
                   <BarChart data={r.monthly}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                     <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                    <YAxis
+                      tick={{ fontSize: 11 }}
+                      tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
+                    />
                     <Tooltip formatter={(v: number) => BRL(v)} />
                     <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <Bar dataKey="income" name="Entradas" fill="hsl(var(--success, 142 76% 36%))" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="expense" name="Saídas" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      dataKey="income"
+                      name="Entradas"
+                      fill="hsl(var(--success, 142 76% 36%))"
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                      dataKey="expense"
+                      name="Saídas"
+                      fill="hsl(var(--destructive))"
+                      radius={[4, 4, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -312,7 +460,10 @@ export function FinanceReportsPage({ filters }: { filters: Filters }) {
                   <LineChart data={r.monthly}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                     <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                    <YAxis
+                      tick={{ fontSize: 11 }}
+                      tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
+                    />
                     <Tooltip formatter={(v: number) => BRL(v)} />
                     <Line
                       type="monotone"
@@ -331,7 +482,6 @@ export function FinanceReportsPage({ filters }: { filters: Filters }) {
       )}
 
       <Card>
-
         <CardContent className="p-0">
           <div className="border-b px-4 py-3">
             <h3 className="text-sm font-semibold">Resumo mensal</h3>
@@ -359,8 +509,12 @@ export function FinanceReportsPage({ filters }: { filters: Filters }) {
                   {r.monthly.map((m) => (
                     <TableRow key={m.month}>
                       <TableCell>{m.month}</TableCell>
-                      <TableCell className="text-right font-mono text-success">{BRL(m.income)}</TableCell>
-                      <TableCell className="text-right font-mono text-destructive">{BRL(m.expense)}</TableCell>
+                      <TableCell className="text-right font-mono text-success">
+                        {BRL(m.income)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-destructive">
+                        {BRL(m.expense)}
+                      </TableCell>
                       <TableCell className="text-right font-mono">{BRL(m.balance)}</TableCell>
                     </TableRow>
                   ))}
@@ -413,7 +567,9 @@ export function FinanceReportsPage({ filters }: { filters: Filters }) {
                       <TableCell>{t.category_name ?? "—"}</TableCell>
                       <TableCell className="text-right font-mono">{BRL(t.amount)}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="text-[10px]">{t.status}</Badge>
+                        <Badge variant="outline" className="text-[10px]">
+                          {t.status}
+                        </Badge>
                       </TableCell>
                     </TableRow>
                   ))}

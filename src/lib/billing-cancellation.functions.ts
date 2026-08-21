@@ -72,8 +72,7 @@ export const scheduleCancellation = createServerFn({ method: "POST" })
     const { data: canCancel } = await supabase.rpc("has_permission", {
       _slug: "billing.cancel_subscription",
     });
-    if (canCancel === false)
-      throw new Error("Sem permissão para cancelar a assinatura.");
+    if (canCancel === false) throw new Error("Sem permissão para cancelar a assinatura.");
 
     const sub = await getActiveSubscription(supabase, companyId);
     if (!sub) throw new Error("Assinatura não encontrada.");
@@ -81,9 +80,7 @@ export const scheduleCancellation = createServerFn({ method: "POST" })
       throw new Error("Assinatura já está cancelada.");
 
     const effectiveAt =
-      data.immediate || !sub.current_period_end
-        ? new Date()
-        : new Date(sub.current_period_end);
+      data.immediate || !sub.current_period_end ? new Date() : new Date(sub.current_period_end);
     const now = new Date().toISOString();
 
     if (data.immediate) {
@@ -154,13 +151,11 @@ export const revertScheduledCancellation = createServerFn({ method: "POST" })
     const { data: canCancel } = await supabase.rpc("has_permission", {
       _slug: "billing.cancel_subscription",
     });
-    if (canCancel === false)
-      throw new Error("Sem permissão para alterar a assinatura.");
+    if (canCancel === false) throw new Error("Sem permissão para alterar a assinatura.");
 
     const sub = await getActiveSubscription(supabase, companyId);
     if (!sub) throw new Error("Assinatura não encontrada.");
-    if (!sub.cancel_at_period_end)
-      throw new Error("Não há cancelamento agendado.");
+    if (!sub.cancel_at_period_end) throw new Error("Não há cancelamento agendado.");
 
     const { error } = await supabase
       .from("subscriptions")
@@ -205,8 +200,7 @@ export const reactivateSubscription = createServerFn({ method: "POST" })
     const { data: canCheckout } = await supabase.rpc("has_permission", {
       _slug: "billing.checkout",
     });
-    if (canCheckout === false)
-      throw new Error("Sem permissão para reativar a assinatura.");
+    if (canCheckout === false) throw new Error("Sem permissão para reativar a assinatura.");
 
     const sub = await getActiveSubscription(supabase, companyId);
     if (!sub) throw new Error("Assinatura não encontrada.");

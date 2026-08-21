@@ -6,9 +6,7 @@ import { getSignedImageUrl } from "@/lib/profile.functions";
  * - http(s):// -> retorna como está
  * - path relativo do bucket privado "avatars" -> gera signed URL curta
  */
-export async function resolveAvatarUrl(
-  avatarUrl?: string | null,
-): Promise<string | null> {
+export async function resolveAvatarUrl(avatarUrl?: string | null): Promise<string | null> {
   const v = (avatarUrl ?? "").trim();
   if (!v) return null;
   if (/^https?:\/\//i.test(v)) return v;

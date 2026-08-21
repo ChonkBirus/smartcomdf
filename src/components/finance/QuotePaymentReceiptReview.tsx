@@ -6,7 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Eye, XCircle, FileText, ShieldCheck } from "lucide-react";
 import {
@@ -84,7 +89,10 @@ export function QuotePaymentReceiptReview({
 
   const approveMut = useMutation({
     mutationFn: (id: string) => approve({ data: { id } }),
-    onSuccess: () => { toast.success("Pagamento aprovado."); invalidate(); },
+    onSuccess: () => {
+      toast.success("Pagamento aprovado.");
+      invalidate();
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao aprovar."),
   });
 
@@ -93,7 +101,9 @@ export function QuotePaymentReceiptReview({
       reject({ data: { id: args.id, reason: args.reason || undefined } }),
     onSuccess: () => {
       toast.success("Comprovante rejeitado.");
-      setRejectOpen(null); setReason(""); invalidate();
+      setRejectOpen(null);
+      setReason("");
+      invalidate();
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao rejeitar."),
   });
@@ -101,7 +111,8 @@ export function QuotePaymentReceiptReview({
   return (
     <div className="rounded-lg border bg-card p-4">
       <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-        <FileText className="h-4 w-4" />Comprovantes recebidos
+        <FileText className="h-4 w-4" />
+        Comprovantes recebidos
       </div>
       <ul className="space-y-3">
         {withReceipt.map((p) => {
@@ -125,7 +136,9 @@ export function QuotePaymentReceiptReview({
                   <ReceiptBadge status={p.receipt_status} />
                   {p.receipt_source && (
                     <Badge variant="outline" className="text-[10px]">
-                      {p.receipt_source === "PUBLIC" ? "Enviado pelo cliente" : "Enviado pela equipe"}
+                      {p.receipt_source === "PUBLIC"
+                        ? "Enviado pelo cliente"
+                        : "Enviado pela equipe"}
                     </Badge>
                   )}
                 </div>
@@ -137,7 +150,8 @@ export function QuotePaymentReceiptReview({
                   onClick={() => viewMut.mutate(p.id)}
                   disabled={viewMut.isPending}
                 >
-                  <Eye className="mr-1 h-4 w-4" />Ver comprovante
+                  <Eye className="mr-1 h-4 w-4" />
+                  Ver comprovante
                 </Button>
                 {canDecide && (
                   <>
@@ -146,14 +160,12 @@ export function QuotePaymentReceiptReview({
                       onClick={() => approveMut.mutate(p.id)}
                       disabled={approveMut.isPending}
                     >
-                      <ShieldCheck className="mr-1 h-4 w-4" />Aprovar
+                      <ShieldCheck className="mr-1 h-4 w-4" />
+                      Aprovar
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setRejectOpen(p.id)}
-                    >
-                      <XCircle className="mr-1 h-4 w-4" />Rejeitar
+                    <Button variant="outline" size="sm" onClick={() => setRejectOpen(p.id)}>
+                      <XCircle className="mr-1 h-4 w-4" />
+                      Rejeitar
                     </Button>
                   </>
                 )}
@@ -163,7 +175,15 @@ export function QuotePaymentReceiptReview({
         })}
       </ul>
 
-      <Dialog open={!!rejectOpen} onOpenChange={(o) => { if (!o) { setRejectOpen(null); setReason(""); } }}>
+      <Dialog
+        open={!!rejectOpen}
+        onOpenChange={(o) => {
+          if (!o) {
+            setRejectOpen(null);
+            setReason("");
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Rejeitar comprovante</DialogTitle>
@@ -178,7 +198,9 @@ export function QuotePaymentReceiptReview({
             className="min-h-[100px]"
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectOpen(null)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setRejectOpen(null)}>
+              Cancelar
+            </Button>
             <Button
               variant="destructive"
               onClick={() => rejectOpen && rejectMut.mutate({ id: rejectOpen, reason })}

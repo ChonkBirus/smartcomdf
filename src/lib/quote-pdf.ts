@@ -24,8 +24,7 @@ type Customer = {
 const fmtBRL = (n: number) =>
   Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-const fmtDate = (s?: string | null) =>
-  s ? new Date(s).toLocaleDateString("pt-BR") : "—";
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString("pt-BR") : "—");
 
 /**
  * Generates a client-facing PDF for a quote.
@@ -57,7 +56,10 @@ export function generateQuotePDF(opts: {
     company?.cnpj ? `CNPJ: ${company.cnpj}` : null,
     [company?.phone, company?.email].filter(Boolean).join(" • "),
   ].filter(Boolean) as string[];
-  headerLines.forEach((l) => { doc.text(l, 40, y); y += 12; });
+  headerLines.forEach((l) => {
+    doc.text(l, 40, y);
+    y += 12;
+  });
 
   // Title block
   y += 8;
@@ -88,10 +90,17 @@ export function generateQuotePDF(opts: {
   y += 12;
   doc.setFont("helvetica", "normal");
   const cName = customer?.trade_name || customer?.name || customer?.corporate_name || "—";
-  doc.text(cName, 40, y); y += 12;
-  if (customer?.cpf_cnpj) { doc.text(`Documento: ${customer.cpf_cnpj}`, 40, y); y += 12; }
+  doc.text(cName, 40, y);
+  y += 12;
+  if (customer?.cpf_cnpj) {
+    doc.text(`Documento: ${customer.cpf_cnpj}`, 40, y);
+    y += 12;
+  }
   const cContact = [customer?.phone, customer?.email].filter(Boolean).join(" • ");
-  if (cContact) { doc.text(cContact, 40, y); y += 12; }
+  if (cContact) {
+    doc.text(cContact, 40, y);
+    y += 12;
+  }
 
   // Items table — NO unit price, NO subtotal per row, NO labor as line
   const visible = items.filter((it) => it.kind !== "LABOR");
@@ -133,12 +142,16 @@ export function generateQuotePDF(opts: {
   const block = (label: string, value?: string | null) => {
     if (!value) return;
     doc.setFont("helvetica", "bold");
-    doc.text(label, 40, y); y += 12;
+    doc.text(label, 40, y);
+    y += 12;
     doc.setFont("helvetica", "normal");
     const lines = doc.splitTextToSize(value, W - 80);
     doc.text(lines, 40, y);
     y += lines.length * 12 + 6;
-    if (y > 760) { doc.addPage(); y = 40; }
+    if (y > 760) {
+      doc.addPage();
+      y = 40;
+    }
   };
   block("Forma de pagamento", quote.payment_terms);
   block("Prazo de execução / entrega", quote.delivery_terms);
@@ -166,4 +179,3 @@ export function generateQuotePDF(opts: {
   if (opts.output === "blob") return doc.output("blob");
   doc.save(`Orcamento-${quote.quote_number}.pdf`);
 }
-

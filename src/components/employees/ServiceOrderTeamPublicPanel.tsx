@@ -10,11 +10,7 @@ import { listServiceOrderTeamPublic } from "@/lib/project-employee-costs.functio
  * é buscado nem exposto (server usa RPC SECURITY DEFINER que
  * retorna apenas colunas seguras).
  */
-export function ServiceOrderTeamPublicPanel({
-  serviceOrderId,
-}: {
-  serviceOrderId: string;
-}) {
+export function ServiceOrderTeamPublicPanel({ serviceOrderId }: { serviceOrderId: string }) {
   const { has, isOwner, isSuperAdmin, can } = usePermissions();
   const canViewCosts =
     isOwner ||
@@ -44,17 +40,13 @@ export function ServiceOrderTeamPublicPanel({
       {isLoading ? (
         <p className="p-4 text-sm text-muted-foreground">Carregando…</p>
       ) : data.length === 0 ? (
-        <p className="p-4 text-sm text-muted-foreground">
-          Nenhum funcionário vinculado.
-        </p>
+        <p className="p-4 text-sm text-muted-foreground">Nenhum funcionário vinculado.</p>
       ) : (
         <ul className="divide-y">
           {data.map((m) => (
             <li key={m.id} className="flex items-center justify-between p-3 text-sm">
               <span className="font-medium">{m.employee_name}</span>
-              <span className="text-xs text-muted-foreground">
-                {m.role_snapshot ?? "—"}
-              </span>
+              <span className="text-xs text-muted-foreground">{m.role_snapshot ?? "—"}</span>
             </li>
           ))}
         </ul>

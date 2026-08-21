@@ -29,10 +29,8 @@ type Props = {
   onUpgradeCheckout: (plan: PlanWithFeatures) => void;
 };
 
-const fmt = (n: number) =>
-  n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const fmtDate = (s: string | null) =>
-  s ? new Date(s).toLocaleDateString("pt-BR") : "—";
+const fmt = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleDateString("pt-BR") : "—");
 
 export function PlanChangeModal({
   open,
@@ -48,24 +46,17 @@ export function PlanChangeModal({
 
   const kind = useMemo<"UPGRADE" | "DOWNGRADE" | null>(() => {
     if (!targetPlan) return null;
-    return (targetPlan.sort_order ?? 0) > currentPlanSortOrder
-      ? "UPGRADE"
-      : "DOWNGRADE";
+    return (targetPlan.sort_order ?? 0) > currentPlanSortOrder ? "UPGRADE" : "DOWNGRADE";
   }, [targetPlan, currentPlanSortOrder]);
 
   const amount =
-    cycle === "YEARLY"
-      ? (targetPlan?.annual_price ?? 0)
-      : (targetPlan?.monthly_price ?? 0);
+    cycle === "YEARLY" ? (targetPlan?.annual_price ?? 0) : (targetPlan?.monthly_price ?? 0);
 
   const mutation = useMutation({
     mutationFn: () =>
       requestFn({
         data: {
-          plan_slug: (targetPlan?.slug ?? "starter") as
-            | "starter"
-            | "pro"
-            | "business",
+          plan_slug: (targetPlan?.slug ?? "starter") as "starter" | "pro" | "business",
           billing_cycle: cycle,
         },
       }),
@@ -76,9 +67,7 @@ export function PlanChangeModal({
         onOpenChange(false);
         onUpgradeCheckout(targetPlan);
       } else if (res.kind === "DOWNGRADE") {
-        toast.success(
-          `Downgrade agendado para ${fmtDate(res.scheduled_at)}`,
-        );
+        toast.success(`Downgrade agendado para ${fmtDate(res.scheduled_at)}`);
       } else if (res.kind === "NOOP") {
         toast.message(res.reason);
         onOpenChange(false);
@@ -121,9 +110,7 @@ export function PlanChangeModal({
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Ciclo</span>
-              <span className="font-medium">
-                {cycle === "YEARLY" ? "Anual" : "Mensal"}
-              </span>
+              <span className="font-medium">{cycle === "YEARLY" ? "Anual" : "Mensal"}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Valor</span>
@@ -139,8 +126,8 @@ export function PlanChangeModal({
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Verifique seus limites</AlertTitle>
               <AlertDescription>
-                Se o uso atual (usuários, OCR, importações, OSs) exceder os
-                limites do plano de destino, o agendamento será recusado.
+                Se o uso atual (usuários, OCR, importações, OSs) exceder os limites do plano de
+                destino, o agendamento será recusado.
               </AlertDescription>
             </Alert>
           ) : null}
@@ -159,10 +146,7 @@ export function PlanChangeModal({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button
-            onClick={() => mutation.mutate()}
-            disabled={mutation.isPending}
-          >
+          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
             {mutation.isPending
               ? "Processando..."
               : kind === "UPGRADE"

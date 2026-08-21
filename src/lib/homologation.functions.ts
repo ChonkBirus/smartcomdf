@@ -56,9 +56,9 @@ export const getProductionChecklist = createServerFn({ method: "GET" })
     const existingCodes = new Set((existing ?? []).map((r: any) => r.code));
     const missing = PRODUCTION_CHECKLIST.filter((i) => !existingCodes.has(i.code));
     if (missing.length > 0) {
-      await supabase.from("production_checklist_items").insert(
-        missing.map((i) => ({ company_id: companyId, code: i.code, title: i.title })),
-      );
+      await supabase
+        .from("production_checklist_items")
+        .insert(missing.map((i) => ({ company_id: companyId, code: i.code, title: i.title })));
     }
 
     const { data: rows, error } = await supabase
@@ -68,9 +68,9 @@ export const getProductionChecklist = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
 
     const order = new Map(PRODUCTION_CHECKLIST.map((i, idx) => [i.code, idx]));
-    const sorted = (rows ?? []).slice().sort(
-      (a: any, b: any) => (order.get(a.code) ?? 999) - (order.get(b.code) ?? 999),
-    );
+    const sorted = (rows ?? [])
+      .slice()
+      .sort((a: any, b: any) => (order.get(a.code) ?? 999) - (order.get(b.code) ?? 999));
     const done = sorted.filter((r: any) => r.status === "done").length;
     return { items: sorted, total: sorted.length, done };
   });

@@ -35,8 +35,7 @@ function LaunchPage() {
   });
 
   const toggleMut = useMutation({
-    mutationFn: (vars: { id: string; completed: boolean }) =>
-      toggleFn({ data: vars }),
+    mutationFn: (vars: { id: string; completed: boolean }) => toggleFn({ data: vars }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "launch-checklist"] });
       qc.invalidateQueries({ queryKey: ["admin", "launch-readiness"] });
@@ -57,7 +56,8 @@ function LaunchPage() {
               <div className="flex items-center justify-between text-sm mb-2">
                 <span>Checklist concluído</span>
                 <span className="font-medium">
-                  {readiness.checklistDone}/{readiness.checklistTotal} ({readiness.checklistPercent}%)
+                  {readiness.checklistDone}/{readiness.checklistTotal} ({readiness.checklistPercent}
+                  %)
                 </span>
               </div>
               <Progress value={readiness.checklistPercent} />
@@ -88,15 +88,17 @@ function LaunchPage() {
             >
               <Checkbox
                 checked={item.completed}
-                onCheckedChange={(c) =>
-                  toggleMut.mutate({ id: item.id, completed: !!c })
-                }
+                onCheckedChange={(c) => toggleMut.mutate({ id: item.id, completed: !!c })}
                 disabled={toggleMut.isPending}
                 className="mt-0.5"
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className={item.completed ? "line-through text-muted-foreground" : "font-medium"}>
+                  <span
+                    className={
+                      item.completed ? "line-through text-muted-foreground" : "font-medium"
+                    }
+                  >
                     {item.title}
                   </span>
                   {item.completed && item.completed_at && (

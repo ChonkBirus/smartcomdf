@@ -3,21 +3,43 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
-import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter,
+  Upload,
+  FileSpreadsheet,
+  AlertTriangle,
+  CheckCircle2,
+  Loader2,
+  ArrowRight,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import {
-  createSupplierImportJob, validateSupplierImport, listSupplierImportRows,
-  confirmSupplierImport, SUP_TARGET_FIELDS, type SupTargetField,
+  createSupplierImportJob,
+  validateSupplierImport,
+  listSupplierImportRows,
+  confirmSupplierImport,
+  SUP_TARGET_FIELDS,
+  type SupTargetField,
 } from "@/lib/supplier-import.functions";
 
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -49,10 +71,13 @@ async function parseFile(file: File): Promise<{ headers: string[]; rows: Record<
   if (isCsv) {
     return await new Promise((resolve, reject) => {
       Papa.parse(file, {
-        header: true, skipEmptyLines: true,
+        header: true,
+        skipEmptyLines: true,
         complete: (res) => {
           const headers = (res.meta.fields ?? []).filter((h) => h && h.trim());
-          const rows = (res.data as any[]).filter((r) => Object.values(r).some((v) => v !== "" && v != null));
+          const rows = (res.data as any[]).filter((r) =>
+            Object.values(r).some((v) => v !== "" && v != null),
+          );
           resolve({ headers, rows });
         },
         error: reject,
@@ -69,8 +94,12 @@ async function parseFile(file: File): Promise<{ headers: string[]; rows: Record<
 }
 
 export function SupplierImportDialog({
-  open, onOpenChange,
-}: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+}) {
   const qc = useQueryClient();
   const createFn = useServerFn(createSupplierImportJob);
   const validateFn = useServerFn(validateSupplierImport);
@@ -94,21 +123,32 @@ export function SupplierImportDialog({
   });
 
   const reset = () => {
-    setStep("upload"); setFile(null); setJobId(null);
-    setHeaders([]); setMapping({}); setValidation(null); setResult(null);
+    setStep("upload");
+    setFile(null);
+    setJobId(null);
+    setHeaders([]);
+    setMapping({});
+    setValidation(null);
+    setResult(null);
   };
 
   const handleFile = async (f: File) => {
-    if (f.size > MAX_BYTES) { toast.error("Arquivo excede 10 MB."); return; }
+    if (f.size > MAX_BYTES) {
+      toast.error("Arquivo excede 10 MB.");
+      return;
+    }
     if (!/\.(xls|xlsx|csv)$/i.test(f.name)) {
-      toast.error("Formato não suportado. Use XLS, XLSX ou CSV."); return;
+      toast.error("Formato não suportado. Use XLS, XLSX ou CSV.");
+      return;
     }
     setFile(f);
     setParsing(true);
     try {
       const { headers: h, rows } = await parseFile(f);
       if (!h.length || !rows.length) {
-        toast.error("Arquivo vazio ou sem cabeçalho."); setParsing(false); return;
+        toast.error("Arquivo vazio ou sem cabeçalho.");
+        setParsing(false);
+        return;
       }
       const res = await createFn({ data: { file_name: f.name, headers: h, rows } });
       setJobId(res.job_id);
@@ -124,14 +164,18 @@ export function SupplierImportDialog({
 
   const validateMutation = useMutation({
     mutationFn: () => validateFn({ data: { job_id: jobId!, mapping } }),
-    onSuccess: (data) => { setValidation(data); setStep("preview"); },
+    onSuccess: (data) => {
+      setValidation(data);
+      setStep("preview");
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
   const confirmMutation = useMutation({
     mutationFn: () => confirmFn({ data: { job_id: jobId! } }),
     onSuccess: (data) => {
-      setResult(data); setStep("done");
+      setResult(data);
+      setStep("done");
       qc.invalidateQueries({ queryKey: ["suppliers"] });
     },
     onError: (e: any) => toast.error(e.message),
@@ -139,11 +183,20 @@ export function SupplierImportDialog({
 
   const mappingReady = useMemo(() => {
     const targets = Object.values(mapping);
-    return targets.includes("cpf_cnpj") && (targets.includes("corporate_name") || targets.includes("trade_name"));
+    return (
+      targets.includes("cpf_cnpj") &&
+      (targets.includes("corporate_name") || targets.includes("trade_name"))
+    );
   }, [mapping]);
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) reset(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        onOpenChange(o);
+        if (!o) reset();
+      }}
+    >
       <DialogContent className="max-w-5xl">
         <DialogHeader>
           <DialogTitle>Importar fornecedores</DialogTitle>
@@ -157,8 +210,15 @@ export function SupplierImportDialog({
             <div key={s} className="flex items-center gap-2">
               <Badge variant={step === s ? "default" : "secondary"} className="capitalize">
                 {i + 1}.{" "}
-                {s === "upload" ? "Upload" : s === "mapping" ? "Mapeamento" :
-                 s === "preview" ? "Prévia" : s === "confirm" ? "Confirmar" : "Concluído"}
+                {s === "upload"
+                  ? "Upload"
+                  : s === "mapping"
+                    ? "Mapeamento"
+                    : s === "preview"
+                      ? "Prévia"
+                      : s === "confirm"
+                        ? "Confirmar"
+                        : "Concluído"}
               </Badge>
               {i < 4 && <ArrowRight className="h-3 w-3 text-muted-foreground" />}
             </div>
@@ -173,8 +233,16 @@ export function SupplierImportDialog({
                 <div className="font-medium">Selecione um arquivo</div>
                 <div className="text-xs text-muted-foreground">XLS, XLSX ou CSV — até 10 MB</div>
               </div>
-              <Input type="file" accept={ACCEPT} className="hidden" disabled={parsing}
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+              <Input
+                type="file"
+                accept={ACCEPT}
+                className="hidden"
+                disabled={parsing}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleFile(f);
+                }}
+              />
               {parsing && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Loader2 className="h-3 w-3 animate-spin" /> Processando arquivo...
@@ -182,15 +250,17 @@ export function SupplierImportDialog({
               )}
               {file && !parsing && (
                 <div className="flex items-center gap-2 text-xs">
-                  <FileSpreadsheet className="h-4 w-4" />{file.name}
+                  <FileSpreadsheet className="h-4 w-4" />
+                  {file.name}
                 </div>
               )}
             </label>
             <Alert>
               <AlertTitle>Colunas reconhecidas</AlertTitle>
               <AlertDescription className="text-xs">
-                Razão Social, Nome Fantasia, CPF/CNPJ, E-mail, Telefone, WhatsApp, Site, Observações, CEP, Rua,
-                Número, Complemento, Bairro, Cidade, UF, País. Variações de nome são reconhecidas automaticamente.
+                Razão Social, Nome Fantasia, CPF/CNPJ, E-mail, Telefone, WhatsApp, Site,
+                Observações, CEP, Rua, Número, Complemento, Bairro, Cidade, UF, País. Variações de
+                nome são reconhecidas automaticamente.
               </AlertDescription>
             </Alert>
           </div>
@@ -206,12 +276,18 @@ export function SupplierImportDialog({
                 {headers.map((h) => (
                   <div key={h} className="grid grid-cols-2 items-center gap-3 p-3">
                     <div className="truncate font-mono text-xs">{h}</div>
-                    <Select value={mapping[h] ?? "__ignore__"}
-                      onValueChange={(v) => setMapping((m) => ({ ...m, [h]: v as SupTargetField }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                    <Select
+                      value={mapping[h] ?? "__ignore__"}
+                      onValueChange={(v) => setMapping((m) => ({ ...m, [h]: v as SupTargetField }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         {SUP_TARGET_FIELDS.map((f) => (
-                          <SelectItem key={f} value={f}>{FIELD_LABEL[f]}</SelectItem>
+                          <SelectItem key={f} value={f}>
+                            {FIELD_LABEL[f]}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -235,13 +311,19 @@ export function SupplierImportDialog({
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               <Stat label="Total" value={validation.total} />
               <Stat label="Válidas" value={validation.valid} tone="ok" />
-              <Stat label="Com erro" value={validation.invalid} tone={validation.invalid ? "err" : undefined} />
+              <Stat
+                label="Com erro"
+                value={validation.invalid}
+                tone={validation.invalid ? "err" : undefined}
+              />
             </div>
 
             <div className="flex items-center gap-2">
               <Label className="text-xs">Filtrar:</Label>
               <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
-                <SelectTrigger className="h-8 w-[160px]"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-8 w-[160px]">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="CREATE">Criar</SelectItem>
@@ -279,8 +361,12 @@ export function SupplierImportDialog({
                       <td className="px-2 py-1.5">{r.mapped_data?.whatsapp ?? "—"}</td>
                       <td className="px-2 py-1.5">{r.mapped_data?.city ?? "—"}</td>
                       <td className="px-2 py-1.5">{r.mapped_data?.state ?? "—"}</td>
-                      <td className="px-2 py-1.5"><ActionBadge action={r.action} /></td>
-                      <td className="px-2 py-1.5 text-destructive">{(r.validation_errors ?? []).join("; ")}</td>
+                      <td className="px-2 py-1.5">
+                        <ActionBadge action={r.action} />
+                      </td>
+                      <td className="px-2 py-1.5 text-destructive">
+                        {(r.validation_errors ?? []).join("; ")}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -295,8 +381,14 @@ export function SupplierImportDialog({
               <AlertTitle>Resumo da importação</AlertTitle>
               <AlertDescription className="text-xs space-y-1">
                 <div>Total de linhas: {validation.total}</div>
-                <div>Fornecedores novos: {(rowsQuery.data ?? []).filter((r: any) => r.action === "CREATE").length}</div>
-                <div>Fornecedores atualizados: {(rowsQuery.data ?? []).filter((r: any) => r.action === "UPDATE").length}</div>
+                <div>
+                  Fornecedores novos:{" "}
+                  {(rowsQuery.data ?? []).filter((r: any) => r.action === "CREATE").length}
+                </div>
+                <div>
+                  Fornecedores atualizados:{" "}
+                  {(rowsQuery.data ?? []).filter((r: any) => r.action === "UPDATE").length}
+                </div>
                 <div>Linhas com erro: {validation.invalid}</div>
               </AlertDescription>
             </Alert>
@@ -315,27 +407,42 @@ export function SupplierImportDialog({
 
         <DialogFooter>
           {step === "upload" && (
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
           )}
           {step === "mapping" && (
             <>
-              <Button variant="outline" onClick={() => setStep("upload")}>Voltar</Button>
-              <Button onClick={() => validateMutation.mutate()} disabled={!mappingReady || validateMutation.isPending}>
-                {validateMutation.isPending && <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />}Validar
+              <Button variant="outline" onClick={() => setStep("upload")}>
+                Voltar
+              </Button>
+              <Button
+                onClick={() => validateMutation.mutate()}
+                disabled={!mappingReady || validateMutation.isPending}
+              >
+                {validateMutation.isPending && <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />}
+                Validar
               </Button>
             </>
           )}
           {step === "preview" && (
             <>
-              <Button variant="outline" onClick={() => setStep("mapping")}>Voltar</Button>
-              <Button onClick={() => setStep("confirm")} disabled={!validation || validation.valid === 0}>
+              <Button variant="outline" onClick={() => setStep("mapping")}>
+                Voltar
+              </Button>
+              <Button
+                onClick={() => setStep("confirm")}
+                disabled={!validation || validation.valid === 0}
+              >
                 Continuar
               </Button>
             </>
           )}
           {step === "confirm" && (
             <>
-              <Button variant="outline" onClick={() => setStep("preview")}>Voltar</Button>
+              <Button variant="outline" onClick={() => setStep("preview")}>
+                Voltar
+              </Button>
               <Button onClick={() => confirmMutation.mutate()} disabled={confirmMutation.isPending}>
                 {confirmMutation.isPending && <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />}
                 Confirmar importação
@@ -360,7 +467,13 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: "ok
 }
 
 function ActionBadge({ action }: { action: string }) {
-  const variant: any = action === "CREATE" ? "default" :
-    action === "UPDATE" ? "secondary" : action === "SKIP" ? "outline" : "destructive";
+  const variant: any =
+    action === "CREATE"
+      ? "default"
+      : action === "UPDATE"
+        ? "secondary"
+        : action === "SKIP"
+          ? "outline"
+          : "destructive";
   return <Badge variant={variant}>{action}</Badge>;
 }

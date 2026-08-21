@@ -33,13 +33,7 @@ type Props = {
   cycle: "MONTHLY" | "YEARLY";
 };
 
-export function CheckoutDialog({
-  open,
-  onOpenChange,
-  planSlug,
-  planName,
-  cycle,
-}: Props) {
+export function CheckoutDialog({ open, onOpenChange, planSlug, planName, cycle }: Props) {
   const [method, setMethod] = useState<Method>("PIX");
   const [result, setResult] = useState<CheckoutSessionResult | null>(null);
   const [coupon, setCoupon] = useState<ValidatedCoupon | null>(null);
@@ -60,9 +54,7 @@ export function CheckoutDialog({
     },
   });
 
-  const baseAmount = plan
-    ? Number(cycle === "YEARLY" ? plan.annual_price : plan.monthly_price)
-    : 0;
+  const baseAmount = plan ? Number(cycle === "YEARLY" ? plan.annual_price : plan.monthly_price) : 0;
 
   const checkoutFn = useServerFn(createCheckoutSession);
   const m = useMutation({
@@ -81,8 +73,7 @@ export function CheckoutDialog({
         window.open(r.invoice_url, "_blank", "noopener");
       }
     },
-    onError: (e: any) =>
-      toast.error(e?.message ?? "Falha ao iniciar cobrança"),
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao iniciar cobrança"),
   });
 
   const reset = () => {
@@ -103,8 +94,8 @@ export function CheckoutDialog({
         <DialogHeader>
           <DialogTitle>Assinar {planName}</DialogTitle>
           <DialogDescription>
-            Ciclo {cycle === "YEARLY" ? "anual" : "mensal"}. A assinatura é
-            ativada após confirmação do pagamento.
+            Ciclo {cycle === "YEARLY" ? "anual" : "mensal"}. A assinatura é ativada após confirmação
+            do pagamento.
           </DialogDescription>
         </DialogHeader>
 
@@ -117,16 +108,15 @@ export function CheckoutDialog({
                 <TabsTrigger value="CREDIT_CARD">Cartão</TabsTrigger>
               </TabsList>
               <TabsContent value="PIX" className="text-sm text-muted-foreground pt-3">
-                Pagamento instantâneo. Geramos um QR Code e o código Pix Copia e
-                Cola.
+                Pagamento instantâneo. Geramos um QR Code e o código Pix Copia e Cola.
               </TabsContent>
               <TabsContent value="BOLETO" className="text-sm text-muted-foreground pt-3">
-                Boleto bancário com vencimento em 3 dias úteis. A confirmação
-                pode levar 1 a 2 dias após o pagamento.
+                Boleto bancário com vencimento em 3 dias úteis. A confirmação pode levar 1 a 2 dias
+                após o pagamento.
               </TabsContent>
               <TabsContent value="CREDIT_CARD" className="text-sm text-muted-foreground pt-3">
-                Você será direcionado ao checkout seguro do provedor. Não
-                armazenamos dados de cartão.
+                Você será direcionado ao checkout seguro do provedor. Não armazenamos dados de
+                cartão.
               </TabsContent>
             </Tabs>
 
@@ -153,10 +143,7 @@ export function CheckoutDialog({
                 )}
                 <div className="flex justify-between border-t pt-1 font-semibold">
                   <span>Total</span>
-                  <span>
-                    R${" "}
-                    {(coupon ? coupon.final_amount : baseAmount).toFixed(2)}
-                  </span>
+                  <span>R$ {(coupon ? coupon.final_amount : baseAmount).toFixed(2)}</span>
                 </div>
               </div>
             )}
@@ -179,13 +166,7 @@ export function CheckoutDialog({
   );
 }
 
-function ResultView({
-  result,
-  onClose,
-}: {
-  result: CheckoutSessionResult;
-  onClose: () => void;
-}) {
+function ResultView({ result, onClose }: { result: CheckoutSessionResult; onClose: () => void }) {
   const copy = async (text: string) => {
     await navigator.clipboard.writeText(text);
     toast.success("Copiado");
@@ -199,11 +180,15 @@ function ResultView({
       if (s === "RECEIVED" || s === "CONFIRMED" || s === "RECEIVED_IN_CASH") {
         toast.success("Pagamento confirmado. Sua assinatura está ativa.");
       } else {
-        toast.message("Pagamento ainda não identificado. Aguarde alguns instantes e tente novamente.");
+        toast.message(
+          "Pagamento ainda não identificado. Aguarde alguns instantes e tente novamente.",
+        );
       }
     },
     onError: () =>
-      toast.error("Não foi possível atualizar o status agora. Tente novamente em alguns instantes."),
+      toast.error(
+        "Não foi possível atualizar o status agora. Tente novamente em alguns instantes.",
+      ),
   });
 
   return (
@@ -225,9 +210,7 @@ function ResultView({
           <span>Total</span>
           <span>R$ {result.amount.toFixed(2)}</span>
         </div>
-        <div className="text-xs text-muted-foreground">
-          Vencimento: {result.due_date}
-        </div>
+        <div className="text-xs text-muted-foreground">Vencimento: {result.due_date}</div>
       </div>
 
       {result.payment_method === "PIX" && result.pix_qr_code_base64 ? (
@@ -246,11 +229,7 @@ function ResultView({
                 <code className="flex-1 truncate rounded border bg-background px-2 py-1 text-xs">
                   {result.pix_copy_paste}
                 </code>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() => copy(result.pix_copy_paste!)}
-                >
+                <Button size="icon" variant="outline" onClick={() => copy(result.pix_copy_paste!)}>
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
@@ -275,8 +254,7 @@ function ResultView({
         </Button>
       ) : null}
 
-      {result.invoice_url &&
-      result.payment_method !== "CREDIT_CARD" ? (
+      {result.invoice_url && result.payment_method !== "CREDIT_CARD" ? (
         <a
           href={result.invoice_url}
           target="_blank"
@@ -288,16 +266,12 @@ function ResultView({
       ) : null}
 
       <p className="text-xs text-muted-foreground">
-        Após o pagamento, a confirmação será automática pelo Asaas. Isso pode
-        levar alguns instantes. A assinatura é ativada automaticamente.
+        Após o pagamento, a confirmação será automática pelo Asaas. Isso pode levar alguns
+        instantes. A assinatura é ativada automaticamente.
       </p>
 
       <DialogFooter className="gap-2 sm:gap-2">
-        <Button
-          variant="outline"
-          onClick={() => sync.mutate()}
-          disabled={sync.isPending}
-        >
+        <Button variant="outline" onClick={() => sync.mutate()} disabled={sync.isPending}>
           {sync.isPending ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (

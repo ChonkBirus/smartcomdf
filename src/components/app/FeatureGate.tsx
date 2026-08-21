@@ -55,7 +55,8 @@ const FEATURE_META: Record<string, FeatureMeta> = {
   pix: {
     label: "PIX",
     tagline: "Cobranças automáticas via PIX",
-    description: "Gere cobranças PIX dinâmicas com QR Code e receba confirmação automática em tempo real.",
+    description:
+      "Gere cobranças PIX dinâmicas com QR Code e receba confirmação automática em tempo real.",
     benefits: [
       "QR Code dinâmico por venda",
       "Webhook de confirmação automática",
@@ -90,20 +91,29 @@ const FEATURE_META: Record<string, FeatureMeta> = {
       "Importação em 1 clique",
       "Redução de erros de digitação",
     ],
-    useCases: ["Cadastro de notas de fornecedores", "Lançamento de boletos", "Digitalização de contratos"],
+    useCases: [
+      "Cadastro de notas de fornecedores",
+      "Lançamento de boletos",
+      "Digitalização de contratos",
+    ],
     minPlan: "pro",
   },
   excel_import: {
     label: "Importação Excel",
     tagline: "Importação em massa via planilhas",
-    description: "Importe milhares de produtos, clientes ou contatos a partir de planilhas Excel/CSV.",
+    description:
+      "Importe milhares de produtos, clientes ou contatos a partir de planilhas Excel/CSV.",
     benefits: [
       "Templates prontos",
       "Validação automática de dados",
       "Mapeamento flexível de colunas",
       "Importação assíncrona com relatório",
     ],
-    useCases: ["Migração de sistema antigo", "Cadastro inicial em massa", "Atualização periódica de preços"],
+    useCases: [
+      "Migração de sistema antigo",
+      "Cadastro inicial em massa",
+      "Atualização periódica de preços",
+    ],
     minPlan: "pro",
   },
   reports_advanced: {
@@ -123,14 +133,19 @@ const FEATURE_META: Record<string, FeatureMeta> = {
   nfe: {
     label: "Nota Fiscal Eletrônica",
     tagline: "Emissão de NFe homologada",
-    description: "Emissão de NFe integrada com a SEFAZ, com gestão de certificado digital e contingência.",
+    description:
+      "Emissão de NFe integrada com a SEFAZ, com gestão de certificado digital e contingência.",
     benefits: [
       "Emissão direta para SEFAZ",
       "Gestão de certificado A1/A3",
       "DANFE em PDF e XML",
       "Contingência automática",
     ],
-    useCases: ["Vendas com nota fiscal", "Devoluções e cancelamentos", "Exportação para contabilidade"],
+    useCases: [
+      "Vendas com nota fiscal",
+      "Devoluções e cancelamentos",
+      "Exportação para contabilidade",
+    ],
     minPlan: "business",
   },
   api_access: {
@@ -143,14 +158,24 @@ const FEATURE_META: Record<string, FeatureMeta> = {
       "Tokens com escopo granular",
       "Rate limit generoso",
     ],
-    useCases: ["Integração com e-commerce", "Sincronização com marketplace", "Aplicativos próprios"],
+    useCases: [
+      "Integração com e-commerce",
+      "Sincronização com marketplace",
+      "Aplicativos próprios",
+    ],
     minPlan: "business",
   },
   white_label: {
     label: "White Label",
     tagline: "Sua marca, nossa plataforma",
-    description: "Personalize logo, cores e domínio próprio para revender ou usar com sua identidade visual.",
-    benefits: ["Domínio próprio", "Logo e cores customizadas", "E-mails com sua marca", "Sem menção ao SmartPro"],
+    description:
+      "Personalize logo, cores e domínio próprio para revender ou usar com sua identidade visual.",
+    benefits: [
+      "Domínio próprio",
+      "Logo e cores customizadas",
+      "E-mails com sua marca",
+      "Sem menção ao SmartPro",
+    ],
     useCases: ["Consultorias revendendo o ERP", "Holdings com múltiplas marcas"],
     minPlan: "business",
   },
@@ -262,9 +287,21 @@ export function FeatureBlocked({ feature }: { feature: FeatureCode }) {
               Comparação de planos
             </h3>
             <div className="grid gap-2 text-sm sm:grid-cols-3">
-              <PlanCompare label="Starter" included={false} current={currentPlan?.slug === "starter"} />
-              <PlanCompare label="Pro" included={meta.minPlan === "pro"} current={currentPlan?.slug === "pro"} />
-              <PlanCompare label="Business" included={true} current={currentPlan?.slug === "business"} />
+              <PlanCompare
+                label="Starter"
+                included={false}
+                current={currentPlan?.slug === "starter"}
+              />
+              <PlanCompare
+                label="Pro"
+                included={meta.minPlan === "pro"}
+                current={currentPlan?.slug === "pro"}
+              />
+              <PlanCompare
+                label="Business"
+                included={true}
+                current={currentPlan?.slug === "business"}
+              />
             </div>
           </div>
 
@@ -310,7 +347,11 @@ function PlanCompare({
         <span className="text-xs font-semibold">{label}</span>
         {current && <span className="text-nano text-primary">Seu plano</span>}
       </div>
-      {included ? <Check className="h-4 w-4 text-success" /> : <X className="h-4 w-4 text-muted-foreground/50" />}
+      {included ? (
+        <Check className="h-4 w-4 text-success" />
+      ) : (
+        <X className="h-4 w-4 text-muted-foreground/50" />
+      )}
     </div>
   );
 }

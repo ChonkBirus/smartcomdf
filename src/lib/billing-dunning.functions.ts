@@ -39,14 +39,11 @@ export type DunningEventRow = {
 export const listDunningEvents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { status?: string | null; event_code?: string | null } | undefined) =>
-      input ?? {},
+    (input: { status?: string | null; event_code?: string | null } | undefined) => input ?? {},
   )
   .handler(async ({ data, context }): Promise<DunningEventRow[]> => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     let q = supabaseAdmin
       .from("billing_dunning_events")
@@ -97,12 +94,8 @@ export const processDunningRulesNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
-    const { data, error } = await supabaseAdmin.rpc(
-      "process_billing_dunning_rules",
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.rpc("process_billing_dunning_rules");
     if (error) throw error;
     return data as Array<{ rule_code: string; inserted_count: number }>;
   });
@@ -120,16 +113,13 @@ export const registerDunningContact = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { data: logId, error } = await context.supabase.rpc(
-      "register_dunning_contact",
-      {
-        _event_id: data.event_id,
-        _channel: data.channel,
-        _result: data.result ?? null,
-        _message: data.message ?? null,
-        _next_follow_up_at: data.next_follow_up_at ?? null,
-      } as any,
-    );
+    const { data: logId, error } = await context.supabase.rpc("register_dunning_contact", {
+      _event_id: data.event_id,
+      _channel: data.channel,
+      _result: data.result ?? null,
+      _message: data.message ?? null,
+      _next_follow_up_at: data.next_follow_up_at ?? null,
+    } as any);
     if (error) throw error;
     return { log_id: logId as string };
   });
@@ -139,9 +129,7 @@ export const skipDunningEvent = createServerFn({ method: "POST" })
   .inputValidator((input: { event_id: string; notes?: string }) => input)
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("billing_dunning_events")
       .update({

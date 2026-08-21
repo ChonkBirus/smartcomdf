@@ -36,7 +36,7 @@ const HEADER_ALIASES: Record<string, string> = {
   preço: "sale_price",
   "estoque minimo": "minimum_stock",
   "estoque mínimo": "minimum_stock",
-  "minimo": "minimum_stock",
+  minimo: "minimum_stock",
   ncm: "ncm",
   "quantidade inicial": "initial_qty",
   "estoque inicial": "initial_qty",
@@ -96,7 +96,14 @@ function normalizeUnit(v: any): string | null {
   const s = String(v).toUpperCase().trim();
   if (UNITS.includes(s as any)) return s;
   // Common aliases
-  const map: Record<string, string> = { UNIDADE: "UN", PC: "UN", PCS: "UN", CAIXA: "CX", METRO: "MT", M: "MT" };
+  const map: Record<string, string> = {
+    UNIDADE: "UN",
+    PC: "UN",
+    PCS: "UN",
+    CAIXA: "CX",
+    METRO: "MT",
+    M: "MT",
+  };
   return map[s] ?? null;
 }
 
@@ -123,7 +130,13 @@ async function getCompanyId(sb: any, userId: string): Promise<string> {
   return data.company_id as string;
 }
 
-async function logAudit(sb: any, module: string, action: string, recordId?: string | null, newData?: any) {
+async function logAudit(
+  sb: any,
+  module: string,
+  action: string,
+  recordId?: string | null,
+  newData?: any,
+) {
   try {
     await sb.rpc("log_audit", {
       _module: module,
@@ -192,8 +205,14 @@ export const createImportJob = createServerFn({ method: "POST" })
       }
     }
 
-    await logAudit(sb, "product_imports", "upload", job.id, { file_name: data.file_name, total: data.rows.length });
-    await logActivity(sb, `Importação de produtos iniciada: ${data.file_name} (${data.rows.length} linhas)`);
+    await logAudit(sb, "product_imports", "upload", job.id, {
+      file_name: data.file_name,
+      total: data.rows.length,
+    });
+    await logActivity(
+      sb,
+      `Importação de produtos iniciada: ${data.file_name} (${data.rows.length} linhas)`,
+    );
 
     return { job_id: job.id, headers: data.headers, mapping };
   });
@@ -223,7 +242,10 @@ export const validateImport = createServerFn({ method: "POST" })
     if (jobErr || !job) throw new Error("Importação não encontrada.");
 
     // Update mapping
-    await sb.from("product_import_jobs").update({ column_mapping: data.mapping, status: "MAPPED" }).eq("id", job.id);
+    await sb
+      .from("product_import_jobs")
+      .update({ column_mapping: data.mapping, status: "MAPPED" })
+      .eq("id", job.id);
 
     // Fetch all rows
     const { data: rows, error } = await sb
@@ -236,11 +258,13 @@ export const validateImport = createServerFn({ method: "POST" })
     // Build mapped data
     const mapping = data.mapping as Record<string, TargetField>;
     type Mapped = Record<string, any>;
-    const mappedRows: { id: string; row_number: number; mapped: Mapped }[] = (rows ?? []).map((r: any) => ({
-      id: r.id,
-      row_number: r.row_number,
-      mapped: buildMappedRow(r.raw_data, mapping),
-    }));
+    const mappedRows: { id: string; row_number: number; mapped: Mapped }[] = (rows ?? []).map(
+      (r: any) => ({
+        id: r.id,
+        row_number: r.row_number,
+        mapped: buildMappedRow(r.raw_data, mapping),
+      }),
+    );
 
     // Load existing items for matching
     const skus = new Set<string>();
@@ -257,9 +281,12 @@ export const validateImport = createServerFn({ method: "POST" })
     const existingByName = new Map<string, string>();
     if (skus.size || barcodes.size || names.size) {
       const orParts: string[] = [];
-      if (skus.size) orParts.push(`sku.in.(${[...skus].map((s) => `"${s.replace(/"/g, "")}"`).join(",")})`);
+      if (skus.size)
+        orParts.push(`sku.in.(${[...skus].map((s) => `"${s.replace(/"/g, "")}"`).join(",")})`);
       if (barcodes.size)
-        orParts.push(`barcode.in.(${[...barcodes].map((s) => `"${s.replace(/"/g, "")}"`).join(",")})`);
+        orParts.push(
+          `barcode.in.(${[...barcodes].map((s) => `"${s.replace(/"/g, "")}"`).join(",")})`,
+        );
       const { data: existing } = await sb
         .from("items")
         .select("id, sku, barcode, name")
@@ -280,8 +307,13 @@ export const validateImport = createServerFn({ method: "POST" })
           .eq("company_id", company_id)
           .eq("item_type", "PRODUCT")
           .is("deleted_at", null)
-          .in("name", [...names].map((n) => n));
-        (byName ?? []).forEach((it: any) => existingByName.set(String(it.name).toLowerCase(), it.id));
+          .in(
+            "name",
+            [...names].map((n) => n),
+          );
+        (byName ?? []).forEach((it: any) =>
+          existingByName.set(String(it.name).toLowerCase(), it.id),
+        );
       }
     }
 
@@ -290,7 +322,8 @@ export const validateImport = createServerFn({ method: "POST" })
     const barcodeCount = new Map<string, number>();
     for (const r of mappedRows) {
       if (r.mapped.sku) skuCount.set(r.mapped.sku, (skuCount.get(r.mapped.sku) ?? 0) + 1);
-      if (r.mapped.barcode) barcodeCount.set(r.mapped.barcode, (barcodeCount.get(r.mapped.barcode) ?? 0) + 1);
+      if (r.mapped.barcode)
+        barcodeCount.set(r.mapped.barcode, (barcodeCount.get(r.mapped.barcode) ?? 0) + 1);
     }
 
     let valid = 0;
@@ -305,9 +338,15 @@ export const validateImport = createServerFn({ method: "POST" })
       sb.from("brands").select("id, name").eq("company_id", company_id),
       sb.from("manufacturers").select("id, name").eq("company_id", company_id),
     ]);
-    const catMap = new Map<string, string>((cats ?? []).map((c: any) => [String(c.name).toLowerCase(), c.id]));
-    const brMap = new Map<string, string>((brs ?? []).map((c: any) => [String(c.name).toLowerCase(), c.id]));
-    const mfMap = new Map<string, string>((mfs ?? []).map((c: any) => [String(c.name).toLowerCase(), c.id]));
+    const catMap = new Map<string, string>(
+      (cats ?? []).map((c: any) => [String(c.name).toLowerCase(), c.id]),
+    );
+    const brMap = new Map<string, string>(
+      (brs ?? []).map((c: any) => [String(c.name).toLowerCase(), c.id]),
+    );
+    const mfMap = new Map<string, string>(
+      (mfs ?? []).map((c: any) => [String(c.name).toLowerCase(), c.id]),
+    );
 
     const updates: any[] = [];
     for (const r of mappedRows) {
@@ -323,19 +362,22 @@ export const validateImport = createServerFn({ method: "POST" })
       if (m.cost_price != null && m.cost_price < 0) errors.push("Preço de custo inválido.");
       if (m.minimum_stock != null && m.minimum_stock < 0) errors.push("Estoque mínimo inválido.");
       if (m.sku && (skuCount.get(m.sku) ?? 0) > 1) errors.push("SKU duplicado no arquivo.");
-      if (m.barcode && (barcodeCount.get(m.barcode) ?? 0) > 1) errors.push("Código de barras duplicado no arquivo.");
+      if (m.barcode && (barcodeCount.get(m.barcode) ?? 0) > 1)
+        errors.push("Código de barras duplicado no arquivo.");
 
       // Match existing
       let matched: string | null = null;
       if (m.sku && existingBySku.has(m.sku)) matched = existingBySku.get(m.sku)!;
-      else if (m.barcode && existingByBarcode.has(m.barcode)) matched = existingByBarcode.get(m.barcode)!;
+      else if (m.barcode && existingByBarcode.has(m.barcode))
+        matched = existingByBarcode.get(m.barcode)!;
       else if (m.name && existingByName.has(String(m.name).toLowerCase()))
         matched = existingByName.get(String(m.name).toLowerCase())!;
 
       // Track new taxonomies
       if (m.category_name && !catMap.has(String(m.category_name).toLowerCase()))
         newCategories.add(m.category_name);
-      if (m.brand_name && !brMap.has(String(m.brand_name).toLowerCase())) newBrands.add(m.brand_name);
+      if (m.brand_name && !brMap.has(String(m.brand_name).toLowerCase()))
+        newBrands.add(m.brand_name);
       if (m.manufacturer_name && !mfMap.has(String(m.manufacturer_name).toLowerCase()))
         newManufacturers.add(m.manufacturer_name);
 
@@ -412,7 +454,9 @@ export const listImportRows = createServerFn({ method: "POST" })
     const sb = context.supabase as any;
     let q = sb
       .from("product_import_rows")
-      .select("id, row_number, raw_data, mapped_data, validation_errors, action, matched_item_id, status")
+      .select(
+        "id, row_number, raw_data, mapped_data, validation_errors, action, matched_item_id, status",
+      )
       .eq("import_job_id", data.job_id)
       .order("row_number");
     if (data.filter !== "all") q = q.eq("action", data.filter);
@@ -490,9 +534,15 @@ export const confirmImport = createServerFn({ method: "POST" })
         sb.from("brands").select("id, name").eq("company_id", company_id),
         sb.from("manufacturers").select("id, name").eq("company_id", company_id),
       ]);
-      const catMap = new Map<string, string>((cats ?? []).map((c: any) => [String(c.name).toLowerCase(), c.id]));
-      const brMap = new Map<string, string>((brs ?? []).map((c: any) => [String(c.name).toLowerCase(), c.id]));
-      const mfMap = new Map<string, string>((mfs ?? []).map((c: any) => [String(c.name).toLowerCase(), c.id]));
+      const catMap = new Map<string, string>(
+        (cats ?? []).map((c: any) => [String(c.name).toLowerCase(), c.id]),
+      );
+      const brMap = new Map<string, string>(
+        (brs ?? []).map((c: any) => [String(c.name).toLowerCase(), c.id]),
+      );
+      const mfMap = new Map<string, string>(
+        (mfs ?? []).map((c: any) => [String(c.name).toLowerCase(), c.id]),
+      );
 
       const ensureCategory = async (name: string): Promise<string | null> => {
         const k = name.toLowerCase();
@@ -557,7 +607,9 @@ export const confirmImport = createServerFn({ method: "POST" })
         const m = r.mapped_data ?? {};
         const category_id = m.category_name ? await ensureCategory(String(m.category_name)) : null;
         const brand_id = m.brand_name ? await ensureBrand(String(m.brand_name)) : null;
-        const manufacturer_id = m.manufacturer_name ? await ensureManufacturer(String(m.manufacturer_name)) : null;
+        const manufacturer_id = m.manufacturer_name
+          ? await ensureManufacturer(String(m.manufacturer_name))
+          : null;
 
         const payload: any = {
           item_type: "PRODUCT",
@@ -579,7 +631,11 @@ export const confirmImport = createServerFn({ method: "POST" })
 
         let itemId: string | null = r.matched_item_id ?? null;
         if (r.action === "UPDATE" && itemId) {
-          const { error: upErr } = await sb.from("items").update(payload).eq("id", itemId).eq("company_id", company_id);
+          const { error: upErr } = await sb
+            .from("items")
+            .update(payload)
+            .eq("id", itemId)
+            .eq("company_id", company_id);
           if (upErr) {
             await sb
               .from("product_import_rows")
@@ -590,7 +646,11 @@ export const confirmImport = createServerFn({ method: "POST" })
           updated++;
           await logAudit(sb, "items", "update_by_import", itemId, payload);
         } else {
-          const { data: ins, error: insErr } = await sb.from("items").insert(payload).select("id").single();
+          const { data: ins, error: insErr } = await sb
+            .from("items")
+            .insert(payload)
+            .select("id")
+            .single();
           if (insErr || !ins) {
             await sb
               .from("product_import_rows")
@@ -621,11 +681,17 @@ export const confirmImport = createServerFn({ method: "POST" })
           });
           if (!movErr) {
             stockEntries++;
-            await logAudit(sb, "stock_movements", "create_by_import", itemId, { qty, location: data.stock_location_id });
+            await logAudit(sb, "stock_movements", "create_by_import", itemId, {
+              qty,
+              location: data.stock_location_id,
+            });
           }
         }
 
-        await sb.from("product_import_rows").update({ status: "IMPORTED", matched_item_id: itemId }).eq("id", r.id);
+        await sb
+          .from("product_import_rows")
+          .update({ status: "IMPORTED", matched_item_id: itemId })
+          .eq("id", r.id);
       }
 
       await sb
@@ -639,7 +705,12 @@ export const confirmImport = createServerFn({ method: "POST" })
         })
         .eq("id", job.id);
 
-      await logAudit(sb, "product_imports", "completed", job.id, { created, updated, skipped, stockEntries });
+      await logAudit(sb, "product_imports", "completed", job.id, {
+        created,
+        updated,
+        skipped,
+        stockEntries,
+      });
       await logActivity(
         sb,
         `Importação concluída: ${created} criados, ${updated} atualizados, ${skipped} ignorados.`,
@@ -651,7 +722,10 @@ export const confirmImport = createServerFn({ method: "POST" })
           company_id,
           user_id: context.userId,
           type: skipped > 0 ? "warning" : "success",
-          title: skipped > 0 ? "Importação concluída com pendências" : "Importação de produtos concluída",
+          title:
+            skipped > 0
+              ? "Importação concluída com pendências"
+              : "Importação de produtos concluída",
           message: `${created} criados · ${updated} atualizados · ${skipped} ignorados`,
         });
       } catch {}

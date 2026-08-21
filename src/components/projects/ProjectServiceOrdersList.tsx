@@ -4,7 +4,12 @@ import { Link } from "@tanstack/react-router";
 import { Wrench, Eye } from "lucide-react";
 import { listServiceOrdersByProject } from "@/lib/service-orders.functions";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,12 +24,15 @@ const STATUS_LABEL: Record<string, string> = {
   CANCELLED: "Cancelada",
 };
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  DRAFT: "outline", SCHEDULED: "secondary", IN_PROGRESS: "default",
-  PAUSED: "outline", COMPLETED: "default", CANCELLED: "destructive",
+  DRAFT: "outline",
+  SCHEDULED: "secondary",
+  IN_PROGRESS: "default",
+  PAUSED: "outline",
+  COMPLETED: "default",
+  CANCELLED: "destructive",
 };
 
-const fmtDate = (s: string | null) =>
-  s ? new Date(s).toLocaleDateString("pt-BR") : "—";
+const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleDateString("pt-BR") : "—");
 
 export function ProjectServiceOrdersList({ projectId }: { projectId: string }) {
   const fetchList = useServerFn(listServiceOrdersByProject);
@@ -38,7 +46,8 @@ export function ProjectServiceOrdersList({ projectId }: { projectId: string }) {
   return (
     <div className="rounded-lg border bg-card">
       <div className="flex items-center gap-2 border-b p-4 text-sm font-medium">
-        <Wrench className="h-4 w-4" />Ordens de Serviço
+        <Wrench className="h-4 w-4" />
+        Ordens de Serviço
         {rows.length > 0 && (
           <span className="ml-auto text-xs text-muted-foreground">
             {rows.length} {rows.length === 1 ? "OS" : "OSs"}
@@ -73,9 +82,7 @@ export function ProjectServiceOrdersList({ projectId }: { projectId: string }) {
               <TableRow key={so.id}>
                 <TableCell className="font-medium">{so.service_order_number}</TableCell>
                 <TableCell>{so.title ?? "—"}</TableCell>
-                <TableCell className="text-muted-foreground">
-                  {so.technician_name ?? "—"}
-                </TableCell>
+                <TableCell className="text-muted-foreground">{so.technician_name ?? "—"}</TableCell>
                 <TableCell>
                   <Badge variant={STATUS_VARIANT[so.status] ?? "outline"}>
                     {STATUS_LABEL[so.status] ?? so.status}
@@ -87,11 +94,9 @@ export function ProjectServiceOrdersList({ projectId }: { projectId: string }) {
                 </TableCell>
                 <TableCell className="text-right">
                   <Button asChild variant="ghost" size="sm">
-                    <Link
-                      to="/service-orders/$id"
-                      params={{ id: so.id }}
-                    >
-                      <Eye className="mr-1 h-4 w-4" />Abrir
+                    <Link to="/service-orders/$id" params={{ id: so.id }}>
+                      <Eye className="mr-1 h-4 w-4" />
+                      Abrir
                     </Link>
                   </Button>
                 </TableCell>

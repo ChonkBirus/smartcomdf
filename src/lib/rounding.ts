@@ -21,7 +21,7 @@
 function halfAwayFromZero(value: number, digits: number): number {
   if (!Number.isFinite(value)) return 0;
   const f = Math.pow(10, digits);
-  return Math.sign(value) * Math.round(Math.abs(value) * f) / f;
+  return (Math.sign(value) * Math.round(Math.abs(value) * f)) / f;
 }
 
 /** Valores em R$ — 2 casas. */

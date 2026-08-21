@@ -15,10 +15,30 @@ function SettingsOverview() {
   const { data } = useQuery({ queryKey: ["me"], queryFn: () => fetchCtx() });
 
   const cards = [
-    { to: "/settings/company", title: "Empresa", icon: Building2, desc: "Razão social, CNPJ, logo e contato." },
-    { to: "/settings/team", title: "Equipe", icon: Users, desc: "Convide usuários e gerencie papéis." },
-    { to: "/settings/roles", title: "Permissões", icon: Shield, desc: "Matriz de permissões por papel." },
-    { to: "/settings/audit", title: "Auditoria", icon: FileText, desc: "Histórico completo de ações." },
+    {
+      to: "/settings/company",
+      title: "Empresa",
+      icon: Building2,
+      desc: "Razão social, CNPJ, logo e contato.",
+    },
+    {
+      to: "/settings/team",
+      title: "Equipe",
+      icon: Users,
+      desc: "Convide usuários e gerencie papéis.",
+    },
+    {
+      to: "/settings/roles",
+      title: "Permissões",
+      icon: Shield,
+      desc: "Matriz de permissões por papel.",
+    },
+    {
+      to: "/settings/audit",
+      title: "Auditoria",
+      icon: FileText,
+      desc: "Histórico completo de ações.",
+    },
     { to: "/profile", title: "Meu perfil", icon: UserCircle, desc: "Nome, telefone e avatar." },
   ];
 
@@ -58,7 +78,9 @@ function SettingsOverview() {
           <CardContent className="flex flex-wrap gap-2">
             {data?.roles?.length ? (
               data.roles.map((r, i) => (
-                <Badge key={i} className="bg-primary text-primary-foreground">{r.role}</Badge>
+                <Badge key={i} className="bg-primary text-primary-foreground">
+                  {r.role}
+                </Badge>
               ))
             ) : (
               <span className="text-sm text-muted-foreground">Nenhum papel atribuído.</span>

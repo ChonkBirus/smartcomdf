@@ -131,9 +131,7 @@ export const listPlansWithFeatures = createServerFn({ method: "GET" })
         max_users: p.max_users,
         max_storage_gb: p.max_storage_gb,
         features: (features ?? []).map((f: any) => {
-          const row = (pf ?? []).find(
-            (x: any) => x.plan_id === p.id && x.feature_id === f.id,
-          );
+          const row = (pf ?? []).find((x: any) => x.plan_id === p.id && x.feature_id === f.id);
           return { code: f.code, name: f.name, enabled: !!row?.enabled };
         }),
         limits: lim

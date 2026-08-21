@@ -20,9 +20,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/utils";
@@ -38,34 +51,65 @@ function toISO(d: Date) {
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
-function addDays(d: Date, n: number) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
-function startOfMonth(d: Date) { return new Date(d.getFullYear(), d.getMonth(), 1); }
-function endOfMonth(d: Date) { return new Date(d.getFullYear(), d.getMonth() + 1, 0); }
-function startOfYear(d: Date) { return new Date(d.getFullYear(), 0, 1); }
-function endOfYear(d: Date) { return new Date(d.getFullYear(), 11, 31); }
+function addDays(d: Date, n: number) {
+  const x = new Date(d);
+  x.setDate(x.getDate() + n);
+  return x;
+}
+function startOfMonth(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+function endOfMonth(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth() + 1, 0);
+}
+function startOfYear(d: Date) {
+  return new Date(d.getFullYear(), 0, 1);
+}
+function endOfYear(d: Date) {
+  return new Date(d.getFullYear(), 11, 31);
+}
 function daysBetween(a: string, b: string) {
   return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86_400_000) + 1;
 }
 
-export function resolvePreset(preset: Preset, today = new Date()): { aFrom: string; aTo: string; bFrom: string; bTo: string } | null {
+export function resolvePreset(
+  preset: Preset,
+  today = new Date(),
+): { aFrom: string; aTo: string; bFrom: string; bTo: string } | null {
   if (preset === "this_month") {
-    const aF = startOfMonth(today), aT = endOfMonth(today);
+    const aF = startOfMonth(today),
+      aT = endOfMonth(today);
     const prev = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-    return { aFrom: toISO(aF), aTo: toISO(aT), bFrom: toISO(startOfMonth(prev)), bTo: toISO(endOfMonth(prev)) };
+    return {
+      aFrom: toISO(aF),
+      aTo: toISO(aT),
+      bFrom: toISO(startOfMonth(prev)),
+      bTo: toISO(endOfMonth(prev)),
+    };
   }
   if (preset === "this_year") {
-    const aF = startOfYear(today), aT = endOfYear(today);
+    const aF = startOfYear(today),
+      aT = endOfYear(today);
     const prev = new Date(today.getFullYear() - 1, 0, 1);
-    return { aFrom: toISO(aF), aTo: toISO(aT), bFrom: toISO(startOfYear(prev)), bTo: toISO(endOfYear(prev)) };
+    return {
+      aFrom: toISO(aF),
+      aTo: toISO(aT),
+      bFrom: toISO(startOfYear(prev)),
+      bTo: toISO(endOfYear(prev)),
+    };
   }
   if (preset === "last_30") {
-    const aT = today, aF = addDays(today, -29);
-    const bT = addDays(aF, -1), bF = addDays(bT, -29);
+    const aT = today,
+      aF = addDays(today, -29);
+    const bT = addDays(aF, -1),
+      bF = addDays(bT, -29);
     return { aFrom: toISO(aF), aTo: toISO(aT), bFrom: toISO(bF), bTo: toISO(bT) };
   }
   if (preset === "last_90") {
-    const aT = today, aF = addDays(today, -89);
-    const bT = addDays(aF, -1), bF = addDays(bT, -89);
+    const aT = today,
+      aF = addDays(today, -89);
+    const bT = addDays(aF, -1),
+      bF = addDays(bT, -89);
     return { aFrom: toISO(aF), aTo: toISO(aT), bFrom: toISO(bF), bTo: toISO(bT) };
   }
   return null;
@@ -79,20 +123,37 @@ function DeltaPill({ a, b, invert = false }: { a: number; b: number; invert?: bo
   const positive = abs > 0;
   const good = invert ? !positive : positive;
   const zero = abs === 0;
-  const color = zero ? "text-muted-foreground" : good ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400";
+  const color = zero
+    ? "text-muted-foreground"
+    : good
+      ? "text-emerald-600 dark:text-emerald-400"
+      : "text-red-600 dark:text-red-400";
   const Icon = zero ? ArrowRight : positive ? ArrowUp : ArrowDown;
   return (
     <span className={`inline-flex items-center gap-1 text-sm font-medium ${color}`}>
       <Icon className="h-3.5 w-3.5" />
       {isNew ? "novo" : `${abs >= 0 ? "+" : ""}${formatCurrency(abs)}`}
       {pct !== null && !zero && (
-        <span className="text-xs opacity-80">({pct >= 0 ? "+" : ""}{pct.toFixed(1)}%)</span>
+        <span className="text-xs opacity-80">
+          ({pct >= 0 ? "+" : ""}
+          {pct.toFixed(1)}%)
+        </span>
       )}
     </span>
   );
 }
 
-function KpiCard({ title, a, b, invert = false }: { title: string; a: number; b: number; invert?: boolean }) {
+function KpiCard({
+  title,
+  a,
+  b,
+  invert = false,
+}: {
+  title: string;
+  a: number;
+  b: number;
+  invert?: boolean;
+}) {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -140,7 +201,15 @@ export function ComparisonPage() {
 
   const setPreset = (p: Preset) => {
     if (p === "custom") {
-      navigate({ search: { preset: "custom", aFrom: range.aFrom, aTo: range.aTo, bFrom: range.bFrom, bTo: range.bTo } });
+      navigate({
+        search: {
+          preset: "custom",
+          aFrom: range.aFrom,
+          aTo: range.aTo,
+          bFrom: range.bFrom,
+          bTo: range.bTo,
+        },
+      });
       return;
     }
     const r = resolvePreset(p)!;
@@ -148,14 +217,28 @@ export function ComparisonPage() {
   };
 
   const updateCustom = (field: "aFrom" | "aTo" | "bFrom" | "bTo", value: string) => {
-    navigate({ search: { preset: "custom", aFrom: range.aFrom, aTo: range.aTo, bFrom: range.bFrom, bTo: range.bTo, [field]: value } });
+    navigate({
+      search: {
+        preset: "custom",
+        aFrom: range.aFrom,
+        aTo: range.aTo,
+        bFrom: range.bFrom,
+        bTo: range.bTo,
+        [field]: value,
+      },
+    });
   };
 
   const data = q.data;
   const aDays = daysBetween(range.aFrom, range.aTo);
   const bDays = daysBetween(range.bFrom, range.bTo);
   const showMonthly = aDays >= 60 && bDays >= 60;
-  const isEmpty = data && data.a.income === 0 && data.a.expense === 0 && data.b.income === 0 && data.b.expense === 0;
+  const isEmpty =
+    data &&
+    data.a.income === 0 &&
+    data.a.expense === 0 &&
+    data.b.income === 0 &&
+    data.b.expense === 0;
 
   const marginA = data && data.a.income > 0 ? (data.a.balance / data.a.income) * 100 : null;
   const marginB = data && data.b.income > 0 ? (data.b.balance / data.b.income) * 100 : null;
@@ -175,8 +258,13 @@ export function ComparisonPage() {
           <div className="flex flex-wrap items-end gap-3">
             <div className="min-w-[220px]">
               <Label className="mb-1 block text-xs">Preset</Label>
-              <Select value={(search.preset ?? "this_month") as string} onValueChange={(v) => setPreset(v as Preset)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={(search.preset ?? "this_month") as string}
+                onValueChange={(v) => setPreset(v as Preset)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="this_month">Este mês vs mês anterior</SelectItem>
                   <SelectItem value="this_year">Este ano vs ano anterior</SelectItem>
@@ -194,11 +282,19 @@ export function ComparisonPage() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label className="text-xs">De</Label>
-                  <Input type="date" value={range.aFrom} onChange={(e) => updateCustom("aFrom", e.target.value)} />
+                  <Input
+                    type="date"
+                    value={range.aFrom}
+                    onChange={(e) => updateCustom("aFrom", e.target.value)}
+                  />
                 </div>
                 <div>
                   <Label className="text-xs">Até</Label>
-                  <Input type="date" value={range.aTo} onChange={(e) => updateCustom("aTo", e.target.value)} />
+                  <Input
+                    type="date"
+                    value={range.aTo}
+                    onChange={(e) => updateCustom("aTo", e.target.value)}
+                  />
                 </div>
               </div>
               <div className="mt-1 text-xs text-muted-foreground">{aDays} dias</div>
@@ -208,11 +304,19 @@ export function ComparisonPage() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label className="text-xs">De</Label>
-                  <Input type="date" value={range.bFrom} onChange={(e) => updateCustom("bFrom", e.target.value)} />
+                  <Input
+                    type="date"
+                    value={range.bFrom}
+                    onChange={(e) => updateCustom("bFrom", e.target.value)}
+                  />
                 </div>
                 <div>
                   <Label className="text-xs">Até</Label>
-                  <Input type="date" value={range.bTo} onChange={(e) => updateCustom("bTo", e.target.value)} />
+                  <Input
+                    type="date"
+                    value={range.bTo}
+                    onChange={(e) => updateCustom("bTo", e.target.value)}
+                  />
                 </div>
               </div>
               <div className="mt-1 text-xs text-muted-foreground">{bDays} dias</div>
@@ -221,8 +325,16 @@ export function ComparisonPage() {
         </CardContent>
       </Card>
 
-      {q.isLoading && <div className="py-8 text-center text-sm text-muted-foreground">Carregando comparativo…</div>}
-      {q.isError && <div className="py-8 text-center text-sm text-destructive">Erro ao carregar comparativo.</div>}
+      {q.isLoading && (
+        <div className="py-8 text-center text-sm text-muted-foreground">
+          Carregando comparativo…
+        </div>
+      )}
+      {q.isError && (
+        <div className="py-8 text-center text-sm text-destructive">
+          Erro ao carregar comparativo.
+        </div>
+      )}
 
       {data && isEmpty && (
         <EmptyState
@@ -231,7 +343,10 @@ export function ComparisonPage() {
           description="O comparativo considera apenas transações com status PAID e data de caixa (paid_at) dentro dos períodos escolhidos."
           action={
             <Button asChild variant="outline">
-              <Link to="/finance/transactions"><Wallet className="mr-2 h-4 w-4" />Ir para Movimentações</Link>
+              <Link to="/finance/transactions">
+                <Wallet className="mr-2 h-4 w-4" />
+                Ir para Movimentações
+              </Link>
             </Button>
           }
         />
@@ -252,16 +367,23 @@ export function ComparisonPage() {
                   <div className="flex items-baseline justify-between">
                     <div>
                       <div className="text-xs text-muted-foreground">Período A</div>
-                      <div className="text-xl font-bold">{marginA === null ? "—" : `${marginA.toFixed(1)}%`}</div>
+                      <div className="text-xl font-bold">
+                        {marginA === null ? "—" : `${marginA.toFixed(1)}%`}
+                      </div>
                     </div>
                     <div className="text-right">
                       <div className="text-xs text-muted-foreground">Período B</div>
-                      <div className="text-base font-medium text-muted-foreground">{marginB === null ? "—" : `${marginB.toFixed(1)}%`}</div>
+                      <div className="text-base font-medium text-muted-foreground">
+                        {marginB === null ? "—" : `${marginB.toFixed(1)}%`}
+                      </div>
                     </div>
                   </div>
                   {marginA !== null && marginB !== null ? (
-                    <div className={`text-sm font-medium ${marginA - marginB >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
-                      {marginA - marginB >= 0 ? "+" : ""}{(marginA - marginB).toFixed(1)} p.p.
+                    <div
+                      className={`text-sm font-medium ${marginA - marginB >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}
+                    >
+                      {marginA - marginB >= 0 ? "+" : ""}
+                      {(marginA - marginB).toFixed(1)} p.p.
                     </div>
                   ) : (
                     <div className="text-sm text-muted-foreground">—</div>
@@ -272,13 +394,20 @@ export function ComparisonPage() {
           </div>
 
           <Card>
-            <CardHeader><CardTitle>Detalhamento</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle>Detalhamento</CardTitle>
+            </CardHeader>
             <CardContent>
               <Tabs defaultValue="category">
                 <TabsList>
                   <TabsTrigger value="category">Por categoria</TabsTrigger>
                   <TabsTrigger value="month" disabled={!showMonthly}>
-                    Por mês {!showMonthly && <Badge variant="outline" className="ml-2 text-[10px]">≥ 60 dias</Badge>}
+                    Por mês{" "}
+                    {!showMonthly && (
+                      <Badge variant="outline" className="ml-2 text-[10px]">
+                        ≥ 60 dias
+                      </Badge>
+                    )}
                   </TabsTrigger>
                 </TabsList>
 
@@ -300,8 +429,16 @@ export function ComparisonPage() {
                             <Tooltip formatter={(v: any) => formatCurrency(Number(v))} />
                             <Legend />
                             <Bar dataKey="a_income" name="Receita A" fill="hsl(var(--primary))" />
-                            <Bar dataKey="b_income" name="Receita B" fill="hsl(var(--muted-foreground))" />
-                            <Bar dataKey="a_expense" name="Despesa A" fill="hsl(var(--destructive))" />
+                            <Bar
+                              dataKey="b_income"
+                              name="Receita B"
+                              fill="hsl(var(--muted-foreground))"
+                            />
+                            <Bar
+                              dataKey="a_expense"
+                              name="Despesa A"
+                              fill="hsl(var(--destructive))"
+                            />
                             <Bar dataKey="b_expense" name="Despesa B" fill="hsl(var(--border))" />
                           </BarChart>
                         </ResponsiveContainer>
@@ -320,10 +457,18 @@ export function ComparisonPage() {
                           {data.byMonth.map((m) => (
                             <TableRow key={m.month}>
                               <TableCell>{m.month}</TableCell>
-                              <TableCell className="text-right">{formatCurrency(m.a_income)}</TableCell>
-                              <TableCell className="text-right">{formatCurrency(m.b_income)}</TableCell>
-                              <TableCell className="text-right">{formatCurrency(m.a_expense)}</TableCell>
-                              <TableCell className="text-right">{formatCurrency(m.b_expense)}</TableCell>
+                              <TableCell className="text-right">
+                                {formatCurrency(m.a_income)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {formatCurrency(m.b_income)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {formatCurrency(m.a_expense)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {formatCurrency(m.b_expense)}
+                              </TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -340,12 +485,22 @@ export function ComparisonPage() {
   );
 }
 
-function CategoryTable({ title, rows, invert = false }: { title: string; rows: Array<{ category_id: string | null; name: string; a: number; b: number; deltaAbs: number }>; invert?: boolean }) {
+function CategoryTable({
+  title,
+  rows,
+  invert = false,
+}: {
+  title: string;
+  rows: Array<{ category_id: string | null; name: string; a: number; b: number; deltaAbs: number }>;
+  invert?: boolean;
+}) {
   if (rows.length === 0) {
     return (
       <div>
         <div className="mb-2 text-sm font-semibold">{title}</div>
-        <div className="rounded-md border p-4 text-center text-sm text-muted-foreground">Sem dados nos períodos selecionados.</div>
+        <div className="rounded-md border p-4 text-center text-sm text-muted-foreground">
+          Sem dados nos períodos selecionados.
+        </div>
       </div>
     );
   }
@@ -366,8 +521,12 @@ function CategoryTable({ title, rows, invert = false }: { title: string; rows: A
             <TableRow key={`${r.category_id ?? "none"}-${r.name}`}>
               <TableCell>{r.name}</TableCell>
               <TableCell className="text-right">{formatCurrency(r.a)}</TableCell>
-              <TableCell className="text-right text-muted-foreground">{formatCurrency(r.b)}</TableCell>
-              <TableCell className="text-right"><DeltaPill a={r.a} b={r.b} invert={invert} /></TableCell>
+              <TableCell className="text-right text-muted-foreground">
+                {formatCurrency(r.b)}
+              </TableCell>
+              <TableCell className="text-right">
+                <DeltaPill a={r.a} b={r.b} invert={invert} />
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

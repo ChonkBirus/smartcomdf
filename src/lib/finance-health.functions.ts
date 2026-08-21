@@ -5,7 +5,12 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 // ============================================================
 // Types
 // ============================================================
-export type HealthStatus = "CRITICAL" | "ATTENTION" | "HEALTHY" | "VERY_HEALTHY" | "INSUFFICIENT_DATA";
+export type HealthStatus =
+  | "CRITICAL"
+  | "ATTENTION"
+  | "HEALTHY"
+  | "VERY_HEALTHY"
+  | "INSUFFICIENT_DATA";
 
 export type HealthCriterion = {
   key: string;
@@ -62,7 +67,11 @@ export type FinancialHealthResult = {
 // Helpers
 // ============================================================
 async function getCompanyId(supabase: any, userId: string): Promise<string> {
-  const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  const { data } = await supabase
+    .from("profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .maybeSingle();
   const cid = data?.company_id as string | undefined;
   if (!cid) throw new Error("Sem empresa.");
   return cid;
@@ -77,24 +86,49 @@ function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-function classify(score: number, insufficient: boolean): { status: HealthStatus; label: string; phrase: string } {
+function classify(
+  score: number,
+  insufficient: boolean,
+): { status: HealthStatus; label: string; phrase: string } {
   if (insufficient) {
     return {
       status: "INSUFFICIENT_DATA",
       label: "Dados insuficientes",
-      phrase: "Ainda não há dados suficientes para uma análise confiável. Cadastre entradas, saídas, custos e produtos para melhorar a análise.",
+      phrase:
+        "Ainda não há dados suficientes para uma análise confiável. Cadastre entradas, saídas, custos e produtos para melhorar a análise.",
     };
   }
-  if (score < 40) return { status: "CRITICAL", label: "Crítico", phrase: "Seu financeiro precisa de atenção imediata." };
-  if (score < 60) return { status: "ATTENTION", label: "Atenção", phrase: "Existem pontos que podem comprometer seu caixa." };
-  if (score < 80) return { status: "HEALTHY", label: "Saudável", phrase: "Sua empresa está com bom equilíbrio financeiro." };
-  return { status: "VERY_HEALTHY", label: "Muito saudável", phrase: "Sua empresa está com boa organização financeira." };
+  if (score < 40)
+    return {
+      status: "CRITICAL",
+      label: "Crítico",
+      phrase: "Seu financeiro precisa de atenção imediata.",
+    };
+  if (score < 60)
+    return {
+      status: "ATTENTION",
+      label: "Atenção",
+      phrase: "Existem pontos que podem comprometer seu caixa.",
+    };
+  if (score < 80)
+    return {
+      status: "HEALTHY",
+      label: "Saudável",
+      phrase: "Sua empresa está com bom equilíbrio financeiro.",
+    };
+  return {
+    status: "VERY_HEALTHY",
+    label: "Muito saudável",
+    phrase: "Sua empresa está com boa organização financeira.",
+  };
 }
 
-const FiltersSchema = z.object({
-  from: z.string().optional(),
-  to: z.string().optional(),
-}).default({});
+const FiltersSchema = z
+  .object({
+    from: z.string().optional(),
+    to: z.string().optional(),
+  })
+  .default({});
 
 // ============================================================
 // Main: Financial Health
@@ -105,20 +139,26 @@ export const getFinancialHealth = createServerFn({ method: "GET" })
   .handler(async ({ data, context }): Promise<FinancialHealthResult> => {
     const cid = await getCompanyId(context.supabase, context.userId);
 
-    if (!(await hasPerm(context.supabase, "finance.health.view")) &&
-        !(await hasPerm(context.supabase, "finance.view")) &&
-        !(await hasPerm(context.supabase, "finance.manage"))) {
+    if (
+      !(await hasPerm(context.supabase, "finance.health.view")) &&
+      !(await hasPerm(context.supabase, "finance.view")) &&
+      !(await hasPerm(context.supabase, "finance.manage"))
+    ) {
       throw new Error("Sem permissão para visualizar saúde financeira.");
     }
-    const canViewCosts = (await hasPerm(context.supabase, "finance.view_costs")) ||
-                         (await hasPerm(context.supabase, "finance.manage"));
+    const canViewCosts =
+      (await hasPerm(context.supabase, "finance.view_costs")) ||
+      (await hasPerm(context.supabase, "finance.manage"));
 
     // ---------- Period ----------
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const defaultFrom = new Date(today); defaultFrom.setDate(today.getDate() - 30);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const defaultFrom = new Date(today);
+    defaultFrom.setDate(today.getDate() - 30);
     const from = data.from ? new Date(data.from) : defaultFrom;
     const to = data.to ? new Date(data.to) : today;
-    const next30 = new Date(today); next30.setDate(today.getDate() + 30);
+    const next30 = new Date(today);
+    next30.setDate(today.getDate() + 30);
 
     // ---------- Load financial transactions (scoped by RLS + company_id) ----------
     const { data: txRows, error: txErr } = await context.supabase
@@ -135,12 +175,17 @@ export const getFinancialHealth = createServerFn({ method: "GET" })
       category_id: r.category_id as string | null,
     }));
 
-    let incomeTotal = 0, expenseTotal = 0;
-    let overdueReceivables = 0, overdueReceivablesAmount = 0;
-    let overduePayables = 0, overduePayablesAmount = 0;
-    let receivablesOpen = 0, payablesOpen = 0;
+    let incomeTotal = 0,
+      expenseTotal = 0;
+    let overdueReceivables = 0,
+      overdueReceivablesAmount = 0;
+    let overduePayables = 0,
+      overduePayablesAmount = 0;
+    let receivablesOpen = 0,
+      payablesOpen = 0;
     let uncategorizedTransactions = 0;
-    let projectedIn = 0, projectedOut = 0;
+    let projectedIn = 0,
+      projectedOut = 0;
 
     for (const t of txs) {
       if (t.status === "CANCELED") continue;
@@ -187,7 +232,9 @@ export const getFinancialHealth = createServerFn({ method: "GET" })
       .eq("active", true);
     const items = itemRows ?? [];
     const productsTotal = items.length;
-    const productsWithoutCost = items.filter((i: any) => !i.cost_price || Number(i.cost_price) <= 0).length;
+    const productsWithoutCost = items.filter(
+      (i: any) => !i.cost_price || Number(i.cost_price) <= 0,
+    ).length;
 
     // ---------- Cost settings + underpriced products (only if canViewCosts) ----------
     let desiredMarginRate: number | null = null;
@@ -197,7 +244,9 @@ export const getFinancialHealth = createServerFn({ method: "GET" })
     if (canViewCosts) {
       const { data: cs } = await context.supabase
         .from("company_cost_settings")
-        .select("default_tax_rate,default_card_fee_rate,default_commission_rate,default_warranty_reserve_rate,default_operational_cost_rate,default_fixed_cost_allocation_rate,default_desired_margin_rate")
+        .select(
+          "default_tax_rate,default_card_fee_rate,default_commission_rate,default_warranty_reserve_rate,default_operational_cost_rate,default_fixed_cost_allocation_rate,default_desired_margin_rate",
+        )
         .eq("company_id", cid)
         .maybeSingle();
 
@@ -230,79 +279,233 @@ export const getFinancialHealth = createServerFn({ method: "GET" })
 
     // 1) Saldo do período (+20)
     if (incomeTotal === 0 && expenseTotal === 0) {
-      criteria.push({ key: "balance", label: "Saldo do período", score: 0, maxScore: 20, status: "na", detail: "Sem entradas ou saídas pagas no período." });
+      criteria.push({
+        key: "balance",
+        label: "Saldo do período",
+        score: 0,
+        maxScore: 20,
+        status: "na",
+        detail: "Sem entradas ou saídas pagas no período.",
+      });
     } else if (balance > 0) {
-      criteria.push({ key: "balance", label: "Saldo do período", score: 20, maxScore: 20, status: "ok", detail: "Entradas maiores que saídas no período." });
+      criteria.push({
+        key: "balance",
+        label: "Saldo do período",
+        score: 20,
+        maxScore: 20,
+        status: "ok",
+        detail: "Entradas maiores que saídas no período.",
+      });
     } else {
-      criteria.push({ key: "balance", label: "Saldo do período", score: 0, maxScore: 20, status: "bad", detail: "Saídas iguais ou maiores que entradas no período." });
+      criteria.push({
+        key: "balance",
+        label: "Saldo do período",
+        score: 0,
+        maxScore: 20,
+        status: "bad",
+        detail: "Saídas iguais ou maiores que entradas no período.",
+      });
     }
 
     // 2) Contas vencidas (+15)
     if (overduePayables === 0) {
-      criteria.push({ key: "overdue_payables", label: "Contas a pagar em dia", score: 15, maxScore: 15, status: "ok", detail: "Nenhuma conta a pagar vencida." });
+      criteria.push({
+        key: "overdue_payables",
+        label: "Contas a pagar em dia",
+        score: 15,
+        maxScore: 15,
+        status: "ok",
+        detail: "Nenhuma conta a pagar vencida.",
+      });
     } else {
       const s = overduePayables <= 2 ? 8 : 0;
-      criteria.push({ key: "overdue_payables", label: "Contas a pagar em dia", score: s, maxScore: 15, status: s ? "warn" : "bad", detail: `${overduePayables} conta(s) vencida(s).` });
+      criteria.push({
+        key: "overdue_payables",
+        label: "Contas a pagar em dia",
+        score: s,
+        maxScore: 15,
+        status: s ? "warn" : "bad",
+        detail: `${overduePayables} conta(s) vencida(s).`,
+      });
     }
 
     // 3) Recebimentos atrasados (+15)
     if (overdueReceivables === 0) {
-      criteria.push({ key: "overdue_receivables", label: "Recebimentos em dia", score: 15, maxScore: 15, status: "ok", detail: "Nenhum recebimento atrasado." });
+      criteria.push({
+        key: "overdue_receivables",
+        label: "Recebimentos em dia",
+        score: 15,
+        maxScore: 15,
+        status: "ok",
+        detail: "Nenhum recebimento atrasado.",
+      });
     } else {
       const s = overdueReceivables <= 2 ? 8 : 0;
-      criteria.push({ key: "overdue_receivables", label: "Recebimentos em dia", score: s, maxScore: 15, status: s ? "warn" : "bad", detail: `${overdueReceivables} recebimento(s) atrasado(s).` });
+      criteria.push({
+        key: "overdue_receivables",
+        label: "Recebimentos em dia",
+        score: s,
+        maxScore: 15,
+        status: s ? "warn" : "bad",
+        detail: `${overdueReceivables} recebimento(s) atrasado(s).`,
+      });
     }
 
     // 4) Margem estimada (+15) — apenas se canViewCosts e dados existentes
     if (canViewCosts && desiredMarginRate !== null && estimatedMarginRate !== null) {
       if (estimatedMarginRate >= desiredMarginRate) {
-        criteria.push({ key: "margin", label: "Margem estimada", score: 15, maxScore: 15, status: "ok", detail: `Margem estimada ${(estimatedMarginRate * 100).toFixed(1)}% ≥ meta ${(desiredMarginRate * 100).toFixed(1)}%.` });
+        criteria.push({
+          key: "margin",
+          label: "Margem estimada",
+          score: 15,
+          maxScore: 15,
+          status: "ok",
+          detail: `Margem estimada ${(estimatedMarginRate * 100).toFixed(1)}% ≥ meta ${(desiredMarginRate * 100).toFixed(1)}%.`,
+        });
       } else if (estimatedMarginRate >= desiredMarginRate * 0.7) {
-        criteria.push({ key: "margin", label: "Margem estimada", score: 8, maxScore: 15, status: "warn", detail: `Margem estimada ${(estimatedMarginRate * 100).toFixed(1)}% abaixo da meta.` });
+        criteria.push({
+          key: "margin",
+          label: "Margem estimada",
+          score: 8,
+          maxScore: 15,
+          status: "warn",
+          detail: `Margem estimada ${(estimatedMarginRate * 100).toFixed(1)}% abaixo da meta.`,
+        });
       } else {
-        criteria.push({ key: "margin", label: "Margem estimada", score: 0, maxScore: 15, status: "bad", detail: `Margem estimada muito abaixo da meta.` });
+        criteria.push({
+          key: "margin",
+          label: "Margem estimada",
+          score: 0,
+          maxScore: 15,
+          status: "bad",
+          detail: `Margem estimada muito abaixo da meta.`,
+        });
       }
     } else {
-      criteria.push({ key: "margin", label: "Margem estimada", score: 0, maxScore: 15, status: "na", detail: "Dados insuficientes para calcular margem." });
+      criteria.push({
+        key: "margin",
+        label: "Margem estimada",
+        score: 0,
+        maxScore: 15,
+        status: "na",
+        detail: "Dados insuficientes para calcular margem.",
+      });
     }
 
     // 5) Produtos com custo cadastrado (+10)
     if (productsTotal === 0) {
-      criteria.push({ key: "products_with_cost", label: "Produtos com custo", score: 0, maxScore: 10, status: "na", detail: "Nenhum produto cadastrado." });
+      criteria.push({
+        key: "products_with_cost",
+        label: "Produtos com custo",
+        score: 0,
+        maxScore: 10,
+        status: "na",
+        detail: "Nenhum produto cadastrado.",
+      });
     } else {
       const ratio = (productsTotal - productsWithoutCost) / productsTotal;
       const s = ratio >= 0.8 ? 10 : ratio >= 0.5 ? 5 : 0;
-      criteria.push({ key: "products_with_cost", label: "Produtos com custo", score: s, maxScore: 10, status: s === 10 ? "ok" : s ? "warn" : "bad", detail: `${productsTotal - productsWithoutCost}/${productsTotal} com custo cadastrado.` });
+      criteria.push({
+        key: "products_with_cost",
+        label: "Produtos com custo",
+        score: s,
+        maxScore: 10,
+        status: s === 10 ? "ok" : s ? "warn" : "bad",
+        detail: `${productsTotal - productsWithoutCost}/${productsTotal} com custo cadastrado.`,
+      });
     }
 
     // 6) Produtos abaixo do recomendado (+10)
     if (!canViewCosts) {
-      criteria.push({ key: "underpriced", label: "Preços adequados", score: 0, maxScore: 10, status: "na", detail: "Sem permissão para avaliar custos." });
+      criteria.push({
+        key: "underpriced",
+        label: "Preços adequados",
+        score: 0,
+        maxScore: 10,
+        status: "na",
+        detail: "Sem permissão para avaliar custos.",
+      });
     } else if (productsTotal === 0) {
-      criteria.push({ key: "underpriced", label: "Preços adequados", score: 0, maxScore: 10, status: "na", detail: "Sem produtos para avaliar." });
+      criteria.push({
+        key: "underpriced",
+        label: "Preços adequados",
+        score: 0,
+        maxScore: 10,
+        status: "na",
+        detail: "Sem produtos para avaliar.",
+      });
     } else if (underpricedProducts === 0) {
-      criteria.push({ key: "underpriced", label: "Preços adequados", score: 10, maxScore: 10, status: "ok", detail: "Nenhum produto abaixo do preço sugerido." });
+      criteria.push({
+        key: "underpriced",
+        label: "Preços adequados",
+        score: 10,
+        maxScore: 10,
+        status: "ok",
+        detail: "Nenhum produto abaixo do preço sugerido.",
+      });
     } else {
       const s = underpricedProducts <= 3 ? 5 : 0;
-      criteria.push({ key: "underpriced", label: "Preços adequados", score: s, maxScore: 10, status: s ? "warn" : "bad", detail: `${underpricedProducts} produto(s) abaixo do preço recomendado.` });
+      criteria.push({
+        key: "underpriced",
+        label: "Preços adequados",
+        score: s,
+        maxScore: 10,
+        status: s ? "warn" : "bad",
+        detail: `${underpricedProducts} produto(s) abaixo do preço recomendado.`,
+      });
     }
 
     // 7) Fluxo projetado 30d (+10)
     if (projectedIn === 0 && projectedOut === 0) {
-      criteria.push({ key: "projected", label: "Caixa próximos 30 dias", score: 0, maxScore: 10, status: "na", detail: "Sem lançamentos planejados para os próximos 30 dias." });
+      criteria.push({
+        key: "projected",
+        label: "Caixa próximos 30 dias",
+        score: 0,
+        maxScore: 10,
+        status: "na",
+        detail: "Sem lançamentos planejados para os próximos 30 dias.",
+      });
     } else if (projected30dBalance >= 0) {
-      criteria.push({ key: "projected", label: "Caixa próximos 30 dias", score: 10, maxScore: 10, status: "ok", detail: "Saldo projetado positivo nos próximos 30 dias." });
+      criteria.push({
+        key: "projected",
+        label: "Caixa próximos 30 dias",
+        score: 10,
+        maxScore: 10,
+        status: "ok",
+        detail: "Saldo projetado positivo nos próximos 30 dias.",
+      });
     } else {
-      criteria.push({ key: "projected", label: "Caixa próximos 30 dias", score: 0, maxScore: 10, status: "bad", detail: "Saídas previstas superam entradas nos próximos 30 dias." });
+      criteria.push({
+        key: "projected",
+        label: "Caixa próximos 30 dias",
+        score: 0,
+        maxScore: 10,
+        status: "bad",
+        detail: "Saídas previstas superam entradas nos próximos 30 dias.",
+      });
     }
 
     // 8) Lançamentos categorizados (+5)
     if (txs.length === 0) {
-      criteria.push({ key: "categorized", label: "Lançamentos categorizados", score: 0, maxScore: 5, status: "na", detail: "Sem lançamentos." });
+      criteria.push({
+        key: "categorized",
+        label: "Lançamentos categorizados",
+        score: 0,
+        maxScore: 5,
+        status: "na",
+        detail: "Sem lançamentos.",
+      });
     } else {
       const ratio = (txs.length - uncategorizedTransactions) / txs.length;
       const s = ratio >= 0.8 ? 5 : ratio >= 0.5 ? 3 : 0;
-      criteria.push({ key: "categorized", label: "Lançamentos categorizados", score: s, maxScore: 5, status: s === 5 ? "ok" : s ? "warn" : "bad", detail: `${txs.length - uncategorizedTransactions}/${txs.length} categorizados.` });
+      criteria.push({
+        key: "categorized",
+        label: "Lançamentos categorizados",
+        score: s,
+        maxScore: 5,
+        status: s === 5 ? "ok" : s ? "warn" : "bad",
+        detail: `${txs.length - uncategorizedTransactions}/${txs.length} categorizados.`,
+      });
     }
 
     // ---------- Score & insufficient ----------
@@ -323,62 +526,78 @@ export const getFinancialHealth = createServerFn({ method: "GET" })
     const alerts: HealthAlert[] = [];
     if (balance < 0 && (incomeTotal > 0 || expenseTotal > 0)) {
       alerts.push({
-        id: "balance_negative", severity: "P1",
+        id: "balance_negative",
+        severity: "P1",
         title: "Saídas maiores que entradas",
         explanation: "No período selecionado, sua empresa registrou mais saídas do que entradas.",
-        recommendation: "Revise despesas, antecipe recebimentos e verifique orçamentos aprovados ainda não recebidos.",
+        recommendation:
+          "Revise despesas, antecipe recebimentos e verifique orçamentos aprovados ainda não recebidos.",
       });
     }
     if (overduePayables > 0) {
       alerts.push({
-        id: "overdue_payables", severity: "P1",
+        id: "overdue_payables",
+        severity: "P1",
         title: "Existem contas vencidas",
         explanation: `Há ${overduePayables} conta(s) a pagar vencida(s) totalizando ${overduePayablesAmount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}.`,
         recommendation: "Regularize as contas vencidas e priorize despesas essenciais.",
-        actionLink: "/finance", actionLabel: "Ver contas a pagar",
+        actionLink: "/finance",
+        actionLabel: "Ver contas a pagar",
       });
     }
     if (overdueReceivables > 0) {
       alerts.push({
-        id: "overdue_receivables", severity: "P1",
+        id: "overdue_receivables",
+        severity: "P1",
         title: "Recebimentos atrasados",
         explanation: `Existem ${overdueReceivables} recebimento(s) vencido(s) totalizando ${overdueReceivablesAmount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}.`,
-        recommendation: "Entre em contato com os clientes pendentes e atualize o status dos recebimentos.",
-        actionLink: "/finance", actionLabel: "Ver contas a receber",
+        recommendation:
+          "Entre em contato com os clientes pendentes e atualize o status dos recebimentos.",
+        actionLink: "/finance",
+        actionLabel: "Ver contas a receber",
       });
     }
     if (productsTotal > 0 && productsWithoutCost > 0) {
       alerts.push({
-        id: "products_without_cost", severity: "P2",
+        id: "products_without_cost",
+        severity: "P2",
         title: "Produtos sem custo cadastrado",
         explanation: `${productsWithoutCost} produto(s) ativo(s) sem preço de custo. Sem o custo, não é possível calcular margem corretamente.`,
-        recommendation: "Cadastre o custo dos produtos mais vendidos ou mais usados nos orçamentos.",
-        actionLink: "/products", actionLabel: "Cadastrar custos",
+        recommendation:
+          "Cadastre o custo dos produtos mais vendidos ou mais usados nos orçamentos.",
+        actionLink: "/products",
+        actionLabel: "Cadastrar custos",
       });
     }
     if (canViewCosts && underpricedProducts > 0) {
       alerts.push({
-        id: "underpriced", severity: "P2",
+        id: "underpriced",
+        severity: "P2",
         title: "Produtos abaixo do preço recomendado",
         explanation: `${underpricedProducts} produto(s) com preço de venda abaixo do ideal considerando seus custos e margem desejada.`,
         recommendation: "Revise os preços sugeridos pelo simulador de markup.",
-        actionLink: "/finance/pricing/settings", actionLabel: "Revisar precificação",
+        actionLink: "/finance/pricing/settings",
+        actionLabel: "Revisar precificação",
       });
     }
     if (txs.length > 0 && uncategorizedTransactions > 0) {
       alerts.push({
-        id: "uncategorized", severity: "P3",
+        id: "uncategorized",
+        severity: "P3",
         title: "Lançamentos sem categoria",
         explanation: `${uncategorizedTransactions} lançamento(s) sem categoria dificultam entender para onde o dinheiro está indo.`,
         recommendation: "Classifique seus lançamentos financeiros.",
-        actionLink: "/finance", actionLabel: "Categorizar lançamentos",
+        actionLink: "/finance",
+        actionLabel: "Categorizar lançamentos",
       });
     }
     if (projected30dBalance < 0) {
       alerts.push({
-        id: "projected_negative", severity: "P1",
+        id: "projected_negative",
+        severity: "P1",
         title: "Risco no caixa dos próximos 30 dias",
-        explanation: "As saídas previstas podem superar as entradas previstas nos próximos 30 dias.",
+        explanation:
+          "As saídas previstas podem superar as entradas previstas nos próximos 30 dias.",
         recommendation: "Reforce cobranças, revise despesas e acompanhe vencimentos próximos.",
       });
     }

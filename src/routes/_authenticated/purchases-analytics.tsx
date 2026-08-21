@@ -3,12 +3,30 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import {
-  BarChart3, DollarSign, ShoppingCart, Receipt, CheckCheck, Clock,
-  Truck, TrendingUp, Users,
+  BarChart3,
+  DollarSign,
+  ShoppingCart,
+  Receipt,
+  CheckCheck,
+  Clock,
+  Truck,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
-  LineChart, Line, PieChart, Pie, Cell, Legend,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
 } from "recharts";
 import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/app/KpiCard";
@@ -16,7 +34,11 @@ import { PermissionRoute } from "@/components/app/PermissionRoute";
 import { FeatureGate } from "@/components/app/FeatureGate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { purchaseAnalytics, type PurchaseAnalyticsRange } from "@/lib/purchases.functions";
@@ -33,8 +55,7 @@ export const Route = createFileRoute("/_authenticated/purchases-analytics")({
   ),
 });
 
-const brl = (n: number) =>
-  n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const nf = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
 
 const RANGE_LABEL: Record<PurchaseAnalyticsRange, string> = {
@@ -98,7 +119,9 @@ function PurchasesAnalyticsPage() {
             </SelectTrigger>
             <SelectContent>
               {(Object.keys(RANGE_LABEL) as PurchaseAnalyticsRange[]).map((k) => (
-                <SelectItem key={k} value={k}>{RANGE_LABEL[k]}</SelectItem>
+                <SelectItem key={k} value={k}>
+                  {RANGE_LABEL[k]}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -112,14 +135,46 @@ function PurchasesAnalyticsPage() {
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard title="Total comprado" value={brl(data.kpis.totalAmount)} icon={<DollarSign className="h-5 w-5" />} />
-            <KpiCard title="Pedidos" value={String(data.kpis.ordersCount)} icon={<ShoppingCart className="h-5 w-5" />} />
-            <KpiCard title="Ticket médio" value={brl(data.kpis.avgTicket)} icon={<Receipt className="h-5 w-5" />} />
-            <KpiCard title="Lead time médio" value={`${nf(data.kpis.avgLeadTime)} d`} icon={<Truck className="h-5 w-5" />} />
-            <KpiCard title="Recebidos" value={String(data.kpis.receivedCount)} icon={<CheckCheck className="h-5 w-5" />} />
-            <KpiCard title="Em aberto" value={String(data.kpis.pendingCount)} icon={<Clock className="h-5 w-5" />} />
-            <KpiCard title="Taxa de conclusão" value={`${nf(data.kpis.fillRate)}%`} icon={<TrendingUp className="h-5 w-5" />} />
-            <KpiCard title="Fornecedores ativos" value={String(data.kpis.suppliersActive)} icon={<Users className="h-5 w-5" />} />
+            <KpiCard
+              title="Total comprado"
+              value={brl(data.kpis.totalAmount)}
+              icon={<DollarSign className="h-5 w-5" />}
+            />
+            <KpiCard
+              title="Pedidos"
+              value={String(data.kpis.ordersCount)}
+              icon={<ShoppingCart className="h-5 w-5" />}
+            />
+            <KpiCard
+              title="Ticket médio"
+              value={brl(data.kpis.avgTicket)}
+              icon={<Receipt className="h-5 w-5" />}
+            />
+            <KpiCard
+              title="Lead time médio"
+              value={`${nf(data.kpis.avgLeadTime)} d`}
+              icon={<Truck className="h-5 w-5" />}
+            />
+            <KpiCard
+              title="Recebidos"
+              value={String(data.kpis.receivedCount)}
+              icon={<CheckCheck className="h-5 w-5" />}
+            />
+            <KpiCard
+              title="Em aberto"
+              value={String(data.kpis.pendingCount)}
+              icon={<Clock className="h-5 w-5" />}
+            />
+            <KpiCard
+              title="Taxa de conclusão"
+              value={`${nf(data.kpis.fillRate)}%`}
+              icon={<TrendingUp className="h-5 w-5" />}
+            />
+            <KpiCard
+              title="Fornecedores ativos"
+              value={String(data.kpis.suppliersActive)}
+              icon={<Users className="h-5 w-5" />}
+            />
           </div>
 
           <div className="grid gap-4 lg:grid-cols-3">
@@ -135,15 +190,27 @@ function PurchasesAnalyticsPage() {
                     <BarChart data={monthly}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                      <YAxis tickFormatter={(v) => brl(Number(v)).replace("R$", "")} tick={{ fontSize: 11 }} width={80} />
+                      <YAxis
+                        tickFormatter={(v) => brl(Number(v)).replace("R$", "")}
+                        tick={{ fontSize: 11 }}
+                        width={80}
+                      />
                       <Tooltip
                         formatter={(v: any, name) =>
                           name === "total" ? brl(Number(v)) : String(v)
                         }
                         labelClassName="text-foreground"
-                        contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))" }}
+                        contentStyle={{
+                          background: "hsl(var(--popover))",
+                          border: "1px solid hsl(var(--border))",
+                        }}
                       />
-                      <Bar dataKey="total" name="Total comprado" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      <Bar
+                        dataKey="total"
+                        name="Total comprado"
+                        fill="hsl(var(--primary))"
+                        radius={[4, 4, 0, 0]}
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -153,8 +220,20 @@ function PurchasesAnalyticsPage() {
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                       <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                      <Tooltip contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))" }} />
-                      <Line type="monotone" dataKey="count" name="Pedidos" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
+                      <Tooltip
+                        contentStyle={{
+                          background: "hsl(var(--popover))",
+                          border: "1px solid hsl(var(--border))",
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="count"
+                        name="Pedidos"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -170,17 +249,28 @@ function PurchasesAnalyticsPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={data.statusDist.map((s) => ({ ...s, label: STATUS_LABEL[s.status] ?? s.status }))}
+                        data={data.statusDist.map((s) => ({
+                          ...s,
+                          label: STATUS_LABEL[s.status] ?? s.status,
+                        }))}
                         dataKey="count"
                         nameKey="label"
                         outerRadius={90}
                         label
                       >
                         {data.statusDist.map((s) => (
-                          <Cell key={s.status} fill={STATUS_COLOR[s.status] ?? "hsl(var(--muted))"} />
+                          <Cell
+                            key={s.status}
+                            fill={STATUS_COLOR[s.status] ?? "hsl(var(--muted))"}
+                          />
                         ))}
                       </Pie>
-                      <Tooltip contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))" }} />
+                      <Tooltip
+                        contentStyle={{
+                          background: "hsl(var(--popover))",
+                          border: "1px solid hsl(var(--border))",
+                        }}
+                      />
                       <Legend wrapperStyle={{ fontSize: 12 }} />
                     </PieChart>
                   </ResponsiveContainer>
@@ -241,7 +331,11 @@ function PurchasesAnalyticsPage() {
                         <tr key={it.item_id} className="border-t">
                           <td className="py-2">
                             <div className="font-medium">{it.name}</div>
-                            {it.sku && <Badge variant="outline" className="text-xs">{it.sku}</Badge>}
+                            {it.sku && (
+                              <Badge variant="outline" className="text-xs">
+                                {it.sku}
+                              </Badge>
+                            )}
                           </td>
                           <td className="py-2 text-right">{nf(it.qty)}</td>
                           <td className="py-2 text-right">{brl(it.total)}</td>

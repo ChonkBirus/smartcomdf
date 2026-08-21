@@ -26,12 +26,7 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { EmptyState } from "@/components/ui/empty-state";
-import {
-  listQaBugs,
-  createQaBug,
-  updateQaBug,
-  deleteQaBug,
-} from "@/lib/qa-bugs.functions";
+import { listQaBugs, createQaBug, updateQaBug, deleteQaBug } from "@/lib/qa-bugs.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/qa-bugs")({
   head: () => ({ meta: [{ title: "QA Bugs — Super Admin" }] }),
@@ -121,7 +116,12 @@ function QaBugsPage() {
 
   const stats = useMemo(() => {
     const by = (s: string) => items.filter((b) => b.status === s).length;
-    return { total: items.length, open: by("open"), in_progress: by("in_progress"), fixed: by("fixed") };
+    return {
+      total: items.length,
+      open: by("open"),
+      in_progress: by("in_progress"),
+      fixed: by("fixed"),
+    };
   }, [items]);
 
   return (
@@ -135,20 +135,28 @@ function QaBugsPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos status</SelectItem>
               {STATUSES.map((s) => (
-                <SelectItem key={s.v} value={s.v}>{s.label}</SelectItem>
+                <SelectItem key={s.v} value={s.v}>
+                  {s.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="w-[160px]"><SelectValue placeholder="Prioridade" /></SelectTrigger>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Prioridade" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas prioridades</SelectItem>
               {PRIORITIES.map((p) => (
-                <SelectItem key={p} value={p}>{p}</SelectItem>
+                <SelectItem key={p} value={p}>
+                  {p}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -175,7 +183,9 @@ function QaBugsPage() {
 
       {q.isLoading ? (
         <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full" />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
@@ -203,9 +213,21 @@ function QaBugsPage() {
                     <p className="text-sm text-foreground">{b.description}</p>
                     {(b.impact || b.root_cause || b.fix) && (
                       <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3">
-                        {b.impact && <div><b>Impacto:</b> {b.impact}</div>}
-                        {b.root_cause && <div><b>Causa:</b> {b.root_cause}</div>}
-                        {b.fix && <div><b>Correção:</b> {b.fix}</div>}
+                        {b.impact && (
+                          <div>
+                            <b>Impacto:</b> {b.impact}
+                          </div>
+                        )}
+                        {b.root_cause && (
+                          <div>
+                            <b>Causa:</b> {b.root_cause}
+                          </div>
+                        )}
+                        {b.fix && (
+                          <div>
+                            <b>Correção:</b> {b.fix}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -213,7 +235,10 @@ function QaBugsPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => { setEditing(b); setOpen(true); }}
+                      onClick={() => {
+                        setEditing(b);
+                        setOpen(true);
+                      }}
                     >
                       Editar
                     </Button>
@@ -274,18 +299,30 @@ function BugFormSheet({
           <div className="space-y-1">
             <label className="text-sm font-medium">Prioridade</label>
             <Select value={priority} onValueChange={setPriority}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {PRIORITIES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                {PRIORITIES.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {p}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium">Status</label>
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {STATUSES.map((s) => <SelectItem key={s.v} value={s.v}>{s.label}</SelectItem>)}
+                {STATUSES.map((s) => (
+                  <SelectItem key={s.v} value={s.v}>
+                    {s.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

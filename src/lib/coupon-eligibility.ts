@@ -18,17 +18,13 @@ export function assertCouponEligibleForPlan(
   if (!coupon || !coupon.is_active) throw new Error("Cupom inválido ou inativo.");
   if (coupon.valid_from && new Date(coupon.valid_from) > now)
     throw new Error("Cupom ainda não está disponível.");
-  if (coupon.valid_until && new Date(coupon.valid_until) < now)
-    throw new Error("Cupom expirado.");
+  if (coupon.valid_until && new Date(coupon.valid_until) < now) throw new Error("Cupom expirado.");
   if (
     Array.isArray(coupon.eligible_plan_ids) &&
     coupon.eligible_plan_ids.length > 0 &&
     !coupon.eligible_plan_ids.includes(planId)
   )
     throw new Error("Cupom não aplicável a este plano.");
-  if (
-    coupon.max_redemptions != null &&
-    coupon.redemption_count >= coupon.max_redemptions
-  )
+  if (coupon.max_redemptions != null && coupon.redemption_count >= coupon.max_redemptions)
     throw new Error("Cupom esgotado.");
 }

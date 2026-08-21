@@ -3,7 +3,13 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type CnpjProvider = "BRASIL_API" | "CNPJ_WS";
-type DebugStep = "provider_fetch" | "validation" | "permission" | "mapper" | "server_function" | "unknown";
+type DebugStep =
+  | "provider_fetch"
+  | "validation"
+  | "permission"
+  | "mapper"
+  | "server_function"
+  | "unknown";
 
 export type CnpjLookupDebug = {
   step: DebugStep;
@@ -83,9 +89,8 @@ function isValidCNPJ(v: string) {
   const c = onlyDigits(v);
   if (c.length !== 14 || /^(\d)\1+$/.test(c)) return false;
   const calc = (len: number) => {
-    const w = len === 12
-      ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
-      : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    const w =
+      len === 12 ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2] : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
     let s = 0;
     for (let i = 0; i < len; i++) s += parseInt(c[i]) * w[i];
     const r = s % 11;
@@ -132,7 +137,9 @@ function normalizeBrasilApi(p: any, cnpj: string): CnpjLookupResultDTO {
     legal_nature: safeText(p.natureza_juridica),
     main_cnae: safeText(p.cnae_fiscal ?? p.cnae),
     main_activity: safeText(p.cnae_fiscal_descricao),
-    registration_status: safeText(p.descricao_situacao_cadastral ?? p.situacao_cadastral ?? p.status),
+    registration_status: safeText(
+      p.descricao_situacao_cadastral ?? p.situacao_cadastral ?? p.status,
+    ),
     opening_date: safeText(p.data_inicio_atividade),
     source: "BRASIL_API",
   };
@@ -167,18 +174,21 @@ function normalizeCnpjWs(p: any, cnpj: string): CnpjLookupResultDTO {
 }
 
 function normalizeByProvider(provider: CnpjProvider, payload: any, cnpj: string) {
-  const normalized = provider === "BRASIL_API"
-    ? normalizeBrasilApi(payload, cnpj)
-    : normalizeCnpjWs(payload, cnpj);
+  const normalized =
+    provider === "BRASIL_API" ? normalizeBrasilApi(payload, cnpj) : normalizeCnpjWs(payload, cnpj);
 
   if (!normalized.corporate_name) {
-    throw new CnpjLookupError("MAPPER_ERROR", "Consulta indisponível no momento. Preencha os dados manualmente ou tente novamente.", {
-      step: "mapper",
-      provider,
-      status: 200,
-      message: "Provider returned payload without corporate/legal name.",
-      endpoint: provider === "BRASIL_API" ? BRASIL_API_ENDPOINT(cnpj) : CNPJ_WS_ENDPOINT(cnpj),
-    });
+    throw new CnpjLookupError(
+      "MAPPER_ERROR",
+      "Consulta indisponível no momento. Preencha os dados manualmente ou tente novamente.",
+      {
+        step: "mapper",
+        provider,
+        status: 200,
+        message: "Provider returned payload without corporate/legal name.",
+        endpoint: provider === "BRASIL_API" ? BRASIL_API_ENDPOINT(cnpj) : CNPJ_WS_ENDPOINT(cnpj),
+      },
+    );
   }
 
   return normalized;
@@ -186,7 +196,8 @@ function normalizeByProvider(provider: CnpjProvider, payload: any, cnpj: string)
 
 function userMessageForStatus(status: number) {
   if (status === 400) return "Informe um CNPJ válido.";
-  if (status === 404) return "Não encontramos dados para este CNPJ. Você pode preencher manualmente.";
+  if (status === 404)
+    return "Não encontramos dados para este CNPJ. Você pode preencher manualmente.";
   if (status === 429) return "Limite de consultas atingido. Tente novamente em alguns minutos.";
   return "Consulta indisponível no momento. Preencha os dados manualmente ou tente novamente.";
 }
@@ -215,7 +226,10 @@ async function fetchProvider(provider: CnpjProvider, cnpj: string, logBody: bool
     });
     const responseBody = await response.text();
     console.log("[CNPJ LOOKUP SERVER] status:", response.status);
-    console.log("[CNPJ LOOKUP SERVER] body:", logBody ? truncateBody(responseBody) : "[omitted outside development]");
+    console.log(
+      "[CNPJ LOOKUP SERVER] body:",
+      logBody ? truncateBody(responseBody) : "[omitted outside development]",
+    );
 
     let json: any = null;
     if (responseBody) {
@@ -313,7 +327,9 @@ async function fetchAndNormalizeCnpj(cnpj: string, logBody: boolean) {
   const timeout = !!primary.timeout || !!fallback.timeout;
   throw new CnpjLookupError(
     timeout ? "PROVIDER_TIMEOUT" : codeForStatus(status),
-    timeout ? "Consulta indisponível no momento. Preencha os dados manualmente ou tente novamente." : userMessageForStatus(status),
+    timeout
+      ? "Consulta indisponível no momento. Preencha os dados manualmente ou tente novamente."
+      : userMessageForStatus(status),
     {
       step: "provider_fetch",
       provider: final.provider,
@@ -371,7 +387,8 @@ function toDevFailure(error: unknown): CnpjLookupFailureDTO {
   return {
     ok: false,
     code: "UNKNOWN_ERROR",
-    userMessage: "Consulta indisponível no momento. Preencha os dados manualmente ou tente novamente.",
+    userMessage:
+      "Consulta indisponível no momento. Preencha os dados manualmente ou tente novamente.",
     debug: {
       step: "server_function",
       provider: "NONE",
@@ -398,13 +415,17 @@ export const lookupCnpj = createServerFn({ method: "POST" })
         .eq("id", context.userId)
         .maybeSingle();
       if (profileError) {
-        throw new CnpjLookupError("PERMISSION_PROFILE_ERROR", "Você não tem permissão para consultar CNPJ.", {
-          step: "permission",
-          provider: "NONE",
-          status: 403,
-          message: profileError.message,
-          endpoint: "",
-        });
+        throw new CnpjLookupError(
+          "PERMISSION_PROFILE_ERROR",
+          "Você não tem permissão para consultar CNPJ.",
+          {
+            step: "permission",
+            provider: "NONE",
+            status: 403,
+            message: profileError.message,
+            endpoint: "",
+          },
+        );
       }
       const companyId: string | null = profile?.company_id ?? null;
 
@@ -454,13 +475,17 @@ export const lookupCnpj = createServerFn({ method: "POST" })
       }
       if ((count ?? 0) > 20) {
         await writeLog("RATE_LIMITED");
-        throw new CnpjLookupError("LOCAL_RATE_LIMITED", "Limite de consultas atingido. Tente novamente em alguns minutos.", {
-          step: "permission",
-          provider: "NONE",
-          status: 429,
-          message: "Local per-user rate limit exceeded: max 20/min.",
-          endpoint: "",
-        });
+        throw new CnpjLookupError(
+          "LOCAL_RATE_LIMITED",
+          "Limite de consultas atingido. Tente novamente em alguns minutos.",
+          {
+            step: "permission",
+            provider: "NONE",
+            status: 429,
+            message: "Local per-user rate limit exceeded: max 20/min.",
+            endpoint: "",
+          },
+        );
       }
 
       // cache lookup (7 days)
@@ -511,14 +536,27 @@ export const lookupCnpj = createServerFn({ method: "POST" })
         await supabaseAdmin.from("cnpj_lookup_logs").insert({
           company_id: null,
           cnpj,
-          provider: failure.debug.provider === "BRASIL_API" || failure.debug.provider === "CNPJ_WS" ? failure.debug.provider : "BRASIL_API",
-          status: failure.code === "CNPJ_NOT_FOUND" ? "NOT_FOUND" : failure.code === "INVALID_CNPJ" ? "INVALID_CNPJ" : failure.debug.status === 429 ? "RATE_LIMITED" : "PROVIDER_ERROR",
+          provider:
+            failure.debug.provider === "BRASIL_API" || failure.debug.provider === "CNPJ_WS"
+              ? failure.debug.provider
+              : "BRASIL_API",
+          status:
+            failure.code === "CNPJ_NOT_FOUND"
+              ? "NOT_FOUND"
+              : failure.code === "INVALID_CNPJ"
+                ? "INVALID_CNPJ"
+                : failure.debug.status === 429
+                  ? "RATE_LIMITED"
+                  : "PROVIDER_ERROR",
           result_summary: { debug: failure.debug },
           error_message: failure.debug.message,
           requested_by: context.userId,
         });
       } catch (logError: any) {
-        console.error("[CNPJ LOOKUP SERVER] failure log write failed:", logError?.message ?? logError);
+        console.error(
+          "[CNPJ LOOKUP SERVER] failure log write failed:",
+          logError?.message ?? logError,
+        );
       }
 
       if (dev) {
@@ -527,7 +565,9 @@ export const lookupCnpj = createServerFn({ method: "POST" })
       if (error instanceof CnpjLookupError) {
         throw new Error(error.userMessage);
       }
-      throw new Error("Consulta indisponível no momento. Preencha os dados manualmente ou tente novamente.");
+      throw new Error(
+        "Consulta indisponível no momento. Preencha os dados manualmente ou tente novamente.",
+      );
     }
   });
 
@@ -578,7 +618,10 @@ export const testCnpjLookup = createServerFn({ method: "POST" })
       return {
         cnpjLimpo,
         isValid: true,
-        provider: failure.debug.provider === "BRASIL_API" || failure.debug.provider === "CNPJ_WS" ? failure.debug.provider : null,
+        provider:
+          failure.debug.provider === "BRASIL_API" || failure.debug.provider === "CNPJ_WS"
+            ? failure.debug.provider
+            : null,
         status: failure.debug.status,
         endpoint: failure.debug.endpoint || null,
         data_normalizada: null,

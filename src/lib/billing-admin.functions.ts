@@ -25,9 +25,7 @@ export const adminListBillingCharges = createServerFn({ method: "GET" })
   .inputValidator((d) => listChargesSchema.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     let q = supabaseAdmin
       .from("billing_charges")
@@ -48,8 +46,7 @@ export const adminListBillingCharges = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return (rows ?? []).map((r: any) => ({
       ...r,
-      company_name:
-        r.companies?.trade_name ?? r.companies?.corporate_name ?? null,
+      company_name: r.companies?.trade_name ?? r.companies?.corporate_name ?? null,
       plan_name: r.plans?.name ?? null,
     }));
   });
@@ -67,9 +64,7 @@ export const adminListWebhookEvents = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let q = supabaseAdmin
       .from("billing_webhook_events")
       .select(
@@ -89,9 +84,7 @@ export const adminGetWebhookEvent = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row, error } = await supabaseAdmin
       .from("billing_webhook_events")
       .select("*")
@@ -107,9 +100,7 @@ export const adminRetryWebhookEvent = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { applyChargeStatus } = await import("@/lib/billing-webhook.server");
 
     const { data: ev, error } = await supabaseAdmin
@@ -122,10 +113,8 @@ export const adminRetryWebhookEvent = createServerFn({ method: "POST" })
 
     const payload = (ev.payload ?? {}) as any;
     const payment = payload.payment ?? payload;
-    const providerChargeId =
-      ev.provider_object_id ?? payment?.id ?? null;
-    if (!providerChargeId)
-      throw new Error("Evento sem identificador de cobrança.");
+    const providerChargeId = ev.provider_object_id ?? payment?.id ?? null;
+    if (!providerChargeId) throw new Error("Evento sem identificador de cobrança.");
 
     try {
       await applyChargeStatus(supabaseAdmin, {
@@ -161,9 +150,7 @@ export const adminSyncCharge = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ charge_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const asaas = await import("@/lib/asaas.server");
     const { applyChargeStatus } = await import("@/lib/billing-webhook.server");
 
@@ -172,10 +159,8 @@ export const adminSyncCharge = createServerFn({ method: "POST" })
       .select("id, provider, provider_charge_id")
       .eq("id", data.charge_id)
       .maybeSingle();
-    if (!charge?.provider_charge_id)
-      throw new Error("Cobrança não encontrada.");
-    if (charge.provider !== "ASAAS")
-      throw new Error("Provider não suportado para sync.");
+    if (!charge?.provider_charge_id) throw new Error("Cobrança não encontrada.");
+    if (charge.provider !== "ASAAS") throw new Error("Provider não suportado para sync.");
 
     const payment = await asaas.asaasGetPayment(charge.provider_charge_id);
     await applyChargeStatus(supabaseAdmin, {
@@ -193,14 +178,10 @@ export const adminGetCharge = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: charge, error } = await supabaseAdmin
       .from("billing_charges")
-      .select(
-        "*, companies:company_id(corporate_name, trade_name), plans:plan_id(name)",
-      )
+      .select("*, companies:company_id(corporate_name, trade_name), plans:plan_id(name)")
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -221,9 +202,7 @@ export const adminGetCharge = createServerFn({ method: "GET" })
     return {
       ...charge,
       company_name:
-        (charge as any).companies?.trade_name ??
-        (charge as any).companies?.corporate_name ??
-        null,
+        (charge as any).companies?.trade_name ?? (charge as any).companies?.corporate_name ?? null,
       plan_name: (charge as any).plans?.name ?? null,
       events,
     };
@@ -243,9 +222,7 @@ export const adminListSubscriptionEventsGlobal = createServerFn({ method: "GET" 
   )
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let q = supabaseAdmin
       .from("subscription_events")
       .select(
@@ -259,7 +236,6 @@ export const adminListSubscriptionEventsGlobal = createServerFn({ method: "GET" 
     if (error) throw new Error(error.message);
     return (rows ?? []).map((r: any) => ({
       ...r,
-      company_name:
-        r.companies?.trade_name ?? r.companies?.corporate_name ?? null,
+      company_name: r.companies?.trade_name ?? r.companies?.corporate_name ?? null,
     }));
   });

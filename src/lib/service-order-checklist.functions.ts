@@ -39,11 +39,15 @@ export const listChecklistItems = createServerFn({ method: "GET" })
 
 export const toggleChecklistItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({
-    itemId: z.string().uuid(),
-    checked: z.boolean(),
-    notes: z.string().trim().optional(),
-  }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({
+        itemId: z.string().uuid(),
+        checked: z.boolean(),
+        notes: z.string().trim().optional(),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { data: row, error } = await sb.rpc("so_checklist_toggle", {
@@ -57,12 +61,16 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
 
 export const addChecklistItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({
-    serviceOrderId: z.string().uuid(),
-    title: z.string().trim().min(1).max(200),
-    description: z.string().trim().max(500).optional(),
-    required: z.boolean().default(false),
-  }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({
+        serviceOrderId: z.string().uuid(),
+        title: z.string().trim().min(1).max(200),
+        description: z.string().trim().max(500).optional(),
+        required: z.boolean().default(false),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { data: row, error } = await sb.rpc("so_checklist_add_item", {
@@ -77,12 +85,16 @@ export const addChecklistItem = createServerFn({ method: "POST" })
 
 export const updateChecklistItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({
-    itemId: z.string().uuid(),
-    title: z.string().trim().min(1).max(200).optional(),
-    description: z.string().trim().max(500).nullable().optional(),
-    required: z.boolean().optional(),
-  }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({
+        itemId: z.string().uuid(),
+        title: z.string().trim().min(1).max(200).optional(),
+        description: z.string().trim().max(500).nullable().optional(),
+        required: z.boolean().optional(),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { data: before } = await sb
@@ -108,7 +120,9 @@ export const updateChecklistItem = createServerFn({ method: "POST" })
         _old_data: before,
         _new_data: { ...before, ...patch },
       });
-    } catch { /* audit best-effort */ }
+    } catch {
+      /* audit best-effort */
+    }
     return { ok: true };
   });
 
@@ -122,29 +136,33 @@ export const deleteChecklistItem = createServerFn({ method: "POST" })
       .select("id, title, service_order_id, company_id")
       .eq("id", data.itemId)
       .maybeSingle();
-    const { error } = await sb
-      .from("service_order_checklist_items")
-      .delete()
-      .eq("id", data.itemId);
+    const { error } = await sb.from("service_order_checklist_items").delete().eq("id", data.itemId);
     if (error) throw new Error(error.message);
     try {
-      if (before) await sb.rpc("log_audit", {
-        _module: "service_order_checklist_items",
-        _action: "delete",
-        _record_id: data.itemId,
-        _old_data: before,
-        _new_data: null,
-      });
-    } catch { /* audit best-effort */ }
+      if (before)
+        await sb.rpc("log_audit", {
+          _module: "service_order_checklist_items",
+          _action: "delete",
+          _record_id: data.itemId,
+          _old_data: before,
+          _new_data: null,
+        });
+    } catch {
+      /* audit best-effort */
+    }
     return { ok: true };
   });
 
 export const reorderChecklistItems = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({
-    serviceOrderId: z.string().uuid(),
-    orderedIds: z.array(z.string().uuid()).min(1),
-  }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({
+        serviceOrderId: z.string().uuid(),
+        orderedIds: z.array(z.string().uuid()).min(1),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     for (let i = 0; i < data.orderedIds.length; i++) {
@@ -163,8 +181,9 @@ export const listPendingRequiredChecklist = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }): Promise<ChecklistItem[]> => {
     const sb = context.supabase as any;
-    const { data: rows, error } = await sb.rpc("so_pending_required_checklist", { _so_id: data.id });
+    const { data: rows, error } = await sb.rpc("so_pending_required_checklist", {
+      _so_id: data.id,
+    });
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
-

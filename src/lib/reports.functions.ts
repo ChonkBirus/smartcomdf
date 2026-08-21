@@ -29,7 +29,11 @@ const reportSchema = z.object({
 export type ReportType = z.infer<typeof reportSchema>["type"];
 export type ReportKpi = { label: string; value: string | number; hint?: string };
 export type ReportRow = Record<string, string | number | null>;
-export type ReportColumn = { key: string; label: string; format?: "currency" | "date" | "datetime" | "number" };
+export type ReportColumn = {
+  key: string;
+  label: string;
+  format?: "currency" | "date" | "datetime" | "number";
+};
 export type ReportResult = {
   kpis: ReportKpi[];
   columns: ReportColumn[];
@@ -70,7 +74,13 @@ async function count(sb: any, table: string, companyId: string, build?: (q: any)
   return c ?? 0;
 }
 
-async function sumCol(sb: any, table: string, col: string, companyId: string, build?: (q: any) => any) {
+async function sumCol(
+  sb: any,
+  table: string,
+  col: string,
+  companyId: string,
+  build?: (q: any) => any,
+) {
   let q = sb.from(table).select(col).eq("company_id", companyId);
   if (build) q = build(q);
   const { data } = await q;
@@ -91,18 +101,32 @@ export const getReportsOverview = createServerFn({ method: "POST" })
     const r = range("created_at", data.from ?? null, data.to ?? null);
 
     const [
-      quotesTotal, quotesApproved, quotesPending, quotesExpired,
-      customersTotal, projectsActive, osOpen, osDone,
-      pendingPayments, valueOrcado, valueAprovado,
+      quotesTotal,
+      quotesApproved,
+      quotesPending,
+      quotesExpired,
+      customersTotal,
+      projectsActive,
+      osOpen,
+      osDone,
+      pendingPayments,
+      valueOrcado,
+      valueAprovado,
     ] = await Promise.all([
       count(sb, "quotes", companyId, r),
       count(sb, "quotes", companyId, (q) => r(q).eq("status", "approved")),
       count(sb, "quotes", companyId, (q) => r(q).in("status", ["sent", "viewed", "draft"])),
       count(sb, "quotes", companyId, (q) => r(q).eq("status", "expired")),
       count(sb, "customers", companyId, (q) => q.eq("active", true).is("deleted_at", null)),
-      count(sb, "projects", companyId, (q) => q.in("status", ["planning", "in_progress", "ready_for_os"]).is("deleted_at", null)),
-      count(sb, "service_orders", companyId, (q) => q.in("status", ["scheduled", "in_progress", "paused"]).is("deleted_at", null)),
-      count(sb, "service_orders", companyId, (q) => range("completed_at", data.from ?? null, data.to ?? null)(q).eq("status", "completed")),
+      count(sb, "projects", companyId, (q) =>
+        q.in("status", ["planning", "in_progress", "ready_for_os"]).is("deleted_at", null),
+      ),
+      count(sb, "service_orders", companyId, (q) =>
+        q.in("status", ["scheduled", "in_progress", "paused"]).is("deleted_at", null),
+      ),
+      count(sb, "service_orders", companyId, (q) =>
+        range("completed_at", data.from ?? null, data.to ?? null)(q).eq("status", "completed"),
+      ),
       count(sb, "quote_payments", companyId, (q) => q.eq("payment_status", "pending")),
       sumCol(sb, "quotes", "total_amount", companyId, r),
       sumCol(sb, "quotes", "total_amount", companyId, (q) => r(q).eq("status", "approved")),
@@ -111,23 +135,37 @@ export const getReportsOverview = createServerFn({ method: "POST" })
     let lowStock = 0;
     try {
       const { data: items } = await sb
-        .from("items").select("id, minimum_stock")
-        .eq("company_id", companyId).eq("active", true).eq("controls_stock", true)
-        .is("deleted_at", null).gt("minimum_stock", 0).limit(1000);
+        .from("items")
+        .select("id, minimum_stock")
+        .eq("company_id", companyId)
+        .eq("active", true)
+        .eq("controls_stock", true)
+        .is("deleted_at", null)
+        .gt("minimum_stock", 0)
+        .limit(1000);
       if (items?.length) {
         const ids = items.map((i: any) => i.id);
         const { data: balances } = await sb
-          .from("stock_balances").select("item_id, quantity").eq("company_id", companyId).in("item_id", ids);
+          .from("stock_balances")
+          .select("item_id, quantity")
+          .eq("company_id", companyId)
+          .in("item_id", ids);
         const byItem = new Map<string, number>();
         (balances ?? []).forEach((b: any) =>
           byItem.set(b.item_id, (byItem.get(b.item_id) ?? 0) + Number(b.quantity ?? 0)),
         );
-        lowStock = items.filter((it: any) => (byItem.get(it.id) ?? 0) <= Number(it.minimum_stock ?? 0)).length;
+        lowStock = items.filter(
+          (it: any) => (byItem.get(it.id) ?? 0) <= Number(it.minimum_stock ?? 0),
+        ).length;
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     const { data: byStatusRows } = await sb
-      .from("quotes").select("status").eq("company_id", companyId)
+      .from("quotes")
+      .select("status")
+      .eq("company_id", companyId)
       .gte("created_at", data.from ?? "1970-01-01")
       .lte("created_at", data.to ?? new Date().toISOString())
       .limit(5000);
@@ -139,9 +177,19 @@ export const getReportsOverview = createServerFn({ method: "POST" })
     const conversionRate = quotesTotal > 0 ? (quotesApproved / quotesTotal) * 100 : 0;
     return {
       cards: {
-        quotesTotal, quotesApproved, quotesPending, quotesExpired,
-        conversionRate, valueOrcado, valueAprovado,
-        customersTotal, projectsActive, osOpen, osDone, lowStock, pendingPayments,
+        quotesTotal,
+        quotesApproved,
+        quotesPending,
+        quotesExpired,
+        conversionRate,
+        valueOrcado,
+        valueAprovado,
+        customersTotal,
+        projectsActive,
+        osOpen,
+        osDone,
+        lowStock,
+        pendingPayments,
       },
       charts: {
         quotesByStatus: Object.entries(byStatus).map(([status, count]) => ({ status, count })),
@@ -163,20 +211,27 @@ export const getReport = createServerFn({ method: "POST" })
 
     switch (data.type) {
       case "commercial": {
-        const [criados, enviados, aprovados, recusados, valorEnviado, valorAprovado] = await Promise.all([
-          count(sb, "quotes", companyId, r),
-          count(sb, "quotes", companyId, (q) => r(q).in("status", ["sent", "viewed", "approved", "rejected", "expired"])),
-          count(sb, "quotes", companyId, (q) => r(q).eq("status", "approved")),
-          count(sb, "quotes", companyId, (q) => r(q).eq("status", "rejected")),
-          sumCol(sb, "quotes", "total_amount", companyId, (q) => r(q).in("status", ["sent", "viewed", "approved", "rejected", "expired"])),
-          sumCol(sb, "quotes", "total_amount", companyId, (q) => r(q).eq("status", "approved")),
-        ]);
+        const [criados, enviados, aprovados, recusados, valorEnviado, valorAprovado] =
+          await Promise.all([
+            count(sb, "quotes", companyId, r),
+            count(sb, "quotes", companyId, (q) =>
+              r(q).in("status", ["sent", "viewed", "approved", "rejected", "expired"]),
+            ),
+            count(sb, "quotes", companyId, (q) => r(q).eq("status", "approved")),
+            count(sb, "quotes", companyId, (q) => r(q).eq("status", "rejected")),
+            sumCol(sb, "quotes", "total_amount", companyId, (q) =>
+              r(q).in("status", ["sent", "viewed", "approved", "rejected", "expired"]),
+            ),
+            sumCol(sb, "quotes", "total_amount", companyId, (q) => r(q).eq("status", "approved")),
+          ]);
         const ticket = aprovados > 0 ? valorAprovado / aprovados : 0;
         const taxa = enviados > 0 ? (aprovados / enviados) * 100 : 0;
 
         const { data: rows } = await sb
           .from("quotes")
-          .select("id, quote_number, status, total_amount, issue_date, valid_until, accepted_at, customer:customers(name)")
+          .select(
+            "id, quote_number, status, total_amount, issue_date, valid_until, accepted_at, customer:customers(name)",
+          )
           .eq("company_id", companyId)
           .gte("created_at", from ?? "1970-01-01")
           .lte("created_at", to ?? new Date().toISOString())
@@ -225,11 +280,14 @@ export const getReport = createServerFn({ method: "POST" })
         ]);
         const { data: rows } = await sb
           .from("quotes")
-          .select("id, quote_number, status, payment_status, total_amount, created_at, valid_until, customer:customers(name)")
+          .select(
+            "id, quote_number, status, payment_status, total_amount, created_at, valid_until, customer:customers(name)",
+          )
           .eq("company_id", companyId)
           .gte("created_at", from ?? "1970-01-01")
           .lte("created_at", to ?? new Date().toISOString())
-          .order("created_at", { ascending: false }).limit(500);
+          .order("created_at", { ascending: false })
+          .limit(500);
         return {
           kpis: [
             { label: "Criados", value: criados },
@@ -262,17 +320,30 @@ export const getReport = createServerFn({ method: "POST" })
       case "projects": {
         const [criados, planejamento, prontos, execucao, concluidos] = await Promise.all([
           count(sb, "projects", companyId, r),
-          count(sb, "projects", companyId, (q) => r(q).eq("status", "planning").is("deleted_at", null)),
-          count(sb, "projects", companyId, (q) => r(q).eq("status", "ready_for_os").is("deleted_at", null)),
-          count(sb, "projects", companyId, (q) => r(q).eq("status", "in_progress").is("deleted_at", null)),
-          count(sb, "projects", companyId, (q) => r(q).eq("status", "completed").is("deleted_at", null)),
+          count(sb, "projects", companyId, (q) =>
+            r(q).eq("status", "planning").is("deleted_at", null),
+          ),
+          count(sb, "projects", companyId, (q) =>
+            r(q).eq("status", "ready_for_os").is("deleted_at", null),
+          ),
+          count(sb, "projects", companyId, (q) =>
+            r(q).eq("status", "in_progress").is("deleted_at", null),
+          ),
+          count(sb, "projects", companyId, (q) =>
+            r(q).eq("status", "completed").is("deleted_at", null),
+          ),
         ]);
         const { data: rows } = await sb
           .from("projects")
-          .select("id, project_number, title, status, total_amount, planned_start_date, planned_end_date, completed_at, customer:customers(name), quote:quotes(quote_number)")
-          .eq("company_id", companyId).is("deleted_at", null)
-          .gte("created_at", from ?? "1970-01-01").lte("created_at", to ?? new Date().toISOString())
-          .order("created_at", { ascending: false }).limit(500);
+          .select(
+            "id, project_number, title, status, total_amount, planned_start_date, planned_end_date, completed_at, customer:customers(name), quote:quotes(quote_number)",
+          )
+          .eq("company_id", companyId)
+          .is("deleted_at", null)
+          .gte("created_at", from ?? "1970-01-01")
+          .lte("created_at", to ?? new Date().toISOString())
+          .order("created_at", { ascending: false })
+          .limit(500);
         return {
           kpis: [
             { label: "Criados", value: criados },
@@ -303,24 +374,39 @@ export const getReport = createServerFn({ method: "POST" })
       }
 
       case "service_orders": {
-        const [criadas, agendadas, andamento, pausadas, concluidas, canceladas, comRelatorio, comAssinatura] =
-          await Promise.all([
-            count(sb, "service_orders", companyId, r),
-            count(sb, "service_orders", companyId, (q) => r(q).eq("status", "scheduled")),
-            count(sb, "service_orders", companyId, (q) => r(q).eq("status", "in_progress")),
-            count(sb, "service_orders", companyId, (q) => r(q).eq("status", "paused")),
-            count(sb, "service_orders", companyId, (q) => r(q).eq("status", "completed")),
-            count(sb, "service_orders", companyId, (q) => r(q).eq("status", "cancelled")),
-            count(sb, "service_orders", companyId, (q) => q.not("final_report_generated_at", "is", null)),
-            count(sb, "service_orders", companyId, (q) => q.not("customer_signed_at", "is", null)),
-          ]);
+        const [
+          criadas,
+          agendadas,
+          andamento,
+          pausadas,
+          concluidas,
+          canceladas,
+          comRelatorio,
+          comAssinatura,
+        ] = await Promise.all([
+          count(sb, "service_orders", companyId, r),
+          count(sb, "service_orders", companyId, (q) => r(q).eq("status", "scheduled")),
+          count(sb, "service_orders", companyId, (q) => r(q).eq("status", "in_progress")),
+          count(sb, "service_orders", companyId, (q) => r(q).eq("status", "paused")),
+          count(sb, "service_orders", companyId, (q) => r(q).eq("status", "completed")),
+          count(sb, "service_orders", companyId, (q) => r(q).eq("status", "cancelled")),
+          count(sb, "service_orders", companyId, (q) =>
+            q.not("final_report_generated_at", "is", null),
+          ),
+          count(sb, "service_orders", companyId, (q) => q.not("customer_signed_at", "is", null)),
+        ]);
 
         const { data: rows } = await sb
           .from("service_orders")
-          .select("id, service_order_number, status, scheduled_date, started_at, completed_at, customer:customers(name), project:projects(project_number), technician:profiles!service_orders_assigned_technician_id_fkey(full_name)")
-          .eq("company_id", companyId).is("deleted_at", null)
-          .gte("created_at", from ?? "1970-01-01").lte("created_at", to ?? new Date().toISOString())
-          .order("created_at", { ascending: false }).limit(500);
+          .select(
+            "id, service_order_number, status, scheduled_date, started_at, completed_at, customer:customers(name), project:projects(project_number), technician:profiles!service_orders_assigned_technician_id_fkey(full_name)",
+          )
+          .eq("company_id", companyId)
+          .is("deleted_at", null)
+          .gte("created_at", from ?? "1970-01-01")
+          .lte("created_at", to ?? new Date().toISOString())
+          .order("created_at", { ascending: false })
+          .limit(500);
         return {
           kpis: [
             { label: "Criadas", value: criadas },
@@ -359,11 +445,20 @@ export const getReport = createServerFn({ method: "POST" })
         const canFinancial = await hasPerm(sb, context.userId, "reports.financial");
         const { data: items } = await sb
           .from("items")
-          .select("id, name, sku, minimum_stock, cost_price, sale_price, controls_stock, active, category:categories(name)")
-          .eq("company_id", companyId).is("deleted_at", null).eq("active", true).limit(2000);
+          .select(
+            "id, name, sku, minimum_stock, cost_price, sale_price, controls_stock, active, category:categories(name)",
+          )
+          .eq("company_id", companyId)
+          .is("deleted_at", null)
+          .eq("active", true)
+          .limit(2000);
         const ids = (items ?? []).map((i: any) => i.id);
         const { data: balances } = ids.length
-          ? await sb.from("stock_balances").select("item_id, quantity").eq("company_id", companyId).in("item_id", ids)
+          ? await sb
+              .from("stock_balances")
+              .select("item_id, quantity")
+              .eq("company_id", companyId)
+              .in("item_id", ids)
           : { data: [] };
         const byItem = new Map<string, number>();
         (balances ?? []).forEach((b: any) => {
@@ -380,7 +475,8 @@ export const getReport = createServerFn({ method: "POST" })
           .map((it: any) => {
             const saldo = byItem.get(it.id) ?? 0;
             const min = Number(it.minimum_stock ?? 0);
-            const status = saldo <= 0 ? "SEM_ESTOQUE" : saldo <= min && min > 0 ? "ESTOQUE_BAIXO" : "NORMAL";
+            const status =
+              saldo <= 0 ? "SEM_ESTOQUE" : saldo <= min && min > 0 ? "ESTOQUE_BAIXO" : "NORMAL";
             const row: ReportRow = {
               name: it.name,
               sku: it.sku ?? "—",
@@ -396,7 +492,9 @@ export const getReport = createServerFn({ method: "POST" })
             return row;
           });
 
-        const baixo = rows.filter((r) => r.status === "ESTOQUE_BAIXO" || r.status === "SEM_ESTOQUE").length;
+        const baixo = rows.filter(
+          (r) => r.status === "ESTOQUE_BAIXO" || r.status === "SEM_ESTOQUE",
+        ).length;
         const valorEstoque = canFinancial
           ? rows.reduce((acc, row) => acc + Number(row.estimated_value ?? 0), 0)
           : 0;
@@ -427,18 +525,28 @@ export const getReport = createServerFn({ method: "POST" })
       case "customers": {
         const [total, pf, pj, ativos] = await Promise.all([
           count(sb, "customers", companyId, (q) => q.is("deleted_at", null)),
-          count(sb, "customers", companyId, (q) => q.is("deleted_at", null).eq("customer_type", "PF")),
-          count(sb, "customers", companyId, (q) => q.is("deleted_at", null).eq("customer_type", "PJ")),
+          count(sb, "customers", companyId, (q) =>
+            q.is("deleted_at", null).eq("customer_type", "PF"),
+          ),
+          count(sb, "customers", companyId, (q) =>
+            q.is("deleted_at", null).eq("customer_type", "PJ"),
+          ),
           count(sb, "customers", companyId, (q) => q.is("deleted_at", null).eq("active", true)),
         ]);
         const { data: customers } = await sb
           .from("customers")
           .select("id, name, customer_type, phone, email, active, created_at")
-          .eq("company_id", companyId).is("deleted_at", null)
-          .order("created_at", { ascending: false }).limit(500);
+          .eq("company_id", companyId)
+          .is("deleted_at", null)
+          .order("created_at", { ascending: false })
+          .limit(500);
         const ids = (customers ?? []).map((c: any) => c.id);
         const { data: quotes } = ids.length
-          ? await sb.from("quotes").select("customer_id, status, total_amount").eq("company_id", companyId).in("customer_id", ids)
+          ? await sb
+              .from("quotes")
+              .select("customer_id, status, total_amount")
+              .eq("company_id", companyId)
+              .in("customer_id", ids)
           : { data: [] };
         const stats = new Map<string, { qtd: number; aprovado: number }>();
         (quotes ?? []).forEach((q: any) => {
@@ -491,11 +599,17 @@ export const getReport = createServerFn({ method: "POST" })
         ]);
         const { data: rows } = await sb
           .from("quote_payments")
-          .select("id, amount, payment_status, payment_method, due_date, paid_at, quote:quotes(quote_number, customer:customers(name))")
+          .select(
+            "id, amount, payment_status, payment_method, due_date, paid_at, quote:quotes(quote_number, customer:customers(name))",
+          )
           .eq("company_id", companyId)
-          .gte("created_at", from ?? "1970-01-01").lte("created_at", to ?? new Date().toISOString())
-          .order("created_at", { ascending: false }).limit(500);
-        const aprovadosCount = (rows ?? []).filter((p: any) => p.payment_status?.toUpperCase() === "PAID" || p.paid_at).length;
+          .gte("created_at", from ?? "1970-01-01")
+          .lte("created_at", to ?? new Date().toISOString())
+          .order("created_at", { ascending: false })
+          .limit(500);
+        const aprovadosCount = (rows ?? []).filter(
+          (p: any) => p.payment_status?.toUpperCase() === "PAID" || p.paid_at,
+        ).length;
         return {
           kpis: [
             { label: "Valor aprovado", value: brl(valorAprovado) },
@@ -527,15 +641,36 @@ export const getReport = createServerFn({ method: "POST" })
       case "technicians": {
         const { data: rows } = await sb
           .from("service_orders")
-          .select("id, status, started_at, completed_at, assigned_technician_id, technician:profiles!service_orders_assigned_technician_id_fkey(full_name)")
-          .eq("company_id", companyId).is("deleted_at", null)
-          .gte("created_at", from ?? "1970-01-01").lte("created_at", to ?? new Date().toISOString())
+          .select(
+            "id, status, started_at, completed_at, assigned_technician_id, technician:profiles!service_orders_assigned_technician_id_fkey(full_name)",
+          )
+          .eq("company_id", companyId)
+          .is("deleted_at", null)
+          .gte("created_at", from ?? "1970-01-01")
+          .lte("created_at", to ?? new Date().toISOString())
           .limit(2000);
-        const grouped = new Map<string, { name: string; atribuidas: number; concluidas: number; andamento: number; durTotalMs: number; durCount: number }>();
+        const grouped = new Map<
+          string,
+          {
+            name: string;
+            atribuidas: number;
+            concluidas: number;
+            andamento: number;
+            durTotalMs: number;
+            durCount: number;
+          }
+        >();
         (rows ?? []).forEach((o: any) => {
           const id = o.assigned_technician_id ?? "—";
           const name = o.technician?.full_name ?? "Não atribuído";
-          const g = grouped.get(id) ?? { name, atribuidas: 0, concluidas: 0, andamento: 0, durTotalMs: 0, durCount: 0 };
+          const g = grouped.get(id) ?? {
+            name,
+            atribuidas: 0,
+            concluidas: 0,
+            andamento: 0,
+            durTotalMs: 0,
+            durCount: 0,
+          };
           g.atribuidas += 1;
           if (o.status === "completed") g.concluidas += 1;
           if (o.status === "in_progress") g.andamento += 1;
@@ -550,7 +685,8 @@ export const getReport = createServerFn({ method: "POST" })
           atribuidas: g.atribuidas,
           concluidas: g.concluidas,
           andamento: g.andamento,
-          tempo_medio_horas: g.durCount > 0 ? Number((g.durTotalMs / g.durCount / 3600000).toFixed(2)) : 0,
+          tempo_medio_horas:
+            g.durCount > 0 ? Number((g.durTotalMs / g.durCount / 3600000).toFixed(2)) : 0,
         }));
         const totalAtrib = tableRows.reduce((a, r) => a + Number(r.atribuidas ?? 0), 0);
         const totalConcl = tableRows.reduce((a, r) => a + Number(r.concluidas ?? 0), 0);

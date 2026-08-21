@@ -18,22 +18,42 @@ export type ChartOfAccountsSeedNode = {
 
 // Helpers to keep the list compact and consistent.
 const rev = (code: string, name: string): ChartOfAccountsSeedNode => ({
-  code, name, type: "INCOME", category_group: "REVENUE",
+  code,
+  name,
+  type: "INCOME",
+  category_group: "REVENUE",
 });
 const varc = (code: string, name: string): ChartOfAccountsSeedNode => ({
-  code, name, type: "EXPENSE", category_group: "VARIABLE_COST", cost_behavior: "VARIABLE",
+  code,
+  name,
+  type: "EXPENSE",
+  category_group: "VARIABLE_COST",
+  cost_behavior: "VARIABLE",
 });
 const fix = (code: string, name: string): ChartOfAccountsSeedNode => ({
-  code, name, type: "EXPENSE", category_group: "FIXED_EXPENSE", cost_behavior: "FIXED",
+  code,
+  name,
+  type: "EXPENSE",
+  category_group: "FIXED_EXPENSE",
+  cost_behavior: "FIXED",
 });
 const inv = (code: string, name: string): ChartOfAccountsSeedNode => ({
-  code, name, type: "EXPENSE", category_group: "INVESTMENT",
+  code,
+  name,
+  type: "EXPENSE",
+  category_group: "INVESTMENT",
 });
 const nop = (code: string, name: string): ChartOfAccountsSeedNode => ({
-  code, name, type: "EXPENSE", category_group: "NON_OPERATIONAL",
+  code,
+  name,
+  type: "EXPENSE",
+  category_group: "NON_OPERATIONAL",
 });
 const cash = (code: string, name: string): ChartOfAccountsSeedNode => ({
-  code, name, type: "EXPENSE", category_group: "CASH_ADJUSTMENT",
+  code,
+  name,
+  type: "EXPENSE",
+  category_group: "CASH_ADJUSTMENT",
 });
 
 /**

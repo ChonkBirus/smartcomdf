@@ -2,13 +2,18 @@ import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { getCrmReports } from "@/lib/crm.functions";
 import { buildCrmReportCsv } from "@/lib/crm-reports-csv";
-
 
 function downloadCsv(filename: string, csv: string) {
   const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
@@ -64,9 +69,6 @@ export function CrmReportsPanel() {
     }
   };
 
-
-
-
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -74,7 +76,13 @@ export function CrmReportsPanel() {
           Período: últimos <span className="font-medium text-foreground">{days}</span> dias
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting} aria-busy={exporting}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            disabled={exporting}
+            aria-busy={exporting}
+          >
             {exporting ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
@@ -83,7 +91,9 @@ export function CrmReportsPanel() {
             {exporting ? "Exportando…" : "Exportar CSV"}
           </Button>
           <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
-            <SelectTrigger className="h-9 w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-9 w-[160px]">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="7">Últimos 7 dias</SelectItem>
               <SelectItem value="30">Últimos 30 dias</SelectItem>
@@ -95,28 +105,40 @@ export function CrmReportsPanel() {
         </div>
       </div>
 
-
       <div className="grid gap-4 md:grid-cols-2">
         <BreakdownCard
           title="Leads por origem"
           rows={data.bySource.map((r) => ({
-            key: r.key, label: r.label, primary: `${r.count}`, secondary: brl(r.value), weight: r.count,
+            key: r.key,
+            label: r.label,
+            primary: `${r.count}`,
+            secondary: brl(r.value),
+            weight: r.count,
           }))}
         />
         <BreakdownCard
           title="Leads por temperatura"
           rows={data.byTemperature.map((r) => ({
-            key: r.key, label: r.label, primary: `${r.count}`, secondary: brl(r.value), weight: r.count,
+            key: r.key,
+            label: r.label,
+            primary: `${r.count}`,
+            secondary: brl(r.value),
+            weight: r.count,
           }))}
         />
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">Performance por responsável</CardTitle></CardHeader>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Performance por responsável</CardTitle>
+          </CardHeader>
           <CardContent className="space-y-2">
             {data.byAssigned.length === 0 && (
               <p className="text-sm text-muted-foreground">Sem dados no período.</p>
             )}
             {data.byAssigned.map((r) => (
-              <div key={r.key} className="flex items-center justify-between rounded-md border border-border p-2 text-sm">
+              <div
+                key={r.key}
+                className="flex items-center justify-between rounded-md border border-border p-2 text-sm"
+              >
                 <div className="min-w-0">
                   <div className="truncate font-medium">{r.label}</div>
                   <div className="text-xs text-muted-foreground">
@@ -129,13 +151,18 @@ export function CrmReportsPanel() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">Motivos de perda</CardTitle></CardHeader>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Motivos de perda</CardTitle>
+          </CardHeader>
           <CardContent className="space-y-2">
             {data.lostReasons.length === 0 && (
               <p className="text-sm text-muted-foreground">Nenhum motivo registrado.</p>
             )}
             {data.lostReasons.map((r) => (
-              <div key={r.reason} className="flex items-center justify-between rounded-md border border-border p-2 text-sm">
+              <div
+                key={r.reason}
+                className="flex items-center justify-between rounded-md border border-border p-2 text-sm"
+              >
                 <span className="line-clamp-2 pr-2">{r.reason}</span>
                 <span className="text-xs font-medium text-muted-foreground">{r.count}x</span>
               </div>
@@ -148,7 +175,8 @@ export function CrmReportsPanel() {
 }
 
 function BreakdownCard({
-  title, rows,
+  title,
+  rows,
 }: {
   title: string;
   rows: { key: string; label: string; primary: string; secondary: string; weight: number }[];
@@ -156,9 +184,13 @@ function BreakdownCard({
   const max = rows.reduce((m, r) => Math.max(m, r.weight), 0) || 1;
   return (
     <Card>
-      <CardHeader className="pb-2"><CardTitle className="text-base">{title}</CardTitle></CardHeader>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">{title}</CardTitle>
+      </CardHeader>
       <CardContent className="space-y-2">
-        {rows.length === 0 && <p className="text-sm text-muted-foreground">Sem dados no período.</p>}
+        {rows.length === 0 && (
+          <p className="text-sm text-muted-foreground">Sem dados no período.</p>
+        )}
         {rows.map((r) => (
           <div key={r.key} className="space-y-1">
             <div className="flex items-center justify-between text-sm">
@@ -168,7 +200,10 @@ function BreakdownCard({
               </span>
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-              <div className="h-full rounded-full bg-primary" style={{ width: `${(r.weight / max) * 100}%` }} />
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{ width: `${(r.weight / max) * 100}%` }}
+              />
             </div>
           </div>
         ))}

@@ -84,7 +84,9 @@ describe("CustomerImportDialog — loading/disabled states", () => {
     await waitFor(() => expect(getFileInput().disabled).toBe(true));
     const cancelBtn = screen.getByRole("button", { name: /cancelar/i });
     expect(cancelBtn).toBeDisabled();
-    expect(screen.getAllByText(/processando arquivo|validando|importando/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/processando arquivo|validando|importando/i).length).toBeGreaterThan(
+      0,
+    );
 
     // espera o parseFile + chamada de createFn antes de resolver
     await waitFor(() => expect(createFn).toHaveBeenCalled());
@@ -128,7 +130,9 @@ describe("CustomerImportDialog — loading/disabled states", () => {
       rejectValidate(new Error("falha de rede"));
     });
 
-    await waitFor(() => expect(screen.getByRole("button", { name: /validar/i })).not.toBeDisabled());
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /validar/i })).not.toBeDisabled(),
+    );
     expect(screen.queryByText(/validando linhas/i)).toBeNull();
     expect(toast.error).toHaveBeenCalledWith("falha de rede");
   });
@@ -158,7 +162,15 @@ describe("CustomerImportDialog — loading/disabled states", () => {
   it("lê o CSV mínimo, mostra preview com 2 válidos e confirma importação", async () => {
     createFn.mockResolvedValue({
       job_id: "job-1",
-      headers: ["tipo_cliente", "nome_razao_social", "cpf_cnpj", "telefone", "email", "cidade", "uf"],
+      headers: [
+        "tipo_cliente",
+        "nome_razao_social",
+        "cpf_cnpj",
+        "telefone",
+        "email",
+        "cidade",
+        "uf",
+      ],
       mapping: {
         tipo_cliente: "customer_type",
         nome_razao_social: "name",
@@ -186,7 +198,14 @@ describe("CustomerImportDialog — loading/disabled states", () => {
         action: "CREATE",
         status: "VALID",
         validation_errors: null,
-        mapped_data: { customer_type: "INDIVIDUAL", name: "Cliente Importado PF", cpf_cnpj: "12345678900", phone: "61999999999", addr_city: "Brasília", addr_state: "DF" },
+        mapped_data: {
+          customer_type: "INDIVIDUAL",
+          name: "Cliente Importado PF",
+          cpf_cnpj: "12345678900",
+          phone: "61999999999",
+          addr_city: "Brasília",
+          addr_state: "DF",
+        },
       },
       {
         id: "row-2",
@@ -194,7 +213,14 @@ describe("CustomerImportDialog — loading/disabled states", () => {
         action: "CREATE",
         status: "VALID",
         validation_errors: null,
-        mapped_data: { customer_type: "COMPANY", name: "Cliente Importado PJ", cpf_cnpj: "11222333000181", phone: "6133333333", addr_city: "Brasília", addr_state: "DF" },
+        mapped_data: {
+          customer_type: "COMPANY",
+          name: "Cliente Importado PJ",
+          cpf_cnpj: "11222333000181",
+          phone: "6133333333",
+          addr_city: "Brasília",
+          addr_state: "DF",
+        },
       },
     ]);
     confirmFn.mockResolvedValue({ created: 2, updated: 0, skipped: 0, addresses: 2, contacts: 2 });

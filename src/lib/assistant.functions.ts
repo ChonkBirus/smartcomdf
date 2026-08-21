@@ -57,7 +57,9 @@ export const createConversation = createServerFn({ method: "POST" })
 export const renameConversation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({ conversationId: z.string().uuid(), title: z.string().trim().min(1).max(120) }).parse(d),
+    z
+      .object({ conversationId: z.string().uuid(), title: z.string().trim().min(1).max(120) })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;

@@ -9,16 +9,31 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  listMaterialUsage, listPlannedStockItems, listStockableProducts,
-  listStockLocations, checkStockAvailability,
-  addMaterialUsage, updateMaterialUsage,
-  type PlannedItem, type MaterialUsage, type StockableProduct,
+  listMaterialUsage,
+  listPlannedStockItems,
+  listStockableProducts,
+  listStockLocations,
+  checkStockAvailability,
+  addMaterialUsage,
+  updateMaterialUsage,
+  type PlannedItem,
+  type MaterialUsage,
+  type StockableProduct,
 } from "@/lib/service-order-materials.functions";
 
 type Status = "DRAFT" | "SCHEDULED" | "IN_PROGRESS" | "PAUSED" | "COMPLETED" | "CANCELLED";
@@ -58,10 +73,7 @@ export function ServiceOrderMaterials({
     return map;
   }, [usage]);
 
-  const extras = useMemo(
-    () => usage.filter((u) => !u.service_order_item_id),
-    [usage],
-  );
+  const extras = useMemo(() => usage.filter((u) => !u.service_order_item_id), [usage]);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["so-mat-usage", serviceOrderId] });
@@ -73,7 +85,8 @@ export function ServiceOrderMaterials({
     <div className="space-y-4">
       {planned.length === 0 && extras.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Nenhum produto com controle de estoque previsto. Use o botão abaixo para adicionar material extra.
+          Nenhum produto com controle de estoque previsto. Use o botão abaixo para adicionar
+          material extra.
         </p>
       ) : (
         <ul className="space-y-2">
@@ -94,12 +107,7 @@ export function ServiceOrderMaterials({
               </div>
               <ul className="space-y-2">
                 {extras.map((u) => (
-                  <ExtraRow
-                    key={u.id}
-                    usage={u}
-                    editable={editable}
-                    onChange={invalidate}
-                  />
+                  <ExtraRow key={u.id} usage={u} editable={editable} onChange={invalidate} />
                 ))}
               </ul>
             </li>
@@ -107,15 +115,17 @@ export function ServiceOrderMaterials({
         </ul>
       )}
 
-      {editable && (
-        <ExtraMaterialDialog serviceOrderId={serviceOrderId} onAdded={invalidate} />
-      )}
+      {editable && <ExtraMaterialDialog serviceOrderId={serviceOrderId} onAdded={invalidate} />}
     </div>
   );
 }
 
 function PlannedRow({
-  planned, usages, serviceOrderId, editable, onChange,
+  planned,
+  usages,
+  serviceOrderId,
+  editable,
+  onChange,
 }: {
   planned: PlannedItem;
   usages: MaterialUsage[];
@@ -130,8 +140,11 @@ function PlannedRow({
     <li className="rounded-md border p-3">
       <div className="flex gap-3">
         {planned.image_url ? (
-          <img src={planned.image_url} alt={planned.name}
-            className="h-12 w-12 rounded object-cover bg-muted shrink-0" />
+          <img
+            src={planned.image_url}
+            alt={planned.name}
+            className="h-12 w-12 rounded object-cover bg-muted shrink-0"
+          />
         ) : (
           <div className="h-12 w-12 rounded bg-muted shrink-0" />
         )}
@@ -141,7 +154,8 @@ function PlannedRow({
             {warn && <StockWarningBadge />}
           </div>
           <div className="text-xs text-muted-foreground">
-            Previsto: {planned.planned_quantity} {planned.unit} · Utilizado: {totalUsed} {planned.unit}
+            Previsto: {planned.planned_quantity} {planned.unit} · Utilizado: {totalUsed}{" "}
+            {planned.unit}
           </div>
         </div>
       </div>
@@ -169,9 +183,13 @@ function PlannedRow({
 }
 
 function ExtraRow({
-  usage, editable, onChange,
+  usage,
+  editable,
+  onChange,
 }: {
-  usage: MaterialUsage; editable: boolean; onChange: () => void;
+  usage: MaterialUsage;
+  editable: boolean;
+  onChange: () => void;
 }) {
   return (
     <li className="rounded-md border p-3">
@@ -185,9 +203,7 @@ function ExtraRow({
         </div>
         <div className="flex items-center gap-2">
           {usage.stock_warning && <StockWarningBadge />}
-          {editable && (
-            <UsageDialog mode="edit" usage={usage} onSaved={onChange} />
-          )}
+          {editable && <UsageDialog mode="edit" usage={usage} onSaved={onChange} />}
         </div>
       </div>
     </li>
@@ -195,15 +211,24 @@ function ExtraRow({
 }
 
 function UsageInlineRow({
-  usage, editable, onChange,
+  usage,
+  editable,
+  onChange,
 }: {
-  usage: MaterialUsage; editable: boolean; onChange: () => void;
+  usage: MaterialUsage;
+  editable: boolean;
+  onChange: () => void;
 }) {
   return (
     <div className="flex items-center justify-between gap-2 rounded bg-muted/40 px-2 py-1 text-xs">
       <span>
         {usage.used_quantity} {usage.unit ?? ""} · {usage.location_name ?? "—"}
-        {usage.stock_warning && <> · <span className="text-amber-700">acima do saldo</span></>}
+        {usage.stock_warning && (
+          <>
+            {" "}
+            · <span className="text-amber-700">acima do saldo</span>
+          </>
+        )}
       </span>
       {editable && <UsageDialog mode="edit" usage={usage} onSaved={onChange} small />}
     </div>
@@ -219,7 +244,12 @@ export function StockWarningBadge() {
 }
 
 function UsageDialog({
-  mode, serviceOrderId, plannedItem, usage, onSaved, small,
+  mode,
+  serviceOrderId,
+  plannedItem,
+  usage,
+  onSaved,
+  small,
 }: {
   mode: "add" | "edit";
   serviceOrderId?: string;
@@ -230,7 +260,7 @@ function UsageDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState<string>(
-    usage ? String(usage.used_quantity) : (plannedItem ? String(plannedItem.planned_quantity) : ""),
+    usage ? String(usage.used_quantity) : plannedItem ? String(plannedItem.planned_quantity) : "",
   );
   const [locationId, setLocationId] = useState<string>(usage?.stock_location_id ?? "");
   const [notes, setNotes] = useState(usage?.notes ?? "");
@@ -260,31 +290,46 @@ function UsageDialog({
   const save = useMutation({
     mutationFn: async () => {
       if (mode === "add") {
-        if (!plannedItem || !plannedItem.item_id || !serviceOrderId) throw new Error("Dados inválidos");
-        return addFn({ data: {
-          serviceOrderId,
-          itemId: plannedItem.item_id,
-          serviceOrderItemId: plannedItem.id,
-          usedQuantity: qty,
-          locationId,
-          notes: notes.trim() || undefined,
-        }});
+        if (!plannedItem || !plannedItem.item_id || !serviceOrderId)
+          throw new Error("Dados inválidos");
+        return addFn({
+          data: {
+            serviceOrderId,
+            itemId: plannedItem.item_id,
+            serviceOrderItemId: plannedItem.id,
+            usedQuantity: qty,
+            locationId,
+            notes: notes.trim() || undefined,
+          },
+        });
       }
       if (!usage) throw new Error("Dados inválidos");
-      return updateFn({ data: {
-        id: usage.id,
-        usedQuantity: qty,
-        locationId: locationId || undefined,
-        notes: notes.trim() || undefined,
-      }});
+      return updateFn({
+        data: {
+          id: usage.id,
+          usedQuantity: qty,
+          locationId: locationId || undefined,
+          notes: notes.trim() || undefined,
+        },
+      });
     },
-    onSuccess: () => { onSaved(); setOpen(false); toast.success("Material registrado."); },
+    onSuccess: () => {
+      onSaved();
+      setOpen(false);
+      toast.success("Material registrado.");
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao salvar"),
   });
 
   const submit = () => {
-    if (qty <= 0) { toast.error("Quantidade deve ser maior que zero."); return; }
-    if (!locationId) { toast.error("Selecione o local de estoque."); return; }
+    if (qty <= 0) {
+      toast.error("Quantidade deve ser maior que zero.");
+      return;
+    }
+    if (!locationId) {
+      toast.error("Selecione o local de estoque.");
+      return;
+    }
     save.mutate();
   };
 
@@ -302,7 +347,9 @@ function UsageDialog({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {mode === "add" ? `Registrar uso — ${plannedItem?.name}` : `Editar ${usage?.item_name}`}
+              {mode === "add"
+                ? `Registrar uso — ${plannedItem?.name}`
+                : `Editar ${usage?.item_name}`}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
@@ -310,35 +357,52 @@ function UsageDialog({
               <div>
                 <Label>Quantidade *</Label>
                 <Input
-                  type="number" inputMode="decimal" step="0.001" min="0"
-                  value={quantity} onChange={(e) => setQuantity(e.target.value)}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.001"
+                  min="0"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
                 />
               </div>
               <div>
                 <Label>Local de estoque *</Label>
                 <Select value={locationId} onValueChange={setLocationId}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
                   <SelectContent>
                     {locations.map((l) => (
-                      <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
+                      <SelectItem key={l.id} value={l.id}>
+                        {l.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
             {locationId && itemId && (
-              <p className={`text-xs ${willWarn ? "text-amber-700 dark:text-amber-300" : "text-muted-foreground"}`}>
+              <p
+                className={`text-xs ${willWarn ? "text-amber-700 dark:text-amber-300" : "text-muted-foreground"}`}
+              >
                 Saldo disponível: {balance ?? "—"}
                 {willWarn && " — quantidade utilizada maior que o saldo (será salvo com alerta)."}
               </p>
             )}
             <div>
               <Label>Observação</Label>
-              <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} />
+              <Textarea
+                rows={2}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                maxLength={500}
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
             <Button onClick={submit} disabled={save.isPending}>
               {save.isPending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />} Salvar
             </Button>
@@ -350,8 +414,12 @@ function UsageDialog({
 }
 
 function ExtraMaterialDialog({
-  serviceOrderId, onAdded,
-}: { serviceOrderId: string; onAdded: () => void }) {
+  serviceOrderId,
+  onAdded,
+}: {
+  serviceOrderId: string;
+  onAdded: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<StockableProduct | null>(null);
@@ -382,28 +450,48 @@ function ExtraMaterialDialog({
 
   useEffect(() => {
     if (!open) {
-      setSelected(null); setQuantity(""); setLocationId(""); setNotes(""); setSearch("");
+      setSelected(null);
+      setQuantity("");
+      setLocationId("");
+      setNotes("");
+      setSearch("");
     }
   }, [open]);
 
   const qty = Number(quantity || 0);
 
   const add = useMutation({
-    mutationFn: () => addFn({ data: {
-      serviceOrderId,
-      itemId: selected!.id,
-      usedQuantity: qty,
-      locationId,
-      notes: notes.trim() || undefined,
-    }}),
-    onSuccess: () => { onAdded(); setOpen(false); toast.success("Material extra registrado."); },
+    mutationFn: () =>
+      addFn({
+        data: {
+          serviceOrderId,
+          itemId: selected!.id,
+          usedQuantity: qty,
+          locationId,
+          notes: notes.trim() || undefined,
+        },
+      }),
+    onSuccess: () => {
+      onAdded();
+      setOpen(false);
+      toast.success("Material extra registrado.");
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao registrar"),
   });
 
   const submit = () => {
-    if (!selected) { toast.error("Selecione o produto."); return; }
-    if (qty <= 0) { toast.error("Quantidade deve ser maior que zero."); return; }
-    if (!locationId) { toast.error("Selecione o local de estoque."); return; }
+    if (!selected) {
+      toast.error("Selecione o produto.");
+      return;
+    }
+    if (qty <= 0) {
+      toast.error("Quantidade deve ser maior que zero.");
+      return;
+    }
+    if (!locationId) {
+      toast.error("Selecione o local de estoque.");
+      return;
+    }
     add.mutate();
   };
 
@@ -424,7 +512,8 @@ function ExtraMaterialDialog({
             <Label>Produto *</Label>
             <Input
               placeholder="Buscar produto"
-              value={search} onChange={(e) => setSearch(e.target.value)}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
             <div className="max-h-40 overflow-auto mt-1 rounded border">
               {products.length === 0 ? (
@@ -437,7 +526,8 @@ function ExtraMaterialDialog({
                     className={`block w-full text-left text-sm px-2 py-1.5 hover:bg-muted ${selected?.id === p.id ? "bg-muted" : ""}`}
                     onClick={() => setSelected(p)}
                   >
-                    {p.name} {p.sku && <span className="text-xs text-muted-foreground">· {p.sku}</span>}
+                    {p.name}{" "}
+                    {p.sku && <span className="text-xs text-muted-foreground">· {p.sku}</span>}
                   </button>
                 ))
               )}
@@ -447,35 +537,54 @@ function ExtraMaterialDialog({
             <div>
               <Label>Quantidade *</Label>
               <Input
-                type="number" inputMode="decimal" step="0.001" min="0"
-                value={quantity} onChange={(e) => setQuantity(e.target.value)}
+                type="number"
+                inputMode="decimal"
+                step="0.001"
+                min="0"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
               />
             </div>
             <div>
               <Label>Local de estoque *</Label>
               <Select value={locationId} onValueChange={setLocationId}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
                 <SelectContent>
                   {locations.map((l) => (
-                    <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
+                    <SelectItem key={l.id} value={l.id}>
+                      {l.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
           {selected && locationId && (
-            <p className={`text-xs ${balance !== undefined && qty > Number(balance) ? "text-amber-700 dark:text-amber-300" : "text-muted-foreground"}`}>
+            <p
+              className={`text-xs ${balance !== undefined && qty > Number(balance) ? "text-amber-700 dark:text-amber-300" : "text-muted-foreground"}`}
+            >
               Saldo disponível: {balance ?? "—"}
-              {balance !== undefined && qty > Number(balance) && " — acima do saldo (será salvo com alerta)."}
+              {balance !== undefined &&
+                qty > Number(balance) &&
+                " — acima do saldo (será salvo com alerta)."}
             </p>
           )}
           <div>
             <Label>Observação</Label>
-            <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} />
+            <Textarea
+              rows={2}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              maxLength={500}
+            />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancelar
+          </Button>
           <Button onClick={submit} disabled={add.isPending}>
             {add.isPending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />} Adicionar
           </Button>

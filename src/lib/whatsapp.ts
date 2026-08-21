@@ -104,7 +104,10 @@ export type QuotePixWaInput = {
 
 /** Mensagem padrão do Pix da entrada (inclui link público oficial da proposta). */
 export function buildQuotePixWhatsAppMessage({
-  quote, customer, payment, companyPixKey,
+  quote,
+  customer,
+  payment,
+  companyPixKey,
 }: QuotePixWaInput): string {
   const url = publicShareUrl(`/q/${quote.public_token}`);
   const who = customer?.trade_name || customer?.name || "cliente";
@@ -132,4 +135,3 @@ export function buildQuotePixWhatsAppMessage({
   ].filter(Boolean);
   return lines.join("\n");
 }
-

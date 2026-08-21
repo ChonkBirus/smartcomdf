@@ -71,11 +71,8 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     if (!plan) throw new Error("Plano não encontrado.");
 
     const baseAmount =
-      data.billing_cycle === "YEARLY"
-        ? Number(plan.annual_price)
-        : Number(plan.monthly_price);
-    if (!baseAmount || baseAmount <= 0)
-      throw new Error("Valor de plano inválido.");
+      data.billing_cycle === "YEARLY" ? Number(plan.annual_price) : Number(plan.monthly_price);
+    if (!baseAmount || baseAmount <= 0) throw new Error("Valor de plano inválido.");
 
     // Validate coupon (if provided)
     let appliedCoupon: {
@@ -105,10 +102,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         !coupon.eligible_plan_ids.includes(plan.id)
       )
         throw new Error("Cupom não é válido para este plano.");
-      if (
-        coupon.max_redemptions != null &&
-        coupon.redemption_count >= coupon.max_redemptions
-      )
+      if (coupon.max_redemptions != null && coupon.redemption_count >= coupon.max_redemptions)
         throw new Error("Cupom esgotado.");
       if (coupon.max_redemptions_per_company != null) {
         const { count } = await supabase
@@ -153,9 +147,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       .maybeSingle();
 
     // Admin client + Asaas adapter — server-only imports
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const asaas = await import("@/lib/asaas.server");
 
     // Ensure billing_customers row + Asaas customer
@@ -170,18 +162,14 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
 
     if (!providerCustomerId) {
       // Try to find existing in Asaas by externalReference (companyId)
-      const found = await asaas
-        .asaasFindCustomerByExternalRef(companyId)
-        .catch(() => null);
+      const found = await asaas.asaasFindCustomerByExternalRef(companyId).catch(() => null);
       const asaasCust =
         found ??
         (await asaas.asaasCreateCustomer({
           name: company.corporate_name || company.trade_name || "Cliente",
           cpfCnpj: company.cnpj?.replace(/\D/g, "") || undefined,
           email: company.email || profile?.email || undefined,
-          mobilePhone:
-            (company.whatsapp || company.phone || "").replace(/\D/g, "") ||
-            undefined,
+          mobilePhone: (company.whatsapp || company.phone || "").replace(/\D/g, "") || undefined,
           externalReference: companyId,
         }));
       providerCustomerId = asaasCust.id;
@@ -289,18 +277,16 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     if (chargeErr) throw new Error(chargeErr.message);
 
     if (appliedCoupon) {
-      const { error: redErr } = await supabaseAdmin
-        .from("billing_coupon_redemptions")
-        .insert({
-          coupon_id: appliedCoupon.id,
-          company_id: companyId,
-          subscription_id: currentSub?.id ?? null,
-          charge_id: charge.id,
-          checkout_session_id: session.id,
-          original_amount: baseAmount,
-          discount_amount: discountAmount,
-          final_amount: amount,
-        });
+      const { error: redErr } = await supabaseAdmin.from("billing_coupon_redemptions").insert({
+        coupon_id: appliedCoupon.id,
+        company_id: companyId,
+        subscription_id: currentSub?.id ?? null,
+        charge_id: charge.id,
+        checkout_session_id: session.id,
+        original_amount: baseAmount,
+        discount_amount: discountAmount,
+        final_amount: amount,
+      });
       if (redErr) {
         console.error("[checkout] coupon redemption insert failed", redErr);
       } else {

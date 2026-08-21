@@ -3,7 +3,15 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  ArrowLeft, Package, User2, MapPin, FileText, Briefcase, XCircle, Save, Wrench,
+  ArrowLeft,
+  Package,
+  User2,
+  MapPin,
+  FileText,
+  Briefcase,
+  XCircle,
+  Save,
+  Wrench,
 } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PermissionRoute, Can } from "@/components/app/PermissionRoute";
@@ -14,19 +22,38 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
-  getServiceOrder, updateServiceOrder, cancelServiceOrder, listCompanyTechnicians,
-  type ServiceOrderStatus, type ServiceOrderPriority,
+  getServiceOrder,
+  updateServiceOrder,
+  cancelServiceOrder,
+  listCompanyTechnicians,
+  type ServiceOrderStatus,
+  type ServiceOrderPriority,
 } from "@/lib/service-orders.functions";
 import { ServiceOrderFinancialSummary } from "@/components/finance/ServiceOrderFinancialSummary";
 import { ServiceOrderCosts } from "@/components/service-orders/ServiceOrderCosts";
@@ -45,15 +72,29 @@ export const Route = createFileRoute("/_authenticated/service-orders_/$id")({
 });
 
 const STATUS_LABEL: Record<ServiceOrderStatus, string> = {
-  DRAFT: "Rascunho", SCHEDULED: "Agendada", IN_PROGRESS: "Em execução",
-  PAUSED: "Pausada", COMPLETED: "Concluída", CANCELLED: "Cancelada",
+  DRAFT: "Rascunho",
+  SCHEDULED: "Agendada",
+  IN_PROGRESS: "Em execução",
+  PAUSED: "Pausada",
+  COMPLETED: "Concluída",
+  CANCELLED: "Cancelada",
 };
-const STATUS_VARIANT: Record<ServiceOrderStatus, "default" | "secondary" | "destructive" | "outline"> = {
-  DRAFT: "outline", SCHEDULED: "secondary", IN_PROGRESS: "default",
-  PAUSED: "outline", COMPLETED: "default", CANCELLED: "destructive",
+const STATUS_VARIANT: Record<
+  ServiceOrderStatus,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
+  DRAFT: "outline",
+  SCHEDULED: "secondary",
+  IN_PROGRESS: "default",
+  PAUSED: "outline",
+  COMPLETED: "default",
+  CANCELLED: "destructive",
 };
 const PRIORITY_LABEL: Record<ServiceOrderPriority, string> = {
-  LOW: "Baixa", NORMAL: "Normal", HIGH: "Alta", URGENT: "Urgente",
+  LOW: "Baixa",
+  NORMAL: "Normal",
+  HIGH: "Alta",
+  URGENT: "Urgente",
 };
 
 function ServiceOrderDetailPage() {
@@ -137,13 +178,16 @@ function ServiceOrderDetailPage() {
               <Badge variant="outline">{PRIORITY_LABEL[so.priority]}</Badge>
               {!editing && !locked && (
                 <Can module="service_orders" action="edit">
-                  <Button variant="outline" size="sm" onClick={() => setEditing(true)}>Editar</Button>
+                  <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+                    Editar
+                  </Button>
                 </Can>
               )}
               {!locked && (
                 <Can module="service_orders" action="cancel">
                   <Button variant="destructive" size="sm" onClick={() => setCancelOpen(true)}>
-                    <XCircle className="mr-1 h-4 w-4" />Cancelar
+                    <XCircle className="mr-1 h-4 w-4" />
+                    Cancelar
                   </Button>
                 </Can>
               )}
@@ -155,14 +199,16 @@ function ServiceOrderDetailPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <div className="rounded-lg border bg-card p-4">
           <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-            <User2 className="h-4 w-4" />Cliente
+            <User2 className="h-4 w-4" />
+            Cliente
           </div>
           <div className="text-sm">
             <p className="font-medium">{so.customer_name}</p>
             {customer?.cpf_cnpj && <p className="text-muted-foreground">{customer.cpf_cnpj}</p>}
             {contact?.name && (
               <p className="mt-2 text-muted-foreground">
-                Contato: {contact.name}{contact.phone ? ` · ${contact.phone}` : ""}
+                Contato: {contact.name}
+                {contact.phone ? ` · ${contact.phone}` : ""}
               </p>
             )}
           </div>
@@ -170,23 +216,30 @@ function ServiceOrderDetailPage() {
 
         <div className="rounded-lg border bg-card p-4">
           <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-            <MapPin className="h-4 w-4" />Endereço de instalação
+            <MapPin className="h-4 w-4" />
+            Endereço de instalação
           </div>
           <div className="text-sm text-muted-foreground">
             {address ? (
               <p>
-                {address.street}{address.number ? `, ${address.number}` : ""}
-                {address.neighborhood ? ` — ${address.neighborhood}` : ""}<br />
-                {address.city}{address.state ? `/${address.state}` : ""}
+                {address.street}
+                {address.number ? `, ${address.number}` : ""}
+                {address.neighborhood ? ` — ${address.neighborhood}` : ""}
+                <br />
+                {address.city}
+                {address.state ? `/${address.state}` : ""}
                 {address.zip_code ? ` · ${address.zip_code}` : ""}
               </p>
-            ) : "Não informado."}
+            ) : (
+              "Não informado."
+            )}
           </div>
         </div>
 
         <div className="rounded-lg border bg-card p-4">
           <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-            <Briefcase className="h-4 w-4" />Origem
+            <Briefcase className="h-4 w-4" />
+            Origem
           </div>
           <div className="space-y-1 text-sm">
             {project && (
@@ -198,15 +251,15 @@ function ServiceOrderDetailPage() {
             )}
             {quote && (
               <div className="flex items-center gap-1 text-muted-foreground">
-                <FileText className="h-3 w-3" />Orçamento {quote.quote_number}
+                <FileText className="h-3 w-3" />
+                Orçamento {quote.quote_number}
               </div>
             )}
+            <p className="text-muted-foreground">Técnico: {so.technician_name ?? "—"}</p>
             <p className="text-muted-foreground">
-              Técnico: {so.technician_name ?? "—"}
-            </p>
-            <p className="text-muted-foreground">
-              Agendamento: {so.scheduled_date ? new Date(so.scheduled_date).toLocaleDateString("pt-BR") : "—"}
-              {so.scheduled_start_time ? ` às ${so.scheduled_start_time.slice(0,5)}` : ""}
+              Agendamento:{" "}
+              {so.scheduled_date ? new Date(so.scheduled_date).toLocaleDateString("pt-BR") : "—"}
+              {so.scheduled_start_time ? ` às ${so.scheduled_start_time.slice(0, 5)}` : ""}
             </p>
           </div>
         </div>
@@ -220,107 +273,155 @@ function ServiceOrderDetailPage() {
               <Label>Técnico responsável</Label>
               <Select
                 value={form.assigned_technician_id ?? "NONE"}
-                onValueChange={(v) => setForm({ ...form, assigned_technician_id: v === "NONE" ? null : v })}
+                onValueChange={(v) =>
+                  setForm({ ...form, assigned_technician_id: v === "NONE" ? null : v })
+                }
               >
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="NONE">— Sem técnico —</SelectItem>
                   {technicians.map((t: any) => (
-                    <SelectItem key={t.id} value={t.id}>{t.full_name ?? t.email}</SelectItem>
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.full_name ?? t.email}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label>Prioridade</Label>
-              <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={form.priority}
+                onValueChange={(v) => setForm({ ...form, priority: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {Object.entries(PRIORITY_LABEL).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                    <SelectItem key={k} value={k}>
+                      {v}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label>Data agendada</Label>
-              <Input type="date" value={form.scheduled_date ?? ""}
-                onChange={(e) => setForm({ ...form, scheduled_date: e.target.value || null })} />
+              <Input
+                type="date"
+                value={form.scheduled_date ?? ""}
+                onChange={(e) => setForm({ ...form, scheduled_date: e.target.value || null })}
+              />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <Label>Início</Label>
-                <Input type="time" value={form.scheduled_start_time ?? ""}
-                  onChange={(e) => setForm({ ...form, scheduled_start_time: e.target.value || null })} />
+                <Input
+                  type="time"
+                  value={form.scheduled_start_time ?? ""}
+                  onChange={(e) =>
+                    setForm({ ...form, scheduled_start_time: e.target.value || null })
+                  }
+                />
               </div>
               <div>
                 <Label>Fim</Label>
-                <Input type="time" value={form.scheduled_end_time ?? ""}
-                  onChange={(e) => setForm({ ...form, scheduled_end_time: e.target.value || null })} />
+                <Input
+                  type="time"
+                  value={form.scheduled_end_time ?? ""}
+                  onChange={(e) => setForm({ ...form, scheduled_end_time: e.target.value || null })}
+                />
               </div>
             </div>
             <div className="md:col-span-2">
               <Label>Instruções do cliente</Label>
-              <Textarea value={form.customer_instructions ?? ""}
-                onChange={(e) => setForm({ ...form, customer_instructions: e.target.value })} />
+              <Textarea
+                value={form.customer_instructions ?? ""}
+                onChange={(e) => setForm({ ...form, customer_instructions: e.target.value })}
+              />
             </div>
             <div>
               <Label>Instruções de acesso</Label>
-              <Textarea value={form.access_instructions ?? ""}
-                onChange={(e) => setForm({ ...form, access_instructions: e.target.value })} />
+              <Textarea
+                value={form.access_instructions ?? ""}
+                onChange={(e) => setForm({ ...form, access_instructions: e.target.value })}
+              />
             </div>
             <div>
               <Label>Instruções de estacionamento</Label>
-              <Textarea value={form.parking_instructions ?? ""}
-                onChange={(e) => setForm({ ...form, parking_instructions: e.target.value })} />
+              <Textarea
+                value={form.parking_instructions ?? ""}
+                onChange={(e) => setForm({ ...form, parking_instructions: e.target.value })}
+              />
             </div>
             <div className="md:col-span-2">
               <Label>Observações técnicas</Label>
-              <Textarea value={form.technical_notes ?? ""}
-                onChange={(e) => setForm({ ...form, technical_notes: e.target.value })} />
+              <Textarea
+                value={form.technical_notes ?? ""}
+                onChange={(e) => setForm({ ...form, technical_notes: e.target.value })}
+              />
             </div>
           </div>
           <div className="mt-3 flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setEditing(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setEditing(false)}>
+              Cancelar
+            </Button>
             <Button onClick={() => updateMut.mutate(form)} disabled={updateMut.isPending}>
-              <Save className="mr-1 h-4 w-4" />Salvar
+              <Save className="mr-1 h-4 w-4" />
+              Salvar
             </Button>
           </div>
         </div>
       )}
 
-      {(so.customer_instructions || so.access_instructions || so.parking_instructions || so.technical_notes) && !editing && (
-        <div className="grid gap-4 md:grid-cols-2">
-          {so.customer_instructions && (
-            <div className="rounded-lg border bg-card p-4">
-              <div className="mb-1 text-sm font-medium">Instruções do cliente</div>
-              <p className="whitespace-pre-wrap text-sm text-muted-foreground">{so.customer_instructions}</p>
-            </div>
-          )}
-          {so.access_instructions && (
-            <div className="rounded-lg border bg-card p-4">
-              <div className="mb-1 text-sm font-medium">Acesso</div>
-              <p className="whitespace-pre-wrap text-sm text-muted-foreground">{so.access_instructions}</p>
-            </div>
-          )}
-          {so.parking_instructions && (
-            <div className="rounded-lg border bg-card p-4">
-              <div className="mb-1 text-sm font-medium">Estacionamento</div>
-              <p className="whitespace-pre-wrap text-sm text-muted-foreground">{so.parking_instructions}</p>
-            </div>
-          )}
-          {so.technical_notes && (
-            <div className="rounded-lg border bg-card p-4">
-              <div className="mb-1 text-sm font-medium">Observações técnicas</div>
-              <p className="whitespace-pre-wrap text-sm text-muted-foreground">{so.technical_notes}</p>
-            </div>
-          )}
-        </div>
-      )}
+      {(so.customer_instructions ||
+        so.access_instructions ||
+        so.parking_instructions ||
+        so.technical_notes) &&
+        !editing && (
+          <div className="grid gap-4 md:grid-cols-2">
+            {so.customer_instructions && (
+              <div className="rounded-lg border bg-card p-4">
+                <div className="mb-1 text-sm font-medium">Instruções do cliente</div>
+                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                  {so.customer_instructions}
+                </p>
+              </div>
+            )}
+            {so.access_instructions && (
+              <div className="rounded-lg border bg-card p-4">
+                <div className="mb-1 text-sm font-medium">Acesso</div>
+                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                  {so.access_instructions}
+                </p>
+              </div>
+            )}
+            {so.parking_instructions && (
+              <div className="rounded-lg border bg-card p-4">
+                <div className="mb-1 text-sm font-medium">Estacionamento</div>
+                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                  {so.parking_instructions}
+                </p>
+              </div>
+            )}
+            {so.technical_notes && (
+              <div className="rounded-lg border bg-card p-4">
+                <div className="mb-1 text-sm font-medium">Observações técnicas</div>
+                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                  {so.technical_notes}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
       <div className="rounded-lg border bg-card">
         <div className="flex items-center gap-2 border-b p-4 text-sm font-medium">
-          <Package className="h-4 w-4" />Itens previstos
+          <Package className="h-4 w-4" />
+          Itens previstos
         </div>
         <Table>
           <TableHeader>
@@ -335,27 +436,35 @@ function ServiceOrderDetailPage() {
           </TableHeader>
           <TableBody>
             {items.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground">Sem itens.</TableCell></TableRow>
-            ) : items.map((it) => (
-              <TableRow key={it.id}>
-                <TableCell>
-                  {it.image_url ? (
-                    <img src={it.image_url} alt="" className="h-10 w-10 rounded object-cover" />
-                  ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded bg-muted">
-                      <Package className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  )}
+              <TableRow>
+                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                  Sem itens.
                 </TableCell>
-                <TableCell className="font-medium">{it.name}</TableCell>
-                <TableCell className="text-muted-foreground">{it.description ?? "—"}</TableCell>
-                <TableCell>
-                  {it.item_type === "SERVICE" || it.item_type === "LABOR" ? "Serviço" : "Produto"}
-                </TableCell>
-                <TableCell className="text-right">{Number(it.planned_quantity).toLocaleString("pt-BR")}</TableCell>
-                <TableCell>{it.unit}</TableCell>
               </TableRow>
-            ))}
+            ) : (
+              items.map((it) => (
+                <TableRow key={it.id}>
+                  <TableCell>
+                    {it.image_url ? (
+                      <img src={it.image_url} alt="" className="h-10 w-10 rounded object-cover" />
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded bg-muted">
+                        <Package className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="font-medium">{it.name}</TableCell>
+                  <TableCell className="text-muted-foreground">{it.description ?? "—"}</TableCell>
+                  <TableCell>
+                    {it.item_type === "SERVICE" || it.item_type === "LABOR" ? "Serviço" : "Produto"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {Number(it.planned_quantity).toLocaleString("pt-BR")}
+                  </TableCell>
+                  <TableCell>{it.unit}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
@@ -387,7 +496,10 @@ function ServiceOrderDetailPage() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={cancelMut.isPending}>Voltar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={(e) => { e.preventDefault(); cancelMut.mutate(); }}
+              onClick={(e) => {
+                e.preventDefault();
+                cancelMut.mutate();
+              }}
               disabled={cancelMut.isPending}
             >
               Confirmar cancelamento

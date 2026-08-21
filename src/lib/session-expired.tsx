@@ -1,18 +1,35 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "@tanstack/react-router";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 export const SESSION_EXPIRED_EVENT = "smartpro:session-expired";
 
 /** Rotas onde o modal NÃO deve aparecer (públicas). */
-const PUBLIC_ROUTE_PREFIXES = ["/auth", "/forgot-password", "/reset-password", "/q/", "/r/", "/invite/", "/privacy", "/terms", "/"];
+const PUBLIC_ROUTE_PREFIXES = [
+  "/auth",
+  "/forgot-password",
+  "/reset-password",
+  "/q/",
+  "/r/",
+  "/invite/",
+  "/privacy",
+  "/terms",
+  "/",
+];
 
 function isPublicPathname(pathname: string): boolean {
   if (pathname === "/") return true;
-  return PUBLIC_ROUTE_PREFIXES.some((p) => p !== "/" && (pathname === p || pathname.startsWith(p + "/") || pathname.startsWith(p)));
+  return PUBLIC_ROUTE_PREFIXES.some(
+    (p) => p !== "/" && (pathname === p || pathname.startsWith(p + "/") || pathname.startsWith(p)),
+  );
 }
 
 /** Dispara o modal global. Seguro para chamar em qualquer contexto (client-side). */
@@ -72,7 +89,9 @@ export function SessionExpiredProvider({ children }: { children: ReactNode }) {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-2">
-            <Button variant="outline" onClick={hide}>Continuar nesta tela</Button>
+            <Button variant="outline" onClick={hide}>
+              Continuar nesta tela
+            </Button>
             <Button onClick={goLogin}>Entrar novamente</Button>
           </DialogFooter>
         </DialogContent>

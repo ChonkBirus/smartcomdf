@@ -1,10 +1,26 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Plus, Trash2, ArrowUp, ArrowDown, Check, ChevronsUpDown, AlertTriangle, UserPlus, Package } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  Check,
+  ChevronsUpDown,
+  AlertTriangle,
+  UserPlus,
+  Package,
+} from "lucide-react";
 import { CustomerFormSheet } from "@/components/customers/CustomerFormSheet";
 
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,12 +30,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
-  Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getActiveCustomersForQuote, type QuoteCustomerOption } from "@/lib/customers.functions";
-import { getQuote, saveQuote, listQuoteCatalog, type QuoteItemKind, type QuoteCatalogItem } from "@/lib/quotes.functions";
+import {
+  getQuote,
+  saveQuote,
+  listQuoteCatalog,
+  type QuoteItemKind,
+  type QuoteCatalogItem,
+} from "@/lib/quotes.functions";
 
 import { getCompanyCostSettings, computeSuggestedPrice } from "@/lib/pricing.functions";
 import { usePermissions } from "@/lib/permissions";
@@ -27,8 +54,14 @@ import { useAuth } from "@/lib/auth-context";
 import { roundMoney, roundPercent } from "@/lib/rounding";
 import { computeQuoteTotals } from "@/lib/quote-totals";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { buildDraftKey, clearDraft, hasDraft, loadDraft, saveDraft } from "@/lib/draft-storage";
 
@@ -45,9 +78,11 @@ type Line = {
   image_url?: string | null;
 };
 
-
 const KIND_LABEL: Record<QuoteItemKind, string> = {
-  PRODUCT: "Produto", SERVICE: "Serviço", LABOR: "Mão de obra", OTHER: "Outro",
+  PRODUCT: "Produto",
+  SERVICE: "Serviço",
+  LABOR: "Mão de obra",
+  OTHER: "Outro",
 };
 
 const DEFAULT_PAYMENT_TERMS = "50% de entrada e 50% na entrega do serviço.";
@@ -71,10 +106,18 @@ const fmtPct = (n: number) => pctFormatter.format(roundPercent(n) / 100);
 
 // Currency input: stores number, displays masked R$ value
 function CurrencyInput({
-  value, onChange, id,
-}: { value: number; onChange: (n: number) => void; id?: string }) {
+  value,
+  onChange,
+  id,
+}: {
+  value: number;
+  onChange: (n: number) => void;
+  id?: string;
+}) {
   const [text, setText] = useState(() => fmtBRL(value || 0));
-  useEffect(() => { setText(fmtBRL(value || 0)); }, [value]);
+  useEffect(() => {
+    setText(fmtBRL(value || 0));
+  }, [value]);
   return (
     <Input
       id={id}
@@ -91,8 +134,14 @@ function CurrencyInput({
 }
 
 export function QuoteFormSheet({
-  open, onOpenChange, quoteId,
-}: { open: boolean; onOpenChange: (o: boolean) => void; quoteId: string | null }) {
+  open,
+  onOpenChange,
+  quoteId,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  quoteId: string | null;
+}) {
   const qc = useQueryClient();
   const { user, profile, loading: authLoading } = useAuth();
   const companyId = profile?.company_id;
@@ -112,7 +161,9 @@ export function QuoteFormSheet({
   const [issueDate, setIssueDate] = useState(() => new Date().toISOString().slice(0, 10));
   const addDays = (iso: string, n: number) =>
     new Date(new Date(iso).getTime() + n * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  const [validUntil, setValidUntil] = useState(() => addDays(new Date().toISOString().slice(0, 10), 15));
+  const [validUntil, setValidUntil] = useState(() =>
+    addDays(new Date().toISOString().slice(0, 10), 15),
+  );
   const [validUntilTouched, setValidUntilTouched] = useState(false);
   const [payment, setPayment] = useState(DEFAULT_PAYMENT_TERMS);
   const [delivery, setDelivery] = useState("");
@@ -162,29 +213,49 @@ export function QuoteFormSheet({
 
   useEffect(() => {
     if (!open || !customersError) return;
-    toast.error("Não foi possível carregar os clientes. Verifique as permissões ou tente novamente.");
+    toast.error(
+      "Não foi possível carregar os clientes. Verifique as permissões ou tente novamente.",
+    );
   }, [open, customersError]);
 
   useEffect(() => {
     if (!open) return;
     if (!companyId) {
-      console.log("[QuoteCustomers] companyId ainda não carregado. Query de clientes não executada.", {
-        authLoading,
-        hasUser: !!user,
-      });
+      console.log(
+        "[QuoteCustomers] companyId ainda não carregado. Query de clientes não executada.",
+        {
+          authLoading,
+          hasUser: !!user,
+        },
+      );
       return;
     }
     const d: any = customersData;
     console.log("[QuoteCustomers] companyId usado na query:", companyId);
-    console.log("[QuoteCustomers] profile.company_id:", profile?.company_id ?? d?.debug?.profile?.company_id ?? null);
+    console.log(
+      "[QuoteCustomers] profile.company_id:",
+      profile?.company_id ?? d?.debug?.profile?.company_id ?? null,
+    );
     console.log("[QuoteCustomers] customers.length:", (d?.customers ?? []).length);
-    console.log("[QuoteCustomers] supabase error:", customersError ? { message: customersError.message } : null);
+    console.log(
+      "[QuoteCustomers] supabase error:",
+      customersError ? { message: customersError.message } : null,
+    );
     console.log("[QuoteCustomers] options.length:", customerOptions.length);
     console.log(
       "[QuoteCustomers] query usada no customerService:",
       `supabase.from("customers").select("id, customer_type, name, corporate_name, trade_name, cpf_cnpj, email, phone, whatsapp, active, customer_status, customer_addresses!left(*), customer_contacts!left(*)").eq("company_id", "${companyId}").is("deleted_at", null).or("active.eq.true,customer_status.eq.ACTIVE").order("name", { ascending: true })`,
     );
-  }, [open, companyId, authLoading, user, profile?.company_id, customersData, customersError, customerOptions.length]);
+  }, [
+    open,
+    companyId,
+    authLoading,
+    user,
+    profile?.company_id,
+    customersData,
+    customersError,
+    customerOptions.length,
+  ]);
 
   const { data: catalog } = useQuery({
     queryKey: ["quote-catalog", companyId],
@@ -192,8 +263,14 @@ export function QuoteFormSheet({
     enabled: open && !!companyId,
   });
   const catalogItems = (catalog ?? []) as QuoteCatalogItem[];
-  const products = useMemo(() => catalogItems.filter((i) => i.item_type === "PRODUCT"), [catalogItems]);
-  const services = useMemo(() => catalogItems.filter((i) => i.item_type === "SERVICE"), [catalogItems]);
+  const products = useMemo(
+    () => catalogItems.filter((i) => i.item_type === "PRODUCT"),
+    [catalogItems],
+  );
+  const services = useMemo(
+    () => catalogItems.filter((i) => i.item_type === "SERVICE"),
+    [catalogItems],
+  );
 
   const { data: costSettingsData } = useQuery({
     queryKey: ["company-cost-settings-quote", companyId],
@@ -267,13 +344,26 @@ export function QuoteFormSheet({
       setAddedLineId(null);
     } else if (!quoteId) {
       const today = new Date().toISOString().slice(0, 10);
-      setCustomerId(""); setTitle("");
-      setIssueDate(today); setValidUntil(addDays(today, 15)); setValidUntilTouched(false);
-      setPayment(DEFAULT_PAYMENT_TERMS); setDelivery(""); setWarranty(""); setCompletion("");
-      setCustomerNotes(""); setInternalNotes("");
-      setDiagProblem(""); setDiagNeed(""); setDiagEnvironment("");
-      setDiagObjective(""); setDiagCritical(""); setDiagTechNotes("");
-      setLaborCost(0); setDiscount(0); setLines([]);
+      setCustomerId("");
+      setTitle("");
+      setIssueDate(today);
+      setValidUntil(addDays(today, 15));
+      setValidUntilTouched(false);
+      setPayment(DEFAULT_PAYMENT_TERMS);
+      setDelivery("");
+      setWarranty("");
+      setCompletion("");
+      setCustomerNotes("");
+      setInternalNotes("");
+      setDiagProblem("");
+      setDiagNeed("");
+      setDiagEnvironment("");
+      setDiagObjective("");
+      setDiagCritical("");
+      setDiagTechNotes("");
+      setLaborCost(0);
+      setDiscount(0);
+      setLines([]);
     }
   }, [open, quoteId, existing]);
 
@@ -293,11 +383,9 @@ export function QuoteFormSheet({
     return computeQuoteTotals(suggestedLines, 0, 0).items_subtotal;
   }, [lines, suggestPrice, canSeeInternal, costSettings]);
   const suggestedTotal = useMemo(
-    () => computeQuoteTotals(
-      [{ quantity: 1, unit_price: suggestedItemsSubtotal }],
-      laborCost,
-      discount,
-    ).total_amount,
+    () =>
+      computeQuoteTotals([{ quantity: 1, unit_price: suggestedItemsSubtotal }], laborCost, discount)
+        .total_amount,
     [suggestedItemsSubtotal, laborCost, discount],
   );
   const totalBelowSuggested =
@@ -321,27 +409,66 @@ export function QuoteFormSheet({
   const [initialSyncDone, setInitialSyncDone] = useState(false);
 
   type DraftShape = {
-    customer_id: string; title: string; issue_date: string; valid_until: string;
-    payment: string; delivery: string; warranty: string; completion: string;
-    customer_notes: string; internal_notes: string;
-    diag_problem: string; diag_need: string; diag_environment: string;
-    diag_objective: string; diag_critical: string; diag_tech_notes: string;
-    labor_cost: number; discount: number; lines: Line[];
+    customer_id: string;
+    title: string;
+    issue_date: string;
+    valid_until: string;
+    payment: string;
+    delivery: string;
+    warranty: string;
+    completion: string;
+    customer_notes: string;
+    internal_notes: string;
+    diag_problem: string;
+    diag_need: string;
+    diag_environment: string;
+    diag_objective: string;
+    diag_critical: string;
+    diag_tech_notes: string;
+    labor_cost: number;
+    discount: number;
+    lines: Line[];
   };
 
   const currentDraft = (): DraftShape => ({
-    customer_id: customerId, title, issue_date: issueDate, valid_until: validUntil,
-    payment, delivery, warranty, completion,
-    customer_notes: customerNotes, internal_notes: internalNotes,
-    diag_problem: diagProblem, diag_need: diagNeed, diag_environment: diagEnvironment,
-    diag_objective: diagObjective, diag_critical: diagCritical, diag_tech_notes: diagTechNotes,
-    labor_cost: laborCost, discount, lines,
+    customer_id: customerId,
+    title,
+    issue_date: issueDate,
+    valid_until: validUntil,
+    payment,
+    delivery,
+    warranty,
+    completion,
+    customer_notes: customerNotes,
+    internal_notes: internalNotes,
+    diag_problem: diagProblem,
+    diag_need: diagNeed,
+    diag_environment: diagEnvironment,
+    diag_objective: diagObjective,
+    diag_critical: diagCritical,
+    diag_tech_notes: diagTechNotes,
+    labor_cost: laborCost,
+    discount,
+    lines,
   });
 
   const isDirty = () => {
-    if (customerId || title || customerNotes || internalNotes ||
-        diagProblem || diagNeed || diagEnvironment || diagObjective ||
-        diagCritical || diagTechNotes || delivery || warranty || completion) return true;
+    if (
+      customerId ||
+      title ||
+      customerNotes ||
+      internalNotes ||
+      diagProblem ||
+      diagNeed ||
+      diagEnvironment ||
+      diagObjective ||
+      diagCritical ||
+      diagTechNotes ||
+      delivery ||
+      warranty ||
+      completion
+    )
+      return true;
     if (lines.length > 0) return true;
     if (laborCost > 0 || discount > 0) return true;
     if (payment && payment !== DEFAULT_PAYMENT_TERMS) return true;
@@ -352,20 +479,33 @@ export function QuoteFormSheet({
     setCustomerId(d.customer_id ?? "");
     setTitle(d.title ?? "");
     if (d.issue_date) setIssueDate(d.issue_date);
-    if (d.valid_until) { setValidUntil(d.valid_until); setValidUntilTouched(true); }
+    if (d.valid_until) {
+      setValidUntil(d.valid_until);
+      setValidUntilTouched(true);
+    }
     setPayment(d.payment ?? DEFAULT_PAYMENT_TERMS);
-    setDelivery(d.delivery ?? ""); setWarranty(d.warranty ?? ""); setCompletion(d.completion ?? "");
-    setCustomerNotes(d.customer_notes ?? ""); setInternalNotes(d.internal_notes ?? "");
-    setDiagProblem(d.diag_problem ?? ""); setDiagNeed(d.diag_need ?? "");
-    setDiagEnvironment(d.diag_environment ?? ""); setDiagObjective(d.diag_objective ?? "");
-    setDiagCritical(d.diag_critical ?? ""); setDiagTechNotes(d.diag_tech_notes ?? "");
-    setLaborCost(Number(d.labor_cost) || 0); setDiscount(Number(d.discount) || 0);
+    setDelivery(d.delivery ?? "");
+    setWarranty(d.warranty ?? "");
+    setCompletion(d.completion ?? "");
+    setCustomerNotes(d.customer_notes ?? "");
+    setInternalNotes(d.internal_notes ?? "");
+    setDiagProblem(d.diag_problem ?? "");
+    setDiagNeed(d.diag_need ?? "");
+    setDiagEnvironment(d.diag_environment ?? "");
+    setDiagObjective(d.diag_objective ?? "");
+    setDiagCritical(d.diag_critical ?? "");
+    setDiagTechNotes(d.diag_tech_notes ?? "");
+    setLaborCost(Number(d.labor_cost) || 0);
+    setDiscount(Number(d.discount) || 0);
     setLines(Array.isArray(d.lines) ? d.lines : []);
   };
 
   // Verifica rascunho quando o sheet abre.
   useEffect(() => {
-    if (!open || !draftKey) { setInitialSyncDone(false); return; }
+    if (!open || !draftKey) {
+      setInitialSyncDone(false);
+      return;
+    }
     // Espera dados do "existing" antes de decidir (para edição).
     if (quoteId && !existing) return;
     if (initialSyncDone) return;
@@ -382,24 +522,46 @@ export function QuoteFormSheet({
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    open, draftKey, initialSyncDone, showDraftBanner,
-    customerId, title, issueDate, validUntil, payment, delivery, warranty, completion,
-    customerNotes, internalNotes, diagProblem, diagNeed, diagEnvironment,
-    diagObjective, diagCritical, diagTechNotes, laborCost, discount, lines,
+    open,
+    draftKey,
+    initialSyncDone,
+    showDraftBanner,
+    customerId,
+    title,
+    issueDate,
+    validUntil,
+    payment,
+    delivery,
+    warranty,
+    completion,
+    customerNotes,
+    internalNotes,
+    diagProblem,
+    diagNeed,
+    diagEnvironment,
+    diagObjective,
+    diagCritical,
+    diagTechNotes,
+    laborCost,
+    discount,
+    lines,
   ]);
 
   // Reseta flag quando fecha
   useEffect(() => {
-    if (!open) { 
-      setShowDraftBanner(false); 
-      setDraftRestored(false); 
-      setInitialSyncDone(false); 
+    if (!open) {
+      setShowDraftBanner(false);
+      setDraftRestored(false);
+      setInitialSyncDone(false);
       setAddedLineId(null);
     }
   }, [open]);
 
   const handleSheetOpenChange = (o: boolean) => {
-    if (o) { onOpenChange(true); return; }
+    if (o) {
+      onOpenChange(true);
+      return;
+    }
     if (draftKey && isDirty() && !showDraftBanner) {
       setConfirmClose(true);
       return;
@@ -442,7 +604,6 @@ export function QuoteFormSheet({
             position: idx,
             image_url: l.image_url ?? null,
           })),
-
         } as any,
       }),
     onSuccess: () => {
@@ -467,7 +628,7 @@ export function QuoteFormSheet({
         description: "",
         quantity: 1,
         unit_price: 0,
-        cost_price: 0
+        cost_price: 0,
       },
       ...s,
     ]);
@@ -503,7 +664,6 @@ export function QuoteFormSheet({
     });
   }
 
-
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!customerId) {
@@ -522,9 +682,7 @@ export function QuoteFormSheet({
       <SheetContent className="w-full overflow-y-auto sm:max-w-3xl">
         <SheetHeader>
           <SheetTitle>{quoteId ? "Editar orçamento" : "Novo orçamento"}</SheetTitle>
-          <SheetDescription>
-            Cadastro do orçamento, itens e condições comerciais.
-          </SheetDescription>
+          <SheetDescription>Cadastro do orçamento, itens e condições comerciais.</SheetDescription>
         </SheetHeader>
 
         {showDraftBanner && (
@@ -537,14 +695,31 @@ export function QuoteFormSheet({
             </div>
             {!draftRestored && (
               <div className="flex gap-2">
-                <Button type="button" size="sm" variant="outline" onClick={() => {
-                  clearDraft(draftKey); setShowDraftBanner(false);
-                }}>Descartar</Button>
-                <Button type="button" size="sm" onClick={() => {
-                  const d = loadDraft<any>(draftKey);
-                  if (d) { applyDraft(d); setDraftRestored(true); }
-                  setShowDraftBanner(false);
-                }}>Restaurar</Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    clearDraft(draftKey);
+                    setShowDraftBanner(false);
+                  }}
+                >
+                  Descartar
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    const d = loadDraft<any>(draftKey);
+                    if (d) {
+                      applyDraft(d);
+                      setDraftRestored(true);
+                    }
+                    setShowDraftBanner(false);
+                  }}
+                >
+                  Restaurar
+                </Button>
               </div>
             )}
           </div>
@@ -559,17 +734,27 @@ export function QuoteFormSheet({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => {
-                clearDraft(draftKey); setConfirmClose(false); onOpenChange(false);
-              }}>Descartar</AlertDialogCancel>
-              <AlertDialogAction onClick={() => {
-                saveDraft(draftKey, currentDraft());
-                setConfirmClose(false); onOpenChange(false);
-              }}>Manter rascunho</AlertDialogAction>
+              <AlertDialogCancel
+                onClick={() => {
+                  clearDraft(draftKey);
+                  setConfirmClose(false);
+                  onOpenChange(false);
+                }}
+              >
+                Descartar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  saveDraft(draftKey, currentDraft());
+                  setConfirmClose(false);
+                  onOpenChange(false);
+                }}
+              >
+                Manter rascunho
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-
 
         <form onSubmit={onSubmit} className="mt-4 space-y-4">
           <Tabs defaultValue="main">
@@ -591,7 +776,10 @@ export function QuoteFormSheet({
                         type="button"
                         variant="outline"
                         role="combobox"
-                        className={cn("w-full justify-between", !customerId && "text-muted-foreground")}
+                        className={cn(
+                          "w-full justify-between",
+                          !customerId && "text-muted-foreground",
+                        )}
                         aria-invalid={customerTouched && !customerId}
                       >
                         {selectedCustomer
@@ -610,22 +798,36 @@ export function QuoteFormSheet({
                       >
                         <CommandInput placeholder="Selecione ou pesquise um cliente..." />
                         <CommandList>
-                          {(authLoading || (!!companyId && (customersLoading || customersFetching))) ? (
-                            <div className="py-6 text-center text-sm text-muted-foreground">Carregando clientes...</div>
+                          {authLoading ||
+                          (!!companyId && (customersLoading || customersFetching)) ? (
+                            <div className="py-6 text-center text-sm text-muted-foreground">
+                              Carregando clientes...
+                            </div>
                           ) : !companyId ? (
-                            <div className="py-6 text-center text-sm text-destructive">Empresa não identificada.</div>
+                            <div className="py-6 text-center text-sm text-destructive">
+                              Empresa não identificada.
+                            </div>
                           ) : customersError ? (
                             <div className="py-6 text-center text-sm text-destructive">
-                              Não foi possível carregar os clientes. Verifique as permissões ou tente novamente.
+                              Não foi possível carregar os clientes. Verifique as permissões ou
+                              tente novamente.
                             </div>
                           ) : customerOptions.length === 0 ? (
                             <div className="space-y-3 px-3 py-6 text-center text-sm text-muted-foreground">
                               <p>Nenhum cliente cadastrado encontrado.</p>
-                              <Button type="button" variant="outline" size="sm" onClick={() => { setCustomerOpen(false); setNewCustomerOpen(true); }}>
-                                <UserPlus className="mr-1 h-4 w-4" />Cadastrar novo cliente
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setCustomerOpen(false);
+                                  setNewCustomerOpen(true);
+                                }}
+                              >
+                                <UserPlus className="mr-1 h-4 w-4" />
+                                Cadastrar novo cliente
                               </Button>
                             </div>
-
                           ) : (
                             <>
                               <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
@@ -643,7 +845,9 @@ export function QuoteFormSheet({
                                     c.whatsapp,
                                     c.phone,
                                     option.value,
-                                  ].filter(Boolean).join(" ");
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" ");
                                   return (
                                     <CommandItem
                                       key={option.value}
@@ -654,18 +858,37 @@ export function QuoteFormSheet({
                                         setCustomerOpen(false);
                                       }}
                                     >
-                                      <Check className={cn("mr-2 h-4 w-4", customerId === option.value ? "opacity-100" : "opacity-0")} />
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          customerId === option.value ? "opacity-100" : "opacity-0",
+                                        )}
+                                      />
                                       <div className="flex flex-col">
                                         <span>{option.label}</span>
-                                        {option.description && <span className="text-xs text-muted-foreground">{option.description}</span>}
+                                        {option.description && (
+                                          <span className="text-xs text-muted-foreground">
+                                            {option.description}
+                                          </span>
+                                        )}
                                       </div>
                                     </CommandItem>
                                   );
                                 })}
                               </CommandGroup>
                               <div className="border-t p-1">
-                                <Button type="button" variant="ghost" size="sm" className="w-full justify-start" onClick={() => { setCustomerOpen(false); setNewCustomerOpen(true); }}>
-                                  <UserPlus className="mr-2 h-4 w-4" />Novo cliente
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="w-full justify-start"
+                                  onClick={() => {
+                                    setCustomerOpen(false);
+                                    setNewCustomerOpen(true);
+                                  }}
+                                >
+                                  <UserPlus className="mr-2 h-4 w-4" />
+                                  Novo cliente
                                 </Button>
                               </div>
                             </>
@@ -676,39 +899,55 @@ export function QuoteFormSheet({
                   </Popover>
 
                   {customerTouched && !customerId && (
-                    <p className="mt-1 text-xs text-destructive">Selecione um cliente para criar o orçamento.</p>
+                    <p className="mt-1 text-xs text-destructive">
+                      Selecione um cliente para criar o orçamento.
+                    </p>
                   )}
-                  {selectedCustomer && (selectedCustomerContacts.length > 0 || selectedCustomerAddresses.length > 0) && (
-                    <div className="mt-2 grid gap-2 rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground sm:grid-cols-2">
-                      <div>
-                        <span className="font-medium text-foreground">Contatos carregados:</span>{" "}
-                        {selectedCustomerContacts.length || 0}
+                  {selectedCustomer &&
+                    (selectedCustomerContacts.length > 0 ||
+                      selectedCustomerAddresses.length > 0) && (
+                      <div className="mt-2 grid gap-2 rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground sm:grid-cols-2">
+                        <div>
+                          <span className="font-medium text-foreground">Contatos carregados:</span>{" "}
+                          {selectedCustomerContacts.length || 0}
+                        </div>
+                        <div>
+                          <span className="font-medium text-foreground">Endereços carregados:</span>{" "}
+                          {selectedCustomerAddresses.length || 0}
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-medium text-foreground">Endereços carregados:</span>{" "}
-                        {selectedCustomerAddresses.length || 0}
-                      </div>
-                    </div>
-                  )}
+                    )}
                 </div>
                 <div className="sm:col-span-2">
                   <Label>Título / Assunto</Label>
-                  <Input value={title} onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Ex.: Instalação de CFTV — 8 câmeras" />
+                  <Input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Ex.: Instalação de CFTV — 8 câmeras"
+                  />
                 </div>
                 <div>
                   <Label>Data de emissão *</Label>
-                  <Input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} required />
+                  <Input
+                    type="date"
+                    value={issueDate}
+                    onChange={(e) => setIssueDate(e.target.value)}
+                    required
+                  />
                 </div>
                 <div>
                   <Label>Validade</Label>
                   <Input
                     type="date"
                     value={validUntil}
-                    onChange={(e) => { setValidUntil(e.target.value); setValidUntilTouched(true); }}
+                    onChange={(e) => {
+                      setValidUntil(e.target.value);
+                      setValidUntilTouched(true);
+                    }}
                   />
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Preenchida automaticamente com 15 dias após a emissão. Você pode editar manualmente.
+                    Preenchida automaticamente com 15 dias após a emissão. Você pode editar
+                    manualmente.
                   </p>
                 </div>
               </div>
@@ -726,12 +965,22 @@ export function QuoteFormSheet({
               </div>
 
               <div className="rounded-md bg-muted p-3 text-sm">
-                <div className="flex justify-between"><span>Subtotal itens</span><span>{fmtBRL(subtotal)}</span></div>
-                <div className="flex justify-between"><span>+ Mão de obra</span><span>{fmtBRL(laborCost)}</span></div>
-                <div className="flex justify-between"><span>− Desconto</span><span>{fmtBRL(discount)}</span></div>
+                <div className="flex justify-between">
+                  <span>Subtotal itens</span>
+                  <span>{fmtBRL(subtotal)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>+ Mão de obra</span>
+                  <span>{fmtBRL(laborCost)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>− Desconto</span>
+                  <span>{fmtBRL(discount)}</span>
+                </div>
                 <Separator className="my-2" />
                 <div className="flex justify-between text-base font-semibold">
-                  <span>Total da proposta</span><span>{fmtBRL(total)}</span>
+                  <span>Total da proposta</span>
+                  <span>{fmtBRL(total)}</span>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
                   Valor total com materiais, serviços e mão de obra inclusos.
@@ -746,12 +995,11 @@ export function QuoteFormSheet({
                       </div>
                       <div>
                         Sugerido: <strong>{fmtBRL(suggestedTotal)}</strong> · Atual:{" "}
-                        <strong>{fmtBRL(total)}</strong> · Gap:{" "}
-                        <strong>{fmtBRL(totalGap)}</strong>
+                        <strong>{fmtBRL(total)}</strong> · Gap: <strong>{fmtBRL(totalGap)}</strong>
                       </div>
                       <div>
-                        Margem atual: <strong>{fmtPct(currentMarginPct)}</strong> ·
-                        Margem sugerida: <strong>{fmtPct(suggestedMarginPct)}</strong>
+                        Margem atual: <strong>{fmtPct(currentMarginPct)}</strong> · Margem sugerida:{" "}
+                        <strong>{fmtPct(suggestedMarginPct)}</strong>
                       </div>
                       <details className="group mt-1">
                         <summary className="cursor-pointer select-none text-[11px] font-medium underline-offset-2 hover:underline">
@@ -759,33 +1007,28 @@ export function QuoteFormSheet({
                         </summary>
                         <div className="mt-2 space-y-2 rounded-md bg-amber-500/10 p-2 text-[11px] leading-relaxed text-amber-800 dark:text-amber-200">
                           <div>
-                            <strong>Preço sugerido por item:</strong> aplica o markup
-                            sobre o custo usando as configurações de precificação da
-                            empresa.
+                            <strong>Preço sugerido por item:</strong> aplica o markup sobre o custo
+                            usando as configurações de precificação da empresa.
                             <div className="mt-1 font-mono">
-                              preço = custo ÷ (1 − (impostos + taxas + comissão +
-                              garantia + custos operacionais + rateio fixo + pró-labore
-                              + margem desejada))
+                              preço = custo ÷ (1 − (impostos + taxas + comissão + garantia + custos
+                              operacionais + rateio fixo + pró-labore + margem desejada))
                             </div>
                           </div>
                           <div>
                             <strong>Total sugerido:</strong> soma de{" "}
-                            <em>quantidade × preço sugerido</em> de cada item + mão de
-                            obra − desconto ={" "}
-                            <strong>{fmtBRL(suggestedTotal)}</strong>.
+                            <em>quantidade × preço sugerido</em> de cada item + mão de obra −
+                            desconto = <strong>{fmtBRL(suggestedTotal)}</strong>.
                           </div>
                           <div>
                             <strong>Gap:</strong> total sugerido − total atual ={" "}
                             {fmtBRL(suggestedTotal)} − {fmtBRL(total)} ={" "}
-                            <strong>{fmtBRL(totalGap)}</strong> (
-                            {fmtPct(totalDiffPct)} do sugerido).
+                            <strong>{fmtBRL(totalGap)}</strong> ({fmtPct(totalDiffPct)} do
+                            sugerido).
                           </div>
                           <div>
-                            <strong>Margem %:</strong> (total − custo dos itens) ÷
-                            total. Custo dos itens ={" "}
-                            <strong>{fmtBRL(totalCost)}</strong>. Atual ={" "}
-                            {fmtBRL(total)} → {fmtPct(currentMarginPct)}.
-                            Sugerido = {fmtBRL(suggestedTotal)} →{" "}
+                            <strong>Margem %:</strong> (total − custo dos itens) ÷ total. Custo dos
+                            itens = <strong>{fmtBRL(totalCost)}</strong>. Atual = {fmtBRL(total)} →{" "}
+                            {fmtPct(currentMarginPct)}. Sugerido = {fmtBRL(suggestedTotal)} →{" "}
                             {fmtPct(suggestedMarginPct)}.
                           </div>
                         </div>
@@ -797,24 +1040,42 @@ export function QuoteFormSheet({
 
               <div>
                 <Label>Observações internas (não aparecem ao cliente)</Label>
-                <Textarea rows={3} value={internalNotes} onChange={(e) => setInternalNotes(e.target.value)} />
+                <Textarea
+                  rows={3}
+                  value={internalNotes}
+                  onChange={(e) => setInternalNotes(e.target.value)}
+                />
               </div>
             </TabsContent>
 
             {/* ITENS */}
             <TabsContent value="items" className="space-y-3 pt-4">
               <div className="flex flex-wrap gap-2">
-                <Button type="button" size="sm" variant="outline" onClick={() => addLine("PRODUCT")}>
-                  <Plus className="mr-1 h-3 w-3" />Produto
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => addLine("PRODUCT")}
+                >
+                  <Plus className="mr-1 h-3 w-3" />
+                  Produto
                 </Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => addLine("SERVICE")}>
-                  <Plus className="mr-1 h-3 w-3" />Serviço
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => addLine("SERVICE")}
+                >
+                  <Plus className="mr-1 h-3 w-3" />
+                  Serviço
                 </Button>
                 <Button type="button" size="sm" variant="outline" onClick={() => addLine("LABOR")}>
-                  <Plus className="mr-1 h-3 w-3" />Mão de obra
+                  <Plus className="mr-1 h-3 w-3" />
+                  Mão de obra
                 </Button>
                 <Button type="button" size="sm" variant="outline" onClick={() => addLine("OTHER")}>
-                  <Plus className="mr-1 h-3 w-3" />Outro
+                  <Plus className="mr-1 h-3 w-3" />
+                  Outro
                 </Button>
               </div>
 
@@ -851,38 +1112,63 @@ export function QuoteFormSheet({
             {/* DIAGNÓSTICO */}
             <TabsContent value="diagnosis" className="space-y-3 pt-4">
               <p className="text-xs text-muted-foreground">
-                Preencha o diagnóstico técnico (visita técnica ou levantamento comercial). Esses campos alimentam a seção
-                "Diagnóstico da necessidade" do PDF da proposta. Se ficar em branco, o PDF usa um texto padrão.
+                Preencha o diagnóstico técnico (visita técnica ou levantamento comercial). Esses
+                campos alimentam a seção "Diagnóstico da necessidade" do PDF da proposta. Se ficar
+                em branco, o PDF usa um texto padrão.
               </p>
               <div>
                 <Label>Problema identificado</Label>
-                <Textarea rows={2} value={diagProblem} onChange={(e) => setDiagProblem(e.target.value)}
-                  placeholder="Ex.: Falhas de monitoramento na entrada e área de carga." />
+                <Textarea
+                  rows={2}
+                  value={diagProblem}
+                  onChange={(e) => setDiagProblem(e.target.value)}
+                  placeholder="Ex.: Falhas de monitoramento na entrada e área de carga."
+                />
               </div>
               <div>
                 <Label>Necessidade do cliente</Label>
-                <Textarea rows={2} value={diagNeed} onChange={(e) => setDiagNeed(e.target.value)}
-                  placeholder="Ex.: Sistema com gravação contínua e acesso remoto." />
+                <Textarea
+                  rows={2}
+                  value={diagNeed}
+                  onChange={(e) => setDiagNeed(e.target.value)}
+                  placeholder="Ex.: Sistema com gravação contínua e acesso remoto."
+                />
               </div>
               <div>
                 <Label>Ambiente atendido</Label>
-                <Textarea rows={2} value={diagEnvironment} onChange={(e) => setDiagEnvironment(e.target.value)}
-                  placeholder="Ex.: Galpão de 600m², dois acessos, recepção." />
+                <Textarea
+                  rows={2}
+                  value={diagEnvironment}
+                  onChange={(e) => setDiagEnvironment(e.target.value)}
+                  placeholder="Ex.: Galpão de 600m², dois acessos, recepção."
+                />
               </div>
               <div>
                 <Label>Objetivo da solução</Label>
-                <Textarea rows={2} value={diagObjective} onChange={(e) => setDiagObjective(e.target.value)}
-                  placeholder="Ex.: Reduzir ocorrências e aumentar controle operacional." />
+                <Textarea
+                  rows={2}
+                  value={diagObjective}
+                  onChange={(e) => setDiagObjective(e.target.value)}
+                  placeholder="Ex.: Reduzir ocorrências e aumentar controle operacional."
+                />
               </div>
               <div>
                 <Label>Pontos críticos observados</Label>
-                <Textarea rows={2} value={diagCritical} onChange={(e) => setDiagCritical(e.target.value)}
-                  placeholder="Ex.: Ângulos cegos na lateral e iluminação baixa à noite." />
+                <Textarea
+                  rows={2}
+                  value={diagCritical}
+                  onChange={(e) => setDiagCritical(e.target.value)}
+                  placeholder="Ex.: Ângulos cegos na lateral e iluminação baixa à noite."
+                />
               </div>
               <div>
                 <Label>Observações técnicas</Label>
-                <Textarea rows={2} value={diagTechNotes} onChange={(e) => setDiagTechNotes(e.target.value)}
-                  placeholder="Ex.: Necessário reforço de infraestrutura elétrica e cabeamento estruturado." />
+                <Textarea
+                  rows={2}
+                  value={diagTechNotes}
+                  onChange={(e) => setDiagTechNotes(e.target.value)}
+                  placeholder="Ex.: Necessário reforço de infraestrutura elétrica e cabeamento estruturado."
+                />
               </div>
             </TabsContent>
 
@@ -890,33 +1176,54 @@ export function QuoteFormSheet({
             <TabsContent value="terms" className="space-y-3 pt-4">
               <div>
                 <Label>Condições de pagamento</Label>
-                <Textarea rows={2} value={payment} onChange={(e) => setPayment(e.target.value)}
-                  placeholder={DEFAULT_PAYMENT_TERMS} />
+                <Textarea
+                  rows={2}
+                  value={payment}
+                  onChange={(e) => setPayment(e.target.value)}
+                  placeholder={DEFAULT_PAYMENT_TERMS}
+                />
               </div>
               <div>
                 <Label>Prazo de entrega</Label>
-                <Textarea rows={2} value={delivery} onChange={(e) => setDelivery(e.target.value)}
-                  placeholder="Ex.: 10 dias úteis após confirmação" />
+                <Textarea
+                  rows={2}
+                  value={delivery}
+                  onChange={(e) => setDelivery(e.target.value)}
+                  placeholder="Ex.: 10 dias úteis após confirmação"
+                />
               </div>
               <div>
                 <Label>Garantia</Label>
-                <Textarea rows={2} value={warranty} onChange={(e) => setWarranty(e.target.value)}
-                  placeholder="Ex.: 12 meses para equipamentos e 90 dias para serviços" />
+                <Textarea
+                  rows={2}
+                  value={warranty}
+                  onChange={(e) => setWarranty(e.target.value)}
+                  placeholder="Ex.: 12 meses para equipamentos e 90 dias para serviços"
+                />
               </div>
               <div>
                 <Label>Estimativa de conclusão do serviço</Label>
-                <Input value={completion} onChange={(e) => setCompletion(e.target.value)}
-                  placeholder="Ex.: 5 dias úteis após início" />
+                <Input
+                  value={completion}
+                  onChange={(e) => setCompletion(e.target.value)}
+                  placeholder="Ex.: 5 dias úteis após início"
+                />
               </div>
               <div>
                 <Label>Observações ao cliente</Label>
-                <Textarea rows={3} value={customerNotes} onChange={(e) => setCustomerNotes(e.target.value)} />
+                <Textarea
+                  rows={3}
+                  value={customerNotes}
+                  onChange={(e) => setCustomerNotes(e.target.value)}
+                />
               </div>
             </TabsContent>
           </Tabs>
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
             <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "Salvando..." : "Salvar"}
             </Button>
@@ -934,13 +1241,22 @@ export function QuoteFormSheet({
         }}
       />
     </Sheet>
-
   );
 }
 
 function LineRow({
-  line, index, last, products, services, canSeeInternal, suggestedPrice,
-  onChange, onPickCatalog, onRemove, onMove, autoFocus,
+  line,
+  index,
+  last,
+  products,
+  services,
+  canSeeInternal,
+  suggestedPrice,
+  onChange,
+  onPickCatalog,
+  onRemove,
+  onMove,
+  autoFocus,
 }: {
   line: Line;
   index: number;
@@ -984,9 +1300,8 @@ function LineRow({
 
   const showCatalog = line.kind === "PRODUCT" || line.kind === "SERVICE";
   const selected = source.find((s) => s.id === line.item_id);
-  const margin = line.cost_price > 0
-    ? (((line.unit_price - line.cost_price) / line.cost_price) * 100)
-    : null;
+  const margin =
+    line.cost_price > 0 ? ((line.unit_price - line.cost_price) / line.cost_price) * 100 : null;
   const belowSuggested =
     canSeeInternal &&
     suggestedPrice !== null &&
@@ -1002,10 +1317,22 @@ function LineRow({
       <div className="flex items-center justify-between gap-2">
         <Badge variant="outline">{KIND_LABEL[line.kind]}</Badge>
         <div className="flex gap-1">
-          <Button type="button" size="icon" variant="ghost" onClick={() => onMove(-1)} disabled={index === 0}>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            onClick={() => onMove(-1)}
+            disabled={index === 0}
+          >
             <ArrowUp className="h-4 w-4" />
           </Button>
-          <Button type="button" size="icon" variant="ghost" onClick={() => onMove(1)} disabled={last}>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            onClick={() => onMove(1)}
+            disabled={last}
+          >
             <ArrowDown className="h-4 w-4" />
           </Button>
           <Button type="button" size="icon" variant="ghost" onClick={onRemove}>
@@ -1028,12 +1355,16 @@ function LineRow({
                 role="combobox"
                 className={cn("w-full justify-between", !selected && "text-muted-foreground")}
               >
-                {selected ? `${selected.name}${selected.sku ? ` (${selected.sku})` : ""}` : "Pesquisar no catálogo..."}
+                {selected
+                  ? `${selected.name}${selected.sku ? ` (${selected.sku})` : ""}`
+                  : "Pesquisar no catálogo..."}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[--radix-popover-trigger-width] p-0 pointer-events-auto" align="start">
-
+            <PopoverContent
+              className="w-[--radix-popover-trigger-width] p-0 pointer-events-auto"
+              align="start"
+            >
               <CatalogPicker
                 kind={line.kind}
                 debouncedSearchTerm={debouncedSearchTerm}
@@ -1050,16 +1381,24 @@ function LineRow({
         </div>
       )}
 
-
       <div className="grid grid-cols-12 gap-2">
         <div className="col-span-12 sm:col-span-6">
           <Label className="text-xs">Nome *</Label>
-          <Input ref={nameInputRef} value={line.name} onChange={(e) => onChange({ name: e.target.value })} />
+          <Input
+            ref={nameInputRef}
+            value={line.name}
+            onChange={(e) => onChange({ name: e.target.value })}
+          />
         </div>
         <div className="col-span-4 sm:col-span-2">
           <Label className="text-xs">Qtd *</Label>
-          <Input type="number" min="0" step="0.001" value={line.quantity}
-            onChange={(e) => onChange({ quantity: Number(e.target.value) || 0 })} />
+          <Input
+            type="number"
+            min="0"
+            step="0.001"
+            value={line.quantity}
+            onChange={(e) => onChange({ quantity: Number(e.target.value) || 0 })}
+          />
         </div>
         <div className="col-span-8 sm:col-span-2">
           <Label className="text-xs">Preço unit. *</Label>
@@ -1073,8 +1412,11 @@ function LineRow({
         )}
         <div className="col-span-12">
           <Label className="text-xs">Descrição (aparece ao cliente)</Label>
-          <Textarea rows={2} value={line.description}
-            onChange={(e) => onChange({ description: e.target.value })} />
+          <Textarea
+            rows={2}
+            value={line.description}
+            onChange={(e) => onChange({ description: e.target.value })}
+          />
         </div>
       </div>
       {belowSuggested && (
@@ -1107,7 +1449,9 @@ function LineRow({
               <span className="ml-2">· Sugerido: {fmtBRL(suggestedPrice)}</span>
             )}
           </span>
-        ) : <span />}
+        ) : (
+          <span />
+        )}
         <span className="font-medium text-foreground">
           Subtotal: {fmtBRL(line.quantity * line.unit_price)}
         </span>
@@ -1149,9 +1493,13 @@ function CatalogPicker({
         onValueChange={onSearchChange}
       />
       <CommandList className="max-h-[300px] overflow-y-auto pointer-events-auto">
-        {isLoading && <div className="p-4 text-center text-sm text-muted-foreground">Buscando...</div>}
+        {isLoading && (
+          <div className="p-4 text-center text-sm text-muted-foreground">Buscando...</div>
+        )}
         {!isLoading && data.length === 0 && (
-          <div className="p-4 text-center text-sm text-muted-foreground">Nenhum item encontrado.</div>
+          <div className="p-4 text-center text-sm text-muted-foreground">
+            Nenhum item encontrado.
+          </div>
         )}
         <CommandGroup>
           {data.map((it) => {
@@ -1169,22 +1517,31 @@ function CatalogPicker({
                 <Check
                   className={cn(
                     "mt-1 h-4 w-4 shrink-0",
-                    selectedId === it.id ? "opacity-100" : "opacity-0"
+                    selectedId === it.id ? "opacity-100" : "opacity-0",
                   )}
                 />
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border bg-muted text-muted-foreground overflow-hidden">
                   {imageUrl ? (
-                    <img 
-                      src={imageUrl} 
-                      alt={it.name} 
+                    <img
+                      src={imageUrl}
+                      alt={it.name}
                       className="h-full w-full object-cover"
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.display = 'none';
-                        (e.currentTarget.parentElement?.querySelector('.fallback-icon') as HTMLElement).style.display = 'flex';
+                        (e.currentTarget as HTMLImageElement).style.display = "none";
+                        (
+                          e.currentTarget.parentElement?.querySelector(
+                            ".fallback-icon",
+                          ) as HTMLElement
+                        ).style.display = "flex";
                       }}
                     />
                   ) : null}
-                  <div className={cn("fallback-icon h-full w-full items-center justify-center", imageUrl ? "hidden" : "flex")}>
+                  <div
+                    className={cn(
+                      "fallback-icon h-full w-full items-center justify-center",
+                      imageUrl ? "hidden" : "flex",
+                    )}
+                  >
                     <Package className="h-4 w-4" />
                   </div>
                 </div>
@@ -1198,13 +1555,19 @@ function CatalogPicker({
                     )}
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                    <span>{it.unit} · {fmtBRL(it.sale_price)}</span>
+                    <span>
+                      {it.unit} · {fmtBRL(it.sale_price)}
+                    </span>
                     {it.item_type === "PRODUCT" && it.controls_stock && (
-                      <span className={cn(
-                        "font-medium",
-                        (it.stock_quantity ?? 0) <= 0 ? "text-destructive" : "text-primary"
-                      )}>
-                        {(it.stock_quantity ?? 0) <= 0 ? "Sem estoque" : `Estoque: ${it.stock_quantity}`}
+                      <span
+                        className={cn(
+                          "font-medium",
+                          (it.stock_quantity ?? 0) <= 0 ? "text-destructive" : "text-primary",
+                        )}
+                      >
+                        {(it.stock_quantity ?? 0) <= 0
+                          ? "Sem estoque"
+                          : `Estoque: ${it.stock_quantity}`}
                       </span>
                     )}
                   </div>
@@ -1217,5 +1580,3 @@ function CatalogPicker({
     </Command>
   );
 }
-
-

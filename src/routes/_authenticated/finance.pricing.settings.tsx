@@ -10,7 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -112,8 +118,10 @@ function CostSettingsPage() {
     setForm({
       monthly_fixed_costs_total: String(s.monthly_fixed_costs_total ?? 0),
       monthly_operational_costs_total: String(s.monthly_operational_costs_total ?? 0),
-      expected_monthly_revenue: s.expected_monthly_revenue == null ? "" : String(s.expected_monthly_revenue),
-      expected_monthly_sales_count: s.expected_monthly_sales_count == null ? "" : String(s.expected_monthly_sales_count),
+      expected_monthly_revenue:
+        s.expected_monthly_revenue == null ? "" : String(s.expected_monthly_revenue),
+      expected_monthly_sales_count:
+        s.expected_monthly_sales_count == null ? "" : String(s.expected_monthly_sales_count),
       default_tax_rate: String((s.default_tax_rate ?? 0) * 100),
       default_card_fee_rate: String((s.default_card_fee_rate ?? 0) * 100),
       default_commission_rate: String((s.default_commission_rate ?? 0) * 100),
@@ -144,7 +152,8 @@ function CostSettingsPage() {
           default_commission_rate: parseDec(form.default_commission_rate) / 100,
           default_warranty_reserve_rate: parseDec(form.default_warranty_reserve_rate) / 100,
           default_operational_cost_rate: parseDec(form.default_operational_cost_rate) / 100,
-          default_fixed_cost_allocation_rate: parseDec(form.default_fixed_cost_allocation_rate) / 100,
+          default_fixed_cost_allocation_rate:
+            parseDec(form.default_fixed_cost_allocation_rate) / 100,
           default_desired_margin_rate: parseDec(form.default_desired_margin_rate) / 100,
           pro_labore_percent: parseDec(form.pro_labore_percent) / 100,
           pro_labore_value: form.pro_labore_value === "" ? null : parseDec(form.pro_labore_value),
@@ -209,7 +218,8 @@ function CostSettingsPage() {
             Custos da empresa & Markup
           </h1>
           <p className="text-sm text-muted-foreground">
-            Preencha faturamento, custos e pró-labore. O sistema calcula o markup ideal e sugere o preço de venda dos seus produtos.
+            Preencha faturamento, custos e pró-labore. O sistema calcula o markup ideal e sugere o
+            preço de venda dos seus produtos.
           </p>
         </div>
       </div>
@@ -226,12 +236,17 @@ function CostSettingsPage() {
 
       {/* ============ Faturamento ============ */}
       <Card>
-        <CardHeader><CardTitle className="text-base">1. Quanto sua empresa fatura?</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-base">1. Quanto sua empresa fatura?</CardTitle>
+        </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div>
             <Label>
               Faturamento médio mensal (R$)
-              <Hint>Quanto sua empresa fatura em média por mês. Base para ratear custos fixos e pró-labore.</Hint>
+              <Hint>
+                Quanto sua empresa fatura em média por mês. Base para ratear custos fixos e
+                pró-labore.
+              </Hint>
             </Label>
             <Input
               inputMode="decimal"
@@ -244,7 +259,9 @@ function CostSettingsPage() {
           <div>
             <Label>
               Vendas médias por mês
-              <Hint>Quantas vendas você costuma fechar por mês. Usado quando o rateio é por venda.</Hint>
+              <Hint>
+                Quantas vendas você costuma fechar por mês. Usado quando o rateio é por venda.
+              </Hint>
             </Label>
             <Input
               inputMode="numeric"
@@ -274,14 +291,18 @@ function CostSettingsPage() {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             3. Pró-labore
-            <Badge variant="secondary" className="text-xs">Sugestão inicial: 5%</Badge>
+            <Badge variant="secondary" className="text-xs">
+              Sugestão inicial: 5%
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div>
             <Label>
               Pró-labore (% do faturamento)
-              <Hint>Remuneração do dono/sócio pela operação da empresa. Recomendação inicial: 5%.</Hint>
+              <Hint>
+                Remuneração do dono/sócio pela operação da empresa. Recomendação inicial: 5%.
+              </Hint>
             </Label>
             <Input
               inputMode="decimal"
@@ -293,8 +314,11 @@ function CostSettingsPage() {
           </div>
           <div>
             <Label>
-              …ou valor fixo mensal (R$) <span className="text-xs text-muted-foreground">(opcional)</span>
-              <Hint>Se informado, tem prioridade sobre o percentual e é convertido em % do faturamento.</Hint>
+              …ou valor fixo mensal (R$){" "}
+              <span className="text-xs text-muted-foreground">(opcional)</span>
+              <Hint>
+                Se informado, tem prioridade sobre o percentual e é convertido em % do faturamento.
+              </Hint>
             </Label>
             <Input
               inputMode="decimal"
@@ -309,29 +333,84 @@ function CostSettingsPage() {
 
       {/* ============ Custos variáveis ============ */}
       <Card>
-        <CardHeader><CardTitle className="text-base">4. Custos operacionais e variáveis</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-base">4. Custos operacionais e variáveis</CardTitle>
+        </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
-          <PctField label="Impostos" hint="Percentual médio de impostos sobre venda (Simples, ICMS, ISS)." value={form.default_tax_rate} onChange={(v) => set("default_tax_rate", v)} disabled={!canManage} />
-          <PctField label="Taxa de cartão" hint="Percentual médio cobrado pela operadora de cartão." value={form.default_card_fee_rate} onChange={(v) => set("default_card_fee_rate", v)} disabled={!canManage} />
-          <PctField label="Comissão" hint="Comissão paga a vendedor/parceiro." value={form.default_commission_rate} onChange={(v) => set("default_commission_rate", v)} disabled={!canManage} />
-          <PctField label="Reserva de garantia" hint="Reserva para cobrir trocas e retornos." value={form.default_warranty_reserve_rate} onChange={(v) => set("default_warranty_reserve_rate", v)} disabled={!canManage} />
-          <PctField label="Custo operacional variável" hint="Frete, combustível, embalagem, deslocamento etc." value={form.default_operational_cost_rate} onChange={(v) => set("default_operational_cost_rate", v)} disabled={!canManage} />
-          <PctField label="Rateio de custo fixo (opcional)" hint="Deixe 0 para o sistema calcular automaticamente a partir do faturamento e custos fixos." value={form.default_fixed_cost_allocation_rate} onChange={(v) => set("default_fixed_cost_allocation_rate", v)} disabled={!canManage} />
+          <PctField
+            label="Impostos"
+            hint="Percentual médio de impostos sobre venda (Simples, ICMS, ISS)."
+            value={form.default_tax_rate}
+            onChange={(v) => set("default_tax_rate", v)}
+            disabled={!canManage}
+          />
+          <PctField
+            label="Taxa de cartão"
+            hint="Percentual médio cobrado pela operadora de cartão."
+            value={form.default_card_fee_rate}
+            onChange={(v) => set("default_card_fee_rate", v)}
+            disabled={!canManage}
+          />
+          <PctField
+            label="Comissão"
+            hint="Comissão paga a vendedor/parceiro."
+            value={form.default_commission_rate}
+            onChange={(v) => set("default_commission_rate", v)}
+            disabled={!canManage}
+          />
+          <PctField
+            label="Reserva de garantia"
+            hint="Reserva para cobrir trocas e retornos."
+            value={form.default_warranty_reserve_rate}
+            onChange={(v) => set("default_warranty_reserve_rate", v)}
+            disabled={!canManage}
+          />
+          <PctField
+            label="Custo operacional variável"
+            hint="Frete, combustível, embalagem, deslocamento etc."
+            value={form.default_operational_cost_rate}
+            onChange={(v) => set("default_operational_cost_rate", v)}
+            disabled={!canManage}
+          />
+          <PctField
+            label="Rateio de custo fixo (opcional)"
+            hint="Deixe 0 para o sistema calcular automaticamente a partir do faturamento e custos fixos."
+            value={form.default_fixed_cost_allocation_rate}
+            onChange={(v) => set("default_fixed_cost_allocation_rate", v)}
+            disabled={!canManage}
+          />
         </CardContent>
       </Card>
 
       {/* ============ Margem desejada ============ */}
       <Card>
-        <CardHeader><CardTitle className="text-base">5. Margem de lucro desejada</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-base">5. Margem de lucro desejada</CardTitle>
+        </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
-          <PctField label="Margem desejada" hint="Lucro líquido que a empresa quer reter depois de pagar custos, impostos e pró-labore." value={form.default_desired_margin_rate} onChange={(v) => set("default_desired_margin_rate", v)} disabled={!canManage} />
+          <PctField
+            label="Margem desejada"
+            hint="Lucro líquido que a empresa quer reter depois de pagar custos, impostos e pró-labore."
+            value={form.default_desired_margin_rate}
+            onChange={(v) => set("default_desired_margin_rate", v)}
+            disabled={!canManage}
+          />
           <div>
             <Label>
               Método de rateio
-              <Hint>Como diluir custos fixos em cada venda. Por % do faturamento ou valor fixo por venda.</Hint>
+              <Hint>
+                Como diluir custos fixos em cada venda. Por % do faturamento ou valor fixo por
+                venda.
+              </Hint>
             </Label>
-            <Select value={form.allocation_method} onValueChange={(v) => set("allocation_method", v as AllocationMethod)} disabled={!canManage}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+            <Select
+              value={form.allocation_method}
+              onValueChange={(v) => set("allocation_method", v as AllocationMethod)}
+              disabled={!canManage}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="PERCENT_OF_REVENUE">% do faturamento</SelectItem>
                 <SelectItem value="FIXED_PER_SALE">Valor fixo por venda</SelectItem>
@@ -375,9 +454,10 @@ function CostSettingsPage() {
             </div>
           ) : (
             <p className="text-xs text-muted-foreground">
-              Cada produto ou serviço deve ser multiplicado por <strong>{summary.markup.toFixed(2)}×</strong> para cobrir custos fixos, pró-labore, despesas variáveis e ainda deixar a margem desejada.
-              {" "}
-              Exemplo: um item de custo <strong>R$ 60,00</strong> teria preço sugerido de{" "}
+              Cada produto ou serviço deve ser multiplicado por{" "}
+              <strong>{summary.markup.toFixed(2)}×</strong> para cobrir custos fixos, pró-labore,
+              despesas variáveis e ainda deixar a margem desejada. Exemplo: um item de custo{" "}
+              <strong>R$ 60,00</strong> teria preço sugerido de{" "}
               <strong>{formatCurrency(60 * summary.markup)}</strong>.
             </p>
           )}
@@ -404,10 +484,17 @@ function SummaryStat({ label, value }: { label: string; value: string }) {
 }
 
 function PctField({
-  label, hint, value, onChange, disabled,
+  label,
+  hint,
+  value,
+  onChange,
+  disabled,
 }: {
-  label: string; hint: string; value: string;
-  onChange: (v: string) => void; disabled?: boolean;
+  label: string;
+  hint: string;
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
 }) {
   return (
     <div>
@@ -415,7 +502,13 @@ function PctField({
         {label} (%)
         <Hint>{hint}</Hint>
       </Label>
-      <Input inputMode="decimal" value={value} onChange={(e) => onChange(e.target.value)} placeholder="0" disabled={disabled} />
+      <Input
+        inputMode="decimal"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="0"
+        disabled={disabled}
+      />
     </div>
   );
 }
@@ -424,10 +517,24 @@ function PctField({
 // Fixed costs detailed list
 // ============================================================
 function FixedCostsCard({
-  canManage, items, total, onChange, upsertFn, deleteFn, onApplyTotal, currentTotalField, setCurrentTotalField,
+  canManage,
+  items,
+  total,
+  onChange,
+  upsertFn,
+  deleteFn,
+  onApplyTotal,
+  currentTotalField,
+  setCurrentTotalField,
 }: {
   canManage: boolean;
-  items: Array<{ id: string; name: string; category: string | null; amount: number; active: boolean }>;
+  items: Array<{
+    id: string;
+    name: string;
+    category: string | null;
+    amount: number;
+    active: boolean;
+  }>;
   total: number;
   onChange: () => void;
   upsertFn: (args: any) => Promise<any>;
@@ -444,8 +551,12 @@ function FixedCostsCard({
     if (!nName.trim()) return toast.error("Informe o nome do custo.");
     const amount = Number(nAmt.replace(",", ".")) || 0;
     try {
-      await upsertFn({ data: { name: nName.trim(), category: nCat.trim() || null, amount, active: true } });
-      setNName(""); setNCat(""); setNAmt("");
+      await upsertFn({
+        data: { name: nName.trim(), category: nCat.trim() || null, amount, active: true },
+      });
+      setNName("");
+      setNCat("");
+      setNAmt("");
       onChange();
       toast.success("Custo fixo adicionado.");
     } catch (e: any) {
@@ -453,11 +564,27 @@ function FixedCostsCard({
     }
   };
 
-  const toggleActive = async (row: { id: string; name: string; category: string | null; amount: number; active: boolean }) => {
+  const toggleActive = async (row: {
+    id: string;
+    name: string;
+    category: string | null;
+    amount: number;
+    active: boolean;
+  }) => {
     try {
-      await upsertFn({ data: { id: row.id, name: row.name, category: row.category, amount: row.amount, active: !row.active } });
+      await upsertFn({
+        data: {
+          id: row.id,
+          name: row.name,
+          category: row.category,
+          amount: row.amount,
+          active: !row.active,
+        },
+      });
       onChange();
-    } catch (e: any) { toast.error(e?.message ?? "Erro"); }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro");
+    }
   };
 
   const remove = async (id: string) => {
@@ -465,7 +592,9 @@ function FixedCostsCard({
     try {
       await deleteFn({ data: { id } });
       onChange();
-    } catch (e: any) { toast.error(e?.message ?? "Erro"); }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro");
+    }
   };
 
   return (
@@ -477,7 +606,13 @@ function FixedCostsCard({
             <span className="text-muted-foreground">Soma ativa:</span>
             <strong>{formatCurrency(total)}</strong>
             {total > 0 && Number(currentTotalField) !== total && (
-              <Button type="button" size="sm" variant="outline" onClick={() => onApplyTotal(total)} disabled={!canManage}>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => onApplyTotal(total)}
+                disabled={!canManage}
+              >
                 Usar no cálculo
               </Button>
             )}
@@ -486,20 +621,33 @@ function FixedCostsCard({
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-xs text-muted-foreground">
-          Gastos que sua empresa tem todo mês, mesmo sem vender (aluguel, internet, contador, sistemas, salários administrativos, energia).
+          Gastos que sua empresa tem todo mês, mesmo sem vender (aluguel, internet, contador,
+          sistemas, salários administrativos, energia).
         </p>
 
         {items.length > 0 && (
           <div className="divide-y rounded-lg border">
             {items.map((r) => (
-              <div key={r.id} className={`grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 p-3 text-sm ${!r.active ? "opacity-50" : ""}`}>
+              <div
+                key={r.id}
+                className={`grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 p-3 text-sm ${!r.active ? "opacity-50" : ""}`}
+              >
                 <div>
                   <div className="font-medium">{r.name}</div>
                   {r.category && <div className="text-xs text-muted-foreground">{r.category}</div>}
                 </div>
                 <div className="font-semibold tabular-nums">{formatCurrency(Number(r.amount))}</div>
-                <Switch checked={r.active} onCheckedChange={() => toggleActive(r)} disabled={!canManage} />
-                <Button size="icon" variant="ghost" onClick={() => remove(r.id)} disabled={!canManage}>
+                <Switch
+                  checked={r.active}
+                  onCheckedChange={() => toggleActive(r)}
+                  disabled={!canManage}
+                />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => remove(r.id)}
+                  disabled={!canManage}
+                >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -509,17 +657,36 @@ function FixedCostsCard({
 
         {canManage && (
           <div className="grid gap-2 rounded-lg border border-dashed p-3 sm:grid-cols-[1fr_1fr_140px_auto]">
-            <Input placeholder="Nome (ex.: Aluguel)" value={nName} onChange={(e) => setNName(e.target.value)} />
-            <Input placeholder="Categoria (opcional)" value={nCat} onChange={(e) => setNCat(e.target.value)} />
-            <Input inputMode="decimal" placeholder="R$ 0,00" value={nAmt} onChange={(e) => setNAmt(e.target.value)} />
-            <Button type="button" onClick={add}><Plus className="mr-1 h-4 w-4" />Adicionar</Button>
+            <Input
+              placeholder="Nome (ex.: Aluguel)"
+              value={nName}
+              onChange={(e) => setNName(e.target.value)}
+            />
+            <Input
+              placeholder="Categoria (opcional)"
+              value={nCat}
+              onChange={(e) => setNCat(e.target.value)}
+            />
+            <Input
+              inputMode="decimal"
+              placeholder="R$ 0,00"
+              value={nAmt}
+              onChange={(e) => setNAmt(e.target.value)}
+            />
+            <Button type="button" onClick={add}>
+              <Plus className="mr-1 h-4 w-4" />
+              Adicionar
+            </Button>
           </div>
         )}
 
         <div>
           <Label>
             Custos fixos totais usados no cálculo (R$)
-            <Hint>Você pode preencher manualmente ou clicar em "Usar no cálculo" acima para puxar a soma da lista.</Hint>
+            <Hint>
+              Você pode preencher manualmente ou clicar em "Usar no cálculo" acima para puxar a soma
+              da lista.
+            </Hint>
           </Label>
           <Input
             inputMode="decimal"

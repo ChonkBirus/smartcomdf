@@ -37,43 +37,40 @@ export const getAdminBillingOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<AdminBillingOverview> => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const in3Days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [companiesRes, subsRes, paymentsRes, webhooksRes, trialsRes] =
-      await Promise.all([
-        supabaseAdmin.from("companies").select("id", { count: "exact", head: true }),
-        supabaseAdmin
-          .from("subscriptions")
-          .select(
-            "id, status, billing_cycle, monthly_price, yearly_price, plans:plan_id(monthly_price, annual_price)",
-          ),
-        supabaseAdmin
-          .from("billing_charges")
-          .select("amount, paid_at, status")
-          .eq("status", "RECEIVED")
-          .gte("paid_at", monthStart),
-        supabaseAdmin
-          .from("billing_webhook_events")
-          .select("id", { count: "exact", head: true })
-          .in("status", ["ERROR", "FAILED"]),
-        supabaseAdmin
-          .from("subscriptions")
-          .select(
-            "id, company_id, trial_ends_at, plans:plan_id(name), companies:company_id(trade_name, corporate_name)",
-          )
-          .eq("status", "TRIALING")
-          .not("trial_ends_at", "is", null)
-          .gte("trial_ends_at", now.toISOString())
-          .lte("trial_ends_at", in3Days)
-          .order("trial_ends_at", { ascending: true })
-          .limit(20),
-      ]);
+    const [companiesRes, subsRes, paymentsRes, webhooksRes, trialsRes] = await Promise.all([
+      supabaseAdmin.from("companies").select("id", { count: "exact", head: true }),
+      supabaseAdmin
+        .from("subscriptions")
+        .select(
+          "id, status, billing_cycle, monthly_price, yearly_price, plans:plan_id(monthly_price, annual_price)",
+        ),
+      supabaseAdmin
+        .from("billing_charges")
+        .select("amount, paid_at, status")
+        .eq("status", "RECEIVED")
+        .gte("paid_at", monthStart),
+      supabaseAdmin
+        .from("billing_webhook_events")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["ERROR", "FAILED"]),
+      supabaseAdmin
+        .from("subscriptions")
+        .select(
+          "id, company_id, trial_ends_at, plans:plan_id(name), companies:company_id(trade_name, corporate_name)",
+        )
+        .eq("status", "TRIALING")
+        .not("trial_ends_at", "is", null)
+        .gte("trial_ends_at", now.toISOString())
+        .lte("trial_ends_at", in3Days)
+        .order("trial_ends_at", { ascending: true })
+        .limit(20),
+    ]);
 
     const counts = {
       TRIALING: 0,

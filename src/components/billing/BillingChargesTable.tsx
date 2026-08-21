@@ -16,10 +16,8 @@ import {
 import { listCompanyCharges, type CompanyCharge } from "@/lib/billing.functions";
 import { syncBillingStatus } from "@/lib/billing-sync.functions";
 
-const fmtBRL = (n: number) =>
-  n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const fmtDate = (s: string | null) =>
-  s ? new Date(s).toLocaleDateString("pt-BR") : "—";
+const fmtBRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleDateString("pt-BR") : "—");
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: "Pendente",
@@ -60,14 +58,11 @@ export function BillingChargesTable() {
       qc.invalidateQueries({ queryKey: ["billing", "company-charges"] });
       qc.invalidateQueries({ queryKey: ["billing", "current-subscription"] });
     },
-    onError: (e: any) =>
-      toast.error(e?.message ?? "Falha ao atualizar status"),
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao atualizar status"),
   });
 
   if (isLoading) {
-    return (
-      <div className="text-sm text-muted-foreground">Carregando faturas...</div>
-    );
+    return <div className="text-sm text-muted-foreground">Carregando faturas...</div>;
   }
 
   if (!data || data.length === 0) {
@@ -99,12 +94,8 @@ export function BillingChargesTable() {
             return (
               <TableRow key={c.id}>
                 <TableCell>{fmtDate(c.due_date)}</TableCell>
-                <TableCell className="font-medium">
-                  {fmtBRL(c.amount)}
-                </TableCell>
-                <TableCell>
-                  {METHOD_LABEL[c.payment_method ?? "UNDEFINED"] ?? "—"}
-                </TableCell>
+                <TableCell className="font-medium">{fmtBRL(c.amount)}</TableCell>
+                <TableCell>{METHOD_LABEL[c.payment_method ?? "UNDEFINED"] ?? "—"}</TableCell>
                 <TableCell>
                   <StatusBadge status={c.status} label={STATUS_LABEL[c.status] ?? c.status} />
                 </TableCell>

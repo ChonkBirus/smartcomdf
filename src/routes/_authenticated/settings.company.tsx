@@ -8,7 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -21,7 +25,6 @@ import type { CepResult } from "@/lib/address-lookup";
 import { CustomerCnpjLookupButton } from "@/components/customers/CustomerCnpjLookupDialog";
 import type { CnpjLookupResultDTO } from "@/lib/cnpj-lookup.functions";
 import { statesFor } from "@/lib/locations";
-
 
 export const Route = createFileRoute("/_authenticated/settings/company")({
   component: CompanyPage,
@@ -37,8 +40,21 @@ function CompanyPage() {
   const c = data?.company;
 
   const [form, setForm] = useState({
-    corporate_name: "", trade_name: "", cnpj: "", phone: "", whatsapp: "", email: "", logo_url: "",
-    zipcode: "", street: "", number: "", complement: "", district: "", city: "", state: "", country: "BR",
+    corporate_name: "",
+    trade_name: "",
+    cnpj: "",
+    phone: "",
+    whatsapp: "",
+    email: "",
+    logo_url: "",
+    zipcode: "",
+    street: "",
+    number: "",
+    complement: "",
+    district: "",
+    city: "",
+    state: "",
+    country: "BR",
   });
   const [signedLogo, setSignedLogo] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -65,8 +81,6 @@ function CompanyPage() {
       });
     }
   }, [c]);
-
-
 
   useEffect(() => {
     if (form.logo_url) {
@@ -104,9 +118,10 @@ function CompanyPage() {
         toast.message("Não foi possível remover o fundo — enviando original.");
       }
       const path = `${c.id}/logo-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage
-        .from("company-logos")
-        .upload(path, uploadBlob, { upsert: true, contentType: ext === "png" ? "image/png" : uploadBlob.type || undefined });
+      const { error } = await supabase.storage.from("company-logos").upload(path, uploadBlob, {
+        upsert: true,
+        contentType: ext === "png" ? "image/png" : uploadBlob.type || undefined,
+      });
       if (error) throw error;
       setForm((f) => ({ ...f, logo_url: path }));
       toast.success("Logo enviada. Clique em Salvar para confirmar.");
@@ -125,7 +140,10 @@ function CompanyPage() {
       <CardContent>
         <form
           className="grid gap-4 md:grid-cols-2"
-          onSubmit={(e) => { e.preventDefault(); saveMut.mutate(); }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            saveMut.mutate();
+          }}
         >
           <div className="md:col-span-2 flex items-center gap-4">
             <div className="h-20 w-20 overflow-hidden rounded-md border border-border bg-muted flex items-center justify-center">
@@ -154,11 +172,17 @@ function CompanyPage() {
           </div>
 
           <Field label="Razão Social *">
-            <Input required value={form.corporate_name}
-              onChange={(e) => setForm({ ...form, corporate_name: e.target.value })} />
+            <Input
+              required
+              value={form.corporate_name}
+              onChange={(e) => setForm({ ...form, corporate_name: e.target.value })}
+            />
           </Field>
           <Field label="Nome Fantasia">
-            <Input value={form.trade_name} onChange={(e) => setForm({ ...form, trade_name: e.target.value })} />
+            <Input
+              value={form.trade_name}
+              onChange={(e) => setForm({ ...form, trade_name: e.target.value })}
+            />
           </Field>
           <Field label="CNPJ">
             <div className="flex gap-2">
@@ -191,13 +215,23 @@ function CompanyPage() {
             </div>
           </Field>
           <Field label="Telefone">
-            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <Input
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            />
           </Field>
           <Field label="E-mail">
-            <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <Input
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
           </Field>
           <Field label="WhatsApp">
-            <Input value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} />
+            <Input
+              value={form.whatsapp}
+              onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+            />
           </Field>
 
           <div className="md:col-span-2 pt-2">
@@ -216,38 +250,62 @@ function CompanyPage() {
                       district: f.district?.trim() ? f.district : r.district,
                       city: f.city?.trim() ? f.city : r.city,
                       state: f.state?.trim() ? f.state : r.state,
-                      complement: f.complement?.trim() ? f.complement : (r.complement ?? f.complement),
+                      complement: f.complement?.trim()
+                        ? f.complement
+                        : (r.complement ?? f.complement),
                     }));
                   }}
                 />
               </div>
               <div className="md:col-span-3">
                 <Label>Logradouro</Label>
-                <Input value={form.street} onChange={(e) => setForm({ ...form, street: e.target.value })} />
+                <Input
+                  value={form.street}
+                  onChange={(e) => setForm({ ...form, street: e.target.value })}
+                />
               </div>
               <div>
                 <Label>Número</Label>
-                <Input value={form.number} onChange={(e) => setForm({ ...form, number: e.target.value })} />
+                <Input
+                  value={form.number}
+                  onChange={(e) => setForm({ ...form, number: e.target.value })}
+                />
               </div>
               <div className="md:col-span-2">
                 <Label>Complemento</Label>
-                <Input value={form.complement} onChange={(e) => setForm({ ...form, complement: e.target.value })} />
+                <Input
+                  value={form.complement}
+                  onChange={(e) => setForm({ ...form, complement: e.target.value })}
+                />
               </div>
               <div className="md:col-span-2">
                 <Label>Bairro</Label>
-                <Input value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} />
+                <Input
+                  value={form.district}
+                  onChange={(e) => setForm({ ...form, district: e.target.value })}
+                />
               </div>
               <div className="md:col-span-2">
                 <Label>Cidade</Label>
-                <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+                <Input
+                  value={form.city}
+                  onChange={(e) => setForm({ ...form, city: e.target.value })}
+                />
               </div>
               <div>
                 <Label>UF</Label>
-                <Select value={form.state || ""} onValueChange={(v) => setForm({ ...form, state: v })}>
-                  <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+                <Select
+                  value={form.state || ""}
+                  onValueChange={(v) => setForm({ ...form, state: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="UF" />
+                  </SelectTrigger>
                   <SelectContent>
                     {statesFor("BR").map((s) => (
-                      <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>
+                      <SelectItem key={s.code} value={s.code}>
+                        {s.code}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -255,11 +313,10 @@ function CompanyPage() {
             </div>
           </div>
 
-
-
-
           <div className="md:col-span-2 flex justify-end">
-            <Button type="submit" disabled={saveMut.isPending}>Salvar</Button>
+            <Button type="submit" disabled={saveMut.isPending}>
+              Salvar
+            </Button>
           </div>
         </form>
       </CardContent>
@@ -274,7 +331,11 @@ function PixSettingsCard() {
   const savePix = useServerFn(saveCompanyPix);
   const companyId = useCompanyId();
 
-  const { data } = useQuery({ queryKey: ["company-pix", companyId], queryFn: () => fetchPix(), enabled: !!companyId });
+  const { data } = useQuery({
+    queryKey: ["company-pix", companyId],
+    queryFn: () => fetchPix(),
+    enabled: !!companyId,
+  });
 
   const [pix, setPix] = useState({
     pix_key: "",
@@ -319,7 +380,10 @@ function PixSettingsCard() {
       </p>
       <form
         className="grid gap-4 md:grid-cols-2"
-        onSubmit={(e) => { e.preventDefault(); mut.mutate(); }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          mut.mutate();
+        }}
       >
         <div className="space-y-1.5">
           <Label>Tipo da chave</Label>
@@ -327,7 +391,9 @@ function PixSettingsCard() {
             value={pix.pix_key_type || "none"}
             onValueChange={(v) => setPix({ ...pix, pix_key_type: v === "none" ? "" : (v as any) })}
           >
-            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">—</SelectItem>
               <SelectItem value="CPF">CPF</SelectItem>
@@ -361,14 +427,24 @@ function PixSettingsCard() {
           />
         </div>
         <div className="md:col-span-2 flex justify-end">
-          <Button type="submit" disabled={mut.isPending}>Salvar Pix</Button>
+          <Button type="submit" disabled={mut.isPending}>
+            Salvar Pix
+          </Button>
         </div>
       </form>
     </CardContent>
   );
 }
 
-function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
+function Field({
+  label,
+  children,
+  full,
+}: {
+  label: string;
+  children: React.ReactNode;
+  full?: boolean;
+}) {
   return (
     <div className={`space-y-1.5 ${full ? "md:col-span-2" : ""}`}>
       <Label>{label}</Label>

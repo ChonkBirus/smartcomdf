@@ -77,10 +77,7 @@ export const validateCoupon = createServerFn({ method: "POST" })
       throw new Error("Cupom não é válido para este plano.");
     }
 
-    if (
-      coupon.max_redemptions != null &&
-      coupon.redemption_count >= coupon.max_redemptions
-    ) {
+    if (coupon.max_redemptions != null && coupon.redemption_count >= coupon.max_redemptions) {
       throw new Error("Cupom esgotado.");
     }
 
@@ -137,9 +134,7 @@ export const adminListCoupons = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("billing_coupons")
       .select("*")
@@ -153,9 +148,7 @@ export const adminCreateCoupon = createServerFn({ method: "POST" })
   .inputValidator((d) => couponInputSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const payload = {
       ...data,
       code: data.code.trim().toUpperCase(),
@@ -174,17 +167,12 @@ export const adminCreateCoupon = createServerFn({ method: "POST" })
 export const adminUpdateCoupon = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z
-      .object({ id: z.string().uuid() })
-      .merge(couponInputSchema.partial())
-      .parse(d),
+    z.object({ id: z.string().uuid() }).merge(couponInputSchema.partial()).parse(d),
   )
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
     const { id, ...rest } = data;
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const payload: any = { ...rest };
     if (payload.code) payload.code = payload.code.trim().toUpperCase();
     const { data: row, error } = await supabaseAdmin
@@ -199,14 +187,10 @@ export const adminUpdateCoupon = createServerFn({ method: "POST" })
 
 export const adminToggleCoupon = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z.object({ id: z.string().uuid(), is_active: z.boolean() }).parse(d),
-  )
+  .inputValidator((d) => z.object({ id: z.string().uuid(), is_active: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("billing_coupons")
       .update({ is_active: data.is_active })
@@ -220,9 +204,7 @@ export const adminListCouponRedemptions = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ coupon_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("billing_coupon_redemptions")
       .select(
@@ -234,7 +216,6 @@ export const adminListCouponRedemptions = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return (rows ?? []).map((r: any) => ({
       ...r,
-      company_name:
-        r.companies?.trade_name ?? r.companies?.corporate_name ?? null,
+      company_name: r.companies?.trade_name ?? r.companies?.corporate_name ?? null,
     }));
   });

@@ -81,7 +81,9 @@ export const getFinanceReport = createServerFn({ method: "GET" })
 
     let q = supabase
       .from("financial_transactions")
-      .select("id,type,status,amount,due_date,paid_at,category_id,origin_type,financial_categories(name)")
+      .select(
+        "id,type,status,amount,due_date,paid_at,category_id,origin_type,financial_categories(name)",
+      )
       .eq("company_id", companyId)
       .is("deleted_at", null);
 
@@ -130,8 +132,7 @@ export const getFinanceReport = createServerFn({ method: "GET" })
     for (const r of list) {
       if (r.status === "CANCELED") continue;
       const amt = Number(r.amount ?? 0);
-      const eff =
-        r.status === "PLANNED" && r.due_date && r.due_date < today ? "OVERDUE" : r.status;
+      const eff = r.status === "PLANNED" && r.due_date && r.due_date < today ? "OVERDUE" : r.status;
       const catName = r.financial_categories?.name ?? "Sem categoria";
       const monthKey = (r.paid_at ?? r.due_date ?? "").slice(0, 7);
 
@@ -173,19 +174,17 @@ export const getFinanceReport = createServerFn({ method: "GET" })
       // Origin aggregation
       const originType = (r.origin_type ?? "MANUAL").toUpperCase();
       const key = `${originType}::${r.type}`;
-      const row =
-        originMap.get(key) ??
-        {
-          origin_type: originType,
-          label: getOriginTypeLabel(originType, r.type).label,
-          type: r.type as "INCOME" | "EXPENSE",
-          realized_total: 0,
-          realized_count: 0,
-          planned_total: 0,
-          planned_count: 0,
-          total: 0,
-          count: 0,
-        };
+      const row = originMap.get(key) ?? {
+        origin_type: originType,
+        label: getOriginTypeLabel(originType, r.type).label,
+        type: r.type as "INCOME" | "EXPENSE",
+        realized_total: 0,
+        realized_count: 0,
+        planned_total: 0,
+        planned_count: 0,
+        total: 0,
+        count: 0,
+      };
       if (REALIZED.has(eff)) {
         row.realized_total += amt;
         row.realized_count += 1;
@@ -219,9 +218,13 @@ export const getFinanceReport = createServerFn({ method: "GET" })
     summary.payablesByStatus = [...payStatus.entries()].map(([status, v]) => ({ status, ...v }));
     summary.monthly = [...monthly.entries()]
       .sort((a, b) => (a[0] < b[0] ? -1 : 1))
-      .map(([month, v]) => ({ month, income: v.income, expense: v.expense, balance: v.income - v.expense }));
+      .map(([month, v]) => ({
+        month,
+        income: v.income,
+        expense: v.expense,
+        balance: v.income - v.expense,
+      }));
     summary.originSummary = [...originMap.values()].sort((a, b) => b.total - a.total);
 
     return summary;
   });
-

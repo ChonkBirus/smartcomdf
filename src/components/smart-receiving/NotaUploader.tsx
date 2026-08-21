@@ -31,7 +31,10 @@ export function NotaUploader({ onCreated }: { onCreated: (id: string) => void })
   const parse = useServerFn(parseNotaDocument);
 
   async function handleFile(file: File) {
-    if (file.size > MAX_SIZE) { toast.error("Arquivo acima de 15 MB."); return; }
+    if (file.size > MAX_SIZE) {
+      toast.error("Arquivo acima de 15 MB.");
+      return;
+    }
     // Garante que o token mais recente está disponível antes do RPC.
     // Em refresh de token o contexto local pode estar momentaneamente vazio,
     // mas o Supabase client tem persistência própria.
@@ -61,7 +64,9 @@ export function NotaUploader({ onCreated }: { onCreated: (id: string) => void })
         await parse({ data: { id } });
         toast.success("Leitura concluída. Revise os itens.");
       } catch (e: any) {
-        toast.error(e?.message ?? "Falha ao processar com IA. Documento salvo para nova tentativa.");
+        toast.error(
+          e?.message ?? "Falha ao processar com IA. Documento salvo para nova tentativa.",
+        );
       }
       onCreated(id);
     } catch (e: any) {
@@ -88,22 +93,44 @@ export function NotaUploader({ onCreated }: { onCreated: (id: string) => void })
         </div>
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
-        <Button onClick={() => cameraRef.current?.click()} disabled={busy} className="flex-1 sm:flex-initial">
-          {busy ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Camera className="mr-1 h-4 w-4" />}
+        <Button
+          onClick={() => cameraRef.current?.click()}
+          disabled={busy}
+          className="flex-1 sm:flex-initial"
+        >
+          {busy ? (
+            <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+          ) : (
+            <Camera className="mr-1 h-4 w-4" />
+          )}
           Tirar foto
         </Button>
-        <Button onClick={() => fileRef.current?.click()} disabled={busy} variant="outline" className="flex-1 sm:flex-initial">
+        <Button
+          onClick={() => fileRef.current?.click()}
+          disabled={busy}
+          variant="outline"
+          className="flex-1 sm:flex-initial"
+        >
           <Upload className="mr-1 h-4 w-4" />
           Enviar arquivo
         </Button>
-        {busy && stage && <span className="self-center text-xs text-muted-foreground">{stage}</span>}
+        {busy && stage && (
+          <span className="self-center text-xs text-muted-foreground">{stage}</span>
+        )}
       </div>
       <input
-        ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
         onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
       />
       <input
-        ref={fileRef} type="file" accept={ACCEPT} className="hidden"
+        ref={fileRef}
+        type="file"
+        accept={ACCEPT}
+        className="hidden"
         onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
       />
     </div>

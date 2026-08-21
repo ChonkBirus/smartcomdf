@@ -48,7 +48,11 @@ export const listLocations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data, error } = await sb
       .from("stock_locations")
@@ -71,7 +75,11 @@ export const saveLocation = createServerFn({ method: "POST" })
   .inputValidator((d) => locationSchema.parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: profile } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!profile?.company_id) throw new Error("Sem empresa.");
     const payload = {
       name: data.name,
@@ -82,12 +90,26 @@ export const saveLocation = createServerFn({ method: "POST" })
     if (data.id) {
       const { error } = await sb.from("stock_locations").update(payload).eq("id", data.id);
       if (error) throw new Error(error.message);
-      await sb.rpc("log_audit", { _module: "stock_locations", _action: "update", _record_id: data.id, _new_data: payload });
+      await sb.rpc("log_audit", {
+        _module: "stock_locations",
+        _action: "update",
+        _record_id: data.id,
+        _new_data: payload,
+      });
       return { id: data.id };
     }
-    const { data: row, error } = await sb.from("stock_locations").insert(payload).select("id").single();
+    const { data: row, error } = await sb
+      .from("stock_locations")
+      .insert(payload)
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
-    await sb.rpc("log_audit", { _module: "stock_locations", _action: "create", _record_id: row.id, _new_data: payload });
+    await sb.rpc("log_audit", {
+      _module: "stock_locations",
+      _action: "create",
+      _record_id: row.id,
+      _new_data: payload,
+    });
     return { id: row.id as string };
   });
 
@@ -96,7 +118,10 @@ export const toggleLocation = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid(), active: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { error } = await sb.from("stock_locations").update({ active: data.active }).eq("id", data.id);
+    const { error } = await sb
+      .from("stock_locations")
+      .update({ active: data.active })
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -108,7 +133,11 @@ export const listStockItems = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data, error } = await sb
       .from("items")
@@ -120,7 +149,13 @@ export const listStockItems = createServerFn({ method: "GET" })
       .eq("active", true)
       .order("name");
     if (error) throw new Error(error.message);
-    return (data ?? []) as { id: string; name: string; sku: string | null; unit: string; minimum_stock: number | null }[];
+    return (data ?? []) as {
+      id: string;
+      name: string;
+      sku: string | null;
+      unit: string;
+      minimum_stock: number | null;
+    }[];
   });
 
 // ============================================================
@@ -128,10 +163,18 @@ export const listStockItems = createServerFn({ method: "GET" })
 // ============================================================
 export const listBalances = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ location_id: z.string().uuid().optional(), search: z.string().optional() }).parse(d ?? {}))
+  .inputValidator((d) =>
+    z
+      .object({ location_id: z.string().uuid().optional(), search: z.string().optional() })
+      .parse(d ?? {}),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     const cid = prof.company_id;
     // Get all stock-eligible items
@@ -144,10 +187,17 @@ export const listBalances = createServerFn({ method: "GET" })
       .is("deleted_at", null);
     if (ierr) throw new Error(ierr.message);
 
-    const { data: locs, error: lerr } = await sb.from("stock_locations").select("id, name").eq("company_id", cid).eq("active", true);
+    const { data: locs, error: lerr } = await sb
+      .from("stock_locations")
+      .select("id, name")
+      .eq("company_id", cid)
+      .eq("active", true);
     if (lerr) throw new Error(lerr.message);
 
-    let balQ = sb.from("stock_balances").select("item_id, location_id, quantity").eq("company_id", cid);
+    let balQ = sb
+      .from("stock_balances")
+      .select("item_id, location_id, quantity")
+      .eq("company_id", cid);
     if (data.location_id) balQ = balQ.eq("location_id", data.location_id);
     const { data: bals, error: berr } = await balQ;
     if (berr) throw new Error(berr.message);
@@ -158,20 +208,37 @@ export const listBalances = createServerFn({ method: "GET" })
     const search = (data.search || "").trim().toLowerCase();
     const out: StockBalanceRow[] = [];
     for (const it of items ?? []) {
-      if (search && !it.name.toLowerCase().includes(search) && !(it.sku || "").toLowerCase().includes(search)) continue;
-      const locList = data.location_id ? (locs || []).filter((l: any) => l.id === data.location_id) : locs || [];
+      if (
+        search &&
+        !it.name.toLowerCase().includes(search) &&
+        !(it.sku || "").toLowerCase().includes(search)
+      )
+        continue;
+      const locList = data.location_id
+        ? (locs || []).filter((l: any) => l.id === data.location_id)
+        : locs || [];
       for (const loc of locList) {
         const qty = balMap.get(`${it.id}:${loc.id}`) ?? 0;
         const min = Number(it.minimum_stock || 0);
-        const status: StockBalanceRow["status"] = qty <= 0 ? "OUT" : min > 0 && qty <= min ? "LOW" : "OK";
+        const status: StockBalanceRow["status"] =
+          qty <= 0 ? "OUT" : min > 0 && qty <= min ? "LOW" : "OK";
         out.push({
-          item_id: it.id, location_id: loc.id, quantity: qty,
-          item_name: it.name, item_sku: it.sku, unit: it.unit, minimum_stock: it.minimum_stock,
-          location_name: loc.name, status,
+          item_id: it.id,
+          location_id: loc.id,
+          quantity: qty,
+          item_name: it.name,
+          item_sku: it.sku,
+          unit: it.unit,
+          minimum_stock: it.minimum_stock,
+          location_name: loc.name,
+          status,
         });
       }
     }
-    out.sort((a, b) => a.item_name.localeCompare(b.item_name) || a.location_name.localeCompare(b.location_name));
+    out.sort(
+      (a, b) =>
+        a.item_name.localeCompare(b.item_name) || a.location_name.localeCompare(b.location_name),
+    );
     return out;
   });
 
@@ -181,7 +248,7 @@ export const listBalances = createServerFn({ method: "GET" })
 const movementFilter = z.object({
   item_id: z.string().uuid().optional(),
   location_id: z.string().uuid().optional(),
-  movement_type: z.enum(["ENTRY","EXIT","ADJUSTMENT","TRANSFER_IN","TRANSFER_OUT"]).optional(),
+  movement_type: z.enum(["ENTRY", "EXIT", "ADJUSTMENT", "TRANSFER_IN", "TRANSFER_OUT"]).optional(),
   user_id: z.string().uuid().optional(),
   date_from: z.string().optional(),
   date_to: z.string().optional(),
@@ -194,16 +261,23 @@ export const listMovements = createServerFn({ method: "GET" })
   .inputValidator((d) => movementFilter.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
-    let q = sb.from("stock_movements")
-      .select(`
+    let q = sb
+      .from("stock_movements")
+      .select(
+        `
         id, created_at, movement_type, quantity, previous_balance, new_balance, reason, notes,
         item_id, location_id, user_id,
         items:item_id(name, sku),
         stock_locations:location_id(name),
         profiles:user_id(full_name, email)
-      `)
+      `,
+      )
       .eq("company_id", prof.company_id)
       .order("created_at", { ascending: false })
       .limit(data.limit);
@@ -233,13 +307,17 @@ export const listMovements = createServerFn({ method: "GET" })
       user_name: r.profiles?.full_name ?? r.profiles?.email ?? null,
     }));
     if (!search) return mapped;
-    return mapped.filter((m) => m.item_name.toLowerCase().includes(search) || (m.item_sku || "").toLowerCase().includes(search));
+    return mapped.filter(
+      (m) =>
+        m.item_name.toLowerCase().includes(search) ||
+        (m.item_sku || "").toLowerCase().includes(search),
+    );
   });
 
 const moveSchema = z.object({
   item_id: z.string().uuid(),
   location_id: z.string().uuid(),
-  movement_type: z.enum(["ENTRY","EXIT","ADJUSTMENT"]),
+  movement_type: z.enum(["ENTRY", "EXIT", "ADJUSTMENT"]),
   quantity: z.number().positive().optional(),
   final_quantity: z.number().min(0).optional(),
   reason: z.string().trim().max(200).optional().or(z.literal("")),
@@ -296,17 +374,29 @@ export const stockOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     const cid = prof.company_id;
     const { data: items } = await sb
-      .from("items").select("id, minimum_stock")
+      .from("items")
+      .select("id, minimum_stock")
       .eq("company_id", cid)
-      .eq("controls_stock", true).eq("item_type", "PRODUCT").is("deleted_at", null);
-    const { data: bals } = await sb.from("stock_balances").select("item_id, quantity").eq("company_id", cid);
+      .eq("controls_stock", true)
+      .eq("item_type", "PRODUCT")
+      .is("deleted_at", null);
+    const { data: bals } = await sb
+      .from("stock_balances")
+      .select("item_id, quantity")
+      .eq("company_id", cid);
     const totalByItem = new Map<string, number>();
-    for (const b of bals ?? []) totalByItem.set(b.item_id, (totalByItem.get(b.item_id) ?? 0) + Number(b.quantity));
-    let out = 0, low = 0;
+    for (const b of bals ?? [])
+      totalByItem.set(b.item_id, (totalByItem.get(b.item_id) ?? 0) + Number(b.quantity));
+    let out = 0,
+      low = 0;
     for (const it of items ?? []) {
       const q = totalByItem.get(it.id) ?? 0;
       const min = Number(it.minimum_stock || 0);
@@ -317,13 +407,17 @@ export const stockOverview = createServerFn({ method: "GET" })
       .from("stock_movements")
       .select("id, created_at, movement_type, quantity, items:item_id(name)")
       .eq("company_id", cid)
-      .order("created_at", { ascending: false }).limit(5);
+      .order("created_at", { ascending: false })
+      .limit(5);
     return {
       outOfStock: out,
       lowStock: low,
       recent: (recent ?? []).map((r: any) => ({
-        id: r.id, created_at: r.created_at, movement_type: r.movement_type as MovementType,
-        quantity: Number(r.quantity), item_name: r.items?.name ?? "—",
+        id: r.id,
+        created_at: r.created_at,
+        movement_type: r.movement_type as MovementType,
+        quantity: Number(r.quantity),
+        item_name: r.items?.name ?? "—",
       })),
     };
   });

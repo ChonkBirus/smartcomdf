@@ -15,9 +15,7 @@ export const syncBillingStatus = createServerFn({ method: "POST" })
     });
     if (canSync === false) throw new Error("Sem permissão para sincronizar cobranças.");
 
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const asaas = await import("@/lib/asaas.server");
     const { applyChargeStatus } = await import("@/lib/billing-webhook.server");
 
@@ -26,8 +24,7 @@ export const syncBillingStatus = createServerFn({ method: "POST" })
       .select("*")
       .eq("id", data.charge_id)
       .maybeSingle();
-    if (!charge || !charge.provider_charge_id)
-      throw new Error("Cobrança não encontrada.");
+    if (!charge || !charge.provider_charge_id) throw new Error("Cobrança não encontrada.");
 
     const payment = await asaas.asaasGetPayment(charge.provider_charge_id);
 

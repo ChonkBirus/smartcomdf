@@ -23,8 +23,14 @@ function loadImage(file: File | Blob): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
-    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
-    img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = (e) => {
+      URL.revokeObjectURL(url);
+      reject(e);
+    };
     img.src = url;
   });
 }
@@ -67,27 +73,40 @@ export async function removeLogoBackground(file: File): Promise<BgRemoveResult> 
     const idx = y * w + x;
     if (visited[idx]) return;
     const p = idx * 4;
-    const r = data[p], g = data[p + 1], b = data[p + 2];
+    const r = data[p],
+      g = data[p + 1],
+      b = data[p + 2];
     if (r >= SOFT_THRESHOLD && g >= SOFT_THRESHOLD && b >= SOFT_THRESHOLD) {
       visited[idx] = 1;
       stack.push(idx);
     }
   };
-  for (let x = 0; x < w; x++) { push(x, 0); push(x, h - 1); }
-  for (let y = 0; y < h; y++) { push(0, y); push(w - 1, y); }
+  for (let x = 0; x < w; x++) {
+    push(x, 0);
+    push(x, h - 1);
+  }
+  for (let y = 0; y < h; y++) {
+    push(0, y);
+    push(w - 1, y);
+  }
   while (stack.length) {
     const idx = stack.pop()!;
     const x = idx % w;
     const y = (idx / w) | 0;
     const p = idx * 4;
-    const r = data[p], g = data[p + 1], b = data[p + 2];
+    const r = data[p],
+      g = data[p + 1],
+      b = data[p + 2];
     // Strong white => fully transparent. Soft => partial alpha (feather).
     if (r >= WHITE_THRESHOLD && g >= WHITE_THRESHOLD && b >= WHITE_THRESHOLD) {
       data[p + 3] = 0;
     } else {
       // Feather: alpha proportional to distance from WHITE_THRESHOLD.
       const minC = Math.min(r, g, b);
-      const t = Math.max(0, Math.min(1, (WHITE_THRESHOLD - minC) / (WHITE_THRESHOLD - SOFT_THRESHOLD)));
+      const t = Math.max(
+        0,
+        Math.min(1, (WHITE_THRESHOLD - minC) / (WHITE_THRESHOLD - SOFT_THRESHOLD)),
+      );
       data[p + 3] = Math.round(255 * t);
     }
     // Expand

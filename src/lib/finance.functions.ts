@@ -5,13 +5,22 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export type FinTxType = "INCOME" | "EXPENSE";
 export type FinTxStatus = "PLANNED" | "PAID" | "OVERDUE" | "CANCELED" | "RECONCILED";
 export type FinTxOrigin =
-  | "MANUAL" | "QUOTE" | "PAYMENT" | "PURCHASE"
-  | "SERVICE_ORDER" | "OPEN_FINANCE" | "IMPORT";
+  | "MANUAL"
+  | "QUOTE"
+  | "PAYMENT"
+  | "PURCHASE"
+  | "SERVICE_ORDER"
+  | "OPEN_FINANCE"
+  | "IMPORT";
 
 export type CostBehavior = "FIXED" | "VARIABLE";
 export type CategoryGroup =
-  | "REVENUE" | "VARIABLE_COST" | "FIXED_EXPENSE"
-  | "INVESTMENT" | "NON_OPERATIONAL" | "CASH_ADJUSTMENT";
+  | "REVENUE"
+  | "VARIABLE_COST"
+  | "FIXED_EXPENSE"
+  | "INVESTMENT"
+  | "NON_OPERATIONAL"
+  | "CASH_ADJUSTMENT";
 
 export type FinancialCategory = {
   id: string;
@@ -61,27 +70,33 @@ export type FinancialTransaction = {
   updated_at: string;
 };
 
-
 async function getCompanyId(supabase: any, userId: string): Promise<string> {
-  const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  const { data } = await supabase
+    .from("profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .maybeSingle();
   const cid = data?.company_id as string | undefined;
   if (!cid) throw new Error("Sem empresa.");
   return cid;
 }
 
-const FiltersSchema = z.object({
-  from: z.string().optional(),
-  to: z.string().optional(),
-  type: z.enum(["INCOME", "EXPENSE"]).optional(),
-  status: z.enum(["PLANNED", "PAID", "OVERDUE", "CANCELED", "RECONCILED"]).optional(),
-  categoryId: z.string().uuid().optional(),
-  customerId: z.string().uuid().optional(),
-  supplierId: z.string().uuid().optional(),
-}).default({});
+const FiltersSchema = z
+  .object({
+    from: z.string().optional(),
+    to: z.string().optional(),
+    type: z.enum(["INCOME", "EXPENSE"]).optional(),
+    status: z.enum(["PLANNED", "PAID", "OVERDUE", "CANCELED", "RECONCILED"]).optional(),
+    categoryId: z.string().uuid().optional(),
+    customerId: z.string().uuid().optional(),
+    supplierId: z.string().uuid().optional(),
+  })
+  .default({});
 
 function effectiveStatus(t: { status: FinTxStatus; due_date: string | null }): FinTxStatus {
   if (t.status === "PLANNED" && t.due_date) {
-    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     if (new Date(t.due_date) < today) return "OVERDUE";
   }
   return t.status;
@@ -106,16 +121,14 @@ function mapRow(r: any): FinancialTransaction {
     customer_name: r.customers?.name ?? null,
     supplier_name: r.suppliers?.trade_name ?? r.suppliers?.corporate_name ?? null,
     bank_account_name: r.financial_bank_accounts
-      ? (r.financial_bank_accounts.account_name
-          ? `${r.financial_bank_accounts.bank_name} — ${r.financial_bank_accounts.account_name}`
-          : r.financial_bank_accounts.bank_name)
+      ? r.financial_bank_accounts.account_name
+        ? `${r.financial_bank_accounts.bank_name} — ${r.financial_bank_accounts.account_name}`
+        : r.financial_bank_accounts.bank_name
       : null,
   };
 }
 
-
 // ---------- Categories ----------
-
 
 export const listFinancialCategories = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -201,19 +214,23 @@ export const ensureDefaultFinancialCategories = createServerFn({ method: "POST" 
       if (codeToId.has(node.code)) continue;
       const pcode = parentCode(node.code);
       const parent_id = pcode ? (codeToId.get(pcode) ?? null) : null;
-      const { data: row } = await context.supabase.from("financial_categories").insert({
-        company_id: cid,
-        name: node.name,
-        type: node.type,
-        parent_id,
-        is_default: true,
-        active: true,
-        code: node.code,
-        level: levelFromCode(node.code),
-        sort_order: sortOrderFromCode(node.code),
-        cost_behavior: node.cost_behavior ?? null,
-        category_group: node.category_group,
-      }).select("id, code").single();
+      const { data: row } = await context.supabase
+        .from("financial_categories")
+        .insert({
+          company_id: cid,
+          name: node.name,
+          type: node.type,
+          parent_id,
+          is_default: true,
+          active: true,
+          code: node.code,
+          level: levelFromCode(node.code),
+          sort_order: sortOrderFromCode(node.code),
+          cost_behavior: node.cost_behavior ?? null,
+          category_group: node.category_group,
+        })
+        .select("id, code")
+        .single();
       if (row) codeToId.set(row.code as string, row.id as string);
     }
     return { ok: true };
@@ -221,27 +238,37 @@ export const ensureDefaultFinancialCategories = createServerFn({ method: "POST" 
 
 export const createFinancialCategory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: {
-    name: string;
-    type: FinTxType;
-    parent_id?: string | null;
-    code?: string | null;
-    cost_behavior?: CostBehavior | null;
-    category_group?: CategoryGroup | null;
-    active?: boolean;
-  }) =>
-    z.object({
-      name: z.string().min(1).max(120),
-      type: z.enum(["INCOME", "EXPENSE"]),
-      parent_id: z.string().uuid().nullable().optional(),
-      code: z.string().min(1).max(40).nullable().optional(),
-      cost_behavior: z.enum(["FIXED", "VARIABLE"]).nullable().optional(),
-      category_group: z.enum([
-        "REVENUE", "VARIABLE_COST", "FIXED_EXPENSE",
-        "INVESTMENT", "NON_OPERATIONAL", "CASH_ADJUSTMENT",
-      ]).nullable().optional(),
-      active: z.boolean().optional(),
-    }).parse(d),
+  .inputValidator(
+    (d: {
+      name: string;
+      type: FinTxType;
+      parent_id?: string | null;
+      code?: string | null;
+      cost_behavior?: CostBehavior | null;
+      category_group?: CategoryGroup | null;
+      active?: boolean;
+    }) =>
+      z
+        .object({
+          name: z.string().min(1).max(120),
+          type: z.enum(["INCOME", "EXPENSE"]),
+          parent_id: z.string().uuid().nullable().optional(),
+          code: z.string().min(1).max(40).nullable().optional(),
+          cost_behavior: z.enum(["FIXED", "VARIABLE"]).nullable().optional(),
+          category_group: z
+            .enum([
+              "REVENUE",
+              "VARIABLE_COST",
+              "FIXED_EXPENSE",
+              "INVESTMENT",
+              "NON_OPERATIONAL",
+              "CASH_ADJUSTMENT",
+            ])
+            .nullable()
+            .optional(),
+          active: z.boolean().optional(),
+        })
+        .parse(d),
   )
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
@@ -261,28 +288,28 @@ export const createFinancialCategory = createServerFn({ method: "POST" })
     if (data.cost_behavior !== undefined) payload.cost_behavior = data.cost_behavior;
     if (data.category_group !== undefined) payload.category_group = data.category_group;
 
-    const { data: row, error } = await context.supabase.from("financial_categories")
-      .insert(payload).select("*").single();
+    const { data: row, error } = await context.supabase
+      .from("financial_categories")
+      .insert(payload)
+      .select("*")
+      .single();
     if (error) throw error;
     return row as FinancialCategory;
   });
 
 export const updateFinancialCategory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: {
-    id: string;
-    name?: string;
-    active?: boolean;
-    code?: string | null;
-    type?: FinTxType;
-  }) =>
-    z.object({
-      id: z.string().uuid(),
-      name: z.string().min(1).max(120).optional(),
-      active: z.boolean().optional(),
-      code: z.string().min(1).max(40).nullable().optional(),
-      type: z.enum(["INCOME", "EXPENSE"]).optional(),
-    }).parse(d),
+  .inputValidator(
+    (d: { id: string; name?: string; active?: boolean; code?: string | null; type?: FinTxType }) =>
+      z
+        .object({
+          id: z.string().uuid(),
+          name: z.string().min(1).max(120).optional(),
+          active: z.boolean().optional(),
+          code: z.string().min(1).max(40).nullable().optional(),
+          type: z.enum(["INCOME", "EXPENSE"]).optional(),
+        })
+        .parse(d),
   )
   .handler(async ({ data, context }) => {
     const { levelFromCode, sortOrderFromCode } = await import("@/lib/chart-of-accounts.seed");
@@ -299,8 +326,12 @@ export const updateFinancialCategory = createServerFn({ method: "POST" })
         patch.level = null;
       }
     }
-    const { data: row, error } = await context.supabase.from("financial_categories")
-      .update(patch).eq("id", data.id).select("*").single();
+    const { data: row, error } = await context.supabase
+      .from("financial_categories")
+      .update(patch)
+      .eq("id", data.id)
+      .select("*")
+      .single();
     if (error) throw error;
     return row as FinancialCategory;
   });
@@ -308,10 +339,13 @@ export const updateFinancialCategory = createServerFn({ method: "POST" })
 export const deactivateFinancialCategory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string; active?: boolean }) =>
-    z.object({ id: z.string().uuid(), active: z.boolean().optional() }).parse(d))
+    z.object({ id: z.string().uuid(), active: z.boolean().optional() }).parse(d),
+  )
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("financial_categories")
-      .update({ active: data.active ?? false }).eq("id", data.id);
+    const { error } = await context.supabase
+      .from("financial_categories")
+      .update({ active: data.active ?? false })
+      .eq("id", data.id);
     if (error) throw error;
     return { ok: true };
   });
@@ -348,7 +382,9 @@ export const deleteFinancialCategory = createServerFn({ method: "POST" })
       return { deleted: false as const, reason: "has_children" as const };
     }
     const { error } = await context.supabase
-      .from("financial_categories").delete().eq("id", data.id);
+      .from("financial_categories")
+      .delete()
+      .eq("id", data.id);
     if (error) throw error;
     return { deleted: true as const };
   });
@@ -370,18 +406,22 @@ const TxInputSchema = z.object({
   bank_account_id: z.string().uuid().nullable().optional(),
 });
 
-
 export const listFinancialTransactions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => FiltersSchema.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
-    let q = context.supabase.from("financial_transactions")
-      .select("*, financial_categories(name), customers(name), suppliers(trade_name, corporate_name), financial_bank_accounts(bank_name, account_name)")
+    let q = context.supabase
+      .from("financial_transactions")
+      .select(
+        "*, financial_categories(name), customers(name), suppliers(trade_name, corporate_name), financial_bank_accounts(bank_name, account_name)",
+      )
       .eq("company_id", cid);
 
     q = applyFilters(q, data);
-    const { data: rows, error } = await q.order("due_date", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
+    const { data: rows, error } = await q
+      .order("due_date", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false });
     if (error) throw error;
     return (rows ?? []).map(mapRow);
   });
@@ -391,14 +431,16 @@ export const createFinancialTransaction = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => TxInputSchema.parse(d))
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
-    const { data: row, error } = await context.supabase.from("financial_transactions")
+    const { data: row, error } = await context.supabase
+      .from("financial_transactions")
       .insert({
         company_id: cid,
         created_by: context.userId,
         origin: "MANUAL",
         ...data,
       })
-      .select("*").single();
+      .select("*")
+      .single();
     if (error) throw error;
     return row as FinancialTransaction;
   });
@@ -410,8 +452,12 @@ export const updateFinancialTransaction = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { id, ...patch } = data as any;
-    const { data: row, error } = await context.supabase.from("financial_transactions")
-      .update(patch).eq("id", id).select("*").single();
+    const { data: row, error } = await context.supabase
+      .from("financial_transactions")
+      .update(patch)
+      .eq("id", id)
+      .select("*")
+      .single();
     if (error) throw error;
     return row as FinancialTransaction;
   });
@@ -420,8 +466,10 @@ export const softDeleteFinancialTransaction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("financial_transactions")
-      .update({ deleted_at: new Date().toISOString() }).eq("id", data.id);
+    const { error } = await context.supabase
+      .from("financial_transactions")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", data.id);
     if (error) throw error;
     return { ok: true };
   });
@@ -432,7 +480,8 @@ export const markTransactionAsPaid = createServerFn({ method: "POST" })
     z.object({ id: z.string().uuid(), paid_at: z.string().optional() }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("financial_transactions")
+    const { error } = await context.supabase
+      .from("financial_transactions")
       .update({ status: "PAID", paid_at: data.paid_at ?? new Date().toISOString() })
       .eq("id", data.id);
     if (error) throw error;
@@ -443,8 +492,10 @@ export const cancelFinancialTransaction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("financial_transactions")
-      .update({ status: "CANCELED" }).eq("id", data.id);
+    const { error } = await context.supabase
+      .from("financial_transactions")
+      .update({ status: "CANCELED" })
+      .eq("id", data.id);
     if (error) throw error;
     return { ok: true };
   });
@@ -466,21 +517,33 @@ export const getFinanceOverview = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) => FiltersSchema.parse(d ?? {}))
   .handler(async ({ data, context }): Promise<FinanceOverview> => {
     const cid = await getCompanyId(context.supabase, context.userId);
-    const { data: rows, error } = await context.supabase.from("financial_transactions")
+    const { data: rows, error } = await context.supabase
+      .from("financial_transactions")
       .select("type,amount,status,due_date,paid_at")
       .eq("company_id", cid);
     if (error) throw error;
-    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const from = data.from ? new Date(data.from) : null;
     const to = data.to ? new Date(data.to) : null;
-    const o: FinanceOverview = { income: 0, expense: 0, balance: 0, receivables: 0, payables: 0, overdueReceivables: 0, overduePayables: 0 };
+    const o: FinanceOverview = {
+      income: 0,
+      expense: 0,
+      balance: 0,
+      receivables: 0,
+      payables: 0,
+      overdueReceivables: 0,
+      overduePayables: 0,
+    };
     for (const r of rows ?? []) {
       const amt = Number(r.amount ?? 0);
-      const refDate = r.paid_at ? new Date(r.paid_at) : (r.due_date ? new Date(r.due_date) : null);
-      const inRange = (!from || (refDate && refDate >= from)) && (!to || (refDate && refDate <= to));
+      const refDate = r.paid_at ? new Date(r.paid_at) : r.due_date ? new Date(r.due_date) : null;
+      const inRange =
+        (!from || (refDate && refDate >= from)) && (!to || (refDate && refDate <= to));
       const eff = effectiveStatus(r as any);
       if (r.status === "PAID" && inRange) {
-        if (r.type === "INCOME") o.income += amt; else o.expense += amt;
+        if (r.type === "INCOME") o.income += amt;
+        else o.expense += amt;
       }
       if (r.type === "INCOME" && (eff === "PLANNED" || eff === "OVERDUE")) {
         o.receivables += amt;
@@ -500,12 +563,16 @@ export const getCashFlow = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) => FiltersSchema.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
-    let q = context.supabase.from("financial_transactions")
+    let q = context.supabase
+      .from("financial_transactions")
       .select("*, financial_categories(name), financial_bank_accounts(bank_name, account_name)")
       .eq("company_id", cid);
 
     q = applyFilters(q, data);
-    const { data: rows, error } = await q.order("due_date", { ascending: false, nullsFirst: false });
+    const { data: rows, error } = await q.order("due_date", {
+      ascending: false,
+      nullsFirst: false,
+    });
     if (error) throw error;
     return (rows ?? []).map(mapRow);
   });
@@ -515,8 +582,11 @@ export const getReceivables = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) => FiltersSchema.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
-    const { data: rows, error } = await context.supabase.from("financial_transactions")
-      .select("*, financial_categories(name), customers(name), financial_bank_accounts(bank_name, account_name)")
+    const { data: rows, error } = await context.supabase
+      .from("financial_transactions")
+      .select(
+        "*, financial_categories(name), customers(name), financial_bank_accounts(bank_name, account_name)",
+      )
       .eq("company_id", cid)
 
       .eq("type", "INCOME")
@@ -531,8 +601,11 @@ export const getPayables = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) => FiltersSchema.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
-    const { data: rows, error } = await context.supabase.from("financial_transactions")
-      .select("*, financial_categories(name), suppliers(trade_name, corporate_name), financial_bank_accounts(bank_name, account_name)")
+    const { data: rows, error } = await context.supabase
+      .from("financial_transactions")
+      .select(
+        "*, financial_categories(name), suppliers(trade_name, corporate_name), financial_bank_accounts(bank_name, account_name)",
+      )
       .eq("company_id", cid)
 
       .eq("type", "EXPENSE")

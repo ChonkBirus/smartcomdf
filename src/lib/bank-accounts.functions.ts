@@ -27,7 +27,11 @@ export type BankAccountBalance = {
 };
 
 async function getCompanyId(supabase: any, userId: string): Promise<string> {
-  const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  const { data } = await supabase
+    .from("profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .maybeSingle();
   const cid = data?.company_id as string | undefined;
   if (!cid) throw new Error("Sem empresa.");
   return cid;
@@ -40,12 +44,17 @@ export const listBankAccounts = createServerFn({ method: "GET" })
     const cid = await getCompanyId(context.supabase, context.userId);
     let q = context.supabase
       .from("financial_bank_accounts")
-      .select("id, company_id, bank_name, account_type, account_name, balance, active, provider, created_at, updated_at")
+      .select(
+        "id, company_id, bank_name, account_type, account_name, balance, active, provider, created_at, updated_at",
+      )
       .eq("company_id", cid);
     if (data.activeOnly !== false) q = q.eq("active", true);
     const { data: rows, error } = await q.order("active", { ascending: false }).order("bank_name");
     if (error) throw error;
-    return (rows ?? []).map((r: any) => ({ ...r, balance: Number(r.balance ?? 0) })) as BankAccount[];
+    return (rows ?? []).map((r: any) => ({
+      ...r,
+      balance: Number(r.balance ?? 0),
+    })) as BankAccount[];
   });
 
 const AccountInputSchema = z.object({

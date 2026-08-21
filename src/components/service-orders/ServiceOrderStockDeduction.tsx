@@ -75,25 +75,29 @@ export function ServiceOrderStockDeduction({
     stockDeductionStatus === "DEDUCTED"
       ? "default"
       : stockDeductionStatus === "BLOCKED"
-      ? "destructive"
-      : "secondary";
+        ? "destructive"
+        : "secondary";
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <Badge variant={statusVariant as any}>{STATUS_LABEL[stockDeductionStatus] ?? stockDeductionStatus}</Badge>
+        <Badge variant={statusVariant as any}>
+          {STATUS_LABEL[stockDeductionStatus] ?? stockDeductionStatus}
+        </Badge>
         {canDeduct && (
           <Button size="sm" onClick={handleDeduct} disabled={!canRun || busy}>
-            {busy ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <PackageMinus className="h-4 w-4 mr-1" />}
+            {busy ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-1" />
+            ) : (
+              <PackageMinus className="h-4 w-4 mr-1" />
+            )}
             {stockDeductionStatus === "BLOCKED" ? "Tentar novamente" : "Baixar estoque"}
           </Button>
         )}
       </div>
 
       {!isCompleted && (
-        <p className="text-xs text-muted-foreground">
-          A baixa fica disponível após concluir a OS.
-        </p>
+        <p className="text-xs text-muted-foreground">A baixa fica disponível após concluir a OS.</p>
       )}
 
       {isLoading ? (
@@ -120,9 +124,7 @@ export function ServiceOrderStockDeduction({
                   {new Date(l.created_at).toLocaleString("pt-BR")}
                 </div>
                 {l.error_message && (
-                  <div className="text-xs text-warning mt-1">
-                    {l.error_message}
-                  </div>
+                  <div className="text-xs text-warning mt-1">{l.error_message}</div>
                 )}
               </div>
             </li>

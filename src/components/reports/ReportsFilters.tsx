@@ -5,7 +5,14 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { CalendarRange } from "lucide-react";
 
-export type ReportsPeriod = "today" | "7d" | "30d" | "this_month" | "last_month" | "this_year" | "custom";
+export type ReportsPeriod =
+  | "today"
+  | "7d"
+  | "30d"
+  | "this_month"
+  | "last_month"
+  | "this_year"
+  | "custom";
 
 export type ReportsFiltersValue = {
   period: ReportsPeriod;
@@ -13,24 +20,48 @@ export type ReportsFiltersValue = {
   to: string | null;
 };
 
-function startOfDay(d: Date) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
-function endOfDay(d: Date) { const x = new Date(d); x.setHours(23,59,59,999); return x; }
+function startOfDay(d: Date) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+function endOfDay(d: Date) {
+  const x = new Date(d);
+  x.setHours(23, 59, 59, 999);
+  return x;
+}
 
-export function resolvePeriod(period: ReportsPeriod, from: string | null, to: string | null): { from: string | null; to: string | null } {
+export function resolvePeriod(
+  period: ReportsPeriod,
+  from: string | null,
+  to: string | null,
+): { from: string | null; to: string | null } {
   if (period === "custom") return { from, to };
   const now = new Date();
-  let f: Date; let t: Date = endOfDay(now);
+  let f: Date;
+  let t: Date = endOfDay(now);
   switch (period) {
-    case "today": f = startOfDay(now); break;
-    case "7d": f = startOfDay(new Date(now.getTime() - 6 * 86400000)); break;
-    case "30d": f = startOfDay(new Date(now.getTime() - 29 * 86400000)); break;
-    case "this_month": f = new Date(now.getFullYear(), now.getMonth(), 1); break;
+    case "today":
+      f = startOfDay(now);
+      break;
+    case "7d":
+      f = startOfDay(new Date(now.getTime() - 6 * 86400000));
+      break;
+    case "30d":
+      f = startOfDay(new Date(now.getTime() - 29 * 86400000));
+      break;
+    case "this_month":
+      f = new Date(now.getFullYear(), now.getMonth(), 1);
+      break;
     case "last_month":
       f = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       t = endOfDay(new Date(now.getFullYear(), now.getMonth(), 0));
       break;
-    case "this_year": f = new Date(now.getFullYear(), 0, 1); break;
-    default: f = startOfDay(new Date(now.getTime() - 29 * 86400000));
+    case "this_year":
+      f = new Date(now.getFullYear(), 0, 1);
+      break;
+    default:
+      f = startOfDay(new Date(now.getTime() - 29 * 86400000));
   }
   return { from: f.toISOString(), to: t.toISOString() };
 }
@@ -66,7 +97,11 @@ export function ReportsFilters({
   }
 
   function applyCustom() {
-    onChange({ period: "custom", from: from ? new Date(from).toISOString() : null, to: to ? new Date(to + "T23:59:59").toISOString() : null });
+    onChange({
+      period: "custom",
+      from: from ? new Date(from).toISOString() : null,
+      to: to ? new Date(to + "T23:59:59").toISOString() : null,
+    });
   }
 
   return (
@@ -99,7 +134,9 @@ export function ReportsFilters({
             </div>
             <div className="flex items-end gap-2">
               <Button onClick={applyCustom}>Aplicar</Button>
-              <Button variant="ghost" onClick={onClear}>Limpar</Button>
+              <Button variant="ghost" onClick={onClear}>
+                Limpar
+              </Button>
             </div>
           </div>
         )}

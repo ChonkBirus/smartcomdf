@@ -62,7 +62,11 @@ export function classifyError(error: unknown): FriendlyErrorKind {
     return "session_expired";
   }
   if (status === 403 || raw.includes("forbidden") || raw.includes("permission denied")) {
-    if (raw.includes("row-level security") || raw.includes("row level security") || raw.includes("rls")) {
+    if (
+      raw.includes("row-level security") ||
+      raw.includes("row level security") ||
+      raw.includes("rls")
+    ) {
       return "rls";
     }
     return "forbidden";

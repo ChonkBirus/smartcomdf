@@ -10,13 +10,30 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
-  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { formatCurrency } from "@/lib/utils";
@@ -31,7 +48,20 @@ import {
   type YearlyPlanRow,
 } from "@/lib/finance-planning.functions";
 
-const MONTH_NAMES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+const MONTH_NAMES = [
+  "Jan",
+  "Fev",
+  "Mar",
+  "Abr",
+  "Mai",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Set",
+  "Out",
+  "Nov",
+  "Dez",
+];
 
 function pctColor(pct: number, kind: "revenue" | "expense" | "profit"): string {
   if (kind === "expense") {
@@ -78,12 +108,20 @@ export function PlanningPage() {
 
   const mUpsert = useMutation({
     mutationFn: upsert,
-    onSuccess: () => { toast.success("Meta salva."); invalidate(); setEditing(null); },
+    onSuccess: () => {
+      toast.success("Meta salva.");
+      invalidate();
+      setEditing(null);
+    },
     onError: (e: any) => toast.error(e?.message ?? "Erro ao salvar."),
   });
   const mDelete = useMutation({
     mutationFn: del,
-    onSuccess: () => { toast.success("Meta removida."); invalidate(); setEditing(null); },
+    onSuccess: () => {
+      toast.success("Meta removida.");
+      invalidate();
+      setEditing(null);
+    },
     onError: (e: any) => toast.error(e?.message ?? "Erro ao remover."),
   });
   const mCopy = useMutation({
@@ -100,7 +138,11 @@ export function PlanningPage() {
   });
   const mApplyAll = useMutation({
     mutationFn: applyAll,
-    onSuccess: (r: any) => { toast.success(`Meta aplicada a ${r.applied} meses.`); invalidate(); setApplySrc(null); },
+    onSuccess: (r: any) => {
+      toast.success(`Meta aplicada a ${r.applied} meses.`);
+      invalidate();
+      setApplySrc(null);
+    },
     onError: (e: any) => toast.error(e?.message ?? "Erro ao aplicar."),
   });
 
@@ -127,25 +169,37 @@ export function PlanningPage() {
           <div className="min-w-[160px]">
             <Label className="mb-1 block text-xs">Ano</Label>
             <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+                {years.map((y) => (
+                  <SelectItem key={y} value={String(y)}>
+                    {y}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
         </CardContent>
       </Card>
 
-      {q.isLoading && <div className="py-8 text-center text-sm text-muted-foreground">Carregando…</div>}
-      {q.isError && <div className="py-8 text-center text-sm text-destructive">Erro ao carregar.</div>}
+      {q.isLoading && (
+        <div className="py-8 text-center text-sm text-muted-foreground">Carregando…</div>
+      )}
+      {q.isError && (
+        <div className="py-8 text-center text-sm text-destructive">Erro ao carregar.</div>
+      )}
 
       {q.data && !hasAnything && (
         <EmptyState
           icon={<Target className="h-6 w-6" />}
           title="Sem metas nem movimentações neste ano"
-          description={canManage
-            ? "Clique em Editar metas em qualquer mês para começar seu planejamento."
-            : "Nenhuma meta cadastrada e nenhuma movimentação paga registrada neste ano."}
+          description={
+            canManage
+              ? "Clique em Editar metas em qualquer mês para começar seu planejamento."
+              : "Nenhuma meta cadastrada e nenhuma movimentação paga registrada neste ano."
+          }
         />
       )}
 
@@ -169,13 +223,17 @@ export function PlanningPage() {
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Metas — {editing && MONTH_NAMES[editing.month - 1]} {year}</DialogTitle>
+            <DialogTitle>
+              Metas — {editing && MONTH_NAMES[editing.month - 1]} {year}
+            </DialogTitle>
             <DialogDescription>Deixe em branco para não definir a meta.</DialogDescription>
           </DialogHeader>
           {editing && (
             <EditForm
               plan={editing.plan}
-              onSubmit={(fields) => mUpsert.mutate({ data: { year, month: editing.month, ...fields } })}
+              onSubmit={(fields) =>
+                mUpsert.mutate({ data: { year, month: editing.month, ...fields } })
+              }
               submitting={mUpsert.isPending}
               canDelete={!!editing.plan && canManage}
               onDelete={() => mDelete.mutate({ data: { year, month: editing.month } })}
@@ -198,7 +256,9 @@ export function PlanningPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => applySrc !== null && mApplyAll.mutate({ data: { year, sourceMonth: applySrc } })}
+              onClick={() =>
+                applySrc !== null && mApplyAll.mutate({ data: { year, sourceMonth: applySrc } })
+              }
             >
               Aplicar
             </AlertDialogAction>
@@ -210,7 +270,12 @@ export function PlanningPage() {
 }
 
 function MonthCard({
-  row, canManage, canSeeMargin, onEdit, onCopyPrev, onApplyAll,
+  row,
+  canManage,
+  canSeeMargin,
+  onEdit,
+  onCopyPrev,
+  onApplyAll,
 }: {
   row: YearlyPlanRow;
   canManage: boolean;
@@ -221,9 +286,11 @@ function MonthCard({
 }) {
   const p = row.plan;
   const a = row.actual;
-  const revenuePct = p?.revenue_goal && p.revenue_goal > 0 ? (a.income / p.revenue_goal) * 100 : null;
+  const revenuePct =
+    p?.revenue_goal && p.revenue_goal > 0 ? (a.income / p.revenue_goal) * 100 : null;
   const expensePct = p?.expense_cap && p.expense_cap > 0 ? (a.expense / p.expense_cap) * 100 : null;
-  const profitPct = canSeeMargin && p?.profit_goal && p.profit_goal > 0 ? (a.balance / p.profit_goal) * 100 : null;
+  const profitPct =
+    canSeeMargin && p?.profit_goal && p.profit_goal > 0 ? (a.balance / p.profit_goal) * 100 : null;
 
   return (
     <Card>
@@ -237,7 +304,13 @@ function MonthCard({
             <Button size="sm" variant="ghost" onClick={onCopyPrev} title="Copiar mês anterior">
               <Copy className="h-4 w-4" />
             </Button>
-            <Button size="sm" variant="ghost" onClick={onApplyAll} disabled={!p} title="Aplicar para o ano todo">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onApplyAll}
+              disabled={!p}
+              title="Aplicar para o ano todo"
+            >
               <Wand2 className="h-4 w-4" />
             </Button>
             <Button size="sm" variant="ghost" onClick={onEdit} title="Editar metas">
@@ -275,7 +348,9 @@ function MonthCard({
               <span>
                 {a.margin === null ? "—" : `${a.margin.toFixed(1)}%`}
                 {p?.margin_goal_pct != null && (
-                  <span className="ml-2 text-muted-foreground">/ meta {Number(p.margin_goal_pct).toFixed(1)}%</span>
+                  <span className="ml-2 text-muted-foreground">
+                    / meta {Number(p.margin_goal_pct).toFixed(1)}%
+                  </span>
                 )}
               </span>
             </div>
@@ -287,7 +362,11 @@ function MonthCard({
 }
 
 function MetricRow({
-  label, goal, actual, pct, kind,
+  label,
+  goal,
+  actual,
+  pct,
+  kind,
 }: {
   label: string;
   goal: number | null;
@@ -301,7 +380,9 @@ function MetricRow({
         <span className="text-muted-foreground">{label}</span>
         <span className="font-medium">
           {formatCurrency(actual)}
-          {goal != null && <span className="ml-1 text-muted-foreground">/ {formatCurrency(goal)}</span>}
+          {goal != null && (
+            <span className="ml-1 text-muted-foreground">/ {formatCurrency(goal)}</span>
+          )}
         </span>
       </div>
       {goal != null && pct !== null ? (
@@ -322,7 +403,12 @@ function MetricRow({
 }
 
 function EditForm({
-  plan, onSubmit, submitting, canDelete, onDelete, disabled,
+  plan,
+  onSubmit,
+  submitting,
+  canDelete,
+  onDelete,
+  disabled,
 }: {
   plan: MonthlyPlan | null;
   onSubmit: (fields: {
@@ -361,19 +447,22 @@ function EditForm({
       <DialogFooter className="gap-2">
         {canDelete && (
           <Button variant="destructive" onClick={onDelete} disabled={submitting}>
-            <Trash2 className="mr-2 h-4 w-4" />Remover meta
+            <Trash2 className="mr-2 h-4 w-4" />
+            Remover meta
           </Button>
         )}
         <Button
           disabled={submitting || disabled}
-          onClick={() => onSubmit({
-            revenue_goal: num(rev),
-            expense_cap: num(exp),
-            profit_goal: num(prof),
-            margin_goal_pct: num(margin),
-            cash_min: num(cash),
-            notes: notes.trim() || null,
-          })}
+          onClick={() =>
+            onSubmit({
+              revenue_goal: num(rev),
+              expense_cap: num(exp),
+              profit_goal: num(prof),
+              margin_goal_pct: num(margin),
+              cash_min: num(cash),
+              notes: notes.trim() || null,
+            })
+          }
         >
           Salvar
         </Button>
@@ -382,11 +471,26 @@ function EditForm({
   );
 }
 
-function Field({ label, value, onChange, disabled }: { label: string; value: string; onChange: (v: string) => void; disabled?: boolean }) {
+function Field({
+  label,
+  value,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+}) {
   return (
     <div>
       <Label className="text-xs">{label}</Label>
-      <Input inputMode="decimal" value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} />
+      <Input
+        inputMode="decimal"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+      />
     </div>
   );
 }

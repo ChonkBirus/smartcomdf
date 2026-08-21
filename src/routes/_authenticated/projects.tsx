@@ -12,10 +12,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { listProjects, type ProjectStatus, type ProjectPriority } from "@/lib/projects.functions";
 
@@ -38,13 +47,19 @@ const STATUS_LABEL: Record<ProjectStatus, string> = {
   CANCELLED: "Cancelado",
 };
 const PRIORITY_LABEL: Record<ProjectPriority, string> = {
-  LOW: "Baixa", NORMAL: "Normal", HIGH: "Alta", URGENT: "Urgente",
+  LOW: "Baixa",
+  NORMAL: "Normal",
+  HIGH: "Alta",
+  URGENT: "Urgente",
 };
 const PRIORITY_TONE: Record<ProjectPriority, StatusTone> = {
-  LOW: "neutral", NORMAL: "primary", HIGH: "warning", URGENT: "destructive",
+  LOW: "neutral",
+  NORMAL: "primary",
+  HIGH: "warning",
+  URGENT: "destructive",
 };
 
-const fmtDate = (s: string | null) => s ? new Date(s).toLocaleDateString("pt-BR") : "—";
+const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleDateString("pt-BR") : "—");
 
 const PLANNING_LABEL: Record<string, { label: string; tone: StatusTone }> = {
   PENDING: { label: "Pendente", tone: "neutral" },
@@ -68,11 +83,14 @@ function ProjectsPage() {
   const [planning, setPlanning] = useState<string>("");
   const [material, setMaterial] = useState<string>("");
 
-  const filters = useMemo(() => ({
-    search: search || undefined,
-    status: status || undefined,
-    priority: priority || undefined,
-  }), [search, status, priority]);
+  const filters = useMemo(
+    () => ({
+      search: search || undefined,
+      status: status || undefined,
+      priority: priority || undefined,
+    }),
+    [search, status, priority],
+  );
 
   const { data: allRows = [], isLoading } = useQuery({
     queryKey: ["projects", companyId, filters],
@@ -80,11 +98,15 @@ function ProjectsPage() {
     enabled: !!companyId,
   });
 
-  const rows = useMemo(() => allRows.filter((p: any) => {
-    if (planning && p.planning_status !== planning) return false;
-    if (material && p.material_status !== material) return false;
-    return true;
-  }), [allRows, planning, material]);
+  const rows = useMemo(
+    () =>
+      allRows.filter((p: any) => {
+        if (planning && p.planning_status !== planning) return false;
+        if (material && p.material_status !== material) return false;
+        return true;
+      }),
+    [allRows, planning, material],
+  );
 
   return (
     <div className="space-y-4">
@@ -104,38 +126,54 @@ function ProjectsPage() {
           />
         </div>
         <Select value={status || "all"} onValueChange={(v) => setStatus(v === "all" ? "" : v)}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os status</SelectItem>
             {Object.entries(STATUS_LABEL).map(([k, v]) => (
-              <SelectItem key={k} value={k}>{v}</SelectItem>
+              <SelectItem key={k} value={k}>
+                {v}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={priority || "all"} onValueChange={(v) => setPriority(v === "all" ? "" : v)}>
-          <SelectTrigger className="w-36"><SelectValue placeholder="Prioridade" /></SelectTrigger>
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="Prioridade" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas</SelectItem>
             {Object.entries(PRIORITY_LABEL).map(([k, v]) => (
-              <SelectItem key={k} value={k}>{v}</SelectItem>
+              <SelectItem key={k} value={k}>
+                {v}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={planning || "all"} onValueChange={(v) => setPlanning(v === "all" ? "" : v)}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Planejamento" /></SelectTrigger>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="Planejamento" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Planejamento</SelectItem>
             {Object.entries(PLANNING_LABEL).map(([k, v]) => (
-              <SelectItem key={k} value={k}>{v.label}</SelectItem>
+              <SelectItem key={k} value={k}>
+                {v.label}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={material || "all"} onValueChange={(v) => setMaterial(v === "all" ? "" : v)}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="Materiais" /></SelectTrigger>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Materiais" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Materiais</SelectItem>
             {Object.entries(MATERIAL_LABEL).map(([k, v]) => (
-              <SelectItem key={k} value={k}>{v.label}</SelectItem>
+              <SelectItem key={k} value={k}>
+                {v.label}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -176,17 +214,34 @@ function ProjectsPage() {
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{p.project_number}</TableCell>
                     <TableCell>{p.customer_name}</TableCell>
-                    <TableCell className="text-muted-foreground">{p.responsible_name ?? "—"}</TableCell>
-                    <TableCell>
-                      <StatusBadge status={p.status} label={STATUS_LABEL[p.status as ProjectStatus]} />
+                    <TableCell className="text-muted-foreground">
+                      {p.responsible_name ?? "—"}
                     </TableCell>
-                    <TableCell><StatusBadge status={p.planning_status} tone={plan.tone} label={plan.label} /></TableCell>
-                    <TableCell><StatusBadge status={p.material_status} tone={mat.tone} label={mat.label} /></TableCell>
                     <TableCell>
-                      <StatusBadge status={p.priority} tone={PRIORITY_TONE[p.priority as ProjectPriority]} label={PRIORITY_LABEL[p.priority as ProjectPriority]} />
+                      <StatusBadge
+                        status={p.status}
+                        label={STATUS_LABEL[p.status as ProjectStatus]}
+                      />
                     </TableCell>
-                    <TableCell>{fmtDate((p as any).planned_start_date ?? p.expected_start_date)}</TableCell>
-                    <TableCell>{fmtDate((p as any).planned_end_date ?? p.expected_end_date)}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={p.planning_status} tone={plan.tone} label={plan.label} />
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={p.material_status} tone={mat.tone} label={mat.label} />
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge
+                        status={p.priority}
+                        tone={PRIORITY_TONE[p.priority as ProjectPriority]}
+                        label={PRIORITY_LABEL[p.priority as ProjectPriority]}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {fmtDate((p as any).planned_start_date ?? p.expected_start_date)}
+                    </TableCell>
+                    <TableCell>
+                      {fmtDate((p as any).planned_end_date ?? p.expected_end_date)}
+                    </TableCell>
                     <TableCell className="text-right">
                       <Button asChild variant="ghost" size="icon">
                         <Link to="/projects/$id" params={{ id: p.id }}>
@@ -204,4 +259,3 @@ function ProjectsPage() {
     </div>
   );
 }
-

@@ -2,10 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type CommercialHistoryActorType = "USER" | "ADMIN" | "SYSTEM" | "WEBHOOK";
-export type CommercialHistorySource =
-  | "subscription_event"
-  | "billing_charge"
-  | "coupon_redemption";
+export type CommercialHistorySource = "subscription_event" | "billing_charge" | "coupon_redemption";
 
 export type CommercialHistoryEntry = {
   id: string;

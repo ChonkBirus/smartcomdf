@@ -9,10 +9,12 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const rejectQuotePaymentReceipt = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      id: z.string().uuid(),
-      reason: z.string().trim().max(500).optional(),
-    }).parse(d),
+    z
+      .object({
+        id: z.string().uuid(),
+        reason: z.string().trim().max(500).optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -76,7 +78,11 @@ export const listQuotePayments = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ quote_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa vinculada.");
     const { data: rows, error } = await sb
       .from("quote_payments")
@@ -121,11 +127,14 @@ export async function mirrorQuotePaymentToFinancial(
 
   if (row) {
     if (row.status === "PAID") return { action: "noop" };
-    await sb.from("financial_transactions").update({
-      status: "PAID",
-      paid_at: nowIso,
-      payment_method: pay.payment_method ?? null,
-    }).eq("id", row.id);
+    await sb
+      .from("financial_transactions")
+      .update({
+        status: "PAID",
+        paid_at: nowIso,
+        payment_method: pay.payment_method ?? null,
+      })
+      .eq("id", row.id);
     return { action: "updated" };
   }
 
@@ -158,10 +167,12 @@ export async function mirrorQuotePaymentToFinancial(
 export const approveQuotePayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      id: z.string().uuid(),
-      note: z.string().trim().max(500).optional(),
-    }).parse(d),
+    z
+      .object({
+        id: z.string().uuid(),
+        note: z.string().trim().max(500).optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -188,10 +199,12 @@ export const resyncQuotePayment = createServerFn({ method: "POST" })
 export const cancelQuotePayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      id: z.string().uuid(),
-      reason: z.string().trim().max(500).optional(),
-    }).parse(d),
+    z
+      .object({
+        id: z.string().uuid(),
+        reason: z.string().trim().max(500).optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -218,7 +231,10 @@ export const getCompanyPix = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
     const { data: prof } = await sb
-      .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data, error } = await sb
       .from("company_settings")
@@ -227,25 +243,32 @@ export const getCompanyPix = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     return (data ?? {
-      pix_key: null, pix_key_type: null,
-      pix_receiver_name: null, pix_receiver_city: null,
+      pix_key: null,
+      pix_key_type: null,
+      pix_receiver_name: null,
+      pix_receiver_city: null,
     }) as CompanyPixSettings;
   });
 
 export const saveCompanyPix = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      pix_key: z.string().trim().max(200).optional().or(z.literal("")),
-      pix_key_type: z.enum(["CPF", "CNPJ", "EMAIL", "PHONE", "EVP"]).optional().nullable(),
-      pix_receiver_name: z.string().trim().max(140).optional().or(z.literal("")),
-      pix_receiver_city: z.string().trim().max(80).optional().or(z.literal("")),
-    }).parse(d),
+    z
+      .object({
+        pix_key: z.string().trim().max(200).optional().or(z.literal("")),
+        pix_key_type: z.enum(["CPF", "CNPJ", "EMAIL", "PHONE", "EVP"]).optional().nullable(),
+        pix_receiver_name: z.string().trim().max(140).optional().or(z.literal("")),
+        pix_receiver_city: z.string().trim().max(80).optional().or(z.literal("")),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { data: prof } = await sb
-      .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     const payload = {
       pix_key: data.pix_key || null,

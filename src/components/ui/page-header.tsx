@@ -20,9 +20,7 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <div className={cn("flex flex-col gap-3 pb-4", className)}>
-      {breadcrumbs && (
-        <div className="text-xs text-muted-foreground">{breadcrumbs}</div>
-      )}
+      {breadcrumbs && <div className="text-xs text-muted-foreground">{breadcrumbs}</div>}
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -31,14 +29,10 @@ export function PageHeader({
             </h1>
             {badge}
           </div>
-          {description && (
-            <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-          )}
+          {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
         </div>
         {actions && (
-          <div className="flex flex-wrap items-center gap-2 md:flex-shrink-0">
-            {actions}
-          </div>
+          <div className="flex flex-wrap items-center gap-2 md:flex-shrink-0">{actions}</div>
         )}
       </div>
     </div>

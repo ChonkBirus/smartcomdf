@@ -13,12 +13,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { SupplierFormSheet } from "@/components/purchases/SupplierFormSheet";
-import { listSuppliers, deleteSupplier, toggleSupplier, type Supplier } from "@/lib/suppliers.functions";
+import {
+  listSuppliers,
+  deleteSupplier,
+  toggleSupplier,
+  type Supplier,
+} from "@/lib/suppliers.functions";
 
 export const Route = createFileRoute("/_authenticated/suppliers")({
   head: () => ({ meta: [{ title: "Fornecedores — SmartPro" }] }),
@@ -81,12 +92,19 @@ function SuppliersPage() {
           <div className="flex gap-2">
             <Can module="suppliers" action="import">
               <Button variant="outline" onClick={() => setImportOpen(true)}>
-                <Upload className="mr-1 h-4 w-4" />Importar
+                <Upload className="mr-1 h-4 w-4" />
+                Importar
               </Button>
             </Can>
             <Can module="suppliers" action="create">
-              <Button onClick={() => { setEditing(null); setOpen(true); }}>
-                <Plus className="mr-1 h-4 w-4" />Novo fornecedor
+              <Button
+                onClick={() => {
+                  setEditing(null);
+                  setOpen(true);
+                }}
+              >
+                <Plus className="mr-1 h-4 w-4" />
+                Novo fornecedor
               </Button>
             </Can>
           </div>
@@ -96,8 +114,12 @@ function SuppliersPage() {
       <div className="mb-4 flex gap-2">
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input className="pl-8" placeholder="Buscar por nome ou CNPJ" value={search}
-            onChange={(e) => setSearch(e.target.value)} />
+          <Input
+            className="pl-8"
+            placeholder="Buscar por nome ou CNPJ"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
       </div>
 
@@ -127,10 +149,14 @@ function SuppliersPage() {
                 <tr key={s.id} className="border-t">
                   <td className="px-3 py-2">
                     <div className="font-medium">{s.trade_name || s.corporate_name}</div>
-                    {s.trade_name && <div className="text-xs text-muted-foreground">{s.corporate_name}</div>}
+                    {s.trade_name && (
+                      <div className="text-xs text-muted-foreground">{s.corporate_name}</div>
+                    )}
                   </td>
                   <td className="px-3 py-2">{formatCnpj(s.cpf_cnpj)}</td>
-                  <td className="px-3 py-2">{[s.city, s.state].filter(Boolean).join("/") || "—"}</td>
+                  <td className="px-3 py-2">
+                    {[s.city, s.state].filter(Boolean).join("/") || "—"}
+                  </td>
                   <td className="px-3 py-2">{s.phone || s.whatsapp || s.email || "—"}</td>
                   <td className="px-3 py-2">
                     <Badge variant={s.active ? "default" : "secondary"}>
@@ -140,10 +166,21 @@ function SuppliersPage() {
                   <td className="px-3 py-2 text-right">
                     <div className="flex justify-end gap-1">
                       <Can module="suppliers" action="edit">
-                        <Button size="sm" variant="ghost" onClick={() => togMut.mutate({ id: s.id, active: !s.active })}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => togMut.mutate({ id: s.id, active: !s.active })}
+                        >
                           {s.active ? "Desativar" : "Ativar"}
                         </Button>
-                        <Button size="icon" variant="ghost" onClick={() => { setEditing(s.id); setOpen(true); }}>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => {
+                            setEditing(s.id);
+                            setOpen(true);
+                          }}
+                        >
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </Can>

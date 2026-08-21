@@ -15,7 +15,6 @@ import { SubscriptionGuard } from "@/components/billing/SubscriptionGuard";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import { OfflineBanner } from "@/components/app/OfflineBanner";
 
-
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
@@ -87,7 +86,6 @@ function AuthenticatedLayout() {
             <UpgradeModal />
           </SidebarProvider>
         </OnboardingProvider>
-
       </FeaturesProvider>
     </PermissionsProvider>
   );

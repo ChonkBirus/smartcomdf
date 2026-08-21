@@ -1,7 +1,13 @@
 import { Check, Sparkles, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useFeatures, usePlan, useUpgradeDialog } from "@/lib/features";
@@ -40,7 +46,7 @@ export function UpgradeModal() {
     enabled: upgradeOpen,
   });
 
-  const featureLabel = upgradeFor ? FEATURE_LABELS[upgradeFor] ?? upgradeFor : null;
+  const featureLabel = upgradeFor ? (FEATURE_LABELS[upgradeFor] ?? upgradeFor) : null;
 
   const handleRequest = async (planSlug: string) => {
     try {
@@ -63,9 +69,11 @@ export function UpgradeModal() {
           <DialogDescription>
             {featureLabel ? (
               <>
-                A funcionalidade <span className="font-semibold text-foreground">{featureLabel}</span> não está
-                disponível no plano <span className="font-semibold text-foreground">{currentPlan?.name}</span>.
-                Escolha um plano superior para liberar o acesso.
+                A funcionalidade{" "}
+                <span className="font-semibold text-foreground">{featureLabel}</span> não está
+                disponível no plano{" "}
+                <span className="font-semibold text-foreground">{currentPlan?.name}</span>. Escolha
+                um plano superior para liberar o acesso.
               </>
             ) : (
               "Compare os planos disponíveis e escolha o que melhor atende sua empresa."
@@ -96,7 +104,9 @@ export function UpgradeModal() {
                     {p.name}
                   </div>
                   <div className="mt-1 flex items-baseline gap-1">
-                    <span className="text-3xl font-bold">R$ {Number(p.monthly_price).toFixed(0)}</span>
+                    <span className="text-3xl font-bold">
+                      R$ {Number(p.monthly_price).toFixed(0)}
+                    </span>
                     <span className="text-xs text-muted-foreground">/mês</span>
                   </div>
                 </div>

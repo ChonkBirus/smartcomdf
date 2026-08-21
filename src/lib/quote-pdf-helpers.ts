@@ -19,17 +19,12 @@ export const FOOTER_H = 32;
 export const fmtBRL = (n: number) =>
   Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-export const fmtDate = (s?: string | null) =>
-  s ? new Date(s).toLocaleDateString("pt-BR") : "—";
+export const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString("pt-BR") : "—");
 
 /** Hex like #RRGGBB → [r,g,b] */
 export function hexToRgb(hex: string): [number, number, number] {
   const h = hex.replace("#", "");
-  return [
-    parseInt(h.slice(0, 2), 16),
-    parseInt(h.slice(2, 4), 16),
-    parseInt(h.slice(4, 6), 16),
-  ];
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 }
 
 export function setFill(doc: jsPDF, hex: string) {
@@ -68,7 +63,10 @@ export function detectImageFormat(dataUrl: string): "PNG" | "JPEG" {
   return dataUrl.startsWith("data:image/png") ? "PNG" : "JPEG";
 }
 
-export async function generateQrDataUrl(text: string, opts?: { dark?: string; light?: string; size?: number }) {
+export async function generateQrDataUrl(
+  text: string,
+  opts?: { dark?: string; light?: string; size?: number },
+) {
   try {
     return await QRCode.toDataURL(text, {
       margin: 1,
@@ -136,7 +134,9 @@ export async function loadLogoForDarkBg(
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const d = imageData.data;
     for (let i = 0; i < d.length; i += 4) {
-      const r = d[i], g = d[i + 1], b = d[i + 2];
+      const r = d[i],
+        g = d[i + 1],
+        b = d[i + 2];
       if (r >= threshold && g >= threshold && b >= threshold) {
         d[i + 3] = 0;
       } else if (r >= 200 && g >= 200 && b >= 200) {
@@ -190,17 +190,12 @@ export function drawCard(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   const lines = doc.splitTextToSize(body, w - 24) as string[];
-  lines.slice(0, Math.max(1, Math.floor((h - 26) / 11))).forEach((ln, i) =>
-    doc.text(ln, x + 12, y + 30 + i * 11),
-  );
+  lines
+    .slice(0, Math.max(1, Math.floor((h - 26) / 11)))
+    .forEach((ln, i) => doc.text(ln, x + 12, y + 30 + i * 11));
 }
 
-export function drawFooter(
-  doc: jsPDF,
-  pageNum: number,
-  total: number,
-  companyName: string,
-) {
+export function drawFooter(doc: jsPDF, pageNum: number, total: number, companyName: string) {
   const y = A4.h - FOOTER_H;
   setFill(doc, PALETTE.black);
   doc.rect(0, y, A4.w, FOOTER_H, "F");

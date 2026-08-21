@@ -3,7 +3,13 @@ import { Button } from "@/components/ui/button";
 import { useOnboarding } from "./OnboardingProvider";
 import { TOURS } from "./TourRegistry";
 
-export function ModuleHelpButton({ tourKey, label = "Como usar esta tela" }: { tourKey: string; label?: string }) {
+export function ModuleHelpButton({
+  tourKey,
+  label = "Como usar esta tela",
+}: {
+  tourKey: string;
+  label?: string;
+}) {
   const { startTour } = useOnboarding();
   if (!TOURS[tourKey]) return null;
   return (

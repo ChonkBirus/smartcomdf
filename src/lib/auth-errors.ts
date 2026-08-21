@@ -7,7 +7,8 @@ export function translateAuthError(message: string | undefined | null): string {
   if (m.includes("user already registered")) return "Este e-mail já está cadastrado.";
   if (m.includes("user not found")) return "Usuário não encontrado.";
   if (m.includes("password should be")) return "A senha não atende aos requisitos mínimos.";
-  if (m.includes("rate limit") || m.includes("too many requests")) return "Muitas tentativas. Aguarde alguns minutos.";
+  if (m.includes("rate limit") || m.includes("too many requests"))
+    return "Muitas tentativas. Aguarde alguns minutos.";
   if (m.includes("token") && m.includes("expired")) return "Link expirado. Solicite um novo.";
   if (m.includes("invalid") && m.includes("token")) return "Token inválido ou já utilizado.";
   if (m.includes("session") && m.includes("expired")) return "Sua sessão expirou. Entre novamente.";

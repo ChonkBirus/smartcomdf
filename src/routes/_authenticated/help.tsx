@@ -33,7 +33,8 @@ function HelpCenterPage() {
             <div>
               <div className="font-semibold">Faça o tour de boas-vindas</div>
               <p className="text-sm text-muted-foreground">
-                Conheça o fluxo principal em poucos minutos. Você pode pular ou reiniciar a qualquer momento.
+                Conheça o fluxo principal em poucos minutos. Você pode pular ou reiniciar a qualquer
+                momento.
               </p>
             </div>
           </div>
@@ -44,7 +45,9 @@ function HelpCenterPage() {
       <div className="space-y-8">
         {Object.entries(grouped).map(([category, articles]) => (
           <section key={category}>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">{category}</h2>
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              {category}
+            </h2>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {articles.map((a) => (
                 <Card key={a.slug} className="card-elevated flex flex-col">

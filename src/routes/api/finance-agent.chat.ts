@@ -28,7 +28,12 @@ type Snapshot = {
     status: string | null;
     pontos_positivos: string[];
     pontos_atencao: string[];
-    alertas: Array<{ severidade: string; titulo: string; explicacao: string; recomendacao: string }>;
+    alertas: Array<{
+      severidade: string;
+      titulo: string;
+      explicacao: string;
+      recomendacao: string;
+    }>;
   } | null;
 };
 
@@ -39,11 +44,13 @@ export const Route = createFileRoute("/api/finance-agent/chat")({
         const SUPABASE_URL = process.env.SUPABASE_URL;
         const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
         const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-        if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) return new Response("Server misconfigured", { status: 500 });
+        if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY)
+          return new Response("Server misconfigured", { status: 500 });
         if (!LOVABLE_API_KEY) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
 
         const authHeader = request.headers.get("authorization");
-        if (!authHeader?.startsWith("Bearer ")) return new Response("Unauthorized", { status: 401 });
+        if (!authHeader?.startsWith("Bearer "))
+          return new Response("Unauthorized", { status: 401 });
         const token = authHeader.slice(7);
 
         const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
@@ -52,7 +59,8 @@ export const Route = createFileRoute("/api/finance-agent/chat")({
         });
 
         const { data: claimsData, error: claimsErr } = await supabase.auth.getClaims(token);
-        if (claimsErr || !claimsData?.claims?.sub) return new Response("Unauthorized", { status: 401 });
+        if (claimsErr || !claimsData?.claims?.sub)
+          return new Response("Unauthorized", { status: 401 });
         const userId = claimsData.claims.sub;
 
         const { data: profile } = await supabase
@@ -78,13 +86,19 @@ export const Route = createFileRoute("/api/finance-agent/chat")({
         const messages = Array.isArray(body.messages) ? body.messages : [];
 
         // ---- Build real-data snapshot ----
-        const today = new Date(); today.setHours(0, 0, 0, 0);
-        const from = new Date(today); from.setDate(today.getDate() - 30);
-        const next30 = new Date(today); next30.setDate(today.getDate() + 30);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const from = new Date(today);
+        from.setDate(today.getDate() - 30);
+        const next30 = new Date(today);
+        next30.setDate(today.getDate() + 30);
         const iso = (d: Date) => d.toISOString().slice(0, 10);
 
         const { data: company } = await supabase
-          .from("companies").select("trade_name,corporate_name").eq("id", companyId).maybeSingle();
+          .from("companies")
+          .select("trade_name,corporate_name")
+          .eq("id", companyId)
+          .maybeSingle();
         const companyName = company?.trade_name ?? company?.corporate_name ?? null;
 
         const { data: txRows } = await supabase
@@ -92,11 +106,16 @@ export const Route = createFileRoute("/api/finance-agent/chat")({
           .select("type,amount,status,due_date,paid_at")
           .eq("company_id", companyId);
 
-        let incomeTotal = 0, expenseTotal = 0;
-        let recvOpen = 0, payOpen = 0;
-        let recvOverdueQty = 0, recvOverdueAmt = 0;
-        let payOverdueQty = 0, payOverdueAmt = 0;
-        let projIn = 0, projOut = 0;
+        let incomeTotal = 0,
+          expenseTotal = 0;
+        let recvOpen = 0,
+          payOpen = 0;
+        let recvOverdueQty = 0,
+          recvOverdueAmt = 0;
+        let payOverdueQty = 0,
+          payOverdueAmt = 0;
+        let projIn = 0,
+          projOut = 0;
         for (const r of txRows ?? []) {
           const amount = Number((r as any).amount ?? 0);
           const status = (r as any).status as string;
@@ -106,20 +125,28 @@ export const Route = createFileRoute("/api/finance-agent/chat")({
           if (status === "CANCELED") continue;
           const ref = paid ?? due;
           if (status === "PAID" && ref && ref >= from && ref <= today) {
-            if (type === "INCOME") incomeTotal += amount; else expenseTotal += amount;
+            if (type === "INCOME") incomeTotal += amount;
+            else expenseTotal += amount;
           }
           const isOpen = status === "PLANNED" || status === "OVERDUE";
-          const isOverdue = (status === "OVERDUE") || (status === "PLANNED" && due && due < today);
+          const isOverdue = status === "OVERDUE" || (status === "PLANNED" && due && due < today);
           if (type === "INCOME" && isOpen) {
             recvOpen += amount;
-            if (isOverdue) { recvOverdueQty++; recvOverdueAmt += amount; }
+            if (isOverdue) {
+              recvOverdueQty++;
+              recvOverdueAmt += amount;
+            }
           }
           if (type === "EXPENSE" && isOpen) {
             payOpen += amount;
-            if (isOverdue) { payOverdueQty++; payOverdueAmt += amount; }
+            if (isOverdue) {
+              payOverdueQty++;
+              payOverdueAmt += amount;
+            }
           }
           if (status === "PLANNED" && due && due >= today && due <= next30) {
-            if (type === "INCOME") projIn += amount; else projOut += amount;
+            if (type === "INCOME") projIn += amount;
+            else projOut += amount;
           }
         }
 
@@ -144,25 +171,41 @@ export const Route = createFileRoute("/api/finance-agent/chat")({
               pontos_positivos: (h as any).positives ?? [],
               pontos_atencao: (h as any).attentions ?? [],
               alertas: ((h as any).alerts ?? []).map((a: any) => ({
-                severidade: a.severity, titulo: a.title, explicacao: a.explanation, recomendacao: a.recommendation,
+                severidade: a.severity,
+                titulo: a.title,
+                explicacao: a.explanation,
+                recomendacao: a.recommendation,
               })),
             };
           }
-        } catch { /* RPC opcional */ }
+        } catch {
+          /* RPC opcional */
+        }
 
         const snapshot: Snapshot = {
           empresa: { id: companyId, nome: companyName },
           periodo: { de: iso(from), ate: iso(today) },
-          caixa_periodo: { entradas: incomeTotal, saidas: expenseTotal, saldo: incomeTotal - expenseTotal },
-          contas_a_receber: { aberto_total: recvOpen, vencidas_qtd: recvOverdueQty, vencidas_total: recvOverdueAmt },
-          contas_a_pagar: { aberto_total: payOpen, vencidas_qtd: payOverdueQty, vencidas_total: payOverdueAmt },
+          caixa_periodo: {
+            entradas: incomeTotal,
+            saidas: expenseTotal,
+            saldo: incomeTotal - expenseTotal,
+          },
+          contas_a_receber: {
+            aberto_total: recvOpen,
+            vencidas_qtd: recvOverdueQty,
+            vencidas_total: recvOverdueAmt,
+          },
+          contas_a_pagar: {
+            aberto_total: payOpen,
+            vencidas_qtd: payOverdueQty,
+            vencidas_total: payOverdueAmt,
+          },
           projecao_30d: { entradas: projIn, saidas: projOut, saldo: projIn - projOut },
           produtos: { total_ativos: productsTotal, sem_custo: productsWithoutCost },
           saude,
         };
 
-        const hasAnyData =
-          (txRows?.length ?? 0) > 0 || productsTotal > 0;
+        const hasAnyData = (txRows?.length ?? 0) > 0 || productsTotal > 0;
 
         const system = `${SYSTEM_BASE}
 

@@ -9,14 +9,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { usePermissions } from "@/lib/permissions";
 import {
@@ -31,8 +46,7 @@ import { listBankAccounts } from "@/lib/bank-accounts.functions";
 
 type Props = { serviceOrderId: string; projectId?: string | null };
 
-const brl = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export function ServiceOrderCosts({ serviceOrderId, projectId }: Props) {
   const qc = useQueryClient();
@@ -133,12 +147,11 @@ export function ServiceOrderCosts({ serviceOrderId, projectId }: Props) {
         amount,
         category_id: form.category_id,
         status: form.status,
-        due_date: form.status === "PLANNED" ? (form.due_date || null) : null,
-        paid_at: form.status === "PAID" ? (form.paid_at || null) : null,
+        due_date: form.status === "PLANNED" ? form.due_date || null : null,
+        paid_at: form.status === "PAID" ? form.paid_at || null : null,
         bank_account_id:
           form.status === "PAID" && form.bank_account_id ? form.bank_account_id : null,
-        payment_method:
-          form.status === "PAID" && form.payment_method ? form.payment_method : null,
+        payment_method: form.status === "PAID" && form.payment_method ? form.payment_method : null,
       };
       if (editing) {
         return updateFn({ data: { id: editing.id, ...payload } });
@@ -203,7 +216,11 @@ export function ServiceOrderCosts({ serviceOrderId, projectId }: Props) {
                           : "destructive"
                     }
                   >
-                    {c.status === "PAID" ? "Pago" : c.status === "PLANNED" ? "Previsto" : "Cancelado"}
+                    {c.status === "PAID"
+                      ? "Pago"
+                      : c.status === "PLANNED"
+                        ? "Previsto"
+                        : "Cancelado"}
                   </Badge>
                 </div>
                 <div className="text-xs text-muted-foreground">
@@ -215,7 +232,12 @@ export function ServiceOrderCosts({ serviceOrderId, projectId }: Props) {
               <div className="text-right font-semibold tabular-nums">{brl(c.amount)}</div>
               {canManage && c.status !== "CANCELED" && (
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(c)} aria-label="Editar custo">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => openEdit(c)}
+                    aria-label="Editar custo"
+                  >
                     <Pencil className="h-4 w-4" />
                   </Button>
                   <Button
@@ -266,7 +288,9 @@ export function ServiceOrderCosts({ serviceOrderId, projectId }: Props) {
                   value={form.status}
                   onValueChange={(v: "PAID" | "PLANNED") => setForm({ ...form, status: v })}
                 >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="PAID">Pago</SelectItem>
                     <SelectItem value="PLANNED">Previsto</SelectItem>
@@ -280,10 +304,14 @@ export function ServiceOrderCosts({ serviceOrderId, projectId }: Props) {
                 value={form.category_id}
                 onValueChange={(v) => setForm({ ...form, category_id: v })}
               >
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
                 <SelectContent>
                   {categories.map((c: any) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -316,12 +344,15 @@ export function ServiceOrderCosts({ serviceOrderId, projectId }: Props) {
                         setForm({ ...form, bank_account_id: v === "none" ? "" : v })
                       }
                     >
-                      <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Opcional" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Nenhuma</SelectItem>
                         {bankAccounts.map((b: any) => (
                           <SelectItem key={b.id} value={b.id}>
-                            {b.bank_name}{b.account_name ? ` · ${b.account_name}` : ""}
+                            {b.bank_name}
+                            {b.account_name ? ` · ${b.account_name}` : ""}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -335,7 +366,9 @@ export function ServiceOrderCosts({ serviceOrderId, projectId }: Props) {
                         setForm({ ...form, payment_method: v === "none" ? "" : v })
                       }
                     >
-                      <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Opcional" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Não informado</SelectItem>
                         <SelectItem value="PIX">PIX</SelectItem>
@@ -374,7 +407,10 @@ export function ServiceOrderCosts({ serviceOrderId, projectId }: Props) {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={cancelMut.isPending}>Voltar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={(e) => { e.preventDefault(); cancelMut.mutate(); }}
+              onClick={(e) => {
+                e.preventDefault();
+                cancelMut.mutate();
+              }}
               disabled={cancelMut.isPending}
             >
               Confirmar

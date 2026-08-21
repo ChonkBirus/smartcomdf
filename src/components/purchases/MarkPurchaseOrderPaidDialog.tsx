@@ -4,14 +4,23 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { listBankAccounts } from "@/lib/bank-accounts.functions";
 import { markPurchaseOrderPaid } from "@/lib/finance-integrations.functions";
@@ -27,7 +36,11 @@ const PAYMENT_METHODS: { value: string; label: string }[] = [
 ];
 
 export function MarkPurchaseOrderPaidDialog({
-  open, onOpenChange, purchaseId, orderNumber, onPaid,
+  open,
+  onOpenChange,
+  purchaseId,
+  orderNumber,
+  onPaid,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -100,20 +113,21 @@ export function MarkPurchaseOrderPaidDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Marcar pedido de compra como pago</DialogTitle>
-          {orderNumber && (
-            <DialogDescription>Pedido {orderNumber}</DialogDescription>
-          )}
+          {orderNumber && <DialogDescription>Pedido {orderNumber}</DialogDescription>}
         </DialogHeader>
 
         <div className="space-y-3">
           <div>
             <Label>Conta financeira</Label>
             <Select value={accountId} onValueChange={setAccountId}>
-              <SelectTrigger><SelectValue placeholder="Selecione a conta" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a conta" />
+              </SelectTrigger>
               <SelectContent>
                 {(accs.data ?? []).map((a: any) => (
                   <SelectItem key={a.id} value={a.id}>
-                    {a.bank_name}{a.account_name ? ` — ${a.account_name}` : ""}
+                    {a.bank_name}
+                    {a.account_name ? ` — ${a.account_name}` : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -128,10 +142,14 @@ export function MarkPurchaseOrderPaidDialog({
           <div>
             <Label>Forma de pagamento</Label>
             <Select value={method} onValueChange={setMethod}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 {PAYMENT_METHODS.map((m) => (
-                  <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                  <SelectItem key={m.value} value={m.value}>
+                    {m.label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -139,7 +157,12 @@ export function MarkPurchaseOrderPaidDialog({
 
           <div>
             <Label>Observação (opcional)</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={500} />
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              maxLength={500}
+            />
           </div>
         </div>
 

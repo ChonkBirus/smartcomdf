@@ -6,12 +6,21 @@ import { Plus, Wallet, PowerOff, Power, Pencil, Check, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { LabelWithHelp } from "@/components/ui/FieldHelp";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
-  listBankAccounts, createBankAccount, updateBankAccount, setBankAccountActive,
+  listBankAccounts,
+  createBankAccount,
+  updateBankAccount,
+  setBankAccountActive,
   type BankAccount,
 } from "@/lib/bank-accounts.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
@@ -69,7 +78,10 @@ export function BankAccountsManager() {
     },
     onSuccess: () => {
       toast.success("Conta criada.");
-      setBankName(""); setAccountName(""); setBalance(""); setAccountType("WALLET");
+      setBankName("");
+      setAccountName("");
+      setBalance("");
+      setAccountType("WALLET");
       invalidate();
     },
     onError: (e: any) => toast.error(e?.message ?? "Erro."),
@@ -77,7 +89,10 @@ export function BankAccountsManager() {
 
   const toggle = useMutation({
     mutationFn: async (a: BankAccount) => activeFn({ data: { id: a.id, active: !a.active } }),
-    onSuccess: () => { toast.success("Atualizado."); invalidate(); },
+    onSuccess: () => {
+      toast.success("Atualizado.");
+      invalidate();
+    },
     onError: (e: any) => toast.error(e?.message ?? "Erro."),
   });
 
@@ -94,7 +109,11 @@ export function BankAccountsManager() {
         },
       });
     },
-    onSuccess: () => { toast.success("Conta atualizada."); setEditing(null); invalidate(); },
+    onSuccess: () => {
+      toast.success("Conta atualizada.");
+      setEditing(null);
+      invalidate();
+    },
     onError: (e: any) => toast.error(e?.message ?? "Erro."),
   });
 
@@ -103,25 +122,54 @@ export function BankAccountsManager() {
       <Card>
         <CardContent className="grid gap-3 p-4 md:grid-cols-5">
           <div className="md:col-span-2 space-y-1.5">
-            <LabelWithHelp label="Nome (banco ou apelido)" help="Ex.: Carteira, Nubank, Banco do Brasil, Caixa." required />
-            <Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="Ex.: Nubank" />
+            <LabelWithHelp
+              label="Nome (banco ou apelido)"
+              help="Ex.: Carteira, Nubank, Banco do Brasil, Caixa."
+              required
+            />
+            <Input
+              value={bankName}
+              onChange={(e) => setBankName(e.target.value)}
+              placeholder="Ex.: Nubank"
+            />
           </div>
           <div className="space-y-1.5">
-            <LabelWithHelp label="Detalhe (opcional)" help="Identificação da conta, como 'PJ' ou o número." />
-            <Input value={accountName} onChange={(e) => setAccountName(e.target.value)} placeholder="PJ, pessoal…" />
+            <LabelWithHelp
+              label="Detalhe (opcional)"
+              help="Identificação da conta, como 'PJ' ou o número."
+            />
+            <Input
+              value={accountName}
+              onChange={(e) => setAccountName(e.target.value)}
+              placeholder="PJ, pessoal…"
+            />
           </div>
           <div className="space-y-1.5">
             <LabelWithHelp label="Tipo" help="Categoria da conta financeira." />
             <Select value={accountType} onValueChange={setAccountType}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {ACCOUNT_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                {ACCOUNT_TYPES.map((t) => (
+                  <SelectItem key={t.value} value={t.value}>
+                    {t.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <LabelWithHelp label="Saldo inicial" help="Quanto existe hoje nesta conta (opcional). Serve como ponto de partida para o cálculo de saldos." />
-            <Input inputMode="decimal" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="0,00" />
+            <LabelWithHelp
+              label="Saldo inicial"
+              help="Quanto existe hoje nesta conta (opcional). Serve como ponto de partida para o cálculo de saldos."
+            />
+            <Input
+              inputMode="decimal"
+              value={balance}
+              onChange={(e) => setBalance(e.target.value)}
+              placeholder="0,00"
+            />
           </div>
           <div className="md:col-span-5 flex justify-end">
             <Button onClick={() => create.mutate()} disabled={create.isPending || !bankName.trim()}>
@@ -159,22 +207,42 @@ export function BankAccountsManager() {
                           className="w-36"
                           placeholder="Detalhe"
                           value={editing!.account_name ?? ""}
-                          onChange={(e) => setEditing({ ...editing!, account_name: e.target.value })}
+                          onChange={(e) =>
+                            setEditing({ ...editing!, account_name: e.target.value })
+                          }
                         />
-                        <Select value={editing!.account_type ?? "OTHER"} onValueChange={(v) => setEditing({ ...editing!, account_type: v })}>
-                          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+                        <Select
+                          value={editing!.account_type ?? "OTHER"}
+                          onValueChange={(v) => setEditing({ ...editing!, account_type: v })}
+                        >
+                          <SelectTrigger className="w-40">
+                            <SelectValue />
+                          </SelectTrigger>
                           <SelectContent>
-                            {ACCOUNT_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                            {ACCOUNT_TYPES.map((t) => (
+                              <SelectItem key={t.value} value={t.value}>
+                                {t.label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <Input
                           className="w-28"
                           inputMode="decimal"
                           value={String(editing!.balance ?? "")}
-                          onChange={(e) => setEditing({ ...editing!, balance: Number(e.target.value.replace(",", ".")) || 0 })}
+                          onChange={(e) =>
+                            setEditing({
+                              ...editing!,
+                              balance: Number(e.target.value.replace(",", ".")) || 0,
+                            })
+                          }
                         />
                         <div className="ml-auto flex gap-1">
-                          <Button size="sm" onClick={() => saveEdit.mutate()} disabled={saveEdit.isPending}>
+                          <Button
+                            size="sm"
+                            onClick={() => saveEdit.mutate()}
+                            disabled={saveEdit.isPending}
+                          >
                             <Check className="h-4 w-4" />
                           </Button>
                           <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>
@@ -186,19 +254,43 @@ export function BankAccountsManager() {
                       <>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <span className={a.active ? "font-medium" : "font-medium text-muted-foreground line-through"}>
-                              {a.bank_name}{a.account_name ? ` — ${a.account_name}` : ""}
+                            <span
+                              className={
+                                a.active
+                                  ? "font-medium"
+                                  : "font-medium text-muted-foreground line-through"
+                              }
+                            >
+                              {a.bank_name}
+                              {a.account_name ? ` — ${a.account_name}` : ""}
                             </span>
-                            <Badge variant="outline" className="text-[10px]">{typeLabel(a.account_type)}</Badge>
-                            {!a.active && <Badge variant="secondary" className="text-[10px]">Inativa</Badge>}
+                            <Badge variant="outline" className="text-[10px]">
+                              {typeLabel(a.account_type)}
+                            </Badge>
+                            {!a.active && (
+                              <Badge variant="secondary" className="text-[10px]">
+                                Inativa
+                              </Badge>
+                            )}
                           </div>
-                          <div className="text-xs text-muted-foreground">Saldo inicial: R$ {a.balance.toFixed(2)}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Saldo inicial: R$ {a.balance.toFixed(2)}
+                          </div>
                         </div>
                         <Button size="sm" variant="ghost" onClick={() => setEditing(a)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => toggle.mutate(a)} title={a.active ? "Inativar" : "Ativar"}>
-                          {a.active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => toggle.mutate(a)}
+                          title={a.active ? "Inativar" : "Ativar"}
+                        >
+                          {a.active ? (
+                            <PowerOff className="h-4 w-4" />
+                          ) : (
+                            <Power className="h-4 w-4" />
+                          )}
                         </Button>
                       </>
                     )}

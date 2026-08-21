@@ -12,7 +12,11 @@ export const Route = createFileRoute("/_authenticated/financial")({
       <PermissionRoute module="financial">
         <div className="mx-auto max-w-7xl">
           <PageHeader title="Financeiro" description="Contas a pagar e receber." />
-          <EmptyState icon={<DollarSign className="h-6 w-6" />} title="Em breve" description="Este módulo será liberado em breve." />
+          <EmptyState
+            icon={<DollarSign className="h-6 w-6" />}
+            title="Em breve"
+            description="Este módulo será liberado em breve."
+          />
         </div>
       </PermissionRoute>
     </FeatureGate>

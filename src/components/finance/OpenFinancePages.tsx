@@ -35,10 +35,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -65,8 +75,7 @@ import {
   type ReconciliationSuggestion,
 } from "@/lib/reconciliation.functions";
 
-const BRL = (n: number) =>
-  n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const BRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const fmtDate = (iso: string | null | undefined) =>
   iso ? new Date(iso).toLocaleDateString("pt-BR") : "—";
@@ -79,13 +88,16 @@ const fmtDateTime = (iso: string | null | undefined) =>
 // ─────────────────────────────────────────────────────────────────────────────
 
 function OpenFinanceStatusBadge({ status }: { status: ConnectionStatus }) {
-  const map: Record<ConnectionStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-    PENDING:   { label: "Pendente",   variant: "secondary" },
-    CONNECTED: { label: "Conectada",  variant: "default" },
-    SYNCING:   { label: "Sincronizando", variant: "secondary" },
-    ERROR:     { label: "Erro",       variant: "destructive" },
-    EXPIRED:   { label: "Expirada",   variant: "outline" },
-    REVOKED:   { label: "Revogada",   variant: "outline" },
+  const map: Record<
+    ConnectionStatus,
+    { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+  > = {
+    PENDING: { label: "Pendente", variant: "secondary" },
+    CONNECTED: { label: "Conectada", variant: "default" },
+    SYNCING: { label: "Sincronizando", variant: "secondary" },
+    ERROR: { label: "Erro", variant: "destructive" },
+    EXPIRED: { label: "Expirada", variant: "outline" },
+    REVOKED: { label: "Revogada", variant: "outline" },
   };
   const { label, variant } = map[status] ?? { label: status, variant: "outline" as const };
   return <Badge variant={variant}>{label}</Badge>;
@@ -193,8 +205,8 @@ export function OpenFinancePage() {
             }
           />
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            Defina <code>OPEN_FINANCE_PROVIDER</code> e as credenciais do provedor nas
-            variáveis de ambiente do servidor. Nenhum dado bancário fictício é exibido.
+            Defina <code>OPEN_FINANCE_PROVIDER</code> e as credenciais do provedor nas variáveis de
+            ambiente do servidor. Nenhum dado bancário fictício é exibido.
           </p>
         </CardContent>
       </Card>
@@ -213,13 +225,17 @@ export function OpenFinancePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Conecte sua conta empresarial para importar saldos e movimentações bancárias
-            com segurança. O SmartPro nunca pede sua senha bancária — a autorização é
-            feita no ambiente do provedor Open Finance.
+            Conecte sua conta empresarial para importar saldos e movimentações bancárias com
+            segurança. O SmartPro nunca pede sua senha bancária — a autorização é feita no ambiente
+            do provedor Open Finance.
           </p>
           <div className="flex flex-wrap gap-2">
             <Button onClick={() => connectMut.mutate()} disabled={connectMut.isPending}>
-              {connectMut.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+              {connectMut.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="mr-2 h-4 w-4" />
+              )}
               Conectar conta empresarial
             </Button>
             <Badge variant="outline">
@@ -256,19 +272,36 @@ export function OpenFinancePage() {
                 {connections.data.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.provider}</TableCell>
-                    <TableCell><OpenFinanceStatusBadge status={c.status} /></TableCell>
+                    <TableCell>
+                      <OpenFinanceStatusBadge status={c.status} />
+                    </TableCell>
                     <TableCell>{fmtDate(c.consent_expires_at)}</TableCell>
                     <TableCell>{fmtDateTime(c.last_sync_at)}</TableCell>
                     <TableCell className="text-right">
                       <div className="inline-flex gap-1">
-                        <Button size="sm" variant="ghost" disabled={syncAccsMut.isPending} onClick={() => syncAccsMut.mutate(c.id)}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={syncAccsMut.isPending}
+                          onClick={() => syncAccsMut.mutate(c.id)}
+                        >
                           <RefreshCcw className="mr-1 h-4 w-4" /> Contas
                         </Button>
-                        <Button size="sm" variant="ghost" disabled={syncTxMut.isPending} onClick={() => syncTxMut.mutate(c.id)}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={syncTxMut.isPending}
+                          onClick={() => syncTxMut.mutate(c.id)}
+                        >
                           <RefreshCcw className="mr-1 h-4 w-4" /> Transações
                         </Button>
                         {c.status !== "REVOKED" && (
-                          <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setRevokeTarget(c)}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive"
+                            onClick={() => setRevokeTarget(c)}
+                          >
                             <ShieldX className="mr-1 h-4 w-4" /> Revogar
                           </Button>
                         )}
@@ -295,7 +328,10 @@ export function OpenFinancePage() {
         </CardHeader>
         <CardContent>
           {!accounts.data?.length ? (
-            <EmptyState icon={<Building2 className="h-6 w-6" />} title="Nenhuma conta empresarial conectada" />
+            <EmptyState
+              icon={<Building2 className="h-6 w-6" />}
+              title="Nenhuma conta empresarial conectada"
+            />
           ) : (
             <Table>
               <TableHeader>
@@ -332,7 +368,10 @@ export function OpenFinancePage() {
         </CardHeader>
         <CardContent>
           {!transactions.data?.length ? (
-            <EmptyState icon={<Banknote className="h-6 w-6" />} title="Nenhuma movimentação bancária importada" />
+            <EmptyState
+              icon={<Banknote className="h-6 w-6" />}
+              title="Nenhuma movimentação bancária importada"
+            />
           ) : (
             <Table>
               <TableHeader>
@@ -348,13 +387,17 @@ export function OpenFinancePage() {
                 {transactions.data.map((t: BankTransaction) => (
                   <TableRow key={t.id}>
                     <TableCell>{fmtDate(t.transaction_date)}</TableCell>
-                    <TableCell className="max-w-[360px] truncate" title={t.description}>{t.description}</TableCell>
+                    <TableCell className="max-w-[360px] truncate" title={t.description}>
+                      {t.description}
+                    </TableCell>
                     <TableCell>
                       <Badge variant={t.type === "CREDIT" ? "default" : "secondary"}>
                         {t.type === "CREDIT" ? "Entrada" : "Saída"}
                       </Badge>
                     </TableCell>
-                    <TableCell className={`text-right ${t.type === "CREDIT" ? "text-emerald-600" : "text-destructive"}`}>
+                    <TableCell
+                      className={`text-right ${t.type === "CREDIT" ? "text-emerald-600" : "text-destructive"}`}
+                    >
                       {BRL(Number(t.amount))}
                     </TableCell>
                     <TableCell>
@@ -374,12 +417,14 @@ export function OpenFinancePage() {
           <DialogHeader>
             <DialogTitle>Revogar acesso Open Finance</DialogTitle>
             <DialogDescription>
-              O consentimento será revogado junto ao provedor. As contas vinculadas
-              ficarão inativas. Os dados já importados permanecem no histórico.
+              O consentimento será revogado junto ao provedor. As contas vinculadas ficarão
+              inativas. Os dados já importados permanecem no histórico.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setRevokeTarget(null)}>Cancelar</Button>
+            <Button variant="ghost" onClick={() => setRevokeTarget(null)}>
+              Cancelar
+            </Button>
             <Button
               variant="destructive"
               disabled={revokeMut.isPending}
@@ -422,7 +467,11 @@ export function BankReconciliationPage() {
   };
 
   const confirmMut = useMutation({
-    mutationFn: (v: { bankTransactionId: string; financialTransactionId: string; confidenceScore: number }) =>
+    mutationFn: (v: {
+      bankTransactionId: string;
+      financialTransactionId: string;
+      confidenceScore: number;
+    }) =>
       confirmFn({
         data: {
           bankTransactionId: v.bankTransactionId,
@@ -431,25 +480,30 @@ export function BankReconciliationPage() {
           matchedBy: "MANUAL",
         },
       }),
-    onSuccess: () => { toast.success("Transação conciliada."); invalidate(); },
+    onSuccess: () => {
+      toast.success("Transação conciliada.");
+      invalidate();
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao conciliar."),
   });
 
   const ignoreMut = useMutation({
-    mutationFn: (v: { bankTransactionId: string; reason?: string }) =>
-      ignoreFn({ data: v }),
+    mutationFn: (v: { bankTransactionId: string; reason?: string }) => ignoreFn({ data: v }),
     onSuccess: () => {
       toast.success("Transação ignorada.");
-      setIgnoreTarget(null); setIgnoreReason("");
+      setIgnoreTarget(null);
+      setIgnoreReason("");
       invalidate();
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao ignorar."),
   });
 
   const createMut = useMutation({
-    mutationFn: (bankTransactionId: string) =>
-      createFn({ data: { bankTransactionId } }),
-    onSuccess: () => { toast.success("Lançamento criado a partir do extrato."); invalidate(); },
+    mutationFn: (bankTransactionId: string) => createFn({ data: { bankTransactionId } }),
+    onSuccess: () => {
+      toast.success("Lançamento criado a partir do extrato.");
+      invalidate();
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao criar lançamento."),
   });
 
@@ -500,12 +554,18 @@ export function BankReconciliationPage() {
             {rows.map((s: ReconciliationSuggestion) => {
               const best = s.candidates[0];
               const tierColor =
-                best?.tier === "HIGH" ? "default" :
-                best?.tier === "MEDIUM" ? "secondary" : "outline";
+                best?.tier === "HIGH"
+                  ? "default"
+                  : best?.tier === "MEDIUM"
+                    ? "secondary"
+                    : "outline";
               return (
                 <TableRow key={s.bankTransaction.id}>
                   <TableCell>{fmtDate(s.bankTransaction.transaction_date)}</TableCell>
-                  <TableCell className="max-w-[300px] truncate" title={s.bankTransaction.description}>
+                  <TableCell
+                    className="max-w-[300px] truncate"
+                    title={s.bankTransaction.description}
+                  >
                     {s.bankTransaction.description}
                   </TableCell>
                   <TableCell>
@@ -513,7 +573,9 @@ export function BankReconciliationPage() {
                       {s.bankTransaction.type === "CREDIT" ? "Entrada" : "Saída"}
                     </Badge>
                   </TableCell>
-                  <TableCell className={`text-right ${s.bankTransaction.type === "CREDIT" ? "text-emerald-600" : "text-destructive"}`}>
+                  <TableCell
+                    className={`text-right ${s.bankTransaction.type === "CREDIT" ? "text-emerald-600" : "text-destructive"}`}
+                  >
                     {BRL(Number(s.bankTransaction.amount))}
                   </TableCell>
                   <TableCell>
@@ -521,10 +583,18 @@ export function BankReconciliationPage() {
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
                           <Badge variant={tierColor as any}>
-                            {best.tier === "HIGH" ? "Alta confiança" : best.tier === "MEDIUM" ? "Média" : "Baixa"} ({best.score})
+                            {best.tier === "HIGH"
+                              ? "Alta confiança"
+                              : best.tier === "MEDIUM"
+                                ? "Média"
+                                : "Baixa"}{" "}
+                            ({best.score})
                           </Badge>
                         </div>
-                        <span className="text-xs text-muted-foreground truncate max-w-[260px]" title={best.description}>
+                        <span
+                          className="text-xs text-muted-foreground truncate max-w-[260px]"
+                          title={best.description}
+                        >
                           {best.description} · {BRL(best.amount)} · {fmtDate(best.date)}
                         </span>
                       </div>
@@ -580,8 +650,8 @@ export function BankReconciliationPage() {
           <DialogHeader>
             <DialogTitle>Ignorar transação bancária</DialogTitle>
             <DialogDescription>
-              Use para transferências entre contas, duplicidades ou movimentações que
-              não devem entrar no financeiro do ERP.
+              Use para transferências entre contas, duplicidades ou movimentações que não devem
+              entrar no financeiro do ERP.
             </DialogDescription>
           </DialogHeader>
           <Textarea
@@ -591,14 +661,19 @@ export function BankReconciliationPage() {
             maxLength={280}
           />
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setIgnoreTarget(null)}>Cancelar</Button>
+            <Button variant="ghost" onClick={() => setIgnoreTarget(null)}>
+              Cancelar
+            </Button>
             <Button
               variant="destructive"
               disabled={ignoreMut.isPending}
-              onClick={() => ignoreTarget && ignoreMut.mutate({
-                bankTransactionId: ignoreTarget.id,
-                reason: ignoreReason.trim() || undefined,
-              })}
+              onClick={() =>
+                ignoreTarget &&
+                ignoreMut.mutate({
+                  bankTransactionId: ignoreTarget.id,
+                  reason: ignoreReason.trim() || undefined,
+                })
+              }
             >
               {ignoreMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Ignorar

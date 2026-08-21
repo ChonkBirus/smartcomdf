@@ -94,17 +94,12 @@ function AdminDunningPage() {
 
   const [status, setStatus] = useState<string>("PENDING");
   const [selected, setSelected] = useState<DunningEventRow | null>(null);
-  const [channel, setChannel] = useState<
-    "WHATSAPP" | "PHONE" | "EMAIL" | "MANUAL"
-  >("WHATSAPP");
+  const [channel, setChannel] = useState<"WHATSAPP" | "PHONE" | "EMAIL" | "MANUAL">("WHATSAPP");
   const [result, setResult] = useState("");
   const [message, setMessage] = useState("");
   const [nextFollowUp, setNextFollowUp] = useState("");
 
-  const filters = useMemo(
-    () => ({ status: status === "ALL" ? null : status }),
-    [status],
-  );
+  const filters = useMemo(() => ({ status: status === "ALL" ? null : status }), [status]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "dunning-events", filters],
@@ -114,10 +109,7 @@ function AdminDunningPage() {
   const processMut = useMutation({
     mutationFn: () => processFn(),
     onSuccess: (rows) => {
-      const total = (rows ?? []).reduce(
-        (sum, r) => sum + (r.inserted_count ?? 0),
-        0,
-      );
+      const total = (rows ?? []).reduce((sum, r) => sum + (r.inserted_count ?? 0), 0);
       toast.success(`Régua processada: ${total} novos eventos.`);
       qc.invalidateQueries({ queryKey: ["admin", "dunning-events"] });
     },
@@ -178,10 +170,7 @@ function AdminDunningPage() {
             </SelectContent>
           </Select>
         </div>
-        <Button
-          onClick={() => processMut.mutate(undefined)}
-          disabled={processMut.isPending}
-        >
+        <Button onClick={() => processMut.mutate(undefined)} disabled={processMut.isPending}>
           <Play className="mr-2 h-4 w-4" />
           {processMut.isPending ? "Processando…" : "Processar régua agora"}
         </Button>
@@ -223,9 +212,7 @@ function AdminDunningPage() {
                   <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                     {fmtDate(ev.created_at)}
                   </TableCell>
-                  <TableCell className="font-medium">
-                    {ev.company_name ?? "—"}
-                  </TableCell>
+                  <TableCell className="font-medium">{ev.company_name ?? "—"}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{ev.event_code}</Badge>
                   </TableCell>
@@ -259,20 +246,14 @@ function AdminDunningPage() {
                       )}
                       {ev.status === "PENDING" && (
                         <>
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={() => openRegister(ev)}
-                          >
+                          <Button size="sm" variant="default" onClick={() => openRegister(ev)}>
                             <CheckCircle2 className="mr-1 h-4 w-4" />
                             Registrar
                           </Button>
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() =>
-                              skipMut.mutate({ data: { event_id: ev.id } })
-                            }
+                            onClick={() => skipMut.mutate({ data: { event_id: ev.id } })}
                           >
                             <XCircle className="h-4 w-4" />
                           </Button>
@@ -299,10 +280,7 @@ function AdminDunningPage() {
               </div>
               <div className="space-y-2">
                 <Label>Canal</Label>
-                <Select
-                  value={channel}
-                  onValueChange={(v) => setChannel(v as any)}
-                >
+                <Select value={channel} onValueChange={(v) => setChannel(v as any)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -316,11 +294,7 @@ function AdminDunningPage() {
               </div>
               <div className="space-y-2">
                 <Label>Mensagem enviada</Label>
-                <Textarea
-                  rows={4}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                />
+                <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label>Resultado / Notas</Label>
@@ -354,9 +328,7 @@ function AdminDunningPage() {
                     channel,
                     result: result || undefined,
                     message: message || undefined,
-                    next_follow_up_at: nextFollowUp
-                      ? new Date(nextFollowUp).toISOString()
-                      : null,
+                    next_follow_up_at: nextFollowUp ? new Date(nextFollowUp).toISOString() : null,
                   },
                 });
               }}

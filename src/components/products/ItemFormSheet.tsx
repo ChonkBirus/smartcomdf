@@ -5,7 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { registerItemImage } from "@/lib/products.functions";
 
 import { Package, Wrench } from "lucide-react";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +19,13 @@ import { Label } from "@/components/ui/label";
 import { LabelWithHelp } from "@/components/ui/FieldHelp";
 import type { ReactNode } from "react";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -95,8 +107,16 @@ export function ItemFormSheet({
   const brandFn = useServerFn(listBrands);
   const manFn = useServerFn(listManufacturers);
 
-  const { data: categories = [] } = useQuery({ queryKey: ["categories"], queryFn: () => catFn(), enabled: open });
-  const { data: brands = [] } = useQuery({ queryKey: ["brands"], queryFn: () => brandFn(), enabled: open });
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => catFn(),
+    enabled: open,
+  });
+  const { data: brands = [] } = useQuery({
+    queryKey: ["brands"],
+    queryFn: () => brandFn(),
+    enabled: open,
+  });
   const { data: manufacturers = [] } = useQuery({
     queryKey: ["manufacturers"],
     queryFn: () => manFn(),
@@ -154,7 +174,6 @@ export function ItemFormSheet({
     }
   }, [open, itemId, item, defaultType]);
 
-
   const isService = form.item_type === "SERVICE";
 
   const save = useMutation({
@@ -184,7 +203,6 @@ export function ItemFormSheet({
                 is_primary: true,
               },
             });
-
           } catch (err: any) {
             toast.error("Item salvo, mas a imagem não pôde ser enviada: " + (err?.message ?? ""));
           }
@@ -227,7 +245,6 @@ export function ItemFormSheet({
     });
   }
 
-
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return toast.error("Informe o nome.");
@@ -251,13 +268,12 @@ export function ItemFormSheet({
     });
   };
 
-  const filteredCategories = (categories as any[]).filter(
-    (c) =>
-      c.active || c.id === form.category_id
-        ? isService
-          ? c.category_type === "SERVICE" || c.category_type === "BOTH"
-          : c.category_type === "PRODUCT" || c.category_type === "BOTH"
-        : false,
+  const filteredCategories = (categories as any[]).filter((c) =>
+    c.active || c.id === form.category_id
+      ? isService
+        ? c.category_type === "SERVICE" || c.category_type === "BOTH"
+        : c.category_type === "PRODUCT" || c.category_type === "BOTH"
+      : false,
   );
 
   return (
@@ -265,7 +281,13 @@ export function ItemFormSheet({
       <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
         <SheetHeader>
           <SheetTitle>
-            {itemId ? (isService ? "Editar serviço" : "Editar produto") : isService ? "Novo serviço" : "Novo produto"}
+            {itemId
+              ? isService
+                ? "Editar serviço"
+                : "Editar produto"
+              : isService
+                ? "Novo serviço"
+                : "Novo produto"}
           </SheetTitle>
           <SheetDescription>
             {isService
@@ -284,7 +306,12 @@ export function ItemFormSheet({
                 <TypeCard
                   active={form.item_type === "PRODUCT"}
                   onClick={() =>
-                    setForm({ ...form, item_type: "PRODUCT", controls_stock: true, category_id: "" })
+                    setForm({
+                      ...form,
+                      item_type: "PRODUCT",
+                      controls_stock: true,
+                      category_id: "",
+                    })
                   }
                   icon={<Package className="h-5 w-5" />}
                   title="Produto"
@@ -322,7 +349,11 @@ export function ItemFormSheet({
                 const c = getItemFieldCopy(form.item_type, "name");
                 return (
                   <Field label={c.label} className="md:col-span-2" help={c.help}>
-                    <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} maxLength={200} />
+                    <Input
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      maxLength={200}
+                    />
                   </Field>
                 );
               })()}
@@ -345,22 +376,27 @@ export function ItemFormSheet({
                 const c = getItemFieldCopy(form.item_type, "sku");
                 return (
                   <Field label={c.label} help={c.help}>
-                    <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} maxLength={80} />
-                  </Field>
-                );
-              })()}
-              {!isService && (() => {
-                const c = getItemFieldCopy(form.item_type, "barcode");
-                return (
-                  <Field label={c.label} help={c.help}>
                     <Input
-                      value={form.barcode}
-                      onChange={(e) => setForm({ ...form, barcode: e.target.value })}
+                      value={form.sku}
+                      onChange={(e) => setForm({ ...form, sku: e.target.value })}
                       maxLength={80}
                     />
                   </Field>
                 );
               })()}
+              {!isService &&
+                (() => {
+                  const c = getItemFieldCopy(form.item_type, "barcode");
+                  return (
+                    <Field label={c.label} help={c.help}>
+                      <Input
+                        value={form.barcode}
+                        onChange={(e) => setForm({ ...form, barcode: e.target.value })}
+                        maxLength={80}
+                      />
+                    </Field>
+                  );
+                })()}
             </Section>
 
             <Section title="Classificação">
@@ -368,7 +404,10 @@ export function ItemFormSheet({
                 const c = getItemFieldCopy(form.item_type, "category");
                 return (
                   <Field label={c.label} help={c.help}>
-                    <Select value={form.category_id} onValueChange={(v) => setForm({ ...form, category_id: v })}>
+                    <Select
+                      value={form.category_id}
+                      onValueChange={(v) => setForm({ ...form, category_id: v })}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
@@ -413,31 +452,34 @@ export function ItemFormSheet({
                   </Field>
                 );
               })()}
-              {!isService && (() => {
-                const c = getItemFieldCopy(form.item_type, "manufacturer");
-                return (
-                  <Field label={c.label} className="md:col-span-2" help={c.help}>
-                    <Select
-                      value={form.manufacturer_id || "_none"}
-                      onValueChange={(v) => setForm({ ...form, manufacturer_id: v === "_none" ? "" : v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Nenhum" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="_none">— Nenhum —</SelectItem>
-                        {(manufacturers as any[])
-                          .filter((m: any) => m.active || m.id === form.manufacturer_id)
-                          .map((m: any) => (
-                            <SelectItem key={m.id} value={m.id}>
-                              {m.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                );
-              })()}
+              {!isService &&
+                (() => {
+                  const c = getItemFieldCopy(form.item_type, "manufacturer");
+                  return (
+                    <Field label={c.label} className="md:col-span-2" help={c.help}>
+                      <Select
+                        value={form.manufacturer_id || "_none"}
+                        onValueChange={(v) =>
+                          setForm({ ...form, manufacturer_id: v === "_none" ? "" : v })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Nenhum" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="_none">— Nenhum —</SelectItem>
+                          {(manufacturers as any[])
+                            .filter((m: any) => m.active || m.id === form.manufacturer_id)
+                            .map((m: any) => (
+                              <SelectItem key={m.id} value={m.id}>
+                                {m.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  );
+                })()}
             </Section>
 
             <Section title="Comercial">
@@ -479,7 +521,10 @@ export function ItemFormSheet({
                 const c = getItemFieldCopy(form.item_type, "unit");
                 return (
                   <Field label={c.label} help={c.help}>
-                    <Select value={form.unit} onValueChange={(v) => setForm({ ...form, unit: v as ProductUnit })}>
+                    <Select
+                      value={form.unit}
+                      onValueChange={(v) => setForm({ ...form, unit: v as ProductUnit })}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -503,31 +548,40 @@ export function ItemFormSheet({
                     checked={form.controls_stock}
                     onCheckedChange={(v) => setForm({ ...form, controls_stock: v })}
                   />
-                  <Label className="cursor-pointer" onClick={() => setForm({ ...form, controls_stock: !form.controls_stock })}>
+                  <Label
+                    className="cursor-pointer"
+                    onClick={() => setForm({ ...form, controls_stock: !form.controls_stock })}
+                  >
                     Controlar estoque deste produto
                   </Label>
                 </div>
-                {form.controls_stock && (() => {
-                  const c = getItemFieldCopy(form.item_type, "minimum_stock");
-                  return (
-                    <Field label={c.label} help={c.help}>
-                      <Input
-                        type="number"
-                        min={0}
-                        step="0.001"
-                        value={form.minimum_stock}
-                        onChange={(e) => setForm({ ...form, minimum_stock: e.target.value })}
-                      />
-                    </Field>
-                  );
-                })()}
+                {form.controls_stock &&
+                  (() => {
+                    const c = getItemFieldCopy(form.item_type, "minimum_stock");
+                    return (
+                      <Field label={c.label} help={c.help}>
+                        <Input
+                          type="number"
+                          min={0}
+                          step="0.001"
+                          value={form.minimum_stock}
+                          onChange={(e) => setForm({ ...form, minimum_stock: e.target.value })}
+                        />
+                      </Field>
+                    );
+                  })()}
               </Section>
             )}
 
             <Section title="Imagens">
               {itemId && companyId ? (
                 <div className="md:col-span-2">
-                  <ImageUploader itemId={itemId} companyId={companyId} images={images} onChange={setImages} />
+                  <ImageUploader
+                    itemId={itemId}
+                    companyId={companyId}
+                    images={images}
+                    onChange={setImages}
+                  />
                 </div>
               ) : isService ? (
                 <p className="text-xs text-muted-foreground md:col-span-2">
@@ -572,15 +626,20 @@ export function ItemFormSheet({
                   </Button>
                 </div>
               )}
-
             </Section>
 
             <Separator />
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
-                <Label className="cursor-pointer" onClick={() => setForm({ ...form, active: !form.active })}>
+                <Switch
+                  checked={form.active}
+                  onCheckedChange={(v) => setForm({ ...form, active: v })}
+                />
+                <Label
+                  className="cursor-pointer"
+                  onClick={() => setForm({ ...form, active: !form.active })}
+                >
                   {isService ? "Serviço ativo" : "Produto ativo"}
                 </Label>
               </div>
@@ -647,7 +706,9 @@ function TypeCard({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</h3>
+      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {title}
+      </h3>
       <div className="grid gap-3 md:grid-cols-2">{children}</div>
     </div>
   );

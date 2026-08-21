@@ -8,7 +8,11 @@ type Props = Omit<ButtonProps, "onClick" | "children"> & {
   label?: string;
 };
 
-export function RegularizeSubscriptionButton({ sub, label = "Regularizar assinatura", ...btn }: Props) {
+export function RegularizeSubscriptionButton({
+  sub,
+  label = "Regularizar assinatura",
+  ...btn
+}: Props) {
   const [open, setOpen] = useState(false);
   const slug = (sub.plan_slug || "pro") as "starter" | "pro" | "business";
   const cycle = (sub.billing_cycle ?? "MONTHLY") as "MONTHLY" | "YEARLY";

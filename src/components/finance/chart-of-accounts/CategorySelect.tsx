@@ -17,7 +17,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 const EXPENSE_GROUPS = new Set([
-  "VARIABLE_COST", "FIXED_EXPENSE", "INVESTMENT", "NON_OPERATIONAL", "CASH_ADJUSTMENT",
+  "VARIABLE_COST",
+  "FIXED_EXPENSE",
+  "INVESTMENT",
+  "NON_OPERATIONAL",
+  "CASH_ADJUSTMENT",
 ]);
 
 function labelFor(c: FinancialCategory): string {
@@ -68,8 +72,11 @@ export function CategorySelect({
     // Keep leaf-like entries: those without children in the returned list.
     const parentIds = new Set(all.map((c) => c.parent_id).filter(Boolean) as string[]);
     const compatible = all.filter((c) => {
-      if (flowType === "INCOME") return c.category_group === "REVENUE" || (!c.category_group && c.type === "INCOME");
-      return EXPENSE_GROUPS.has(c.category_group ?? "") || (!c.category_group && c.type === "EXPENSE");
+      if (flowType === "INCOME")
+        return c.category_group === "REVENUE" || (!c.category_group && c.type === "INCOME");
+      return (
+        EXPENSE_GROUPS.has(c.category_group ?? "") || (!c.category_group && c.type === "EXPENSE")
+      );
     });
     const q = query.trim().toLowerCase();
     const rows = compatible.filter((c) => {
@@ -81,7 +88,8 @@ export function CategorySelect({
     // Sort by sort_order, then code, then name.
     rows.sort((a, b) => {
       if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
-      const ac = a.code ?? ""; const bc = b.code ?? "";
+      const ac = a.code ?? "";
+      const bc = b.code ?? "";
       if (ac !== bc) return ac.localeCompare(bc);
       return a.name.localeCompare(b.name);
     });

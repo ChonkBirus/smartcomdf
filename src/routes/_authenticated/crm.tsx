@@ -82,11 +82,36 @@ function OverviewGrid() {
   if (!data) return null;
 
   const metrics = [
-    { icon: HeartHandshake, label: "Pipeline aberto", value: `${data.pipelineOpen.count}`, hint: brl(data.pipelineOpen.value) },
-    { icon: Trophy, label: "Ganhos (30d)", value: `${data.won30d.count}`, hint: brl(data.won30d.value) },
-    { icon: TrendingUp, label: "Conversão (30d)", value: `${data.conversion30d.toFixed(1)}%`, hint: `${data.lost30d.count} perdidos` },
-    { icon: Wallet, label: "Ticket médio (30d)", value: brl(data.avgTicket30d), hint: "Média por venda ganha" },
-    { icon: Target, label: "Forecast ponderado", value: brl(data.forecast), hint: "Pipeline × temperatura" },
+    {
+      icon: HeartHandshake,
+      label: "Pipeline aberto",
+      value: `${data.pipelineOpen.count}`,
+      hint: brl(data.pipelineOpen.value),
+    },
+    {
+      icon: Trophy,
+      label: "Ganhos (30d)",
+      value: `${data.won30d.count}`,
+      hint: brl(data.won30d.value),
+    },
+    {
+      icon: TrendingUp,
+      label: "Conversão (30d)",
+      value: `${data.conversion30d.toFixed(1)}%`,
+      hint: `${data.lost30d.count} perdidos`,
+    },
+    {
+      icon: Wallet,
+      label: "Ticket médio (30d)",
+      value: brl(data.avgTicket30d),
+      hint: "Média por venda ganha",
+    },
+    {
+      icon: Target,
+      label: "Forecast ponderado",
+      value: brl(data.forecast),
+      hint: "Pipeline × temperatura",
+    },
     {
       icon: Timer,
       label: "Ciclo médio",
@@ -125,7 +150,14 @@ function OverviewGrid() {
               <p className="text-sm text-muted-foreground">Sem oportunidades abertas.</p>
             )}
             {data.byStage.map((s) => (
-              <StageBar key={s.stage_id} name={s.name} color={s.color} count={s.count} value={s.value} total={data.pipelineOpen.value || 1} />
+              <StageBar
+                key={s.stage_id}
+                name={s.name}
+                color={s.color}
+                count={s.count}
+                value={s.value}
+                total={data.pipelineOpen.value || 1}
+              />
             ))}
           </CardContent>
         </Card>
@@ -139,7 +171,14 @@ function OverviewGrid() {
           </CardHeader>
           <CardContent className="space-y-2">
             {data.byTemperature.map((t) => (
-              <StageBar key={t.key} name={t.label} color={null} count={t.count} value={t.value} total={data.pipelineOpen.value || 1} />
+              <StageBar
+                key={t.key}
+                name={t.label}
+                color={null}
+                count={t.count}
+                value={t.value}
+                total={data.pipelineOpen.value || 1}
+              />
             ))}
           </CardContent>
         </Card>

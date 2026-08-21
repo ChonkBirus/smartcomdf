@@ -3,7 +3,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
-import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
+import {
+  Upload,
+  FileSpreadsheet,
+  AlertTriangle,
+  CheckCircle2,
+  Loader2,
+  ArrowRight,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +23,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
@@ -53,8 +66,44 @@ const TEMPLATE_HEADERS = [
 ];
 
 const TEMPLATE_ROWS = [
-  ["PF", "João da Silva", "", "12345678900", "61999999999", "joao@email.com", "70000000", "Quadra Teste", "10", "", "Asa Sul", "Brasília", "DF", "João", "61999999999", "", "Cliente exemplo PF"],
-  ["PJ", "Empresa Teste LTDA", "Empresa Teste", "11222333000181", "6133333333", "contato@empresa.com", "70000000", "Quadra Comercial", "20", "Sala 1", "Asa Norte", "Brasília", "DF", "Maria", "61988888888", "", "Cliente exemplo PJ"],
+  [
+    "PF",
+    "João da Silva",
+    "",
+    "12345678900",
+    "61999999999",
+    "joao@email.com",
+    "70000000",
+    "Quadra Teste",
+    "10",
+    "",
+    "Asa Sul",
+    "Brasília",
+    "DF",
+    "João",
+    "61999999999",
+    "",
+    "Cliente exemplo PF",
+  ],
+  [
+    "PJ",
+    "Empresa Teste LTDA",
+    "Empresa Teste",
+    "11222333000181",
+    "6133333333",
+    "contato@empresa.com",
+    "70000000",
+    "Quadra Comercial",
+    "20",
+    "Sala 1",
+    "Asa Norte",
+    "Brasília",
+    "DF",
+    "Maria",
+    "61988888888",
+    "",
+    "Cliente exemplo PJ",
+  ],
 ];
 
 function csvCell(value: string) {
@@ -62,7 +111,9 @@ function csvCell(value: string) {
 }
 
 function downloadTemplateCsv() {
-  const csv = [TEMPLATE_HEADERS, ...TEMPLATE_ROWS].map((row) => row.map(csvCell).join(",")).join("\n");
+  const csv = [TEMPLATE_HEADERS, ...TEMPLATE_ROWS]
+    .map((row) => row.map(csvCell).join(","))
+    .join("\n");
   const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -119,7 +170,9 @@ async function parseFile(file: File): Promise<{ headers: string[]; rows: Record<
         skipEmptyLines: true,
         complete: (res) => {
           const headers = (res.meta.fields ?? []).filter((h) => h && h.trim());
-          const rows = (res.data as any[]).filter((r) => Object.values(r).some((v) => v !== "" && v != null));
+          const rows = (res.data as any[]).filter((r) =>
+            Object.values(r).some((v) => v !== "" && v != null),
+          );
           resolve({ headers, rows });
         },
         error: reject,
@@ -190,7 +243,9 @@ export function CustomerImportDialog({
     console.log("[CUSTOMER IMPORT] file selected", f.name, f.type, f.size);
     if (!companyId) {
       console.error("[CUSTOMER IMPORT] companyId", companyId);
-      toast.error("Não foi possível identificar a empresa ativa. Recarregue a página e tente novamente.");
+      toast.error(
+        "Não foi possível identificar a empresa ativa. Recarregue a página e tente novamente.",
+      );
       return;
     }
     if (f.size > MAX_BYTES) {
@@ -221,12 +276,16 @@ export function CustomerImportDialog({
       if (initialTargets.includes("name") || initialTargets.includes("corporate_name")) {
         setStep("mapping");
         setProcessingLabel("Validando linhas no servidor...");
-        const validationData = await validateFn({ data: { job_id: res.job_id, mapping: initialMapping } });
+        const validationData = await validateFn({
+          data: { job_id: res.job_id, mapping: initialMapping },
+        });
         console.log("[CUSTOMER IMPORT] validation result", validationData);
         setValidation(validationData);
         setFilter("all");
         setStep("preview");
-        toast.success(`Prévia pronta: ${validationData.valid} válidas, ${validationData.invalid} com erro.`);
+        toast.success(
+          `Prévia pronta: ${validationData.valid} válidas, ${validationData.invalid} com erro.`,
+        );
       } else {
         setStep("mapping");
       }
@@ -254,16 +313,22 @@ export function CustomerImportDialog({
   const confirmMutation = useMutation({
     mutationFn: () => {
       if (!companyId) {
-        throw new Error("Não foi possível identificar a empresa ativa. Recarregue a página e tente novamente.");
+        throw new Error(
+          "Não foi possível identificar a empresa ativa. Recarregue a página e tente novamente.",
+        );
       }
       return confirmFn({ data: { job_id: jobId!, create_tags: createTags } });
     },
     onMutate: () => {
       if (!companyId) {
         console.error("[CUSTOMER IMPORT] companyId", companyId);
-        throw new Error("Não foi possível identificar a empresa ativa. Recarregue a página e tente novamente.");
+        throw new Error(
+          "Não foi possível identificar a empresa ativa. Recarregue a página e tente novamente.",
+        );
       }
-      const validRows = (rowsQuery.data ?? []).filter((r: any) => r.action === "CREATE" && r.status === "VALID");
+      const validRows = (rowsQuery.data ?? []).filter(
+        (r: any) => r.action === "CREATE" && r.status === "VALID",
+      );
       const payload = validRows.map((r: any) => ({
         company_id: companyId,
         customer_type: r.mapped_data?.customer_type,
@@ -301,7 +366,6 @@ export function CustomerImportDialog({
     return targets.includes("name") || targets.includes("corporate_name");
   }, [mapping]);
 
-
   const busy = parsing || validateMutation.isPending || confirmMutation.isPending;
   const previewRows = rowsQuery.data ?? [];
   const previewLoading = step === "preview" && rowsQuery.isLoading;
@@ -315,12 +379,14 @@ export function CustomerImportDialog({
         if (!o) reset();
       }}
     >
-      <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto" onPointerDownOutside={(e) => busy && e.preventDefault()} onEscapeKeyDown={(e) => busy && e.preventDefault()}>
+      <DialogContent
+        className="max-h-[90vh] max-w-5xl overflow-y-auto"
+        onPointerDownOutside={(e) => busy && e.preventDefault()}
+        onEscapeKeyDown={(e) => busy && e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Importar clientes</DialogTitle>
-          <DialogDescription>
-            Envie uma planilha CSV ou XLSX com seus clientes.
-          </DialogDescription>
+          <DialogDescription>Envie uma planilha CSV ou XLSX com seus clientes.</DialogDescription>
         </DialogHeader>
 
         {/* Stepper */}
@@ -349,13 +415,16 @@ export function CustomerImportDialog({
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Loader2 className="h-3 w-3 animate-spin" />
               {parsing
-                ? processingLabel ?? "Processando arquivo..."
+                ? (processingLabel ?? "Processando arquivo...")
                 : validateMutation.isPending
                   ? "Validando linhas no servidor..."
                   : "Importando clientes — não feche esta janela..."}
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-              <div className="h-full w-1/3 animate-[progress_1.2s_ease-in-out_infinite] rounded-full bg-primary" style={{ animation: "progress-indeterminate 1.2s ease-in-out infinite" }} />
+              <div
+                className="h-full w-1/3 animate-[progress_1.2s_ease-in-out_infinite] rounded-full bg-primary"
+                style={{ animation: "progress-indeterminate 1.2s ease-in-out infinite" }}
+              />
             </div>
             <style>{`@keyframes progress-indeterminate{0%{margin-left:-33%}100%{margin-left:100%}}`}</style>
           </div>
@@ -367,7 +436,9 @@ export function CustomerImportDialog({
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-card p-3">
               <div className="text-sm">
                 <div className="font-medium">Modelo de importação</div>
-                <div className="text-xs text-muted-foreground">Baixe um CSV real com as colunas aceitas.</div>
+                <div className="text-xs text-muted-foreground">
+                  Baixe um CSV real com as colunas aceitas.
+                </div>
               </div>
               <Button type="button" variant="outline" onClick={downloadTemplateCsv} disabled={busy}>
                 Baixar modelo CSV
@@ -391,7 +462,8 @@ export function CustomerImportDialog({
               />
               {parsing && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Loader2 className="h-3 w-3 animate-spin" /> {processingLabel ?? "Processando arquivo..."}
+                  <Loader2 className="h-3 w-3 animate-spin" />{" "}
+                  {processingLabel ?? "Processando arquivo..."}
                 </div>
               )}
               {file && !parsing && (
@@ -404,9 +476,10 @@ export function CustomerImportDialog({
             <Alert>
               <AlertTitle>Colunas reconhecidas</AlertTitle>
               <AlertDescription className="text-xs">
-                Tipo, Nome, Razão Social, Nome Fantasia, CPF/CNPJ, IE, IM, E-mail, Telefone, WhatsApp, Origem, Status,
-                Observações, CEP, Rua, Número, Complemento, Bairro, Cidade, UF, País, Contato, Cargo, Tags. Variações de
-                nome são reconhecidas automaticamente.
+                Tipo, Nome, Razão Social, Nome Fantasia, CPF/CNPJ, IE, IM, E-mail, Telefone,
+                WhatsApp, Origem, Status, Observações, CEP, Rua, Número, Complemento, Bairro,
+                Cidade, UF, País, Contato, Cargo, Tags. Variações de nome são reconhecidas
+                automaticamente.
               </AlertDescription>
             </Alert>
           </div>
@@ -446,9 +519,9 @@ export function CustomerImportDialog({
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  Mapeie ao menos "Nome" ou "Razão Social" para continuar. CPF/CNPJ e e-mail são opcionais.
+                  Mapeie ao menos "Nome" ou "Razão Social" para continuar. CPF/CNPJ e e-mail são
+                  opcionais.
                 </AlertDescription>
-
               </Alert>
             )}
           </div>
@@ -461,14 +534,20 @@ export function CustomerImportDialog({
               <Stat label="Total" value={validation.total} />
               <Stat label="Válidas" value={validation.valid} tone="ok" />
               <Stat label="Duplicados" value={validation.duplicates ?? 0} />
-              <Stat label="Com erro" value={validation.invalid} tone={validation.invalid ? "err" : undefined} />
+              <Stat
+                label="Com erro"
+                value={validation.invalid}
+                tone={validation.invalid ? "err" : undefined}
+              />
               <Stat label="Endereços" value={validation.addresses_to_create} />
               <Stat label="Contatos" value={validation.contacts_to_create} />
             </div>
             {validation.new_tags?.length > 0 && (
               <Alert>
                 <AlertTitle className="text-sm">Tags serão criadas após confirmação</AlertTitle>
-                <AlertDescription className="text-xs">{validation.new_tags.join(", ")}</AlertDescription>
+                <AlertDescription className="text-xs">
+                  {validation.new_tags.join(", ")}
+                </AlertDescription>
               </Alert>
             )}
 
@@ -519,14 +598,18 @@ export function CustomerImportDialog({
                         {r.mapped_data?.corporate_name ?? r.mapped_data?.name ?? "—"}
                       </td>
                       <td className="px-2 py-1.5 font-mono">{r.mapped_data?.cpf_cnpj ?? "—"}</td>
-                      <td className="px-2 py-1.5">{r.mapped_data?.phone ?? r.mapped_data?.whatsapp ?? "—"}</td>
+                      <td className="px-2 py-1.5">
+                        {r.mapped_data?.phone ?? r.mapped_data?.whatsapp ?? "—"}
+                      </td>
                       <td className="px-2 py-1.5">{r.mapped_data?.email ?? "—"}</td>
                       <td className="px-2 py-1.5">{r.mapped_data?.addr_city ?? "—"}</td>
                       <td className="px-2 py-1.5">{r.mapped_data?.addr_state ?? "—"}</td>
                       <td className="px-2 py-1.5">
                         <ImportStatusBadge action={r.action} />
                       </td>
-                      <td className="px-2 py-1.5 text-destructive">{(r.validation_errors ?? []).join("; ")}</td>
+                      <td className="px-2 py-1.5 text-destructive">
+                        {(r.validation_errors ?? []).join("; ")}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -546,7 +629,8 @@ export function CustomerImportDialog({
                   Clientes novos: {previewRows.filter((r: any) => r.action === "CREATE").length}
                 </div>
                 <div>
-                  Clientes atualizados: {previewRows.filter((r: any) => r.action === "UPDATE").length}
+                  Clientes atualizados:{" "}
+                  {previewRows.filter((r: any) => r.action === "UPDATE").length}
                 </div>
                 <div>Linhas com erro: {validation.invalid}</div>
                 <div>Endereços a criar: {validation.addresses_to_create}</div>
@@ -612,7 +696,15 @@ export function CustomerImportDialog({
               <Button variant="outline" onClick={() => setStep("mapping")}>
                 Voltar
               </Button>
-              <Button onClick={() => confirmMutation.mutate()} disabled={!validation || validation.valid === 0 || previewLoading || confirmMutation.isPending}>
+              <Button
+                onClick={() => confirmMutation.mutate()}
+                disabled={
+                  !validation ||
+                  validation.valid === 0 ||
+                  previewLoading ||
+                  confirmMutation.isPending
+                }
+              >
                 {confirmMutation.isPending && <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />}
                 Importar clientes válidos
               </Button>
@@ -647,7 +739,8 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: "ok
 }
 
 function ImportStatusBadge({ action }: { action: string }) {
-  const variant: any = action === "CREATE" ? "default" : action === "SKIP" ? "secondary" : "destructive";
+  const variant: any =
+    action === "CREATE" ? "default" : action === "SKIP" ? "secondary" : "destructive";
   const label = action === "CREATE" ? "Válido" : action === "SKIP" ? "Duplicado" : "Erro";
   return <Badge variant={variant}>{label}</Badge>;
 }

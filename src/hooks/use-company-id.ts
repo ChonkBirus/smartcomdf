@@ -19,6 +19,8 @@ export function useCompanyContext() {
     queryFn: () => fn(),
     staleTime: 5 * 60 * 1000,
   });
-  const companyId = ((query.data as any)?.company?.id ?? (query.data as any)?.profile?.company_id ?? null) as string | null;
+  const companyId = ((query.data as any)?.company?.id ??
+    (query.data as any)?.profile?.company_id ??
+    null) as string | null;
   return { ...query, companyId };
 }
