@@ -494,23 +494,27 @@ export const saveCustomer = createServerFn({ method: "POST" })
     if (!profile?.company_id) throw new Error("Sem empresa.");
     const cid = profile.company_id as string;
 
-    if (data.customer_type === "INDIVIDUAL" && onlyDigits(data.cpf_cnpj).length !== 11) {
-      throw new Error("CPF inválido para pessoa física.");
-    }
-    if (data.customer_type === "COMPANY" && onlyDigits(data.cpf_cnpj).length !== 14) {
-      throw new Error("CNPJ inválido para pessoa jurídica.");
+    if (data.cpf_cnpj) {
+      const digits = onlyDigits(data.cpf_cnpj);
+      if (data.customer_type === "INDIVIDUAL" && digits.length !== 11) {
+        throw new Error("CPF inválido para pessoa física.");
+      }
+      if (data.customer_type === "COMPANY" && digits.length !== 14) {
+        throw new Error("CNPJ inválido para pessoa jurídica.");
+      }
+
+      // Duplicate check (per company) - Only if cpf_cnpj is provided
+      const dupQuery = sb
+        .from("customers")
+        .select("id")
+        .eq("company_id", cid)
+        .eq("cpf_cnpj", digits)
+        .is("deleted_at", null);
+      const { data: dup } = data.id ? await dupQuery.neq("id", data.id) : await dupQuery;
+      if ((dup ?? []).length > 0) throw new Error("Já existe um cliente com este CPF/CNPJ.");
     }
 
-    const cpfCnpj = onlyDigits(data.cpf_cnpj);
-    // Duplicate check (per company)
-    const dupQuery = sb
-      .from("customers")
-      .select("id")
-      .eq("company_id", cid)
-      .eq("cpf_cnpj", cpfCnpj)
-      .is("deleted_at", null);
-    const { data: dup } = data.id ? await dupQuery.neq("id", data.id) : await dupQuery;
-    if ((dup ?? []).length > 0) throw new Error("Já existe um cliente com este CPF/CNPJ.");
+    const cpfCnpj = data.cpf_cnpj ? onlyDigits(data.cpf_cnpj) : null;
 
     const basePayload = {
       company_id: cid,
