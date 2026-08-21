@@ -210,8 +210,9 @@ export function CustomerFormSheet({
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!form.name.trim()) errs.name = "Nome é obrigatório.";
-    if (!form.cpf_cnpj.trim()) errs.cpf_cnpj = (isCompany ? "CNPJ" : "CPF") + " é obrigatório.";
-    else if (!docValid) errs.cpf_cnpj = isCompany ? "CNPJ inválido." : "CPF inválido.";
+    if (form.cpf_cnpj.trim() && !docValid) {
+      errs.cpf_cnpj = isCompany ? "CNPJ inválido." : "CPF inválido.";
+    }
     if (!form.email.trim()) errs.email = "E-mail é obrigatório.";
     else if (!isValidEmail(form.email)) errs.email = "Informe um e-mail válido.";
     if (!form.phone.trim() && !form.whatsapp.trim()) errs.whatsapp = "Informe WhatsApp ou Telefone.";
@@ -380,7 +381,7 @@ export function CustomerFormSheet({
                 )}
                 <div>
                   <LabelWithHelp
-                    label={isCompany ? "CNPJ *" : "CPF *"}
+                    label={isCompany ? "CNPJ" : "CPF"}
                     help={isCompany
                       ? "Documento da empresa (14 dígitos). Digite e clique em buscar para preencher automaticamente."
                       : "Documento do cliente (11 dígitos). Usado em orçamentos e notas."}
