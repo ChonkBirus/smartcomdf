@@ -34,6 +34,7 @@ import { buildDraftKey, clearDraft, hasDraft, loadDraft, saveDraft } from "@/lib
 
 type Line = {
   id?: string;
+  tempId?: string;
   item_id: string | null;
   kind: QuoteItemKind;
   name: string;
