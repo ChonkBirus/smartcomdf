@@ -2521,7 +2521,7 @@ export type Database = {
           active: boolean
           company_id: string
           corporate_name: string | null
-          cpf_cnpj: string
+          cpf_cnpj: string | null
           created_at: string
           created_by: string | null
           customer_origin: string | null
@@ -2543,7 +2543,7 @@ export type Database = {
           active?: boolean
           company_id: string
           corporate_name?: string | null
-          cpf_cnpj: string
+          cpf_cnpj?: string | null
           created_at?: string
           created_by?: string | null
           customer_origin?: string | null
@@ -2565,7 +2565,7 @@ export type Database = {
           active?: boolean
           company_id?: string
           corporate_name?: string | null
-          cpf_cnpj?: string
+          cpf_cnpj?: string | null
           created_at?: string
           created_by?: string | null
           customer_origin?: string | null
