@@ -383,7 +383,7 @@ function ClientsPage() {
                             <a
                               target="_blank"
                               rel="noreferrer"
-                              href={`https://wa.me/55${c.whatsapp.replace(/\D/g, "")}`}
+                              href={`https://wa.me/55${(c.whatsapp || "").replace(/\D/g, "")}`}
                             >
                               <MessageCircle className="h-4 w-4" />
                             </a>
