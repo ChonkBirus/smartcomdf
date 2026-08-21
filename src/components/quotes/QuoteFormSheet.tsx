@@ -832,7 +832,7 @@ export function QuoteFormSheet({
                   onPickCatalog={(id) => pickCatalogItem(i, id)}
                   onRemove={() => removeLine(i)}
                   onMove={(dir) => moveLine(i, dir)}
-                  autoFocus={i === 0 && !quoteId && lines.length > (existing?.items.length || 0)}
+                  autoFocus={l.tempId === addedLineId}
                 />
               ))}
 
