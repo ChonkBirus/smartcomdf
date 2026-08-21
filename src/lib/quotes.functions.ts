@@ -249,8 +249,9 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
         stockMap.set(b.item_id, (stockMap.get(b.item_id) || 0) + Number(b.quantity || 0));
       });
     }
-    return (data ?? []).map((r: any) => ({
+    return topItems.map((r: any) => ({
       id: r.id,
+
       name: r.name,
       sku: r.sku,
       unit: r.unit,
