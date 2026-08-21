@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Plus, Trash2, ArrowUp, ArrowDown, Check, ChevronsUpDown, AlertTriangle, UserPlus, Package } from "lucide-react";
@@ -450,8 +450,8 @@ export function QuoteFormSheet({
 
   function addLine(kind: QuoteItemKind = "PRODUCT") {
     setLines((s) => [
-      ...s,
       { item_id: null, kind, name: "", description: "", quantity: 1, unit_price: 0, cost_price: 0 },
+      ...s,
     ]);
   }
   function setLine(i: number, patch: Partial<Line>) {
@@ -807,7 +807,7 @@ export function QuoteFormSheet({
 
               {lines.map((l, i) => (
                 <LineRow
-                  key={`line-${i}-${l.kind}`}
+                  key={l.id || `line-${i}-${l.kind}-${l.item_id}`}
                   line={l}
                   index={i}
                   last={i === lines.length - 1}
@@ -819,6 +819,7 @@ export function QuoteFormSheet({
                   onPickCatalog={(id) => pickCatalogItem(i, id)}
                   onRemove={() => removeLine(i)}
                   onMove={(dir) => moveLine(i, dir)}
+                  autoFocus={i === 0 && !quoteId && lines.length > (existing?.items.length || 0)}
                 />
               ))}
 
@@ -920,7 +921,7 @@ export function QuoteFormSheet({
 
 function LineRow({
   line, index, last, products, services, canSeeInternal, suggestedPrice,
-  onChange, onPickCatalog, onRemove, onMove,
+  onChange, onPickCatalog, onRemove, onMove, autoFocus,
 }: {
   line: Line;
   index: number;
@@ -933,7 +934,21 @@ function LineRow({
   onPickCatalog: (id: string) => void;
   onRemove: () => void;
   onMove: (dir: -1 | 1) => void;
+  autoFocus?: boolean;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (autoFocus) {
+      containerRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      // Se for produto/serviço, o popover abre manualmente ou o usuário clica.
+      // Para manual/labor/other, focamos no nome.
+      if (line.kind !== "PRODUCT" && line.kind !== "SERVICE") {
+        setTimeout(() => nameInputRef.current?.focus(), 100);
+      }
+    }
+  }, [autoFocus, line.kind]);
   const [pickOpen, setPickOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -963,7 +978,7 @@ function LineRow({
       : 0;
 
   return (
-    <div className="space-y-2 rounded-md border p-3">
+    <div ref={containerRef} className="space-y-2 rounded-md border p-3">
       <div className="flex items-center justify-between gap-2">
         <Badge variant="outline">{KIND_LABEL[line.kind]}</Badge>
         <div className="flex gap-1">
@@ -1018,7 +1033,7 @@ function LineRow({
       <div className="grid grid-cols-12 gap-2">
         <div className="col-span-12 sm:col-span-6">
           <Label className="text-xs">Nome *</Label>
-          <Input value={line.name} onChange={(e) => onChange({ name: e.target.value })} />
+          <Input ref={nameInputRef} value={line.name} onChange={(e) => onChange({ name: e.target.value })} />
         </div>
         <div className="col-span-4 sm:col-span-2">
           <Label className="text-xs">Qtd *</Label>
