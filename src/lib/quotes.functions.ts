@@ -171,7 +171,7 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
       .in("item_type", ["PRODUCT", "SERVICE"]);
 
     if (s) {
-      query = query.or(`sku.ilike.${s},name.ilike.%${s}%,sku.ilike.%${s}%`);
+      query = query.or(`sku.ilike.%${s}%,name.ilike.%${s}%`);
     }
 
     query = query.limit(50);
