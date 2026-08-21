@@ -721,8 +721,17 @@ async function renderCoverPage(
 
   drawMeta(cardX + 24, metaY, "Nº do orçamento", ctx.quote.quote_number || NA);
   drawMeta(cardX + 24 + colW + 24, metaY, "Responsável", responsible);
-  drawMeta(cardX + 24, metaY + 42, "Data de emissão", ctx.quote.issue_date ? fmtDate(ctx.quote.issue_date) : NA);
-  drawMeta(cardX + 24 + colW + 24, metaY + 42, "Validade", ctx.quote.valid_until ? fmtDate(ctx.quote.valid_until) : NA);
+
+  let nextRowY = metaY + 42;
+  if (ctx.customer?.cpf_cnpj) {
+    drawMeta(cardX + 24, nextRowY, "Documento", ctx.customer.cpf_cnpj);
+    drawMeta(cardX + 24 + colW + 24, nextRowY, "Data de emissão", ctx.quote.issue_date ? fmtDate(ctx.quote.issue_date) : NA);
+    nextRowY += 42;
+    drawMeta(cardX + 24, nextRowY, "Validade", ctx.quote.valid_until ? fmtDate(ctx.quote.valid_until) : NA);
+  } else {
+    drawMeta(cardX + 24, nextRowY, "Data de emissão", ctx.quote.issue_date ? fmtDate(ctx.quote.issue_date) : NA);
+    drawMeta(cardX + 24 + colW + 24, nextRowY, "Validade", ctx.quote.valid_until ? fmtDate(ctx.quote.valid_until) : NA);
+  }
 
   // ------- Footer contact strip -------
   const footerY = A4.h - 60;
@@ -1499,7 +1508,9 @@ async function renderAcceptancePage(
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
   doc.text("NOME DO CLIENTE", MARGIN + 14, y + 22);
-  doc.text("CPF / CNPJ", MARGIN + 14 + colW + 14, y + 22);
+  if (ctx.customer?.cpf_cnpj) {
+    doc.text("CPF / CNPJ", MARGIN + 14 + colW + 14, y + 22);
+  }
   setStroke(doc, PALETTE.grayDark);
   doc.line(MARGIN + 14, y + 50, MARGIN + 14 + colW, y + 50);
   doc.line(MARGIN + 14 + colW + 14, y + 50, MARGIN + 14 + colW + 14 + colW, y + 50);
