@@ -151,26 +151,85 @@ export type QuoteCatalogItem = {
 
 export const listQuoteCatalog = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d) =>
+    z.object({
+      search: z.string().optional(),
+    }).parse(d ?? {}),
+  )
+  .handler(async ({ data: inputData, context }) => {
     const sb = context.supabase as any;
     const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
     if (!profile?.company_id) throw new Error("Sem empresa.");
-    const { data, error } = await sb
+    
+    let query = sb
       .from("items")
-      .select("id, name, sku, unit, item_type, sale_price, cost_price, description, controls_stock")
+      .select("id, name, sku, unit, item_type, sale_price, cost_price, description, controls_stock, stock_quantity, image_path")
       .eq("company_id", profile.company_id)
       .is("deleted_at", null)
       .eq("active", true)
       .in("item_type", ["PRODUCT", "SERVICE"])
-      .order("name");
+      .limit(50);
+
+
+    const s = sanitizePostgrestSearch(inputData.search ?? "");
+    if (s) {
+      // Priority: SKU exact > Name contains > SKU contains
+      // We use a single 'or' filter for simplicity in PostgREST, 
+      // but we can order by similarity or exact match if needed.
+      // The requirement asks for: 1. SKU exato; 2. nome contendo; 3. SKU contendo.
+      // PostgREST doesn't support complex case-when ordering easily in a single RPC-less call,
+      // but we can at least filter correctly.
+      query = query.or(`sku.ilike.${s},name.ilike.%${s}%,sku.ilike.%${s}%`);
+    }
+
+    const { data, error } = await query;
     if (error) throw new Error(error.message);
-    const ids = (data ?? []).map((r: any) => r.id);
+
+    let itemsRaw = (data ?? []) as any[];
+    if (s) {
+      const searchLower = s.toLowerCase();
+      itemsRaw.sort((a, b) => {
+        const aSku = (a.sku || "").toLowerCase();
+        const bSku = (b.sku || "").toLowerCase();
+        const aName = (a.name || "").toLowerCase();
+        const bName = (b.name || "").toLowerCase();
+
+        // 1. SKU exact match
+        const aSkuExact = aSku === searchLower;
+        const bSkuExact = bSku === searchLower;
+        if (aSkuExact && !bSkuExact) return -1;
+        if (!aSkuExact && bSkuExact) return 1;
+
+        // 2. Name starts with
+        const aNameStarts = aName.startsWith(searchLower);
+        const bNameStarts = bName.startsWith(searchLower);
+        if (aNameStarts && !bNameStarts) return -1;
+        if (!aNameStarts && bNameStarts) return 1;
+
+        // 3. SKU starts with
+        const aSkuStarts = aSku.startsWith(searchLower);
+        const bSkuStarts = bSku.startsWith(searchLower);
+        if (aSkuStarts && !bSkuStarts) return -1;
+        if (!aSkuStarts && bSkuStarts) return 1;
+
+        // 4. Default: alphabetical by name
+        return aName.localeCompare(bName);
+      });
+    } else {
+      itemsRaw.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    }
+
+    // Keep only the top 50 after sorting
+    const topItems = itemsRaw.slice(0, 50);
+    const ids = topItems.map((r: any) => r.id);
+
     const imgMap = new Map<string, string>();
     const stockMap = new Map<string, number>();
     if (ids.length > 0) {
-      const productIds = (data ?? [])
+      const productIds = topItems
         .filter((r: any) => r.item_type === "PRODUCT" && r.controls_stock)
         .map((r: any) => r.id);
+
       const [{ data: imgs }, { data: bal }] = await Promise.all([
         sb.from("item_images")
           .select("item_id, file_path, is_primary, created_at")
@@ -191,8 +250,9 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
         stockMap.set(b.item_id, (stockMap.get(b.item_id) || 0) + Number(b.quantity || 0));
       });
     }
-    return (data ?? []).map((r: any) => ({
+    return topItems.map((r: any) => ({
       id: r.id,
+
       name: r.name,
       sku: r.sku,
       unit: r.unit,
@@ -205,6 +265,7 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
       stock_quantity: r.item_type === "PRODUCT" && r.controls_stock ? (stockMap.get(r.id) ?? 0) : null,
     })) as QuoteCatalogItem[];
   });
+
 
 
 
