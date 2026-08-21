@@ -1120,23 +1120,8 @@ function CatalogPicker({
         <CommandGroup>
           {data.map((it) => {
             const isProduct = it.item_type === "PRODUCT";
-            const stock = it.stock_quantity;
-            const stockLabel =
-              isProduct && it.controls_stock
-                ? stock == null
-                  ? null
-                  : stock <= 0
-                    ? "Sem estoque"
-                    : `${stock} em estoque`
-                : null;
-            const stockClass =
-              stock == null || !isProduct || !it.controls_stock
-                ? ""
-                : stock <= 0
-                  ? "text-destructive"
-                  : stock < 5
-                    ? "text-amber-600 dark:text-amber-400"
-                    : "text-emerald-600 dark:text-emerald-400";
+            const stockLabel = null;
+            const stockClass = "";
 
             return (
               <CommandItem
