@@ -11,16 +11,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { listCompanies, listPlans, updateSubscription } from "@/lib/admin.functions";
 
@@ -29,8 +47,13 @@ export const Route = createFileRoute("/_authenticated/admin/")({
 });
 
 type SubStatus =
-  | "TRIALING" | "ACTIVE" | "PAST_DUE" | "SUSPENDED"
-  | "CANCELED" | "EXPIRED" | "MANUAL_REVIEW";
+  | "TRIALING"
+  | "ACTIVE"
+  | "PAST_DUE"
+  | "SUSPENDED"
+  | "CANCELED"
+  | "EXPIRED"
+  | "MANUAL_REVIEW";
 
 const SUB_STATUS_LABEL: Record<string, string> = {
   TRIALING: "Trial",
@@ -41,7 +64,6 @@ const SUB_STATUS_LABEL: Record<string, string> = {
   EXPIRED: "Expirada",
   MANUAL_REVIEW: "Em análise",
 };
-
 
 type Company = {
   id: string;
@@ -71,7 +93,10 @@ function AdminCompaniesPage() {
   const qc = useQueryClient();
   const fetchFn = useServerFn(listCompanies);
   const fetchPlans = useServerFn(listPlans);
-  const { data, isLoading } = useQuery({ queryKey: ["admin", "companies"], queryFn: () => fetchFn() });
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin", "companies"],
+    queryFn: () => fetchFn(),
+  });
   const plansQ = useQuery({ queryKey: ["admin", "plans"], queryFn: () => fetchPlans() });
 
   const [search, setSearch] = useState("");
@@ -105,11 +130,15 @@ function AdminCompaniesPage() {
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[200px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os status</SelectItem>
             {Object.entries(SUB_STATUS_LABEL).map(([v, l]) => (
-              <SelectItem key={v} value={v}>{l}</SelectItem>
+              <SelectItem key={v} value={v}>
+                {l}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -131,16 +160,26 @@ function AdminCompaniesPage() {
           </TableHeader>
           <TableBody>
             {isLoading && (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">Carregando…</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                  Carregando…
+                </TableCell>
+              </TableRow>
             )}
             {!isLoading && filtered.length === 0 && (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">Nenhuma empresa encontrada.</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                  Nenhuma empresa encontrada.
+                </TableCell>
+              </TableRow>
             )}
             {filtered.map((c) => (
               <TableRow key={c.id}>
                 <TableCell>
                   <div className="font-medium">{c.corporate_name}</div>
-                  {c.trade_name && <div className="text-xs text-muted-foreground">{c.trade_name}</div>}
+                  {c.trade_name && (
+                    <div className="text-xs text-muted-foreground">{c.trade_name}</div>
+                  )}
                 </TableCell>
                 <TableCell>{c.plan_name ?? "—"}</TableCell>
                 <TableCell>
@@ -160,7 +199,9 @@ function AdminCompaniesPage() {
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" disabled={!c.subscription_id}>Ações</Button>
+                      <Button variant="outline" size="sm" disabled={!c.subscription_id}>
+                        Ações
+                      </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => setAction({ kind: "plan", company: c })}>
@@ -181,7 +222,9 @@ function AdminCompaniesPage() {
                           Suspender assinatura
                         </DropdownMenuItem>
                       ) : (
-                        <DropdownMenuItem onClick={() => setAction({ kind: "reactivate", company: c })}>
+                        <DropdownMenuItem
+                          onClick={() => setAction({ kind: "reactivate", company: c })}
+                        >
                           Reativar assinatura
                         </DropdownMenuItem>
                       )}
@@ -209,7 +252,10 @@ function AdminCompaniesPage() {
 }
 
 function ActionDialog({
-  state, plans, onClose, onDone,
+  state,
+  plans,
+  onClose,
+  onDone,
 }: {
   state: ActionState;
   plans: any[];
@@ -232,7 +278,10 @@ function ActionDialog({
 
   const mut = useMutation({
     mutationFn: (payload: any) => updateFn({ data: payload }),
-    onSuccess: () => { toast.success("Assinatura atualizada."); onDone(); },
+    onSuccess: () => {
+      toast.success("Assinatura atualizada.");
+      onDone();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -281,10 +330,14 @@ function ActionDialog({
             <div className="space-y-2">
               <Label>Novo plano</Label>
               <Select value={planId} onValueChange={setPlanId}>
-                <SelectTrigger><SelectValue placeholder="Selecione o plano" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o plano" />
+                </SelectTrigger>
                 <SelectContent>
                   {plans.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -307,10 +360,14 @@ function ActionDialog({
             <div className="space-y-2">
               <Label>Novo status</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as SubStatus)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {Object.entries(SUB_STATUS_LABEL).map(([v, l]) => (
-                    <SelectItem key={v} value={v}>{l}</SelectItem>
+                    <SelectItem key={v} value={v}>
+                      {l}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -338,7 +395,9 @@ function ActionDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={mut.isPending}>Cancelar</Button>
+          <Button variant="outline" onClick={onClose} disabled={mut.isPending}>
+            Cancelar
+          </Button>
           <Button onClick={submit} disabled={!reasonOk || mut.isPending}>
             {mut.isPending ? "Salvando…" : "Confirmar"}
           </Button>
@@ -347,4 +406,3 @@ function ActionDialog({
     </Dialog>
   );
 }
-

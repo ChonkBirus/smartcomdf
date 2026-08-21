@@ -18,7 +18,11 @@ export const listTeam = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const { data: me } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+    const { data: me } = await supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", userId)
+      .maybeSingle();
     if (!me?.company_id) return { members: [], invitations: [] };
 
     const { data: members } = await supabase
@@ -59,7 +63,11 @@ export const inviteMember = createServerFn({ method: "POST" })
   .inputValidator((d) => inviteSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: me } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+    const { data: me } = await supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", userId)
+      .maybeSingle();
     if (!me?.company_id) throw new Error("Sem empresa vinculada.");
     await assertOwner(supabase, userId, me.company_id);
 
@@ -82,7 +90,11 @@ export const revokeInvitation = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: me } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+    const { data: me } = await supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", userId)
+      .maybeSingle();
     if (!me?.company_id) throw new Error("Sem empresa vinculada.");
     await assertOwner(supabase, userId, me.company_id);
 
@@ -100,7 +112,11 @@ export const resendInvitation = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: me } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+    const { data: me } = await supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", userId)
+      .maybeSingle();
     if (!me?.company_id) throw new Error("Sem empresa vinculada.");
     await assertOwner(supabase, userId, me.company_id);
 
@@ -123,7 +139,11 @@ export const updateMemberRole = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ user_id: z.string().uuid(), role: z.enum(APP_ROLES) }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: me } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+    const { data: me } = await supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", userId)
+      .maybeSingle();
     if (!me?.company_id) throw new Error("Sem empresa vinculada.");
     await assertOwner(supabase, userId, me.company_id);
 
@@ -150,12 +170,20 @@ export const removeMember = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     if (data.user_id === userId) throw new Error("Você não pode remover a si mesmo.");
-    const { data: me } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+    const { data: me } = await supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", userId)
+      .maybeSingle();
     if (!me?.company_id) throw new Error("Sem empresa vinculada.");
     await assertOwner(supabase, userId, me.company_id);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id).eq("company_id", me.company_id);
+    await supabaseAdmin
+      .from("user_roles")
+      .delete()
+      .eq("user_id", data.user_id)
+      .eq("company_id", me.company_id);
     await supabaseAdmin.from("profiles").update({ company_id: null }).eq("id", data.user_id);
     return { ok: true };
   });
@@ -165,7 +193,9 @@ export const acceptInvitation = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ token: z.string().min(10).max(200) }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const { data: companyId, error } = await supabase.rpc("accept_invitation", { _token: data.token });
+    const { data: companyId, error } = await supabase.rpc("accept_invitation", {
+      _token: data.token,
+    });
     if (error) throw new Error(error.message);
     return { company_id: companyId };
   });

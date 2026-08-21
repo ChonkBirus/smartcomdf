@@ -130,7 +130,9 @@ export const createCompanyForCurrentUser = createServerFn({ method: "POST" })
     if (cErr || !company) throw new Error(cErr?.message ?? "Falha ao criar empresa.");
 
     await supabaseAdmin.from("profiles").update({ company_id: company.id }).eq("id", userId);
-    await supabaseAdmin.from("user_roles").insert({ user_id: userId, company_id: company.id, role: "owner" });
+    await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: userId, company_id: company.id, role: "owner" });
     await supabaseAdmin.from("company_settings").insert({ company_id: company.id });
     const { data: subscription } = await supabaseAdmin
       .from("subscriptions")
@@ -171,4 +173,3 @@ export const createCompanyForCurrentUser = createServerFn({ method: "POST" })
 
     return { company_id: company.id, coupon_applied: appliedCoupon?.code ?? null };
   });
-

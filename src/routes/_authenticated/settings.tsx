@@ -17,7 +17,6 @@ const tabs = [
   { to: "/billing/invoices", label: "Faturas e Pagamentos" },
 ];
 
-
 function SettingsLayout() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   return (

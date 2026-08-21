@@ -4,8 +4,19 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useCompanyId } from "@/hooks/use-company-id";
 import {
-  Users, Plus, Pencil, Trash2, Search, MessageCircle, Eye, History,
-  Building2, User as UserIcon, ArrowLeft, ArrowRight, Upload,
+  Users,
+  Plus,
+  Pencil,
+  Trash2,
+  Search,
+  MessageCircle,
+  Eye,
+  History,
+  Building2,
+  User as UserIcon,
+  ArrowLeft,
+  ArrowRight,
+  Upload,
 } from "lucide-react";
 import { CustomerImportDialog } from "@/components/customers/CustomerImportDialog";
 import { PageHeader } from "@/components/ui/page-header";
@@ -19,18 +30,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { CustomerFormSheet } from "@/components/customers/CustomerFormSheet";
 import { CustomerHistorySheet } from "@/components/customers/CustomerHistorySheet";
 import {
-  listCustomers, deleteCustomer, toggleCustomer, listCustomerTags, customerMetrics,
-  type CustomerStatus, type CustomerType,
+  listCustomers,
+  deleteCustomer,
+  toggleCustomer,
+  listCustomerTags,
+  customerMetrics,
+  type CustomerStatus,
+  type CustomerType,
 } from "@/lib/customers.functions";
 
 export const Route = createFileRoute("/_authenticated/clients")({
@@ -52,7 +78,10 @@ function formatDoc(v: string) {
 }
 
 const STATUS_LABEL: Record<CustomerStatus, string> = {
-  LEAD: "Lead", ACTIVE: "Ativo", INACTIVE: "Inativo", BLOCKED: "Bloqueado",
+  LEAD: "Lead",
+  ACTIVE: "Ativo",
+  INACTIVE: "Inativo",
+  BLOCKED: "Bloqueado",
 };
 
 function ClientsPage() {
@@ -162,11 +191,18 @@ function ClientsPage() {
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={handleImportClick} disabled={importOpen}>
-              <Upload className="mr-1 h-4 w-4" />Importar clientes
+              <Upload className="mr-1 h-4 w-4" />
+              Importar clientes
             </Button>
             <Can module="clients" action="create">
-              <Button onClick={() => { setEditing(null); setOpen(true); }}>
-                <Plus className="mr-1 h-4 w-4" />Novo cliente
+              <Button
+                onClick={() => {
+                  setEditing(null);
+                  setOpen(true);
+                }}
+              >
+                <Plus className="mr-1 h-4 w-4" />
+                Novo cliente
               </Button>
             </Can>
           </div>
@@ -176,28 +212,71 @@ function ClientsPage() {
       <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
         <KpiCard title="Total" value={metrics?.total ?? 0} icon={<Users className="h-5 w-5" />} />
         <KpiCard title="Ativos" value={metrics?.active ?? 0} icon={<Users className="h-5 w-5" />} />
-        <KpiCard title="Pessoa Física" value={metrics?.individual ?? 0} icon={<UserIcon className="h-5 w-5" />} />
-        <KpiCard title="Pessoa Jurídica" value={metrics?.company ?? 0} icon={<Building2 className="h-5 w-5" />} />
-        <KpiCard title="Novos no mês" value={metrics?.new_this_month ?? 0} icon={<Plus className="h-5 w-5" />} />
+        <KpiCard
+          title="Pessoa Física"
+          value={metrics?.individual ?? 0}
+          icon={<UserIcon className="h-5 w-5" />}
+        />
+        <KpiCard
+          title="Pessoa Jurídica"
+          value={metrics?.company ?? 0}
+          icon={<Building2 className="h-5 w-5" />}
+        />
+        <KpiCard
+          title="Novos no mês"
+          value={metrics?.new_this_month ?? 0}
+          icon={<Plus className="h-5 w-5" />}
+        />
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
         <div className="relative min-w-[220px] flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input className="pl-8" placeholder="Buscar nome, CPF/CNPJ, e-mail, WhatsApp" value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+          <Input
+            className="pl-8"
+            placeholder="Buscar nome, CPF/CNPJ, e-mail, WhatsApp"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
         </div>
-        <Input className="w-40" placeholder="Cidade" value={city} onChange={(e) => { setCity(e.target.value); setPage(1); }} />
-        <Select value={filterType} onValueChange={(v) => { setFilterType(v as any); setPage(1); }}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Tipo" /></SelectTrigger>
+        <Input
+          className="w-40"
+          placeholder="Cidade"
+          value={city}
+          onChange={(e) => {
+            setCity(e.target.value);
+            setPage(1);
+          }}
+        />
+        <Select
+          value={filterType}
+          onValueChange={(v) => {
+            setFilterType(v as any);
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="Tipo" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">Todos os tipos</SelectItem>
             <SelectItem value="INDIVIDUAL">Pessoa Física</SelectItem>
             <SelectItem value="COMPANY">Pessoa Jurídica</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={filterStatus} onValueChange={(v) => { setFilterStatus(v as any); setPage(1); }}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="Status" /></SelectTrigger>
+        <Select
+          value={filterStatus}
+          onValueChange={(v) => {
+            setFilterStatus(v as any);
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">Todos os status</SelectItem>
             <SelectItem value="LEAD">Lead</SelectItem>
@@ -206,12 +285,22 @@ function ClientsPage() {
             <SelectItem value="BLOCKED">Bloqueado</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={filterTag} onValueChange={(v) => { setFilterTag(v); setPage(1); }}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Tag" /></SelectTrigger>
+        <Select
+          value={filterTag}
+          onValueChange={(v) => {
+            setFilterTag(v);
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="Tag" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">Todas as tags</SelectItem>
             {(tags ?? []).map((t) => (
-              <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+              <SelectItem key={t.id} value={t.id}>
+                {t.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -246,7 +335,11 @@ function ClientsPage() {
                 {items.map((c: any) => (
                   <tr key={c.id} className="border-t">
                     <td className="px-3 py-2">
-                      <Link to="/clients/$id" params={{ id: c.id }} className="font-medium hover:underline">
+                      <Link
+                        to="/clients/$id"
+                        params={{ id: c.id }}
+                        className="font-medium hover:underline"
+                      >
                         {c.trade_name || c.name}
                       </Link>
                       {c.email && <div className="text-xs text-muted-foreground">{c.email}</div>}
@@ -262,15 +355,22 @@ function ClientsPage() {
                     <td className="px-3 py-2">
                       <div className="flex flex-wrap gap-1">
                         {(c.tags ?? []).slice(0, 3).map((t: any) => (
-                          <Badge key={t.id} variant="outline" className="text-nano"
-                            style={{ borderColor: t.color, color: t.color }}>
+                          <Badge
+                            key={t.id}
+                            variant="outline"
+                            className="text-nano"
+                            style={{ borderColor: t.color, color: t.color }}
+                          >
                             {t.name}
                           </Badge>
                         ))}
                       </div>
                     </td>
                     <td className="px-3 py-2">
-                      <StatusBadge status={c.customer_status} label={STATUS_LABEL[c.customer_status as CustomerStatus]} />
+                      <StatusBadge
+                        status={c.customer_status}
+                        label={STATUS_LABEL[c.customer_status as CustomerStatus]}
+                      />
                     </td>
                     <td className="px-3 py-2 text-xs text-muted-foreground">
                       {new Date(c.created_at).toLocaleDateString("pt-BR")}
@@ -279,14 +379,21 @@ function ClientsPage() {
                       <div className="flex justify-end gap-1">
                         {c.whatsapp && (
                           <Button asChild size="icon" variant="ghost" title="WhatsApp">
-                            <a target="_blank" rel="noreferrer"
-                              href={`https://wa.me/55${c.whatsapp.replace(/\D/g, "")}`}>
+                            <a
+                              target="_blank"
+                              rel="noreferrer"
+                              href={`https://wa.me/55${c.whatsapp.replace(/\D/g, "")}`}
+                            >
                               <MessageCircle className="h-4 w-4" />
                             </a>
                           </Button>
                         )}
-                        <Button size="icon" variant="ghost" title="Histórico"
-                          onClick={() => setHistoryFor({ id: c.id, name: c.trade_name || c.name })}>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Histórico"
+                          onClick={() => setHistoryFor({ id: c.id, name: c.trade_name || c.name })}
+                        >
                           <History className="h-4 w-4" />
                         </Button>
                         <Button asChild size="icon" variant="ghost" title="Visualizar">
@@ -295,18 +402,34 @@ function ClientsPage() {
                           </Link>
                         </Button>
                         <Can module="clients" action="edit">
-                          <Button size="icon" variant="ghost" title="Editar"
-                            onClick={() => { setEditing(c.id); setOpen(true); }}>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            title="Editar"
+                            onClick={() => {
+                              setEditing(c.id);
+                              setOpen(true);
+                            }}
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="ghost"
-                            onClick={() => togMut.mutate({ id: c.id, active: !c.active })}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => togMut.mutate({ id: c.id, active: !c.active })}
+                          >
                             {c.active ? "Desativar" : "Ativar"}
                           </Button>
                         </Can>
                         <Can module="clients" action="delete">
-                          <Button size="icon" variant="ghost" title="Excluir"
-                            onClick={() => setConfirmDel({ id: c.id, name: c.trade_name || c.name })}>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            title="Excluir"
+                            onClick={() =>
+                              setConfirmDel({ id: c.id, name: c.trade_name || c.name })
+                            }
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </Can>
@@ -319,12 +442,24 @@ function ClientsPage() {
           </div>
 
           <div className="mt-3 flex items-center justify-between text-sm text-muted-foreground">
-            <span>{total} clientes — página {page} de {totalPages}</span>
+            <span>
+              {total} clientes — página {page} de {totalPages}
+            </span>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={page === 1}
+                onClick={() => setPage((p) => p - 1)}
+              >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => p + 1)}
+              >
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
@@ -350,7 +485,8 @@ function ClientsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir cliente?</AlertDialogTitle>
             <AlertDialogDescription>
-              {confirmDel?.name} será removido (soft delete). Histórico e contatos serão preservados.
+              {confirmDel?.name} será removido (soft delete). Histórico e contatos serão
+              preservados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

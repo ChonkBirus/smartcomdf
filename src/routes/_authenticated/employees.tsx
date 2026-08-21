@@ -16,18 +16,35 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
 } from "@/components/ui/sheet";
 import { usePermissions } from "@/lib/permissions";
 import { formatCurrency } from "@/lib/utils";
 import {
-  listEmployees, createEmployee, updateEmployee, toggleEmployeeActive,
+  listEmployees,
+  createEmployee,
+  updateEmployee,
+  toggleEmployeeActive,
   type Employee,
 } from "@/lib/employees.functions";
 
@@ -41,9 +58,7 @@ function EmployeesGate() {
   const canAccess = isOwner || isSuperAdmin || has("employees.manage");
   if (!canAccess) {
     return (
-      <ForbiddenPage
-        message="Somente proprietários, gestores ou usuários com permissão de gerenciar funcionários podem acessar esta tela."
-      />
+      <ForbiddenPage message="Somente proprietários, gestores ou usuários com permissão de gerenciar funcionários podem acessar esta tela." />
     );
   }
   return <EmployeesPage />;
@@ -62,8 +77,7 @@ function EmployeesPage() {
   const fetchList = useServerFn(listEmployees);
   const toggleFn = useServerFn(toggleEmployeeActive);
 
-  const activeParam =
-    activeFilter === "ALL" ? undefined : activeFilter === "ACTIVE";
+  const activeParam = activeFilter === "ALL" ? undefined : activeFilter === "ACTIVE";
 
   const { data, isLoading } = useQuery({
     queryKey: ["employees", { search, roleFilter, activeParam }],
@@ -135,7 +149,9 @@ function EmployeesPage() {
           <div className="w-full sm:w-44">
             <Label className="text-xs">Status</Label>
             <Select value={activeFilter} onValueChange={(v) => setActiveFilter(v as FilterActive)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ACTIVE">Ativos</SelectItem>
                 <SelectItem value="INACTIVE">Inativos</SelectItem>
@@ -190,9 +206,15 @@ function EmployeesPage() {
                       </TableCell>
                       <TableCell className="text-sm">{e.role ?? "—"}</TableCell>
                       <TableCell className="text-sm">{e.phone ?? "—"}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(Number(e.daily_rate))}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(Number(e.transport_cost))}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(Number(e.meal_cost))}</TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(Number(e.daily_rate))}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(Number(e.transport_cost))}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(Number(e.meal_cost))}
+                      </TableCell>
                       <TableCell>
                         {e.active ? (
                           <Badge variant="secondary">Ativo</Badge>
@@ -209,11 +231,13 @@ function EmployeesPage() {
                             size="sm"
                             variant="ghost"
                             title={e.active ? "Inativar" : "Ativar"}
-                            onClick={() =>
-                              toggleMut.mutate({ id: e.id, active: !e.active })
-                            }
+                            onClick={() => toggleMut.mutate({ id: e.id, active: !e.active })}
                           >
-                            {e.active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                            {e.active ? (
+                              <PowerOff className="h-4 w-4" />
+                            ) : (
+                              <Power className="h-4 w-4" />
+                            )}
                           </Button>
                         </div>
                       </TableCell>
@@ -275,11 +299,7 @@ function EmployeesPage() {
         </>
       )}
 
-      <EmployeeSheet
-        open={sheetOpen}
-        onOpenChange={setSheetOpen}
-        employee={editing}
-      />
+      <EmployeeSheet open={sheetOpen} onOpenChange={setSheetOpen} employee={editing} />
     </div>
   );
 }
@@ -297,9 +317,15 @@ type FormState = {
 };
 
 const EMPTY: FormState = {
-  name: "", phone: "", document: "", role: "",
-  daily_rate: "0", transport_cost: "0", meal_cost: "0",
-  notes: "", active: true,
+  name: "",
+  phone: "",
+  document: "",
+  role: "",
+  daily_rate: "0",
+  transport_cost: "0",
+  meal_cost: "0",
+  notes: "",
+  active: true,
 };
 
 function toForm(e: Employee | null): FormState {
@@ -323,7 +349,9 @@ function parseMoney(s: string): number {
 }
 
 function EmployeeSheet({
-  open, onOpenChange, employee,
+  open,
+  onOpenChange,
+  employee,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -382,21 +410,37 @@ function EmployeeSheet({
         <div className="mt-4 space-y-4">
           <div>
             <Label>Nome *</Label>
-            <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Nome do funcionário" />
+            <Input
+              value={form.name}
+              onChange={(e) => set("name", e.target.value)}
+              placeholder="Nome do funcionário"
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Função</Label>
-              <Input value={form.role} onChange={(e) => set("role", e.target.value)} placeholder="Ex.: Ajudante" />
+              <Input
+                value={form.role}
+                onChange={(e) => set("role", e.target.value)}
+                placeholder="Ex.: Ajudante"
+              />
             </div>
             <div>
               <Label>Telefone</Label>
-              <Input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="(00) 00000-0000" />
+              <Input
+                value={form.phone}
+                onChange={(e) => set("phone", e.target.value)}
+                placeholder="(00) 00000-0000"
+              />
             </div>
           </div>
           <div>
             <Label>CPF / Documento</Label>
-            <Input value={form.document} onChange={(e) => set("document", e.target.value)} placeholder="Opcional" />
+            <Input
+              value={form.document}
+              onChange={(e) => set("document", e.target.value)}
+              placeholder="Opcional"
+            />
           </div>
 
           <div className="grid grid-cols-3 gap-3">

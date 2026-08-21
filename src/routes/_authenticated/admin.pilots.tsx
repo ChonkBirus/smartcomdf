@@ -298,7 +298,9 @@ function AdminPilotsPage() {
                         Registrar
                       </Button>
                       <Button asChild size="sm" variant="outline">
-                        <Link to="/admin/pilot-detail/$id" params={{ id: p.id }}>Detalhar</Link>
+                        <Link to="/admin/pilot-detail/$id" params={{ id: p.id }}>
+                          Detalhar
+                        </Link>
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => setEditPilot(p)}>
                         Editar
@@ -307,8 +309,7 @@ function AdminPilotsPage() {
                         size="sm"
                         variant="ghost"
                         onClick={() => {
-                          if (confirm("Remover piloto?"))
-                            deleteMut.mutate({ data: { id: p.id } });
+                          if (confirm("Remover piloto?")) deleteMut.mutate({ data: { id: p.id } });
                         }}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -344,11 +345,7 @@ function AdminPilotsPage() {
         pending={addLogMut.isPending}
       />
 
-      <HistoryDialog
-        pilot={historyPilot}
-        onClose={() => setHistoryPilot(null)}
-        logsFn={logsFn}
-      />
+      <HistoryDialog pilot={historyPilot} onClose={() => setHistoryPilot(null)} logsFn={logsFn} />
     </div>
   );
 }
@@ -438,7 +435,11 @@ function CreatePilotDialog({
           </div>
           <div className="space-y-2">
             <Label>Origem</Label>
-            <Input value={source} onChange={(e) => setSource(e.target.value)} placeholder="Indicação, evento…" />
+            <Input
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+              placeholder="Indicação, evento…"
+            />
           </div>
           <div className="space-y-2">
             <Label>Conversão esperada</Label>
@@ -584,8 +585,7 @@ function EditPilotDialog({
                 source: source || null,
                 notes: notes || null,
                 expected_conversion_date: expected || null,
-                loss_reason:
-                  status === "lost" || status === "LOST" ? lossReason || null : null,
+                loss_reason: status === "lost" || status === "LOST" ? lossReason || null : null,
               });
             }}
           >
@@ -706,7 +706,18 @@ function HistoryDialog({
 }: {
   pilot: CommercialPilotRow | null;
   onClose: () => void;
-  logsFn: (args: { data: { company_id: string } }) => Promise<Array<{ id: string; contact_type: string | null; contact_channel: string | null; subject: string | null; message: string | null; result: string | null; contacted_at: string; next_follow_up_at: string | null }>>;
+  logsFn: (args: { data: { company_id: string } }) => Promise<
+    Array<{
+      id: string;
+      contact_type: string | null;
+      contact_channel: string | null;
+      subject: string | null;
+      message: string | null;
+      result: string | null;
+      contacted_at: string;
+      next_follow_up_at: string | null;
+    }>
+  >;
 }) {
   const { data: logs, isLoading } = useQuery({
     queryKey: ["admin", "pilot-logs", pilot?.company_id],
@@ -733,9 +744,7 @@ function HistoryDialog({
               </div>
               {l.subject && <div className="mt-1 text-sm font-medium">{l.subject}</div>}
               {l.message && <div className="mt-1 text-sm">{l.message}</div>}
-              {l.result && (
-                <div className="mt-1 text-xs text-muted-foreground">→ {l.result}</div>
-              )}
+              {l.result && <div className="mt-1 text-xs text-muted-foreground">→ {l.result}</div>}
               {l.next_follow_up_at && (
                 <div className="mt-1 text-xs">
                   Próximo follow-up: {fmtDateTime(l.next_follow_up_at)}

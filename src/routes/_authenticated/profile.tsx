@@ -32,7 +32,12 @@ function ProfilePage() {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    if (p) setForm({ full_name: p.full_name ?? "", phone: p.phone ?? "", avatar_url: p.avatar_url ?? "" });
+    if (p)
+      setForm({
+        full_name: p.full_name ?? "",
+        phone: p.phone ?? "",
+        avatar_url: p.avatar_url ?? "",
+      });
   }, [p]);
 
   useEffect(() => {
@@ -45,7 +50,10 @@ function ProfilePage() {
 
   const saveMut = useMutation({
     mutationFn: () => save({ data: form }),
-    onSuccess: () => { toast.success("Perfil atualizado."); qc.invalidateQueries({ queryKey: ["me"] }); },
+    onSuccess: () => {
+      toast.success("Perfil atualizado.");
+      qc.invalidateQueries({ queryKey: ["me"] });
+    },
     onError: (e: any) => toast.error(e.message ?? "Erro."),
   });
 
@@ -73,16 +81,23 @@ function ProfilePage() {
     <div className="mx-auto max-w-3xl">
       <PageHeader title="Meu perfil" description="Atualize seus dados pessoais." />
       <Card className="card-elevated">
-        <CardHeader><CardTitle className="text-base">Informações pessoais</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-base">Informações pessoais</CardTitle>
+        </CardHeader>
         <CardContent>
           <form
             className="space-y-4"
-            onSubmit={(e) => { e.preventDefault(); saveMut.mutate(); }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              saveMut.mutate();
+            }}
           >
             <div className="flex items-center gap-4">
               <Avatar className="h-20 w-20">
                 {signed && <AvatarImage src={signed} />}
-                <AvatarFallback className="bg-primary text-primary-foreground text-lg">{initials}</AvatarFallback>
+                <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                  {initials}
+                </AvatarFallback>
               </Avatar>
               <div>
                 <Label htmlFor="avatar-upload" className="cursor-pointer">
@@ -90,8 +105,14 @@ function ProfilePage() {
                     {uploading ? "Enviando..." : "Trocar avatar"}
                   </span>
                 </Label>
-                <input id="avatar-upload" type="file" accept="image/*" className="hidden"
-                  onChange={onUpload} disabled={uploading} />
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={onUpload}
+                  disabled={uploading}
+                />
               </div>
             </div>
 
@@ -101,16 +122,24 @@ function ProfilePage() {
             </div>
             <div className="space-y-1.5">
               <Label>Nome completo *</Label>
-              <Input required value={form.full_name}
-                onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+              <Input
+                required
+                value={form.full_name}
+                onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Telefone</Label>
-              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <Input
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              />
             </div>
 
             <div className="flex justify-end">
-              <Button type="submit" disabled={saveMut.isPending}>Salvar alterações</Button>
+              <Button type="submit" disabled={saveMut.isPending}>
+                Salvar alterações
+              </Button>
             </div>
           </form>
         </CardContent>

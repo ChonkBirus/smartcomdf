@@ -1,6 +1,13 @@
 export type CrmReportsData = {
   bySource: { key: string; label: string; count: number; value: number }[];
-  byAssigned: { key: string; label: string; count: number; won: number; lost: number; value: number }[];
+  byAssigned: {
+    key: string;
+    label: string;
+    count: number;
+    won: number;
+    lost: number;
+    value: number;
+  }[];
   lostReasons: { reason: string; count: number }[];
 };
 

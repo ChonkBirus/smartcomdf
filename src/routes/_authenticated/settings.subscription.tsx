@@ -34,8 +34,7 @@ export const Route = createFileRoute("/_authenticated/settings/subscription")({
   component: SubscriptionPage,
 });
 
-const fmt = (n: number) =>
-  n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const fmt = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const fmtDate = (s: string | null | undefined) =>
   s ? new Date(s).toLocaleDateString("pt-BR") : "—";
 const daysUntil = (s: string | null | undefined) => {
@@ -131,8 +130,8 @@ function SubscriptionPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Pagamento pendente</AlertTitle>
           <AlertDescription>
-            Regularize até {fmtDate(sub.grace_period_ends_at)} (
-            {graceDays ?? 0} dia(s) restantes) para evitar suspensão.
+            Regularize até {fmtDate(sub.grace_period_ends_at)} ({graceDays ?? 0} dia(s) restantes)
+            para evitar suspensão.
           </AlertDescription>
         </Alert>
       ) : null}
@@ -181,8 +180,8 @@ function SubscriptionPage() {
           <AlertDescription className="flex flex-wrap items-center gap-3">
             <span>
               Sua assinatura será encerrada em{" "}
-              <strong>{fmtDate(scheduledCancel.cancellation_effective_at)}</strong>.
-              Até lá o acesso continua normal.
+              <strong>{fmtDate(scheduledCancel.cancellation_effective_at)}</strong>. Até lá o acesso
+              continua normal.
             </span>
             <Button
               size="sm"
@@ -208,10 +207,7 @@ function SubscriptionPage() {
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Info label="Valor mensal" value={fmt(sub.monthly_price)} />
-          <Info
-            label="Valor anual"
-            value={sub.yearly_price ? fmt(sub.yearly_price) : "—"}
-          />
+          <Info label="Valor anual" value={sub.yearly_price ? fmt(sub.yearly_price) : "—"} />
           <Info label="Próxima cobrança" value={fmtDate(sub.next_billing_date)} />
           <Info label="Fim do período" value={fmtDate(sub.current_period_end)} />
 
@@ -221,12 +217,8 @@ function SubscriptionPage() {
           {sub.grace_period_ends_at ? (
             <Info label="Fim da tolerância" value={fmtDate(sub.grace_period_ends_at)} />
           ) : null}
-          {sub.activated_at ? (
-            <Info label="Ativada em" value={fmtDate(sub.activated_at)} />
-          ) : null}
-          {sub.canceled_at ? (
-            <Info label="Cancelada em" value={fmtDate(sub.canceled_at)} />
-          ) : null}
+          {sub.activated_at ? <Info label="Ativada em" value={fmtDate(sub.activated_at)} /> : null}
+          {sub.canceled_at ? <Info label="Cancelada em" value={fmtDate(sub.canceled_at)} /> : null}
         </CardContent>
       </Card>
 
@@ -260,8 +252,7 @@ function SubscriptionPage() {
         {["CANCELED", "EXPIRED"].includes(sub.status) ? (
           <ReactivateSubscriptionButton planName={sub.plan_name} />
         ) : null}
-        {["ACTIVE", "TRIALING", "PAST_DUE"].includes(sub.status) &&
-        !scheduledCancel ? (
+        {["ACTIVE", "TRIALING", "PAST_DUE"].includes(sub.status) && !scheduledCancel ? (
           <Button variant="ghost" onClick={() => setCancelOpen(true)}>
             <XCircle className="mr-2 h-4 w-4" />
             Cancelar assinatura
@@ -281,9 +272,7 @@ function SubscriptionPage() {
           <TabsTrigger value="history">Histórico</TabsTrigger>
         </TabsList>
         <TabsContent value="charges" id="billing-charges" className="space-y-3">
-          <h3 className="text-sm font-semibold text-muted-foreground">
-            Histórico de cobranças
-          </h3>
+          <h3 className="text-sm font-semibold text-muted-foreground">Histórico de cobranças</h3>
           <BillingChargesTable />
         </TabsContent>
         <TabsContent value="history" className="space-y-3">

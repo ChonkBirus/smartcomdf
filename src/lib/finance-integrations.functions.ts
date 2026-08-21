@@ -3,7 +3,11 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function getCompanyId(supabase: any, userId: string): Promise<string> {
-  const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  const { data } = await supabase
+    .from("profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .maybeSingle();
   const cid = data?.company_id as string | undefined;
   if (!cid) throw new Error("Sem empresa vinculada.");
   return cid;
@@ -38,10 +42,12 @@ export const getReceivableByQuote = createServerFn({ method: "GET" })
 export const createReceivableFromQuote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      quote_id: z.string().uuid(),
-      due_date: z.string().optional().nullable(),
-    }).parse(d),
+    z
+      .object({
+        quote_id: z.string().uuid(),
+        due_date: z.string().optional().nullable(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
@@ -67,7 +73,9 @@ export const createReceivableFromQuote = createServerFn({ method: "POST" })
 
     const { data: quote, error: qerr } = await context.supabase
       .from("quotes")
-      .select("id, company_id, customer_id, total_amount, status, valid_until, payment_status, project_id")
+      .select(
+        "id, company_id, customer_id, total_amount, status, valid_until, payment_status, project_id",
+      )
       .eq("id", data.quote_id)
       .eq("company_id", cid)
       .maybeSingle();
@@ -124,11 +132,13 @@ export const createReceivableFromQuote = createServerFn({ method: "POST" })
 export const markReceivablePaidFromQuote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      quote_id: z.string().uuid(),
-      paid_at: z.string().optional(),
-      payment_method: z.string().optional().nullable(),
-    }).parse(d),
+    z
+      .object({
+        quote_id: z.string().uuid(),
+        paid_at: z.string().optional(),
+        payment_method: z.string().optional().nullable(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
@@ -177,7 +187,8 @@ export const listPayableStatusesByPurchase = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ purchase_ids: z.array(z.string().uuid()).max(500) }).parse(d))
   .handler(async ({ data, context }) => {
-    if (!data.purchase_ids.length) return {} as Record<string, { status: string; paid_at: string | null }>;
+    if (!data.purchase_ids.length)
+      return {} as Record<string, { status: string; paid_at: string | null }>;
     const cid = await getCompanyId(context.supabase, context.userId);
     const { data: rows, error } = await context.supabase
       .from("financial_transactions")
@@ -202,10 +213,12 @@ export const listPayableStatusesByPurchase = createServerFn({ method: "POST" })
 export const createPayableFromPurchase = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      purchase_id: z.string().uuid(),
-      due_date: z.string().optional().nullable(),
-    }).parse(d),
+    z
+      .object({
+        purchase_id: z.string().uuid(),
+        due_date: z.string().optional().nullable(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
@@ -254,13 +267,15 @@ export const createPayableFromPurchase = createServerFn({ method: "POST" })
 export const markPurchaseOrderPaid = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      purchase_id: z.string().uuid(),
-      bank_account_id: z.string().uuid(),
-      paid_at: z.string().optional(),
-      payment_method: z.string().trim().max(60).optional(),
-      notes: z.string().trim().max(500).optional(),
-    }).parse(d),
+    z
+      .object({
+        purchase_id: z.string().uuid(),
+        bank_account_id: z.string().uuid(),
+        paid_at: z.string().optional(),
+        payment_method: z.string().trim().max(60).optional(),
+        notes: z.string().trim().max(500).optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.rpc("mark_purchase_order_paid", {
@@ -298,15 +313,26 @@ export type FinSummary = {
 };
 
 function summarize(rows: any[]): FinSummary {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const s: FinSummary = {
-    totalReceivable: 0, totalReceived: 0, totalOverdue: 0,
-    totalPayable: 0, totalPaidOut: 0, lastReceiptAt: null,
+    totalReceivable: 0,
+    totalReceived: 0,
+    totalOverdue: 0,
+    totalPayable: 0,
+    totalPaidOut: 0,
+    lastReceiptAt: null,
     transactions: rows.map((r) => ({
-      id: r.id, type: r.type, description: r.description,
-      amount: Number(r.amount ?? 0), due_date: r.due_date, paid_at: r.paid_at,
-      status: r.status, origin: r.origin,
-      quote_id: r.quote_id, purchase_id: r.purchase_id,
+      id: r.id,
+      type: r.type,
+      description: r.description,
+      amount: Number(r.amount ?? 0),
+      due_date: r.due_date,
+      paid_at: r.paid_at,
+      status: r.status,
+      origin: r.origin,
+      quote_id: r.quote_id,
+      purchase_id: r.purchase_id,
     })),
   };
   for (const r of rows) {
@@ -315,7 +341,8 @@ function summarize(rows: any[]): FinSummary {
     if (r.type === "INCOME") {
       if (r.status === "PAID") {
         s.totalReceived += amt;
-        if (r.paid_at && (!s.lastReceiptAt || r.paid_at > s.lastReceiptAt)) s.lastReceiptAt = r.paid_at;
+        if (r.paid_at && (!s.lastReceiptAt || r.paid_at > s.lastReceiptAt))
+          s.lastReceiptAt = r.paid_at;
       } else if (r.status === "PLANNED") {
         s.totalReceivable += amt;
         if (isOverdue) s.totalOverdue += amt;
@@ -367,7 +394,9 @@ export const getProjectFinancialSummary = createServerFn({ method: "GET" })
     } else {
       q = q.eq("project_id", data.project_id);
     }
-    const { data: rows, error } = await q.order("due_date", { ascending: false, nullsFirst: false }).limit(100);
+    const { data: rows, error } = await q
+      .order("due_date", { ascending: false, nullsFirst: false })
+      .limit(100);
     if (error) throw new Error(error.message);
     return summarize(rows ?? []);
   });
@@ -386,7 +415,10 @@ export const getServiceOrderFinancialSummary = createServerFn({ method: "GET" })
     let projectQuoteId: string | null = null;
     if (so?.project_id) {
       const { data: p } = await context.supabase
-        .from("projects").select("quote_id").eq("id", so.project_id).maybeSingle();
+        .from("projects")
+        .select("quote_id")
+        .eq("id", so.project_id)
+        .maybeSingle();
       projectQuoteId = (p?.quote_id as string | null) ?? null;
     }
     let q = context.supabase
@@ -398,7 +430,9 @@ export const getServiceOrderFinancialSummary = createServerFn({ method: "GET" })
     if (so?.project_id) ors.push(`project_id.eq.${so.project_id}`);
     if (projectQuoteId) ors.push(`quote_id.eq.${projectQuoteId}`);
     q = q.or(ors.join(","));
-    const { data: rows, error } = await q.order("due_date", { ascending: false, nullsFirst: false }).limit(100);
+    const { data: rows, error } = await q
+      .order("due_date", { ascending: false, nullsFirst: false })
+      .limit(100);
     if (error) throw new Error(error.message);
     return summarize(rows ?? []);
   });
@@ -458,7 +492,6 @@ export type ProjectMarginSummary = {
   }>;
 };
 
-
 export const getProjectMarginSummary = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ project_id: z.string().uuid() }).parse(d))
@@ -476,7 +509,7 @@ export const getProjectMarginSummary = createServerFn({ method: "GET" })
 
     // Revenue from quote
     let revenue = { total: 0, received: 0, remaining: 0, financial_status: null as any };
-    let estimatedBreakdown: ProjectMarginSummary["estimatedBreakdown"] = [];
+    const estimatedBreakdown: ProjectMarginSummary["estimatedBreakdown"] = [];
     let estimated = 0;
     let estimatedHasData = false;
 
@@ -501,12 +534,15 @@ export const getProjectMarginSummary = createServerFn({ method: "GET" })
             .is("deleted_at", null);
           paid = (tx ?? []).reduce((a: number, r: any) => a + Number(r.amount || 0), 0);
         }
-        const remaining = q.remaining_amount != null ? Number(q.remaining_amount) : Math.max(0, total - paid);
+        const remaining =
+          q.remaining_amount != null ? Number(q.remaining_amount) : Math.max(0, total - paid);
         revenue = {
           total,
           received: paid,
           remaining,
-          financial_status: (q.financial_status as any) ?? (paid <= 0 ? "UNPAID" : paid >= total ? "PAID" : "PARTIALLY_PAID"),
+          financial_status:
+            (q.financial_status as any) ??
+            (paid <= 0 ? "UNPAID" : paid >= total ? "PAID" : "PARTIALLY_PAID"),
         };
       }
 
@@ -519,10 +555,17 @@ export const getProjectMarginSummary = createServerFn({ method: "GET" })
         const qty = Number(it.quantity || 0);
         const cp = Number(it.cost_price || 0);
         const line = qty * cp;
-        if (cp > 0) { estimatedHasData = true; estimated += line; }
+        if (cp > 0) {
+          estimatedHasData = true;
+          estimated += line;
+        }
         estimatedBreakdown.push({
-          id: it.id, name: it.name, quantity: qty,
-          unit_cost: cp, total_cost: line, has_cost: cp > 0,
+          id: it.id,
+          name: it.name,
+          quantity: qty,
+          unit_cost: cp,
+          total_cost: line,
+          has_cost: cp > 0,
         });
       }
     }
@@ -537,7 +580,9 @@ export const getProjectMarginSummary = createServerFn({ method: "GET" })
     const soList = (sos ?? []) as any[];
     const soIds = soList.map((s) => s.id);
     const soMap: Record<string, any> = {};
-    soList.forEach((s) => { soMap[s.id] = { ...s, estimatedCost: 0, realizedCost: 0, extrasCost: 0, employeesCost: 0 }; });
+    soList.forEach((s) => {
+      soMap[s.id] = { ...s, estimatedCost: 0, realizedCost: 0, extrasCost: 0, employeesCost: 0 };
+    });
 
     // Materials realized: service_order_material_usage x items.cost_price
     let realizedMaterials = 0;
@@ -569,11 +614,13 @@ export const getProjectMarginSummary = createServerFn({ method: "GET" })
         if (usedTotal > 0) {
           realizedMaterials += usedTotal;
           realizedBreakdown.push({
-            id: u.id, kind: "MATERIAL",
+            id: u.id,
+            kind: "MATERIAL",
             description: info?.name ?? "Material",
             service_order_id: u.service_order_id,
             service_order_number: soMap[u.service_order_id]?.service_order_number ?? null,
-            amount: usedTotal, date: u.created_at,
+            amount: usedTotal,
+            date: u.created_at,
           });
         }
         const so = soMap[u.service_order_id];
@@ -601,11 +648,15 @@ export const getProjectMarginSummary = createServerFn({ method: "GET" })
       const amt = Number(e.amount || 0);
       realizedExtras += amt;
       realizedBreakdown.push({
-        id: e.id, kind: "EXPENSE",
+        id: e.id,
+        kind: "EXPENSE",
         description: e.description || "Custo avulso",
         service_order_id: e.service_order_id,
-        service_order_number: e.service_order_id ? (soMap[e.service_order_id]?.service_order_number ?? null) : null,
-        amount: amt, date: e.paid_at,
+        service_order_number: e.service_order_id
+          ? (soMap[e.service_order_id]?.service_order_number ?? null)
+          : null,
+        amount: amt,
+        date: e.paid_at,
       });
       if (e.service_order_id && soMap[e.service_order_id]) {
         soMap[e.service_order_id].extrasCost += amt;
@@ -642,11 +693,15 @@ export const getProjectMarginSummary = createServerFn({ method: "GET" })
       const empName = e.employee?.name ?? "Funcionário";
       const roleLabel = e.role_snapshot ? ` (${e.role_snapshot})` : "";
       realizedBreakdown.push({
-        id: e.id, kind: "EMPLOYEE",
+        id: e.id,
+        kind: "EMPLOYEE",
         description: `${empName}${roleLabel} — ${days} diária(s)`,
         service_order_id: e.service_order_id,
-        service_order_number: e.service_order_id ? (soMap[e.service_order_id]?.service_order_number ?? null) : null,
-        amount: amt, date: e.created_at,
+        service_order_number: e.service_order_id
+          ? (soMap[e.service_order_id]?.service_order_number ?? null)
+          : null,
+        amount: amt,
+        date: e.created_at,
       });
       if (e.service_order_id && soMap[e.service_order_id]) {
         soMap[e.service_order_id].employeesCost += amt;
@@ -656,22 +711,33 @@ export const getProjectMarginSummary = createServerFn({ method: "GET" })
 
     const realized = realizedMaterials + realizedExtras + realizedEmployees;
     const estimatedCost = estimatedHasData ? estimated : null;
-    const profitEstimated = estimatedCost != null && revenue.total > 0 ? revenue.total - estimatedCost : null;
+    const profitEstimated =
+      estimatedCost != null && revenue.total > 0 ? revenue.total - estimatedCost : null;
     const profitRealized = revenue.received > 0 ? revenue.received - realized : null;
-    const marginEstimatedPct = profitEstimated != null && revenue.total > 0 ? (profitEstimated / revenue.total) * 100 : null;
-    const marginRealizedPct = profitRealized != null && revenue.received > 0 ? (profitRealized / revenue.received) * 100 : null;
+    const marginEstimatedPct =
+      profitEstimated != null && revenue.total > 0 ? (profitEstimated / revenue.total) * 100 : null;
+    const marginRealizedPct =
+      profitRealized != null && revenue.received > 0
+        ? (profitRealized / revenue.received) * 100
+        : null;
 
     return {
       hasQuote: !!project.quote_id,
       revenue,
       cost: {
-        estimated: estimatedCost, estimatedHasData,
-        realized, realizedMaterials, realizedExtras, realizedEmployees,
+        estimated: estimatedCost,
+        estimatedHasData,
+        realized,
+        realizedMaterials,
+        realizedExtras,
+        realizedEmployees,
       },
       profit: { estimated: profitEstimated, realized: profitRealized },
       margin: { estimatedPct: marginEstimatedPct, realizedPct: marginRealizedPct },
       estimatedBreakdown,
-      realizedBreakdown: realizedBreakdown.sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "")),
+      realizedBreakdown: realizedBreakdown.sort((a, b) =>
+        (b.date ?? "").localeCompare(a.date ?? ""),
+      ),
       serviceOrders: Object.values(soMap).map((s: any) => ({
         id: s.id,
         service_order_number: s.service_order_number,
@@ -684,4 +750,3 @@ export const getProjectMarginSummary = createServerFn({ method: "GET" })
       })),
     };
   });
-

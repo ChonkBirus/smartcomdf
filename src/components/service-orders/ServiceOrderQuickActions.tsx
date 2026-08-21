@@ -23,7 +23,12 @@ function digits(v?: string | null) {
 }
 
 export function ServiceOrderQuickActions({
-  address, phone, whatsapp, customerName, serviceOrderNumber, companyName,
+  address,
+  phone,
+  whatsapp,
+  customerName,
+  serviceOrderNumber,
+  companyName,
 }: Props) {
   const addrLine = address
     ? [
@@ -31,7 +36,9 @@ export function ServiceOrderQuickActions({
         address.neighborhood,
         [address.city, address.state].filter(Boolean).join("/"),
         address.zip_code,
-      ].filter(Boolean).join(" - ")
+      ]
+        .filter(Boolean)
+        .join(" - ")
     : "";
 
   const mapHref = addrLine
@@ -42,9 +49,7 @@ export function ServiceOrderQuickActions({
   const waMsg =
     `Olá, ${customerName ?? "cliente"}. Sou o técnico responsável pela Ordem de Serviço ` +
     `#${serviceOrderNumber ?? ""} da ${companyName ?? "empresa"}.`;
-  const waHref = waNumber
-    ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsg)}`
-    : null;
+  const waHref = waNumber ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsg)}` : null;
 
   return (
     <div className="grid grid-cols-3 gap-2">
@@ -60,7 +65,10 @@ export function ServiceOrderQuickActions({
             <span className="text-xs">Mapa</span>
           </a>
         ) : (
-          <span><MapPin className="h-5 w-5" /><span className="text-xs">Mapa</span></span>
+          <span>
+            <MapPin className="h-5 w-5" />
+            <span className="text-xs">Mapa</span>
+          </span>
         )}
       </Button>
       <Button
@@ -75,7 +83,10 @@ export function ServiceOrderQuickActions({
             <span className="text-xs">Ligar</span>
           </a>
         ) : (
-          <span><Phone className="h-5 w-5" /><span className="text-xs">Ligar</span></span>
+          <span>
+            <Phone className="h-5 w-5" />
+            <span className="text-xs">Ligar</span>
+          </span>
         )}
       </Button>
       <Button
@@ -90,7 +101,10 @@ export function ServiceOrderQuickActions({
             <span className="text-xs">WhatsApp</span>
           </a>
         ) : (
-          <span><MessageCircle className="h-5 w-5" /><span className="text-xs">WhatsApp</span></span>
+          <span>
+            <MessageCircle className="h-5 w-5" />
+            <span className="text-xs">WhatsApp</span>
+          </span>
         )}
       </Button>
     </div>

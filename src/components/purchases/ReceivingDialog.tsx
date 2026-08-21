@@ -1,20 +1,38 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { getPurchaseOrder, receivePurchaseOrder } from "@/lib/purchases.functions";
 import { listLocations } from "@/lib/stock.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
 
 export function ReceivingDialog({
-  open, onOpenChange, orderId,
-}: { open: boolean; onOpenChange: (o: boolean) => void; orderId: string | null }) {
+  open,
+  onOpenChange,
+  orderId,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  orderId: string | null;
+}) {
   const qc = useQueryClient();
   const fetchOne = useServerFn(getPurchaseOrder);
   const fetchLocs = useServerFn(listLocations);
@@ -43,19 +61,27 @@ export function ReceivingDialog({
     setQtys(initial);
   }, [data]);
 
-  const totalLines = useMemo(() => data?.items.filter((it) => (qtys[it.id] ?? 0) > 0).length ?? 0, [data, qtys]);
+  const totalLines = useMemo(
+    () => data?.items.filter((it) => (qtys[it.id] ?? 0) > 0).length ?? 0,
+    [data, qtys],
+  );
 
   const mutation = useMutation({
-    mutationFn: () => receive({
-      data: {
-        id: orderId!,
-        location_id: locationId,
-        notes,
-        items: (data?.items ?? []).map((it) => ({ poi_id: it.id, quantity: qtys[it.id] ?? 0 })),
-      },
-    }),
+    mutationFn: () =>
+      receive({
+        data: {
+          id: orderId!,
+          location_id: locationId,
+          notes,
+          items: (data?.items ?? []).map((it) => ({ poi_id: it.id, quantity: qtys[it.id] ?? 0 })),
+        },
+      }),
     onSuccess: (res) => {
-      toast.success(res.status === "RECEIVED" ? "Pedido totalmente recebido. Estoque atualizado." : "Recebimento parcial registrado.");
+      toast.success(
+        res.status === "RECEIVED"
+          ? "Pedido totalmente recebido. Estoque atualizado."
+          : "Recebimento parcial registrado.",
+      );
       qc.invalidateQueries({ queryKey: ["purchase_orders"] });
       qc.invalidateQueries({ queryKey: ["po"] });
       qc.invalidateQueries({ queryKey: ["stock_overview"] });
@@ -85,17 +111,27 @@ export function ReceivingDialog({
             <div>
               <Label>Local de estoque *</Label>
               <Select value={locationId} onValueChange={setLocationId}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
                 <SelectContent>
-                  {(locations ?? []).filter((l) => l.active).map((l) => (
-                    <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
-                  ))}
+                  {(locations ?? [])
+                    .filter((l) => l.active)
+                    .map((l) => (
+                      <SelectItem key={l.id} value={l.id}>
+                        {l.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label>Observação</Label>
-              <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="ex: NF 12345" />
+              <Input
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="ex: NF 12345"
+              />
             </div>
           </div>
 
@@ -117,17 +153,27 @@ export function ReceivingDialog({
                     <tr key={it.id} className="border-t">
                       <td className="px-3 py-2">
                         <div className="font-medium">{it.item_name}</div>
-                        {it.item_sku && <div className="text-xs text-muted-foreground">SKU: {it.item_sku}</div>}
+                        {it.item_sku && (
+                          <div className="text-xs text-muted-foreground">SKU: {it.item_sku}</div>
+                        )}
                       </td>
                       <td className="px-3 py-2 text-right">{it.quantity}</td>
                       <td className="px-3 py-2 text-right">{it.received_quantity}</td>
                       <td className="px-3 py-2 text-right font-medium">{remaining}</td>
                       <td className="px-3 py-2 text-right">
                         <Input
-                          type="number" min="0" max={remaining} step="0.001"
+                          type="number"
+                          min="0"
+                          max={remaining}
+                          step="0.001"
                           className="ml-auto w-24 text-right"
                           value={qtys[it.id] ?? 0}
-                          onChange={(e) => setQtys((s) => ({ ...s, [it.id]: Math.min(remaining, Math.max(0, Number(e.target.value))) }))}
+                          onChange={(e) =>
+                            setQtys((s) => ({
+                              ...s,
+                              [it.id]: Math.min(remaining, Math.max(0, Number(e.target.value))),
+                            }))
+                          }
                         />
                       </td>
                     </tr>
@@ -143,7 +189,9 @@ export function ReceivingDialog({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
             <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "Processando..." : "Confirmar recebimento"}
             </Button>

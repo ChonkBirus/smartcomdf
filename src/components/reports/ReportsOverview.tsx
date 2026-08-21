@@ -1,7 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  BarChart3, CheckCircle2, Clock, FileText, Wallet, Users, FolderKanban,
-  Wrench, AlertTriangle, CircleDollarSign, PercentCircle, TrendingUp,
+  BarChart3,
+  CheckCircle2,
+  Clock,
+  FileText,
+  Wallet,
+  Users,
+  FolderKanban,
+  Wrench,
+  AlertTriangle,
+  CircleDollarSign,
+  PercentCircle,
+  TrendingUp,
 } from "lucide-react";
 import { KpiCard } from "@/components/app/KpiCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -66,22 +76,66 @@ export function ReportsOverview({ filters }: { filters: ReportsFiltersValue }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard title="Orçamentos" value={data.cards.quotesTotal} icon={<FileText className="h-5 w-5" />} />
-        <KpiCard title="Aprovados" value={data.cards.quotesApproved} icon={<CheckCircle2 className="h-5 w-5" />} />
-        <KpiCard title="Pendentes" value={data.cards.quotesPending} icon={<Clock className="h-5 w-5" />} />
+        <KpiCard
+          title="Orçamentos"
+          value={data.cards.quotesTotal}
+          icon={<FileText className="h-5 w-5" />}
+        />
+        <KpiCard
+          title="Aprovados"
+          value={data.cards.quotesApproved}
+          icon={<CheckCircle2 className="h-5 w-5" />}
+        />
+        <KpiCard
+          title="Pendentes"
+          value={data.cards.quotesPending}
+          icon={<Clock className="h-5 w-5" />}
+        />
         <KpiCard
           title="Taxa de conversão"
           value={`${data.cards.conversionRate.toFixed(1)}%`}
           icon={<PercentCircle className="h-5 w-5" />}
         />
-        <KpiCard title="Valor orçado" value={brl(data.cards.valueOrcado)} icon={<TrendingUp className="h-5 w-5" />} />
-        <KpiCard title="Valor aprovado" value={brl(data.cards.valueAprovado)} icon={<CircleDollarSign className="h-5 w-5" />} />
-        <KpiCard title="Clientes" value={data.cards.customersTotal} icon={<Users className="h-5 w-5" />} />
-        <KpiCard title="Projetos ativos" value={data.cards.projectsActive} icon={<FolderKanban className="h-5 w-5" />} />
-        <KpiCard title="OS abertas" value={data.cards.osOpen} icon={<Wrench className="h-5 w-5" />} />
-        <KpiCard title="OS concluídas" value={data.cards.osDone} icon={<CheckCircle2 className="h-5 w-5" />} />
-        <KpiCard title="Estoque baixo" value={data.cards.lowStock} icon={<AlertTriangle className="h-5 w-5" />} />
-        <KpiCard title="Pagamentos pendentes" value={data.cards.pendingPayments} icon={<Wallet className="h-5 w-5" />} />
+        <KpiCard
+          title="Valor orçado"
+          value={brl(data.cards.valueOrcado)}
+          icon={<TrendingUp className="h-5 w-5" />}
+        />
+        <KpiCard
+          title="Valor aprovado"
+          value={brl(data.cards.valueAprovado)}
+          icon={<CircleDollarSign className="h-5 w-5" />}
+        />
+        <KpiCard
+          title="Clientes"
+          value={data.cards.customersTotal}
+          icon={<Users className="h-5 w-5" />}
+        />
+        <KpiCard
+          title="Projetos ativos"
+          value={data.cards.projectsActive}
+          icon={<FolderKanban className="h-5 w-5" />}
+        />
+        <KpiCard
+          title="OS abertas"
+          value={data.cards.osOpen}
+          icon={<Wrench className="h-5 w-5" />}
+        />
+        <KpiCard
+          title="OS concluídas"
+          value={data.cards.osDone}
+          icon={<CheckCircle2 className="h-5 w-5" />}
+        />
+        <KpiCard
+          title="Estoque baixo"
+          value={data.cards.lowStock}
+          icon={<AlertTriangle className="h-5 w-5" />}
+        />
+        <KpiCard
+          title="Pagamentos pendentes"
+          value={data.cards.pendingPayments}
+          icon={<Wallet className="h-5 w-5" />}
+        />
       </div>
 
       <Card className="card-elevated">

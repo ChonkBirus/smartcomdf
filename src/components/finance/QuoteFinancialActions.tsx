@@ -5,7 +5,8 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
-  createReceivableFromQuote, getReceivableByQuote,
+  createReceivableFromQuote,
+  getReceivableByQuote,
 } from "@/lib/finance-integrations.functions";
 import { usePermissions } from "@/lib/permissions";
 import { FinancialLinkedBadge } from "./FinancialLinkedBadge";
@@ -45,7 +46,8 @@ export function QuoteFinancialActions({ quoteId, status }: Props) {
   return (
     <div className="rounded-lg border bg-card p-4">
       <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-        <Wallet className="h-4 w-4" />Financeiro
+        <Wallet className="h-4 w-4" />
+        Financeiro
       </div>
 
       {isLoading ? (

@@ -2,14 +2,25 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Calculator, Sparkles, AlertTriangle } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { calculateSuggestedPrice, getCompanyCostSettings, type PricingResult } from "@/lib/pricing.functions";
+import {
+  calculateSuggestedPrice,
+  getCompanyCostSettings,
+  type PricingResult,
+} from "@/lib/pricing.functions";
 import { usePermissions } from "@/lib/permissions";
 
 type Rates = {
@@ -70,7 +81,8 @@ export function ProductPricingSuggestion({
   const missingPermissions = [
     !canViewPricing && { slug: "finance.pricing.view", label: "Visualizar precificação" },
     !canViewCosts && { slug: "finance.view_costs", label: "Visualizar custos" },
-    !canApply && canView && { slug: "finance.apply_suggested_price", label: "Aplicar preço sugerido" },
+    !canApply &&
+      canView && { slug: "finance.apply_suggested_price", label: "Aplicar preço sugerido" },
   ].filter(Boolean) as { slug: string; label: string }[];
 
   const missingMessage = (extra?: string) =>
@@ -189,20 +201,52 @@ export function ProductPricingSuggestion({
               Precificação sugerida por markup
             </DialogTitle>
             <DialogDescription>
-              Custo base: <strong>{BRL(costNumber)}</strong>. Ajuste percentuais e calcule o preço mínimo de venda para
-              cobrir custos, impostos, taxas e a margem desejada.
+              Custo base: <strong>{BRL(costNumber)}</strong>. Ajuste percentuais e calcule o preço
+              mínimo de venda para cobrir custos, impostos, taxas e a margem desejada.
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <PctField label="Impostos (%)" v={rates.tax_rate} onChange={(v) => setRates({ ...rates, tax_rate: v })} />
-            <PctField label="Taxa cartão (%)" v={rates.card_fee_rate} onChange={(v) => setRates({ ...rates, card_fee_rate: v })} />
-            <PctField label="Comissão (%)" v={rates.commission_rate} onChange={(v) => setRates({ ...rates, commission_rate: v })} />
-            <PctField label="Reserva garantia (%)" v={rates.warranty_reserve_rate} onChange={(v) => setRates({ ...rates, warranty_reserve_rate: v })} />
-            <PctField label="Custo operacional (%)" v={rates.operational_cost_rate} onChange={(v) => setRates({ ...rates, operational_cost_rate: v })} />
-            <PctField label="Rateio fixo (%)" v={rates.fixed_cost_allocation_rate} onChange={(v) => setRates({ ...rates, fixed_cost_allocation_rate: v })} />
-            <PctField label="Pró-labore (%)" v={rates.pro_labore_rate} onChange={(v) => setRates({ ...rates, pro_labore_rate: v })} />
-            <PctField label="Margem desejada (%)" v={rates.desired_margin_rate} onChange={(v) => setRates({ ...rates, desired_margin_rate: v })} />
+            <PctField
+              label="Impostos (%)"
+              v={rates.tax_rate}
+              onChange={(v) => setRates({ ...rates, tax_rate: v })}
+            />
+            <PctField
+              label="Taxa cartão (%)"
+              v={rates.card_fee_rate}
+              onChange={(v) => setRates({ ...rates, card_fee_rate: v })}
+            />
+            <PctField
+              label="Comissão (%)"
+              v={rates.commission_rate}
+              onChange={(v) => setRates({ ...rates, commission_rate: v })}
+            />
+            <PctField
+              label="Reserva garantia (%)"
+              v={rates.warranty_reserve_rate}
+              onChange={(v) => setRates({ ...rates, warranty_reserve_rate: v })}
+            />
+            <PctField
+              label="Custo operacional (%)"
+              v={rates.operational_cost_rate}
+              onChange={(v) => setRates({ ...rates, operational_cost_rate: v })}
+            />
+            <PctField
+              label="Rateio fixo (%)"
+              v={rates.fixed_cost_allocation_rate}
+              onChange={(v) => setRates({ ...rates, fixed_cost_allocation_rate: v })}
+            />
+            <PctField
+              label="Pró-labore (%)"
+              v={rates.pro_labore_rate}
+              onChange={(v) => setRates({ ...rates, pro_labore_rate: v })}
+            />
+            <PctField
+              label="Margem desejada (%)"
+              v={rates.desired_margin_rate}
+              onChange={(v) => setRates({ ...rates, desired_margin_rate: v })}
+            />
 
             <div>
               <Label className="text-xs">Custos adicionais (R$)</Label>
@@ -232,12 +276,17 @@ export function ProductPricingSuggestion({
                 <div className="space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Preço sugerido</span>
-                    <span className="text-2xl font-bold text-primary">{BRL(result.suggested_price)}</span>
+                    <span className="text-2xl font-bold text-primary">
+                      {BRL(result.suggested_price)}
+                    </span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <Row label="Custo base" value={BRL(result.cost_base)} />
                     <Row label="Markup" value={`${result.markup_percentage.toFixed(2)}%`} />
-                    <Row label="Deduções (s/ margem)" value={PCT(result.deductions_without_margin_rate)} />
+                    <Row
+                      label="Deduções (s/ margem)"
+                      value={PCT(result.deductions_without_margin_rate)}
+                    />
                     <Row label="Margem estimada" value={PCT(result.estimated_margin_rate)} />
                     <Row label="Lucro estimado" value={BRL(result.estimated_profit)} />
                     <Row label="Multiplicador" value={`${result.markup_multiplier.toFixed(4)}×`} />
@@ -274,7 +323,15 @@ export function ProductPricingSuggestion({
   );
 }
 
-function PctField({ label, v, onChange }: { label: string; v: string; onChange: (v: string) => void }) {
+function PctField({
+  label,
+  v,
+  onChange,
+}: {
+  label: string;
+  v: string;
+  onChange: (v: string) => void;
+}) {
   return (
     <div>
       <Label className="text-xs">{label}</Label>

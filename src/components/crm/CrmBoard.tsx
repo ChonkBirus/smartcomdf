@@ -21,23 +21,46 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  Plus, Flame, Snowflake, Thermometer, Calendar, User2, Search, X, Settings2, Loader2,
+  Plus,
+  Flame,
+  Snowflake,
+  Thermometer,
+  Calendar,
+  User2,
+  Search,
+  X,
+  Settings2,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  getCrmBoard, listCrmTeam, moveOpportunityStage, reorderOpportunitiesInStage,
-  type CrmOpportunity, type CrmStage,
+  getCrmBoard,
+  listCrmTeam,
+  moveOpportunityStage,
+  reorderOpportunitiesInStage,
+  type CrmOpportunity,
+  type CrmStage,
 } from "@/lib/crm.functions";
 import { NewOpportunitySheet } from "./NewOpportunitySheet";
 import { OpportunityDrawer } from "./OpportunityDrawer";
@@ -121,10 +144,16 @@ export function CrmBoard() {
   };
 
   const moveMutation = useMutation({
-    mutationFn: async (v: { id: string; stage_id: string; sort_order?: number; lost_reason?: string }) =>
-      await move({ data: v }),
+    mutationFn: async (v: {
+      id: string;
+      stage_id: string;
+      sort_order?: number;
+      lost_reason?: string;
+    }) => await move({ data: v }),
     onError: (e: any) => rollback(e?.message ?? "Erro ao mover lead."),
-    onSuccess: () => { snapshotRef.current = null; },
+    onSuccess: () => {
+      snapshotRef.current = null;
+    },
     onSettled: () => qc.invalidateQueries({ queryKey: ["crm"] }),
   });
 
@@ -132,7 +161,9 @@ export function CrmBoard() {
     mutationFn: async (v: { stage_id: string; ordered_ids: string[] }) =>
       await reorder({ data: v }),
     onError: (e: any) => rollback(e?.message ?? "Erro ao reordenar."),
-    onSuccess: () => { snapshotRef.current = null; },
+    onSuccess: () => {
+      snapshotRef.current = null;
+    },
     onSettled: () => qc.invalidateQueries({ queryKey: ["crm"] }),
   });
 
@@ -259,7 +290,13 @@ export function CrmBoard() {
           <Button variant="outline" size="sm" onClick={() => setOpenStages(true)}>
             <Settings2 className="mr-1 h-4 w-4" /> Estágios
           </Button>
-          <Button size="sm" onClick={() => { setDefaultStageId(undefined); setOpenNew(true); }}>
+          <Button
+            size="sm"
+            onClick={() => {
+              setDefaultStageId(undefined);
+              setOpenNew(true);
+            }}
+          >
             <Plus className="mr-1 h-4 w-4" /> Novo lead
           </Button>
         </div>
@@ -279,11 +316,15 @@ export function CrmBoard() {
           value={filters.assigned_to || "__all__"}
           onValueChange={(v) => setFilters({ ...filters, assigned_to: v === "__all__" ? "" : v })}
         >
-          <SelectTrigger className="h-9 w-[180px]"><SelectValue placeholder="Responsável" /></SelectTrigger>
+          <SelectTrigger className="h-9 w-[180px]">
+            <SelectValue placeholder="Responsável" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="__all__">Todos os responsáveis</SelectItem>
             {team.map((m: any) => (
-              <SelectItem key={m.id} value={m.id}>{m.full_name ?? m.email}</SelectItem>
+              <SelectItem key={m.id} value={m.id}>
+                {m.full_name ?? m.email}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -291,7 +332,9 @@ export function CrmBoard() {
           value={filters.temperature || "__all__"}
           onValueChange={(v) => setFilters({ ...filters, temperature: v === "__all__" ? "" : v })}
         >
-          <SelectTrigger className="h-9 w-[150px]"><SelectValue placeholder="Temperatura" /></SelectTrigger>
+          <SelectTrigger className="h-9 w-[150px]">
+            <SelectValue placeholder="Temperatura" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="__all__">Todas</SelectItem>
             <SelectItem value="cold">Frio</SelectItem>
@@ -307,43 +350,46 @@ export function CrmBoard() {
       </div>
 
       <div className="relative">
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
-      >
-        <div className="-mx-2 flex snap-x snap-mandatory gap-3 overflow-x-auto px-2 pb-3">
-          {stages.map((stage) => {
-            const ids = localOrders[stage.id] ?? [];
-            const opps = ids.map((id) => oppMap.get(id)).filter(Boolean) as CrmOpportunity[];
-            return (
-              <StageColumn
-                key={stage.id}
-                stage={stage}
-                opportunities={opps}
-                onSelect={setSelectedId}
-                onAdd={() => { setDefaultStageId(stage.id); setOpenNew(true); }}
-              />
-            );
-          })}
-        </div>
-        <DragOverlay>
-          {dragging && (
-            <div className="w-72">
-              <OpportunityCardBody opp={dragging} />
-            </div>
-          )}
-        </DragOverlay>
-      </DndContext>
-      {isPending && (
-        <div className="pointer-events-none absolute inset-0 z-10 flex items-start justify-center pt-4">
-          <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-border bg-background/90 px-3 py-1.5 text-xs shadow-md backdrop-blur">
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-            Salvando alterações…
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+        >
+          <div className="-mx-2 flex snap-x snap-mandatory gap-3 overflow-x-auto px-2 pb-3">
+            {stages.map((stage) => {
+              const ids = localOrders[stage.id] ?? [];
+              const opps = ids.map((id) => oppMap.get(id)).filter(Boolean) as CrmOpportunity[];
+              return (
+                <StageColumn
+                  key={stage.id}
+                  stage={stage}
+                  opportunities={opps}
+                  onSelect={setSelectedId}
+                  onAdd={() => {
+                    setDefaultStageId(stage.id);
+                    setOpenNew(true);
+                  }}
+                />
+              );
+            })}
           </div>
-        </div>
-      )}
+          <DragOverlay>
+            {dragging && (
+              <div className="w-72">
+                <OpportunityCardBody opp={dragging} />
+              </div>
+            )}
+          </DragOverlay>
+        </DndContext>
+        {isPending && (
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-start justify-center pt-4">
+            <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-border bg-background/90 px-3 py-1.5 text-xs shadow-md backdrop-blur">
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+              Salvando alterações…
+            </div>
+          </div>
+        )}
       </div>
 
       <NewOpportunitySheet
@@ -417,8 +463,8 @@ function StageColumn({
   const accent = stage.is_won
     ? "border-t-success"
     : stage.is_lost
-    ? "border-t-destructive"
-    : "border-t-primary";
+      ? "border-t-destructive"
+      : "border-t-primary";
 
   return (
     <div className="w-72 shrink-0 snap-start">
@@ -442,7 +488,10 @@ function StageColumn({
           </Button>
         </div>
 
-        <SortableContext items={opportunities.map((o) => o.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext
+          items={opportunities.map((o) => o.id)}
+          strategy={verticalListSortingStrategy}
+        >
           <div className="space-y-2 min-h-[80px]">
             {opportunities.length === 0 && (
               <div className="rounded-md border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
@@ -460,7 +509,9 @@ function StageColumn({
 }
 
 function SortableOpportunity({ opp, onOpen }: { opp: CrmOpportunity; onOpen: () => void }) {
-  const { attributes, listeners, setNodeRef, isDragging, transform, transition } = useSortable({ id: opp.id });
+  const { attributes, listeners, setNodeRef, isDragging, transform, transition } = useSortable({
+    id: opp.id,
+  });
   const style = { transform: CSS.Transform.toString(transform), transition };
   return (
     <div

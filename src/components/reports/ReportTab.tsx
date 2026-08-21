@@ -4,12 +4,24 @@ import { AlertTriangle, BarChart3, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { EmptyState } from "@/components/app/EmptyState";
 import { KpiCard } from "@/components/app/KpiCard";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { usePermissions } from "@/lib/permissions";
-import { getReport, type ReportColumn, type ReportRow, type ReportType } from "@/lib/reports.functions";
+import {
+  getReport,
+  type ReportColumn,
+  type ReportRow,
+  type ReportType,
+} from "@/lib/reports.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
 import { resolvePeriod, type ReportsFiltersValue } from "./ReportsFilters";
 
@@ -21,7 +33,9 @@ function formatCell(value: ReportRow[string], col: ReportColumn) {
     return <StatusBadge status={String(value)} />;
   }
   if (col.format === "currency") {
-    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value));
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+      Number(value),
+    );
   }
   if (col.format === "number") return new Intl.NumberFormat("pt-BR").format(Number(value));
   if (col.format === "date") {
@@ -77,7 +91,10 @@ export function ReportTab({ type, filters, title }: ReportTabProps) {
   });
 
   const isEmpty = useMemo(
-    () => !q.data || (q.data.rows.length === 0 && q.data.kpis.every((k) => !k.value || k.value === 0 || k.value === "0")),
+    () =>
+      !q.data ||
+      (q.data.rows.length === 0 &&
+        q.data.kpis.every((k) => !k.value || k.value === 0 || k.value === "0")),
     [q.data],
   );
 

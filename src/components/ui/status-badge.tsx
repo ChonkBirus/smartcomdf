@@ -23,23 +23,60 @@ const TONE_CLASS: Record<StatusTone, string> = {
 };
 
 const SUCCESS = new Set([
-  "ACTIVE","APPROVED","COMPLETED","PAID","CONFIRMED","PROCESSED","CONVERTED",
-  "READY","DELIVERED","REACTIVATED","RECEIVED_OK","SUCCESS","ACCEPTED",
+  "ACTIVE",
+  "APPROVED",
+  "COMPLETED",
+  "PAID",
+  "CONFIRMED",
+  "PROCESSED",
+  "CONVERTED",
+  "READY",
+  "DELIVERED",
+  "REACTIVATED",
+  "RECEIVED_OK",
+  "SUCCESS",
+  "ACCEPTED",
 ]);
 const WARNING = new Set([
-  "PENDING","WAITING_PAYMENT","PAST_DUE","IN_PROGRESS","SCHEDULED","PAUSED",
-  "TRIALING","MANUAL_REVIEW","PROCESSING","AWAITING","REVIEW","RETRY",
+  "PENDING",
+  "WAITING_PAYMENT",
+  "PAST_DUE",
+  "IN_PROGRESS",
+  "SCHEDULED",
+  "PAUSED",
+  "TRIALING",
+  "MANUAL_REVIEW",
+  "PROCESSING",
+  "AWAITING",
+  "REVIEW",
+  "RETRY",
 ]);
 const DESTRUCTIVE = new Set([
-  "CANCELED","CANCELLED","EXPIRED","SUSPENDED","FAILED","OVERDUE","REJECTED",
-  "BLOCKED","DELETED","ERROR","REFUSED","REFUNDED","CHARGEBACK",
+  "CANCELED",
+  "CANCELLED",
+  "EXPIRED",
+  "SUSPENDED",
+  "FAILED",
+  "OVERDUE",
+  "REJECTED",
+  "BLOCKED",
+  "DELETED",
+  "ERROR",
+  "REFUSED",
+  "REFUNDED",
+  "CHARGEBACK",
 ]);
 const PRIMARY = new Set([
-  "DRAFT","OPEN","NEW","RECEIVED","SENT","VIEWED","CREATED","STARTED",
+  "DRAFT",
+  "OPEN",
+  "NEW",
+  "RECEIVED",
+  "SENT",
+  "VIEWED",
+  "CREATED",
+  "STARTED",
 ]);
-const NEUTRAL = new Set([
-  "IGNORED","ARCHIVED","INACTIVE","UNKNOWN","CLOSED","NONE",
-]);
+const NEUTRAL = new Set(["IGNORED", "ARCHIVED", "INACTIVE", "UNKNOWN", "CLOSED", "NONE"]);
 
 function toneFor(status: string): StatusTone {
   const key = (status ?? "").toString().toUpperCase().trim();
@@ -66,23 +103,12 @@ export interface StatusBadgeProps {
   className?: string;
 }
 
-export function StatusBadge({
-  status,
-  label,
-  tone,
-  size = "md",
-  className,
-}: StatusBadgeProps) {
+export function StatusBadge({ status, label, tone, size = "md", className }: StatusBadgeProps) {
   const resolvedTone = tone ?? toneFor(status);
   return (
     <Badge
       variant="outline"
-      className={cn(
-        "font-medium border",
-        TONE_CLASS[resolvedTone],
-        SIZE_CLASS[size],
-        className,
-      )}
+      className={cn("font-medium border", TONE_CLASS[resolvedTone], SIZE_CLASS[size], className)}
     >
       {label ?? status}
     </Badge>

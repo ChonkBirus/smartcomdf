@@ -50,8 +50,10 @@ export const listMaterialUsage = createServerFn({ method: "GET" })
     const sb = context.supabase as any;
     const { data: rows, error } = await sb
       .from("service_order_material_usage")
-      .select(`*, item:item_id(name), location:stock_location_id(name),
-               so_item:service_order_item_id(image_url)`)
+      .select(
+        `*, item:item_id(name), location:stock_location_id(name),
+               so_item:service_order_item_id(image_url)`,
+      )
       .eq("service_order_id", data.id)
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
@@ -70,39 +72,45 @@ export const listPlannedStockItems = createServerFn({ method: "GET" })
     const sb = context.supabase as any;
     const { data: rows, error } = await sb
       .from("service_order_items")
-      .select(`id, item_id, name, description, image_url, planned_quantity, unit, item_type,
-               item:item_id(controls_stock, item_type)`)
+      .select(
+        `id, item_id, name, description, image_url, planned_quantity, unit, item_type,
+               item:item_id(controls_stock, item_type)`,
+      )
       .eq("service_order_id", data.id)
       .order("position", { ascending: true });
     if (error) throw new Error(error.message);
-    return (rows ?? [])
-      .map((r: any) => ({
-        id: r.id,
-        item_id: r.item_id,
-        name: r.name,
-        description: r.description,
-        image_url: r.image_url,
-        planned_quantity: Number(r.planned_quantity ?? 0),
-        unit: r.unit ?? "UN",
-        item_type: r.item?.item_type ?? r.item_type ?? "PRODUCT",
-        controls_stock: Boolean(r.item?.controls_stock),
-      }))
-      // Materiais: produto com controle de estoque (sem serviço/mão de obra)
-      .filter((r: PlannedItem) =>
-        r.item_type === "PRODUCT" && r.controls_stock,
-      );
+    return (
+      (rows ?? [])
+        .map((r: any) => ({
+          id: r.id,
+          item_id: r.item_id,
+          name: r.name,
+          description: r.description,
+          image_url: r.image_url,
+          planned_quantity: Number(r.planned_quantity ?? 0),
+          unit: r.unit ?? "UN",
+          item_type: r.item?.item_type ?? r.item_type ?? "PRODUCT",
+          controls_stock: Boolean(r.item?.controls_stock),
+        }))
+        // Materiais: produto com controle de estoque (sem serviço/mão de obra)
+        .filter((r: PlannedItem) => r.item_type === "PRODUCT" && r.controls_stock)
+    );
   });
 
 export const addMaterialUsage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({
-    serviceOrderId: z.string().uuid(),
-    itemId: z.string().uuid(),
-    usedQuantity: z.number().positive(),
-    locationId: z.string().uuid(),
-    serviceOrderItemId: z.string().uuid().optional(),
-    notes: z.string().trim().max(500).optional(),
-  }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({
+        serviceOrderId: z.string().uuid(),
+        itemId: z.string().uuid(),
+        usedQuantity: z.number().positive(),
+        locationId: z.string().uuid(),
+        serviceOrderItemId: z.string().uuid().optional(),
+        notes: z.string().trim().max(500).optional(),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { data: row, error } = await sb.rpc("so_material_add", {
@@ -119,12 +127,16 @@ export const addMaterialUsage = createServerFn({ method: "POST" })
 
 export const updateMaterialUsage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({
-    id: z.string().uuid(),
-    usedQuantity: z.number().positive(),
-    locationId: z.string().uuid().optional(),
-    notes: z.string().trim().max(500).optional(),
-  }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        usedQuantity: z.number().positive(),
+        locationId: z.string().uuid().optional(),
+        notes: z.string().trim().max(500).optional(),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { data: row, error } = await sb.rpc("so_material_update", {
@@ -139,10 +151,14 @@ export const updateMaterialUsage = createServerFn({ method: "POST" })
 
 export const checkStockAvailability = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({
-    itemId: z.string().uuid(),
-    locationId: z.string().uuid(),
-  }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({
+        itemId: z.string().uuid(),
+        locationId: z.string().uuid(),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }): Promise<number> => {
     const sb = context.supabase as any;
     const { data: bal, error } = await sb.rpc("so_check_stock", {
@@ -171,7 +187,8 @@ export const listStockableProducts = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ search: z.string().trim().optional() }).parse(d))
   .handler(async ({ data, context }): Promise<StockableProduct[]> => {
     const sb = context.supabase as any;
-    let q = sb.from("items")
+    let q = sb
+      .from("items")
       .select("id,name,sku,unit")
       .eq("item_type", "PRODUCT")
       .eq("controls_stock", true)

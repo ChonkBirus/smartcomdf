@@ -4,8 +4,13 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { sanitizePostgrestSearch } from "@/lib/postgrest-sanitize";
 
 export type ProjectStatus =
-  | "DRAFT" | "READY_TO_SCHEDULE" | "SCHEDULED" | "IN_PROGRESS"
-  | "PAUSED" | "COMPLETED" | "CANCELLED";
+  | "DRAFT"
+  | "READY_TO_SCHEDULE"
+  | "SCHEDULED"
+  | "IN_PROGRESS"
+  | "PAUSED"
+  | "COMPLETED"
+  | "CANCELLED";
 export type ProjectPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
 
 export type Project = {
@@ -70,10 +75,12 @@ export type ProjectItem = {
 export const convertQuoteToProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      quote_id: z.string().uuid(),
-      responsible_user_id: z.string().uuid().nullable().optional(),
-    }).parse(d),
+    z
+      .object({
+        quote_id: z.string().uuid(),
+        responsible_user_id: z.string().uuid().nullable().optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -90,7 +97,11 @@ export const getProjectByQuote = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ quote_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) return null;
     const { data: row } = await sb
       .from("projects")
@@ -105,22 +116,30 @@ export const getProjectByQuote = createServerFn({ method: "GET" })
 export const listProjects = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      status: z.string().optional(),
-      priority: z.string().optional(),
-      customer_id: z.string().uuid().optional(),
-      search: z.string().optional(),
-      from: z.string().optional(),
-      to: z.string().optional(),
-    }).parse(d ?? {}),
+    z
+      .object({
+        status: z.string().optional(),
+        priority: z.string().optional(),
+        customer_id: z.string().uuid().optional(),
+        search: z.string().optional(),
+        from: z.string().optional(),
+        to: z.string().optional(),
+      })
+      .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     let q = sb
       .from("projects")
-      .select("*, customers:customer_id(name,trade_name,corporate_name), quotes:quote_id(quote_number)")
+      .select(
+        "*, customers:customer_id(name,trade_name,corporate_name), quotes:quote_id(quote_number)",
+      )
       .eq("company_id", prof.company_id)
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
@@ -135,11 +154,18 @@ export const listProjects = createServerFn({ method: "GET" })
     }
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    const respIds = Array.from(new Set((rows ?? []).map((r: any) => r.responsible_user_id).filter(Boolean)));
+    const respIds = Array.from(
+      new Set((rows ?? []).map((r: any) => r.responsible_user_id).filter(Boolean)),
+    );
     const respMap: Record<string, { full_name: string | null; email: string | null }> = {};
     if (respIds.length) {
-      const { data: profs } = await sb.from("profiles").select("id,full_name,email").in("id", respIds);
-      (profs ?? []).forEach((p: any) => { respMap[p.id] = { full_name: p.full_name, email: p.email }; });
+      const { data: profs } = await sb
+        .from("profiles")
+        .select("id,full_name,email")
+        .in("id", respIds);
+      (profs ?? []).forEach((p: any) => {
+        respMap[p.id] = { full_name: p.full_name, email: p.email };
+      });
     }
     return (rows ?? []).map((r: any) => ({
       ...r,
@@ -149,7 +175,8 @@ export const listProjects = createServerFn({ method: "GET" })
       customer_name:
         r.customers?.trade_name || r.customers?.name || r.customers?.corporate_name || "—",
       quote_number: r.quotes?.quote_number ?? null,
-      responsible_name: respMap[r.responsible_user_id]?.full_name ?? respMap[r.responsible_user_id]?.email ?? null,
+      responsible_name:
+        respMap[r.responsible_user_id]?.full_name ?? respMap[r.responsible_user_id]?.email ?? null,
     })) as Project[];
   });
 
@@ -158,17 +185,23 @@ export const getProject = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     const cid = prof.company_id;
     const { data: p, error } = await sb
       .from("projects")
-      .select(`*,
+      .select(
+        `*,
         customers:customer_id(id,name,trade_name,corporate_name,cpf_cnpj,email,phone,whatsapp),
         address:customer_address_id(*),
         contact:customer_contact_id(*),
         quotes:quote_id(id,quote_number,total_amount,paid_amount,remaining_amount,financial_status,accepted_at,accepted_by_name)
-      `)
+      `,
+      )
       .eq("id", data.id)
       .eq("company_id", cid)
       .maybeSingle();
@@ -197,8 +230,8 @@ export const getProject = createServerFn({ method: "GET" })
     const productItemIds = (items ?? [])
       .filter((it: any) => it.item_id && it.item_type === "PRODUCT")
       .map((it: any) => it.item_id);
-    let balances: Record<string, number> = {};
-    let minimums: Record<string, number> = {};
+    const balances: Record<string, number> = {};
+    const minimums: Record<string, number> = {};
     if (productItemIds.length) {
       const { data: bal } = await sb
         .from("stock_balances")
@@ -213,7 +246,9 @@ export const getProject = createServerFn({ method: "GET" })
         .select("id, minimum_stock")
         .eq("company_id", cid)
         .in("id", productItemIds);
-      (itm ?? []).forEach((i: any) => { minimums[i.id] = Number(i.minimum_stock || 0); });
+      (itm ?? []).forEach((i: any) => {
+        minimums[i.id] = Number(i.minimum_stock || 0);
+      });
     }
 
     const enriched = (items ?? []).map((it: any) => {
@@ -278,24 +313,30 @@ export const getProject = createServerFn({ method: "GET" })
         const financial_status: "UNPAID" | "PARTIALLY_PAID" | "PAID" =
           (q?.financial_status as any) ??
           (paid <= 0 ? "UNPAID" : paid >= total ? "PAID" : "PARTIALLY_PAID");
-        return { total_amount: total, paid_amount: paid, remaining_amount: remaining, financial_status };
+        return {
+          total_amount: total,
+          paid_amount: paid,
+          remaining_amount: remaining,
+          financial_status,
+        };
       })(),
     };
-
   });
 
 export const updateProjectBasics = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      id: z.string().uuid(),
-      title: z.string().trim().min(1).max(200).optional(),
-      description: z.string().trim().max(4000).nullable().optional(),
-      priority: z.enum(["LOW", "NORMAL", "HIGH", "URGENT"]).optional(),
-      expected_start_date: z.string().nullable().optional(),
-      expected_end_date: z.string().nullable().optional(),
-      internal_notes: z.string().trim().max(4000).nullable().optional(),
-    }).parse(d),
+    z
+      .object({
+        id: z.string().uuid(),
+        title: z.string().trim().min(1).max(200).optional(),
+        description: z.string().trim().max(4000).nullable().optional(),
+        priority: z.enum(["LOW", "NORMAL", "HIGH", "URGENT"]).optional(),
+        expected_start_date: z.string().nullable().optional(),
+        expected_end_date: z.string().nullable().optional(),
+        internal_notes: z.string().trim().max(4000).nullable().optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -303,7 +344,10 @@ export const updateProjectBasics = createServerFn({ method: "POST" })
     const { error } = await sb.from("projects").update(patch).eq("id", id);
     if (error) throw new Error(error.message);
     await sb.rpc("log_audit", {
-      _module: "projects", _action: "update", _record_id: id, _old_data: null,
+      _module: "projects",
+      _action: "update",
+      _record_id: id,
+      _old_data: null,
       _new_data: patch as any,
     });
     return { ok: true };
@@ -311,7 +355,9 @@ export const updateProjectBasics = createServerFn({ method: "POST" })
 
 export const cancelProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ id: z.string().uuid(), reason: z.string().optional() }).parse(d))
+  .inputValidator((d) =>
+    z.object({ id: z.string().uuid(), reason: z.string().optional() }).parse(d),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { error } = await sb
@@ -320,7 +366,10 @@ export const cancelProject = createServerFn({ method: "POST" })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     await sb.rpc("log_audit", {
-      _module: "projects", _action: "cancel", _record_id: data.id, _old_data: null,
+      _module: "projects",
+      _action: "cancel",
+      _record_id: data.id,
+      _old_data: null,
       _new_data: { reason: data.reason ?? null } as any,
     });
     await sb.rpc("log_activity", { _description: `Projeto cancelado.` });
@@ -398,4 +447,3 @@ export const completeProject = createServerFn({ method: "POST" })
 
     return { ok: true, alreadyCompleted: false, project: updated };
   });
-

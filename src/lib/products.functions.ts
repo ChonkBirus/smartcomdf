@@ -11,7 +11,11 @@ export type CategoryType = "PRODUCT" | "SERVICE" | "BOTH";
 const SIGNED_TTL = 60 * 60;
 
 async function getCompanyId(supabase: any, userId: string): Promise<string> {
-  const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  const { data } = await supabase
+    .from("profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .maybeSingle();
   if (!data?.company_id) throw new Error("Sem empresa vinculada.");
   return data.company_id as string;
 }
@@ -22,7 +26,10 @@ function normalizeDescription(value: unknown): string | null {
   return trimmed.length === 0 ? null : trimmed;
 }
 
-async function signImageUrl(supabase: any, path: string | null | undefined): Promise<string | null> {
+async function signImageUrl(
+  supabase: any,
+  path: string | null | undefined,
+): Promise<string | null> {
   if (!path) return null;
   const { data } = await supabase.storage.from("product-images").createSignedUrl(path, SIGNED_TTL);
   return data?.signedUrl ?? null;
@@ -33,7 +40,14 @@ async function logActivity(supabase: any, description: string) {
     await supabase.rpc("log_activity", { _description: description });
   } catch {}
 }
-async function logAudit(supabase: any, module: string, action: string, recordId?: string, newData?: any, oldData?: any) {
+async function logAudit(
+  supabase: any,
+  module: string,
+  action: string,
+  recordId?: string,
+  newData?: any,
+  oldData?: any,
+) {
   try {
     await supabase.rpc("log_audit", {
       _module: module,
@@ -95,7 +109,11 @@ export const saveCategory = createServerFn({ method: "POST" })
       await logActivity(supabase, `Categoria atualizada: ${row.name}`);
       return row;
     }
-    const { data: row, error } = await supabase.from("categories").insert(payload).select("*").single();
+    const { data: row, error } = await supabase
+      .from("categories")
+      .insert(payload)
+      .select("*")
+      .single();
     if (error) throw new Error(error.message);
     await logAudit(supabase, "categories", "create", row.id, payload);
     await logActivity(supabase, `Categoria criada: ${row.name}`);
@@ -143,9 +161,19 @@ export const saveBrand = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const company_id = await getCompanyId(sb, context.userId);
-    const payload: any = { name: data.name, description: normalizeDescription(data.description), active: data.active, company_id };
+    const payload: any = {
+      name: data.name,
+      description: normalizeDescription(data.description),
+      active: data.active,
+      company_id,
+    };
     if (data.id) {
-      const { data: row, error } = await sb.from("brands").update(payload).eq("id", data.id).select("*").single();
+      const { data: row, error } = await sb
+        .from("brands")
+        .update(payload)
+        .eq("id", data.id)
+        .select("*")
+        .single();
       if (error) throw new Error(error.message);
       await logAudit(sb, "brands", "update", row.id, payload);
       await logActivity(sb, `Marca atualizada: ${row.name}`);
@@ -221,7 +249,11 @@ export const saveManufacturer = createServerFn({ method: "POST" })
       await logActivity(sb, `Fabricante atualizado: ${row.name}`);
       return row;
     }
-    const { data: row, error } = await sb.from("manufacturers").insert(payload).select("*").single();
+    const { data: row, error } = await sb
+      .from("manufacturers")
+      .insert(payload)
+      .select("*")
+      .single();
     if (error) throw new Error(error.message);
     await logAudit(sb, "manufacturers", "create", row.id, payload);
     await logActivity(sb, `Fabricante criado: ${row.name}`);
@@ -233,7 +265,10 @@ export const toggleManufacturerActive = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid(), active: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { error } = await sb.from("manufacturers").update({ active: data.active }).eq("id", data.id);
+    const { error } = await sb
+      .from("manufacturers")
+      .update({ active: data.active })
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
     await logAudit(sb, "manufacturers", data.active ? "activate" : "deactivate", data.id);
     return { ok: true };
@@ -255,7 +290,14 @@ const listItemsSchema = z
     sort: z.enum(["name", "created_at", "sale_price"]).default("name"),
     direction: z.enum(["asc", "desc"]).default("asc"),
   })
-  .default({ item_type: "all", status: "all", page: 1, page_size: 20, sort: "name", direction: "asc" });
+  .default({
+    item_type: "all",
+    status: "all",
+    page: 1,
+    page_size: 20,
+    sort: "name",
+    direction: "asc",
+  });
 
 export const listItems = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -292,7 +334,7 @@ export const listItems = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     const ids = (rows ?? []).map((r: any) => r.id);
-    let primaryByItem: Record<string, { file_path: string; file_name: string }> = {};
+    const primaryByItem: Record<string, { file_path: string; file_name: string }> = {};
     if (ids.length) {
       const { data: imgs } = await sb
         .from("item_images")
@@ -325,7 +367,9 @@ export const getItem = createServerFn({ method: "POST" })
     const company_id = await getCompanyId(sb, context.userId);
     const { data: p, error } = await sb
       .from("items")
-      .select("*, category:categories(id,name), brand:brands(id,name), manufacturer:manufacturers(id,name)")
+      .select(
+        "*, category:categories(id,name), brand:brands(id,name), manufacturer:manufacturers(id,name)",
+      )
       .eq("id", data.id)
       .eq("company_id", company_id)
       .is("deleted_at", null)
@@ -375,7 +419,11 @@ export const saveItem = createServerFn({ method: "POST" })
     // Detect type change for audit
     let oldType: string | null = null;
     if (data.id) {
-      const { data: old } = await sb.from("items").select("item_type").eq("id", data.id).maybeSingle();
+      const { data: old } = await sb
+        .from("items")
+        .select("item_type")
+        .eq("id", data.id)
+        .maybeSingle();
       oldType = old?.item_type ?? null;
     }
 
@@ -398,7 +446,12 @@ export const saveItem = createServerFn({ method: "POST" })
     };
 
     if (data.id) {
-      const { data: row, error } = await sb.from("items").update(payload).eq("id", data.id).select("*").single();
+      const { data: row, error } = await sb
+        .from("items")
+        .update(payload)
+        .eq("id", data.id)
+        .select("*")
+        .single();
       if (error) {
         if (error.code === "23505") throw new Error("Já existe um item com este SKU.");
         throw new Error(error.message);
@@ -406,7 +459,10 @@ export const saveItem = createServerFn({ method: "POST" })
       await logAudit(sb, "items", "update", row.id, payload);
       if (oldType && oldType !== data.item_type) {
         await logAudit(sb, "items", "type_change", row.id, { from: oldType, to: data.item_type });
-        await logActivity(sb, `Item ${row.name}: tipo alterado de ${oldType} para ${data.item_type}`);
+        await logActivity(
+          sb,
+          `Item ${row.name}: tipo alterado de ${oldType} para ${data.item_type}`,
+        );
       } else {
         await logActivity(sb, `Item atualizado: ${row.name}`);
       }
@@ -418,7 +474,10 @@ export const saveItem = createServerFn({ method: "POST" })
       throw new Error(error.message);
     }
     await logAudit(sb, "items", "create", row.id, payload);
-    await logActivity(sb, `${data.item_type === "SERVICE" ? "Serviço" : "Produto"} criado: ${row.name}`);
+    await logActivity(
+      sb,
+      `${data.item_type === "SERVICE" ? "Serviço" : "Produto"} criado: ${row.name}`,
+    );
     return row;
   });
 
@@ -491,8 +550,13 @@ export const registerItemImage = createServerFn({ method: "POST" })
       .select("id, file_path, file_name, is_primary, created_at")
       .single();
     if (error) throw new Error(error.message);
-    const { data: signed } = await sb.storage.from("product-images").createSignedUrl(row.file_path, SIGNED_TTL);
-    await logAudit(sb, "item_images", "create", row.id, { item_id: data.item_id, file_name: data.file_name });
+    const { data: signed } = await sb.storage
+      .from("product-images")
+      .createSignedUrl(row.file_path, SIGNED_TTL);
+    await logAudit(sb, "item_images", "create", row.id, {
+      item_id: data.item_id,
+      file_name: data.file_name,
+    });
     return { ...row, url: signed?.signedUrl ?? null };
   });
 
@@ -511,7 +575,11 @@ export const deleteItemImage = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: img } = await sb.from("item_images").select("file_path").eq("id", data.id).maybeSingle();
+    const { data: img } = await sb
+      .from("item_images")
+      .select("file_path")
+      .eq("id", data.id)
+      .maybeSingle();
     const { error } = await sb.from("item_images").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     if (img?.file_path) {

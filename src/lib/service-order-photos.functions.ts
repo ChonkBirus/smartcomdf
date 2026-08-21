@@ -33,7 +33,7 @@ export const listServiceOrderPhotos = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     const photos = rows ?? [];
     const paths = photos.map((p: any) => p.file_url).filter(Boolean);
-    let signedMap = new Map<string, string>();
+    const signedMap = new Map<string, string>();
     if (paths.length > 0) {
       const { data: signed } = await sb.storage.from(BUCKET).createSignedUrls(paths, SIGNED_TTL);
       (signed ?? []).forEach((s: any) => {
@@ -49,14 +49,18 @@ export const listServiceOrderPhotos = createServerFn({ method: "GET" })
 
 export const registerServiceOrderPhoto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({
-    serviceOrderId: z.string().uuid(),
-    photoType: z.enum(["BEFORE", "DURING", "AFTER", "PROBLEM", "MATERIAL", "OTHER"]),
-    filePath: z.string().min(1),
-    fileName: z.string().min(1),
-    fileSize: z.number().int().nonnegative().optional(),
-    description: z.string().trim().max(500).optional(),
-  }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({
+        serviceOrderId: z.string().uuid(),
+        photoType: z.enum(["BEFORE", "DURING", "AFTER", "PROBLEM", "MATERIAL", "OTHER"]),
+        filePath: z.string().min(1),
+        fileName: z.string().min(1),
+        fileSize: z.number().int().nonnegative().optional(),
+        description: z.string().trim().max(500).optional(),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { assertUploadedObject } = await import("@/lib/storage-validate.server");

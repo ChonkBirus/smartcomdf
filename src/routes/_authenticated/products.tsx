@@ -26,7 +26,13 @@ import { FeatureGate } from "@/components/app/FeatureGate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -179,8 +185,10 @@ function ItemsPage() {
     );
 
   const visibleCategories = (categories as any[]).filter((c) => {
-    if (typeFilter === "PRODUCT") return c.category_type === "PRODUCT" || c.category_type === "BOTH";
-    if (typeFilter === "SERVICE") return c.category_type === "SERVICE" || c.category_type === "BOTH";
+    if (typeFilter === "PRODUCT")
+      return c.category_type === "PRODUCT" || c.category_type === "BOTH";
+    if (typeFilter === "SERVICE")
+      return c.category_type === "SERVICE" || c.category_type === "BOTH";
     return true;
   });
 
@@ -266,7 +274,8 @@ function ItemsPage() {
               />
             </div>
             <FieldHelp>
-              Busca pelo nome do item, código interno (SKU) ou código de barras. Pressione Buscar ou Enter.
+              Busca pelo nome do item, código interno (SKU) ou código de barras. Pressione Buscar ou
+              Enter.
             </FieldHelp>
             <Button type="submit" variant="secondary" size="sm">
               Buscar
@@ -293,7 +302,9 @@ function ItemsPage() {
                 ))}
               </SelectContent>
             </Select>
-            <FieldHelp>Filtra por categoria (agrupamento do item). Cadastre em "Cadastros auxiliares".</FieldHelp>
+            <FieldHelp>
+              Filtra por categoria (agrupamento do item). Cadastre em "Cadastros auxiliares".
+            </FieldHelp>
           </div>
 
           <div className="flex items-center gap-1">
@@ -357,22 +368,45 @@ function ItemsPage() {
                   Nome <SortIcon k="name" />
                 </th>
                 <th className="px-3 py-2 text-left">
-                  <span className="inline-flex items-center gap-1">Tipo <FieldHelp>Produto (item físico com estoque) ou Serviço (mão de obra, não controla estoque).</FieldHelp></span>
+                  <span className="inline-flex items-center gap-1">
+                    Tipo{" "}
+                    <FieldHelp>
+                      Produto (item físico com estoque) ou Serviço (mão de obra, não controla
+                      estoque).
+                    </FieldHelp>
+                  </span>
                 </th>
                 <th className="px-3 py-2 text-left">
-                  <span className="inline-flex items-center gap-1">Categoria <FieldHelp>Agrupamento do item para busca e relatórios.</FieldHelp></span>
+                  <span className="inline-flex items-center gap-1">
+                    Categoria <FieldHelp>Agrupamento do item para busca e relatórios.</FieldHelp>
+                  </span>
                 </th>
                 <th
                   className="cursor-pointer px-3 py-2 text-right hover:text-foreground"
                   onClick={() => handleSort("sale_price")}
                 >
-                  <span className="inline-flex items-center gap-1">Preço <SortIcon k="sale_price" /> <FieldHelp>Preço de venda ao cliente. Clique no cabeçalho para ordenar.</FieldHelp></span>
+                  <span className="inline-flex items-center gap-1">
+                    Preço <SortIcon k="sale_price" />{" "}
+                    <FieldHelp>
+                      Preço de venda ao cliente. Clique no cabeçalho para ordenar.
+                    </FieldHelp>
+                  </span>
                 </th>
                 <th className="px-3 py-2 text-center">
-                  <span className="inline-flex items-center gap-1">Estoque <FieldHelp>"Controlado" significa que o sistema desconta a quantidade ao vender.</FieldHelp></span>
+                  <span className="inline-flex items-center gap-1">
+                    Estoque{" "}
+                    <FieldHelp>
+                      "Controlado" significa que o sistema desconta a quantidade ao vender.
+                    </FieldHelp>
+                  </span>
                 </th>
                 <th className="px-3 py-2 text-center">
-                  <span className="inline-flex items-center gap-1">Status <FieldHelp>Ativo aparece em orçamentos; Inativo fica oculto (histórico preservado).</FieldHelp></span>
+                  <span className="inline-flex items-center gap-1">
+                    Status{" "}
+                    <FieldHelp>
+                      Ativo aparece em orçamentos; Inativo fica oculto (histórico preservado).
+                    </FieldHelp>
+                  </span>
                 </th>
                 <th className="px-3 py-2 text-center">Ações</th>
               </tr>
@@ -401,7 +435,11 @@ function ItemsPage() {
                   <td className="px-3 py-2">
                     <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
                       {p.image_url ? (
-                        <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                        <img
+                          src={p.image_url}
+                          alt={p.name}
+                          className="h-full w-full object-cover"
+                        />
                       ) : p.item_type === "SERVICE" ? (
                         <Wrench className="h-4 w-4 text-muted-foreground" />
                       ) : (
@@ -411,13 +449,17 @@ function ItemsPage() {
                   </td>
                   <td className="px-3 py-2">
                     <div className="font-medium">{p.name}</div>
-                    {p.sku && <div className="font-mono text-micro text-muted-foreground">SKU: {p.sku}</div>}
+                    {p.sku && (
+                      <div className="font-mono text-micro text-muted-foreground">SKU: {p.sku}</div>
+                    )}
                   </td>
                   <td className="px-3 py-2">
                     <ItemBadge type={p.item_type as ItemType} />
                   </td>
                   <td className="px-3 py-2 text-muted-foreground">{p.category?.name ?? "—"}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">R$ {Number(p.sale_price).toFixed(2)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    R$ {Number(p.sale_price).toFixed(2)}
+                  </td>
                   <td className="px-3 py-2 text-center text-xs">
                     {p.controls_stock ? (
                       <Badge variant="secondary">Controlado</Badge>
@@ -426,7 +468,10 @@ function ItemsPage() {
                     )}
                   </td>
                   <td className="px-3 py-2 text-center">
-                    <StatusBadge status={p.active ? "ACTIVE" : "INACTIVE"} label={p.active ? "Ativo" : "Inativo"} />
+                    <StatusBadge
+                      status={p.active ? "ACTIVE" : "INACTIVE"}
+                      label={p.active ? "Ativo" : "Inativo"}
+                    />
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex justify-center gap-1">
@@ -489,7 +534,9 @@ function ItemsPage() {
               </PaginationItem>
               <PaginationItem>
                 <PaginationNext
-                  className={page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  className={
+                    page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"
+                  }
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 />
               </PaginationItem>
@@ -516,8 +563,8 @@ function ItemsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Remover item?</AlertDialogTitle>
             <AlertDialogDescription>
-              O item será desativado e arquivado. Ele não aparecerá mais nas listagens, mas seu histórico será
-              preservado.
+              O item será desativado e arquivado. Ele não aparecerá mais nas listagens, mas seu
+              histórico será preservado.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -45,7 +45,9 @@ export function FinanceAgentChat() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isBusy = status === "submitted" || status === "streaming";
 
-  useEffect(() => { inputRef.current?.focus(); }, [status]);
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [status]);
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, status]);
@@ -104,8 +106,6 @@ export function FinanceAgentChat() {
                     <p className="whitespace-pre-wrap">{text}</p>
                   ) : (
                     <MarkdownRenderer content={text || "…"} />
-
-
                   )}
                 </div>
               </div>
@@ -117,14 +117,15 @@ export function FinanceAgentChat() {
               <Loader2 className="h-3 w-3 animate-spin" /> Analisando seus dados…
             </div>
           )}
-          {error && (
-            <p className="text-xs text-destructive">Erro: {error.message}</p>
-          )}
+          {error && <p className="text-xs text-destructive">Erro: {error.message}</p>}
         </div>
       </ScrollArea>
 
       <form
-        onSubmit={(e) => { e.preventDefault(); submit(text); }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          submit(text);
+        }}
         className="border-t p-3 flex gap-2 items-end"
       >
         <Textarea
@@ -132,7 +133,10 @@ export function FinanceAgentChat() {
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(text); }
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              submit(text);
+            }
           }}
           placeholder="Pergunte sobre saúde financeira, fluxo, inadimplência, margem…"
           rows={2}

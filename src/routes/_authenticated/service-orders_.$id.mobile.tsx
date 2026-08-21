@@ -38,11 +38,21 @@ export const Route = createFileRoute("/_authenticated/service-orders_/$id/mobile
   ),
 });
 
-function Section({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
+function Section({
+  title,
+  children,
+  action,
+}: {
+  title: string;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
   return (
     <Card className="p-4 space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{title}</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          {title}
+        </h3>
         {action}
       </div>
       {children}
@@ -80,8 +90,12 @@ function MobileSODetailPage() {
   if (!data) {
     return (
       <div className="mx-auto max-w-2xl p-6 space-y-3 text-center">
-        <p className="text-sm text-muted-foreground">Ordem de Serviço não encontrada ou sem acesso.</p>
-        <Button variant="outline" onClick={() => navigate({ to: "/service-orders/my" })}>Voltar</Button>
+        <p className="text-sm text-muted-foreground">
+          Ordem de Serviço não encontrada ou sem acesso.
+        </p>
+        <Button variant="outline" onClick={() => navigate({ to: "/service-orders/my" })}>
+          Voltar
+        </Button>
       </div>
     );
   }
@@ -107,10 +121,7 @@ function MobileSODetailPage() {
         </Button>
       </div>
 
-      <PageHeader
-        title={`OS #${so.service_order_number}`}
-        description={so.title}
-      />
+      <PageHeader title={`OS #${so.service_order_number}`} description={so.title} />
 
       <Card className="p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
@@ -130,14 +141,11 @@ function MobileSODetailPage() {
           assignedTechnicianId={so.assigned_technician_id}
         />
         {so.status === "PAUSED" && so.pending_reason && (
-          <p className="text-xs text-warning mt-2">
-            Pausa: {so.pending_reason}
-          </p>
+          <p className="text-xs text-warning mt-2">Pausa: {so.pending_reason}</p>
         )}
       </Section>
 
       <Section title="Cliente">
-
         <div className="space-y-1">
           <div className="font-semibold">{so.customer_name}</div>
           {customer?.cpf_cnpj && (
@@ -163,9 +171,12 @@ function MobileSODetailPage() {
             </div>
             <div className="text-muted-foreground">
               {[address.neighborhood, address.city && `${address.city}/${address.state ?? ""}`]
-                .filter(Boolean).join(" · ")}
+                .filter(Boolean)
+                .join(" · ")}
             </div>
-            {address.zip_code && <div className="text-muted-foreground">CEP {address.zip_code}</div>}
+            {address.zip_code && (
+              <div className="text-muted-foreground">CEP {address.zip_code}</div>
+            )}
             {address.reference && (
               <div className="text-muted-foreground italic">Ref.: {address.reference}</div>
             )}
@@ -186,26 +197,35 @@ function MobileSODetailPage() {
         />
       </Section>
 
-      {(so.customer_instructions || so.access_instructions || so.parking_instructions || so.technical_notes
-        || (canSeeInternal && so.internal_notes)) && (
+      {(so.customer_instructions ||
+        so.access_instructions ||
+        so.parking_instructions ||
+        so.technical_notes ||
+        (canSeeInternal && so.internal_notes)) && (
         <Section title="Instruções">
           <div className="space-y-3 text-sm">
             {so.customer_instructions && (
               <div>
                 <div className="font-semibold">Cliente</div>
-                <p className="whitespace-pre-wrap text-muted-foreground">{so.customer_instructions}</p>
+                <p className="whitespace-pre-wrap text-muted-foreground">
+                  {so.customer_instructions}
+                </p>
               </div>
             )}
             {so.access_instructions && (
               <div>
                 <div className="font-semibold">Acesso</div>
-                <p className="whitespace-pre-wrap text-muted-foreground">{so.access_instructions}</p>
+                <p className="whitespace-pre-wrap text-muted-foreground">
+                  {so.access_instructions}
+                </p>
               </div>
             )}
             {so.parking_instructions && (
               <div>
                 <div className="font-semibold">Estacionamento</div>
-                <p className="whitespace-pre-wrap text-muted-foreground">{so.parking_instructions}</p>
+                <p className="whitespace-pre-wrap text-muted-foreground">
+                  {so.parking_instructions}
+                </p>
               </div>
             )}
             {so.technical_notes && (
@@ -232,18 +252,24 @@ function MobileSODetailPage() {
             {items.map((it) => (
               <li key={it.id} className="flex gap-3 py-2">
                 {it.image_url ? (
-                  <img src={it.image_url} alt={it.name}
-                    className="h-12 w-12 rounded object-cover bg-muted shrink-0" />
+                  <img
+                    src={it.image_url}
+                    alt={it.name}
+                    className="h-12 w-12 rounded object-cover bg-muted shrink-0"
+                  />
                 ) : (
                   <div className="h-12 w-12 rounded bg-muted shrink-0" />
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="font-medium truncate">{it.name}</div>
                   {it.description && (
-                    <div className="text-xs text-muted-foreground line-clamp-2">{it.description}</div>
+                    <div className="text-xs text-muted-foreground line-clamp-2">
+                      {it.description}
+                    </div>
                   )}
                   <div className="text-xs text-muted-foreground mt-0.5">
-                    {it.item_type === "SERVICE" ? "Serviço" : "Produto"} · {it.planned_quantity} {it.unit}
+                    {it.item_type === "SERVICE" ? "Serviço" : "Produto"} · {it.planned_quantity}{" "}
+                    {it.unit}
                   </div>
                 </div>
               </li>
@@ -356,8 +382,6 @@ function MobileSODetailPage() {
       <Section title="Histórico da Execução">
         <ExecutionTimeline serviceOrderId={so.id} />
       </Section>
-
-
 
       <Separator />
       <div className="flex justify-center">

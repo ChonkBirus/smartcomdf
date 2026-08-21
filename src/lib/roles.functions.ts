@@ -17,21 +17,21 @@ export const getRoleMatrix = createServerFn({ method: "GET" })
 export const toggleRolePermission = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      role_id: z.string().uuid(),
-      permission_id: z.string().uuid(),
-      enabled: z.boolean(),
-    }).parse(d),
+    z
+      .object({
+        role_id: z.string().uuid(),
+        permission_id: z.string().uuid(),
+        enabled: z.boolean(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     // role_permissions is a global (cross-tenant) mapping — only super_admin can edit.
-    const { data: rows } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
+    const { data: rows } = await supabase.from("user_roles").select("role").eq("user_id", userId);
     const allowed = (rows ?? []).some((r: any) => r.role === "super_admin");
-    if (!allowed) throw new Error("Apenas super administradores podem editar permissões de papéis.");
+    if (!allowed)
+      throw new Error("Apenas super administradores podem editar permissões de papéis.");
 
     if (data.enabled) {
       const { error } = await supabase

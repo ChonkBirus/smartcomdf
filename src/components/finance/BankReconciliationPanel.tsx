@@ -6,8 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { listBankStatementImports, type BankStatementImport } from "@/lib/bank-statement-import.functions";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  listBankStatementImports,
+  type BankStatementImport,
+} from "@/lib/bank-statement-import.functions";
 import { BankStatementImportDialog } from "./BankStatementImportDialog";
 
 const STATUS_LABEL: Record<BankStatementImport["status"], { label: string; cls: string }> = {
@@ -37,7 +47,8 @@ export function BankReconciliationPanel() {
         <div>
           <div className="text-base font-semibold">Conciliação bancária</div>
           <div className="text-xs text-muted-foreground">
-            Importe o extrato do banco (OFX, CSV ou XLSX) e o SmartPro casa cada lançamento com seus pagamentos.
+            Importe o extrato do banco (OFX, CSV ou XLSX) e o SmartPro casa cada lançamento com seus
+            pagamentos.
           </div>
         </div>
         <Button onClick={() => setOpen(true)}>
@@ -87,9 +98,13 @@ export function BankReconciliationPanel() {
                       <TableCell className="text-sm">{account}</TableCell>
                       <TableCell className="text-right tabular-nums">{imp.total_rows}</TableCell>
                       <TableCell className="text-right tabular-nums">{imp.imported_rows}</TableCell>
-                      <TableCell className="text-right tabular-nums">{imp.duplicate_rows}</TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {imp.duplicate_rows}
+                      </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={st.cls}>{st.label}</Badge>
+                        <Badge variant="outline" className={st.cls}>
+                          {st.label}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
                         {new Date(imp.created_at).toLocaleString("pt-BR")}

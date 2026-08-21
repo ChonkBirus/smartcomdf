@@ -21,7 +21,9 @@ export function SubscriptionBanner({ sub }: { sub: CurrentSubscription | null })
         <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
           <Clock className="h-4 w-4" />
           <span>
-            Você está em período de avaliação. {left === 0 ? "Termina hoje" : `Restam ${left} ${left === 1 ? "dia" : "dias"}`} do seu trial do plano <strong>{sub.plan_name}</strong>.
+            Você está em período de avaliação.{" "}
+            {left === 0 ? "Termina hoje" : `Restam ${left} ${left === 1 ? "dia" : "dias"}`} do seu
+            trial do plano <strong>{sub.plan_name}</strong>.
           </span>
         </div>
         <Button asChild size="sm" variant="default">

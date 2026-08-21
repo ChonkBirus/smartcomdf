@@ -11,13 +11,26 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
   listSubscriptions,
@@ -31,8 +44,15 @@ export const Route = createFileRoute("/_authenticated/admin/subscriptions")({
   component: AdminSubscriptionsPage,
 });
 
-const STATUSES = ["TRIALING","ACTIVE","PAST_DUE","SUSPENDED","CANCELED","EXPIRED","MANUAL_REVIEW"] as const;
-
+const STATUSES = [
+  "TRIALING",
+  "ACTIVE",
+  "PAST_DUE",
+  "SUSPENDED",
+  "CANCELED",
+  "EXPIRED",
+  "MANUAL_REVIEW",
+] as const;
 
 function fmtDate(d: string | null | undefined) {
   return d ? new Date(d).toLocaleDateString("pt-BR") : "—";
@@ -75,18 +95,28 @@ function AdminSubscriptionsPage() {
             placeholder="Buscar empresa..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") setSearch(searchInput); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") setSearch(searchInput);
+            }}
             className="pl-8"
           />
         </div>
         <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">Todos os status</SelectItem>
-            {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            {STATUSES.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
-        <Button variant="outline" onClick={() => setSearch(searchInput)}>Filtrar</Button>
+        <Button variant="outline" onClick={() => setSearch(searchInput)}>
+          Filtrar
+        </Button>
       </div>
 
       <Card className="card-elevated overflow-hidden">
@@ -105,10 +135,18 @@ function AdminSubscriptionsPage() {
           </TableHeader>
           <TableBody>
             {isLoading && (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">Carregando…</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                  Carregando…
+                </TableCell>
+              </TableRow>
             )}
             {!isLoading && (data ?? []).length === 0 && (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">Nenhuma assinatura encontrada.</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                  Nenhuma assinatura encontrada.
+                </TableCell>
+              </TableRow>
             )}
             {(data ?? []).map((s: any) => (
               <TableRow key={s.id}>
@@ -118,15 +156,31 @@ function AdminSubscriptionsPage() {
                   <StatusBadge status={s.status} />
                 </TableCell>
                 <TableCell className="text-xs">{s.billing_cycle ?? "—"}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">{fmtDate(s.trial_ends_at)}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">{fmtDate(s.grace_period_ends_at)}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">{fmtDate(s.next_billing_date)}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">
+                  {fmtDate(s.trial_ends_at)}
+                </TableCell>
+                <TableCell className="text-xs text-muted-foreground">
+                  {fmtDate(s.grace_period_ends_at)}
+                </TableCell>
+                <TableCell className="text-xs text-muted-foreground">
+                  {fmtDate(s.next_billing_date)}
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
-                    <Button size="icon" variant="ghost" title="Histórico" onClick={() => setHistoryOf(s)}>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      title="Histórico"
+                      onClick={() => setHistoryOf(s)}
+                    >
                       <History className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="ghost" title="Gerenciar" onClick={() => setEditing(s)}>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      title="Gerenciar"
+                      onClick={() => setEditing(s)}
+                    >
                       <Pencil className="h-4 w-4" />
                     </Button>
                   </div>
@@ -142,18 +196,29 @@ function AdminSubscriptionsPage() {
           subscription={editing}
           plans={plans ?? []}
           onClose={() => setEditing(null)}
-          onSaved={() => { setEditing(null); reload(); }}
+          onSaved={() => {
+            setEditing(null);
+            reload();
+          }}
         />
       )}
 
-      {historyOf && (
-        <HistoryDialog subscription={historyOf} onClose={() => setHistoryOf(null)} />
-      )}
+      {historyOf && <HistoryDialog subscription={historyOf} onClose={() => setHistoryOf(null)} />}
     </div>
   );
 }
 
-function EditDialog({ subscription, plans, onClose, onSaved }: { subscription: any; plans: any[]; onClose: () => void; onSaved: () => void; }) {
+function EditDialog({
+  subscription,
+  plans,
+  onClose,
+  onSaved,
+}: {
+  subscription: any;
+  plans: any[];
+  onClose: () => void;
+  onSaved: () => void;
+}) {
   const updateFn = useServerFn(updateSubscription);
   const [planId, setPlanId] = useState<string>(subscription.plan_id ?? "");
   const [status, setStatus] = useState<string>(subscription.status ?? "");
@@ -163,16 +228,22 @@ function EditDialog({ subscription, plans, onClose, onSaved }: { subscription: a
   const [description, setDescription] = useState<string>("");
 
   const mutation = useMutation({
-    mutationFn: () => updateFn({ data: {
-      subscription_id: subscription.id,
-      new_plan_id: planId && planId !== subscription.plan_id ? planId : null,
-      new_status: status && status !== subscription.status ? (status as any) : null,
-      new_billing_cycle: cycle && cycle !== subscription.billing_cycle ? (cycle as any) : null,
-      extend_trial_days: trialDays ? Number(trialDays) : null,
-      extend_grace_days: graceDays ? Number(graceDays) : null,
-      description: description || null,
-    } }),
-    onSuccess: () => { toast.success("Assinatura atualizada"); onSaved(); },
+    mutationFn: () =>
+      updateFn({
+        data: {
+          subscription_id: subscription.id,
+          new_plan_id: planId && planId !== subscription.plan_id ? planId : null,
+          new_status: status && status !== subscription.status ? (status as any) : null,
+          new_billing_cycle: cycle && cycle !== subscription.billing_cycle ? (cycle as any) : null,
+          extend_trial_days: trialDays ? Number(trialDays) : null,
+          extend_grace_days: graceDays ? Number(graceDays) : null,
+          description: description || null,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Assinatura atualizada");
+      onSaved();
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao atualizar"),
   });
 
@@ -187,25 +258,39 @@ function EditDialog({ subscription, plans, onClose, onSaved }: { subscription: a
             <div className="space-y-1.5">
               <Label>Plano</Label>
               <Select value={planId} onValueChange={setPlanId}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {plans.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  {plans.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label>Status</Label>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  {STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label>Ciclo</Label>
               <Select value={cycle} onValueChange={setCycle}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="MONTHLY">Mensal</SelectItem>
                   <SelectItem value="YEARLY">Anual</SelectItem>
@@ -214,20 +299,37 @@ function EditDialog({ subscription, plans, onClose, onSaved }: { subscription: a
             </div>
             <div className="space-y-1.5">
               <Label>Estender trial (dias)</Label>
-              <Input type="number" value={trialDays} onChange={(e) => setTrialDays(e.target.value)} placeholder="0" />
+              <Input
+                type="number"
+                value={trialDays}
+                onChange={(e) => setTrialDays(e.target.value)}
+                placeholder="0"
+              />
             </div>
             <div className="space-y-1.5 col-span-2">
               <Label>Estender tolerância (dias)</Label>
-              <Input type="number" value={graceDays} onChange={(e) => setGraceDays(e.target.value)} placeholder="0" />
+              <Input
+                type="number"
+                value={graceDays}
+                onChange={(e) => setGraceDays(e.target.value)}
+                placeholder="0"
+              />
             </div>
           </div>
           <div className="space-y-1.5">
             <Label>Motivo / Observação</Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Registro do ajuste manual..." />
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              placeholder="Registro do ajuste manual..."
+            />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
           <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
             {mutation.isPending ? "Salvando…" : "Salvar"}
           </Button>
@@ -237,7 +339,7 @@ function EditDialog({ subscription, plans, onClose, onSaved }: { subscription: a
   );
 }
 
-function HistoryDialog({ subscription, onClose }: { subscription: any; onClose: () => void; }) {
+function HistoryDialog({ subscription, onClose }: { subscription: any; onClose: () => void }) {
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-3xl">
@@ -248,7 +350,9 @@ function HistoryDialog({ subscription, onClose }: { subscription: any; onClose: 
           <SubscriptionHistoryTimeline subscriptionId={subscription.id} mode="admin" />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Fechar</Button>
+          <Button variant="outline" onClick={onClose}>
+            Fechar
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

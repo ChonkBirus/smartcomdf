@@ -36,7 +36,11 @@ export type BankStatementTransaction = {
 };
 
 async function getCompanyId(supabase: any, userId: string): Promise<string> {
-  const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  const { data } = await supabase
+    .from("profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .maybeSingle();
   const cid = data?.company_id as string | undefined;
   if (!cid) throw new Error("Sem empresa.");
   return cid;
@@ -63,7 +67,9 @@ const CreateImportSchema = z.object({
 async function sha256(text: string): Promise<string> {
   const buf = new TextEncoder().encode(text);
   const digest = await crypto.subtle.digest("SHA-256", buf);
-  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 export const createBankStatementImport = createServerFn({ method: "POST" })
@@ -154,9 +160,7 @@ export const createBankStatementImport = createServerFn({ method: "POST" })
 
 export const confirmBankStatementImport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { import_id: string }) =>
-    z.object({ import_id: z.string().uuid() }).parse(d),
-  )
+  .inputValidator((d: { import_id: string }) => z.object({ import_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
     const { error } = await context.supabase
@@ -170,9 +174,7 @@ export const confirmBankStatementImport = createServerFn({ method: "POST" })
 
 export const cancelBankStatementImport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { import_id: string }) =>
-    z.object({ import_id: z.string().uuid() }).parse(d),
-  )
+  .inputValidator((d: { import_id: string }) => z.object({ import_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
     // Cascade delete via FK
@@ -201,9 +203,7 @@ export const listBankStatementImports = createServerFn({ method: "GET" })
 
 export const listBankStatementTransactions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { import_id: string }) =>
-    z.object({ import_id: z.string().uuid() }).parse(d),
-  )
+  .inputValidator((d: { import_id: string }) => z.object({ import_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const cid = await getCompanyId(context.supabase, context.userId);
     const { data: rows, error } = await context.supabase
@@ -228,9 +228,10 @@ export const listBankAccountsForImport = createServerFn({ method: "GET" })
       .eq("active", true)
       .order("bank_name");
     if (error) throw new Error(error.message);
-    return ((data ?? []) as Array<{ id: string; bank_name: string; account_name: string | null }>).map((a) => ({
+    return (
+      (data ?? []) as Array<{ id: string; bank_name: string; account_name: string | null }>
+    ).map((a) => ({
       id: a.id,
       name: a.account_name ? `${a.bank_name} — ${a.account_name}` : a.bank_name,
     }));
   });
-

@@ -4,7 +4,11 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 // ---------- helpers ----------
 async function getCompanyId(supabase: any, userId: string): Promise<string> {
-  const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  const { data } = await supabase
+    .from("profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .maybeSingle();
   const cid = data?.company_id as string | undefined;
   if (!cid) throw new Error("Sem empresa.");
   return cid;
@@ -17,7 +21,11 @@ async function assertPermission(supabase: any, userId: string, slug: string) {
     .eq("profile_id", userId);
   const roleSlugs = (roles ?? []).map((r: any) => r.roles?.slug).filter(Boolean);
   if (roleSlugs.includes("super_admin") || roleSlugs.includes("owner")) return;
-  const { data: perm } = await supabase.from("permissions").select("id").eq("slug", slug).maybeSingle();
+  const { data: perm } = await supabase
+    .from("permissions")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
   if (!perm?.id) throw new Error("Permissão não configurada.");
   const { data: rp } = await supabase
     .from("role_permissions")
@@ -63,8 +71,13 @@ export const getYearlyPlan = createServerFn({ method: "GET" })
     const to = `${data.year}-12-31`;
 
     const [{ data: plans, error: pe }, { data: tx, error: te }] = await Promise.all([
-      context.supabase.from("finance_monthly_plans").select("*").eq("company_id", cid).eq("year", data.year),
-      context.supabase.from("financial_transactions")
+      context.supabase
+        .from("finance_monthly_plans")
+        .select("*")
+        .eq("company_id", cid)
+        .eq("year", data.year),
+      context.supabase
+        .from("financial_transactions")
         .select("type,amount,paid_at")
         .eq("company_id", cid)
         .eq("status", "PAID")
@@ -85,7 +98,8 @@ export const getYearlyPlan = createServerFn({ method: "GET" })
         revenue_goal: (p as any).revenue_goal != null ? Number((p as any).revenue_goal) : null,
         expense_cap: (p as any).expense_cap != null ? Number((p as any).expense_cap) : null,
         profit_goal: (p as any).profit_goal != null ? Number((p as any).profit_goal) : null,
-        margin_goal_pct: (p as any).margin_goal_pct != null ? Number((p as any).margin_goal_pct) : null,
+        margin_goal_pct:
+          (p as any).margin_goal_pct != null ? Number((p as any).margin_goal_pct) : null,
         cash_min: (p as any).cash_min != null ? Number((p as any).cash_min) : null,
         notes: (p as any).notes ?? null,
       });
@@ -197,23 +211,21 @@ export const copyPreviousMonth = createServerFn({ method: "POST" })
       .maybeSingle();
     if (pe) throw pe;
     if (!prev) return { ok: false, reason: "no_previous" as const };
-    const { error } = await context.supabase
-      .from("finance_monthly_plans")
-      .upsert(
-        {
-          company_id: cid,
-          created_by: context.userId,
-          year: data.year,
-          month: data.month,
-          revenue_goal: prev.revenue_goal,
-          expense_cap: prev.expense_cap,
-          profit_goal: prev.profit_goal,
-          margin_goal_pct: prev.margin_goal_pct,
-          cash_min: prev.cash_min,
-          notes: prev.notes,
-        },
-        { onConflict: "company_id,year,month" },
-      );
+    const { error } = await context.supabase.from("finance_monthly_plans").upsert(
+      {
+        company_id: cid,
+        created_by: context.userId,
+        year: data.year,
+        month: data.month,
+        revenue_goal: prev.revenue_goal,
+        expense_cap: prev.expense_cap,
+        profit_goal: prev.profit_goal,
+        margin_goal_pct: prev.margin_goal_pct,
+        cash_min: prev.cash_min,
+        notes: prev.notes,
+      },
+      { onConflict: "company_id,year,month" },
+    );
     if (error) throw error;
     return { ok: true as const };
   });

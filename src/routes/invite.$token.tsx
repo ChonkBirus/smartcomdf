@@ -10,7 +10,9 @@ import { ShieldCheck } from "lucide-react";
 import { acceptInvitation } from "@/lib/team.functions";
 
 export const Route = createFileRoute("/invite/$token")({
-  head: () => ({ meta: [{ title: "Convite — SmartPro" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [{ title: "Convite — SmartPro" }, { name: "robots", content: "noindex, nofollow" }],
+  }),
   component: InvitePage,
 });
 
@@ -19,7 +21,9 @@ function InvitePage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const accept = useServerFn(acceptInvitation);
-  const [status, setStatus] = useState<"checking" | "needs-auth" | "ready" | "accepting" | "error">("checking");
+  const [status, setStatus] = useState<"checking" | "needs-auth" | "ready" | "accepting" | "error">(
+    "checking",
+  );
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -51,7 +55,9 @@ function InvitePage() {
           <CardTitle>Convite para o SmartPro</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-center">
-          {status === "checking" && <p className="text-sm text-muted-foreground">Verificando convite...</p>}
+          {status === "checking" && (
+            <p className="text-sm text-muted-foreground">Verificando convite...</p>
+          )}
 
           {status === "needs-auth" && (
             <>
@@ -59,7 +65,9 @@ function InvitePage() {
                 Você precisa entrar (ou criar uma conta com o e-mail convidado) antes de aceitar.
               </p>
               <Button asChild className="w-full">
-                <Link to="/auth" search={{ redirect: `/invite/${token}` } as any}>Entrar / Cadastrar</Link>
+                <Link to="/auth" search={{ redirect: `/invite/${token}` } as any}>
+                  Entrar / Cadastrar
+                </Link>
               </Button>
             </>
           )}
@@ -69,7 +77,9 @@ function InvitePage() {
               <p className="text-sm text-muted-foreground">
                 Clique abaixo para aceitar este convite e vincular sua conta à empresa.
               </p>
-              <Button onClick={onAccept} className="w-full">Aceitar convite</Button>
+              <Button onClick={onAccept} className="w-full">
+                Aceitar convite
+              </Button>
             </>
           )}
 
@@ -78,7 +88,9 @@ function InvitePage() {
           {status === "error" && (
             <>
               <p className="text-sm text-destructive">{error}</p>
-              <Button variant="secondary" onClick={() => navigate({ to: "/dashboard" })}>Ir para o painel</Button>
+              <Button variant="secondary" onClick={() => navigate({ to: "/dashboard" })}>
+                Ir para o painel
+              </Button>
             </>
           )}
         </CardContent>

@@ -3,7 +3,17 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  ArrowLeft, Briefcase, FileText, Package, MapPin, User2, XCircle, Save, UserCog, AlertTriangle, CheckCircle2,
+  ArrowLeft,
+  Briefcase,
+  FileText,
+  Package,
+  MapPin,
+  User2,
+  XCircle,
+  Save,
+  UserCog,
+  AlertTriangle,
+  CheckCircle2,
 } from "lucide-react";
 import { updateProjectPlanning } from "@/lib/project-planning.functions";
 import { listTeam } from "@/lib/team.functions";
@@ -16,20 +26,39 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  getProject, updateProjectBasics, cancelProject, completeProject,
-  type ProjectStatus, type ProjectPriority,
+  getProject,
+  updateProjectBasics,
+  cancelProject,
+  completeProject,
+  type ProjectStatus,
+  type ProjectPriority,
 } from "@/lib/projects.functions";
 import { ProjectPlanningPanel } from "@/components/projects/ProjectPlanningPanel";
 import { ProjectFinancialSummary } from "@/components/finance/ProjectFinancialSummary";
@@ -48,21 +77,43 @@ export const Route = createFileRoute("/_authenticated/projects_/$id")({
 });
 
 const STATUS_LABEL: Record<ProjectStatus, string> = {
-  DRAFT: "Rascunho", READY_TO_SCHEDULE: "Pronto para agendar", SCHEDULED: "Agendado",
-  IN_PROGRESS: "Em execução", PAUSED: "Pausado", COMPLETED: "Concluído", CANCELLED: "Cancelado",
+  DRAFT: "Rascunho",
+  READY_TO_SCHEDULE: "Pronto para agendar",
+  SCHEDULED: "Agendado",
+  IN_PROGRESS: "Em execução",
+  PAUSED: "Pausado",
+  COMPLETED: "Concluído",
+  CANCELLED: "Cancelado",
 };
 const STATUS_VARIANT: Record<ProjectStatus, "default" | "secondary" | "destructive" | "outline"> = {
-  DRAFT: "outline", READY_TO_SCHEDULE: "secondary", SCHEDULED: "secondary",
-  IN_PROGRESS: "default", PAUSED: "outline", COMPLETED: "default", CANCELLED: "destructive",
+  DRAFT: "outline",
+  READY_TO_SCHEDULE: "secondary",
+  SCHEDULED: "secondary",
+  IN_PROGRESS: "default",
+  PAUSED: "outline",
+  COMPLETED: "default",
+  CANCELLED: "destructive",
 };
 const PRIORITY_LABEL: Record<ProjectPriority, string> = {
-  LOW: "Baixa", NORMAL: "Normal", HIGH: "Alta", URGENT: "Urgente",
+  LOW: "Baixa",
+  NORMAL: "Normal",
+  HIGH: "Alta",
+  URGENT: "Urgente",
 };
 
 const STOCK_LABEL: Record<string, { label: string; cls: string }> = {
-  AVAILABLE: { label: "Disponível", cls: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300" },
-  LOW: { label: "Estoque baixo", cls: "bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-300" },
-  OUT: { label: "Sem estoque", cls: "bg-rose-100 text-rose-900 dark:bg-rose-950/40 dark:text-rose-300" },
+  AVAILABLE: {
+    label: "Disponível",
+    cls: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300",
+  },
+  LOW: {
+    label: "Estoque baixo",
+    cls: "bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-300",
+  },
+  OUT: {
+    label: "Sem estoque",
+    cls: "bg-rose-100 text-rose-900 dark:bg-rose-950/40 dark:text-rose-300",
+  },
   NA: { label: "—", cls: "text-muted-foreground" },
 };
 
@@ -135,9 +186,10 @@ function ProjectDetailPage() {
     enabled: respOpen,
   });
   const setRespMut = useMutation({
-    mutationFn: () => setResponsibleFn({
-      data: { id, responsible_user_id: respValue || null },
-    }),
+    mutationFn: () =>
+      setResponsibleFn({
+        data: { id, responsible_user_id: respValue || null },
+      }),
     onSuccess: () => {
       toast.success("Responsável atualizado.");
       qc.invalidateQueries({ queryKey: ["project", id] });
@@ -148,11 +200,17 @@ function ProjectDetailPage() {
   });
 
   if (isLoading) return <div className="p-8 text-center text-muted-foreground">Carregando...</div>;
-  if (!data) return <div className="p-8 text-center text-muted-foreground">Projeto não encontrado.</div>;
+  if (!data)
+    return <div className="p-8 text-center text-muted-foreground">Projeto não encontrado.</div>;
 
   const { project, customer, address, contact, quote, items } = data;
   const financial_summary = (data as any).financial_summary as
-    | { total_amount: number; paid_amount: number; remaining_amount: number; financial_status: "UNPAID" | "PARTIALLY_PAID" | "PAID" }
+    | {
+        total_amount: number;
+        paid_amount: number;
+        remaining_amount: number;
+        financial_status: "UNPAID" | "PARTIALLY_PAID" | "PAID";
+      }
     | undefined;
   const hasResponsible = !!project.responsible_user_id;
   const openRespDialog = () => {
@@ -193,24 +251,24 @@ function ProjectDetailPage() {
               )}
               {!editing && project.status !== "CANCELLED" && (
                 <Can module="projects" action="edit">
-                  <Button variant="outline" size="sm" onClick={startEdit}>Editar</Button>
+                  <Button variant="outline" size="sm" onClick={startEdit}>
+                    Editar
+                  </Button>
                 </Can>
               )}
               {project.status !== "CANCELLED" && project.status !== "COMPLETED" && (
                 <Can module="projects" action="edit">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => setCompleteOpen(true)}
-                  >
-                    <CheckCircle2 className="mr-1 h-4 w-4" />Finalizar projeto
+                  <Button variant="default" size="sm" onClick={() => setCompleteOpen(true)}>
+                    <CheckCircle2 className="mr-1 h-4 w-4" />
+                    Finalizar projeto
                   </Button>
                 </Can>
               )}
               {project.status !== "CANCELLED" && project.status !== "COMPLETED" && (
                 <Can module="projects" action="cancel">
                   <Button variant="destructive" size="sm" onClick={() => setCancelOpen(true)}>
-                    <XCircle className="mr-1 h-4 w-4" />Cancelar
+                    <XCircle className="mr-1 h-4 w-4" />
+                    Cancelar
                   </Button>
                 </Can>
               )}
@@ -234,7 +292,8 @@ function ProjectDetailPage() {
               </div>
               <Can module="projects" action="edit">
                 <Button size="sm" variant="outline" onClick={openRespDialog}>
-                  <UserCog className="mr-1 h-4 w-4" />Definir responsável
+                  <UserCog className="mr-1 h-4 w-4" />
+                  Definir responsável
                 </Button>
               </Can>
             </div>
@@ -244,12 +303,15 @@ function ProjectDetailPage() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="mb-1 flex items-center gap-2 text-sm font-medium">
-                  <UserCog className="h-4 w-4" />Responsável pelo projeto
+                  <UserCog className="h-4 w-4" />
+                  Responsável pelo projeto
                 </div>
                 <p className="text-sm">
-                  {hasResponsible
-                    ? (project.responsible_name ?? "—")
-                    : <span className="text-muted-foreground">Sem responsável</span>}
+                  {hasResponsible ? (
+                    (project.responsible_name ?? "—")
+                  ) : (
+                    <span className="text-muted-foreground">Sem responsável</span>
+                  )}
                 </p>
               </div>
               <Can module="projects" action="edit">
@@ -261,231 +323,294 @@ function ProjectDetailPage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-lg border bg-card p-4">
-          <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-            <User2 className="h-4 w-4" />Cliente
-          </div>
-          <div className="text-sm">
-            <p className="font-medium">{project.customer_name}</p>
-            {customer?.cpf_cnpj && <p className="text-muted-foreground">{customer.cpf_cnpj}</p>}
-            {contact?.name && (
-              <p className="mt-2 text-muted-foreground">
-                Contato: {contact.name} {contact.phone ? `· ${contact.phone}` : ""}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="rounded-lg border bg-card p-4">
-          <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-            <MapPin className="h-4 w-4" />Endereço de instalação
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {address ? (
-              <p>
-                {address.street}{address.number ? `, ${address.number}` : ""}
-                {address.neighborhood ? ` — ${address.neighborhood}` : ""}<br />
-                {address.city}{address.state ? `/${address.state}` : ""}
-                {address.zip_code ? ` · ${address.zip_code}` : ""}
-              </p>
-            ) : "Não informado."}
-          </div>
-        </div>
-
-        <div className="rounded-lg border bg-card p-4">
-          <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-            <FileText className="h-4 w-4" />Orçamento de origem
-          </div>
-          <div className="grid grid-cols-2 gap-1 text-sm">
-            <div className="text-muted-foreground">Valor total</div>
-            <div className="text-right font-medium">{fmtBRL(financial_summary?.total_amount ?? project.total_amount)}</div>
-            <div className="text-muted-foreground">Valor recebido</div>
-            <div className="text-right">{fmtBRL(financial_summary?.paid_amount ?? 0)}</div>
-            <div className="text-muted-foreground">Saldo a receber</div>
-            <div className="text-right">{fmtBRL(financial_summary?.remaining_amount ?? project.remaining_amount)}</div>
-            <div className="text-muted-foreground">Status financeiro</div>
-            <div className="text-right">
-              {financial_summary
-                ? (financial_summary.financial_status === "PAID"
-                    ? "Pago"
-                    : financial_summary.financial_status === "PARTIALLY_PAID"
-                    ? "Parcialmente pago"
-                    : "Não pago")
-                : "—"}
-            </div>
-            <div className="text-muted-foreground">Estimativa</div>
-            <div className="text-right">{project.completion_estimate ?? "—"}</div>
-          </div>
-
-          {quote?.id && (
-            <Button asChild variant="link" size="sm" className="mt-2 px-0">
-              <Link to="/quotes">Ver orçamento {quote.quote_number}</Link>
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {editing && (
-        <div className="rounded-lg border bg-card p-4">
-          <div className="mb-3 text-sm font-medium">Editar dados básicos</div>
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="md:col-span-2">
-              <Label>Título</Label>
-              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-            </div>
-            <div className="md:col-span-2">
-              <Label>Descrição</Label>
-              <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-            </div>
-            <div>
-              <Label>Prioridade</Label>
-              <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(PRIORITY_LABEL).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label>Previsão início</Label>
-                <Input type="date" value={form.expected_start_date ?? ""}
-                  onChange={(e) => setForm({ ...form, expected_start_date: e.target.value || null })} />
+            <div className="rounded-lg border bg-card p-4">
+              <div className="mb-2 flex items-center gap-2 text-sm font-medium">
+                <User2 className="h-4 w-4" />
+                Cliente
               </div>
-              <div>
-                <Label>Previsão fim</Label>
-                <Input type="date" value={form.expected_end_date ?? ""}
-                  onChange={(e) => setForm({ ...form, expected_end_date: e.target.value || null })} />
-              </div>
-            </div>
-            <div className="md:col-span-2">
-              <Label>Observações internas</Label>
-              <Textarea value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} />
-            </div>
-          </div>
-          <div className="mt-3 flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setEditing(false)}>Cancelar</Button>
-            <Button onClick={() => updateMut.mutate(form)} disabled={updateMut.isPending}>
-              <Save className="mr-1 h-4 w-4" />Salvar
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <div className="rounded-lg border bg-card">
-        <div className="flex items-center gap-2 border-b p-4 text-sm font-medium">
-          <Package className="h-4 w-4" />Itens do projeto
-        </div>
-        {/* Mobile: cards */}
-        <div className="grid grid-cols-[minmax(0,1fr)] gap-2 p-3 md:hidden">
-          {items.length === 0 ? (
-            <div className="py-6 text-center text-sm text-muted-foreground">Sem itens.</div>
-          ) : items.map((it: any) => {
-            const stock = STOCK_LABEL[it.stock_status] ?? STOCK_LABEL.NA;
-            return (
-              <div key={it.id} className="flex gap-3 overflow-hidden rounded-lg border p-3">
-                {it.image_url ? (
-                  <img src={it.image_url} alt="" className="h-12 w-12 shrink-0 rounded object-cover" />
-                ) : (
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded bg-muted">
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                  </div>
+              <div className="text-sm">
+                <p className="font-medium">{project.customer_name}</p>
+                {customer?.cpf_cnpj && <p className="text-muted-foreground">{customer.cpf_cnpj}</p>}
+                {contact?.name && (
+                  <p className="mt-2 text-muted-foreground">
+                    Contato: {contact.name} {contact.phone ? `· ${contact.phone}` : ""}
+                  </p>
                 )}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="truncate font-medium">{it.name}</div>
-                      {it.description && (
-                        <p className="truncate text-xs text-muted-foreground">{it.description}</p>
-                      )}
-                    </div>
-                    <div className="shrink-0 text-right text-sm">
-                      <div className="font-medium">
-                        {Number(it.quantity).toLocaleString("pt-BR")} {it.unit}
-                      </div>
-                    </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg border bg-card p-4">
+              <div className="mb-2 flex items-center gap-2 text-sm font-medium">
+                <MapPin className="h-4 w-4" />
+                Endereço de instalação
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {address ? (
+                  <p>
+                    {address.street}
+                    {address.number ? `, ${address.number}` : ""}
+                    {address.neighborhood ? ` — ${address.neighborhood}` : ""}
+                    <br />
+                    {address.city}
+                    {address.state ? `/${address.state}` : ""}
+                    {address.zip_code ? ` · ${address.zip_code}` : ""}
+                  </p>
+                ) : (
+                  "Não informado."
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-lg border bg-card p-4">
+              <div className="mb-2 flex items-center gap-2 text-sm font-medium">
+                <FileText className="h-4 w-4" />
+                Orçamento de origem
+              </div>
+              <div className="grid grid-cols-2 gap-1 text-sm">
+                <div className="text-muted-foreground">Valor total</div>
+                <div className="text-right font-medium">
+                  {fmtBRL(financial_summary?.total_amount ?? project.total_amount)}
+                </div>
+                <div className="text-muted-foreground">Valor recebido</div>
+                <div className="text-right">{fmtBRL(financial_summary?.paid_amount ?? 0)}</div>
+                <div className="text-muted-foreground">Saldo a receber</div>
+                <div className="text-right">
+                  {fmtBRL(financial_summary?.remaining_amount ?? project.remaining_amount)}
+                </div>
+                <div className="text-muted-foreground">Status financeiro</div>
+                <div className="text-right">
+                  {financial_summary
+                    ? financial_summary.financial_status === "PAID"
+                      ? "Pago"
+                      : financial_summary.financial_status === "PARTIALLY_PAID"
+                        ? "Parcialmente pago"
+                        : "Não pago"
+                    : "—"}
+                </div>
+                <div className="text-muted-foreground">Estimativa</div>
+                <div className="text-right">{project.completion_estimate ?? "—"}</div>
+              </div>
+
+              {quote?.id && (
+                <Button asChild variant="link" size="sm" className="mt-2 px-0">
+                  <Link to="/quotes">Ver orçamento {quote.quote_number}</Link>
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {editing && (
+            <div className="rounded-lg border bg-card p-4">
+              <div className="mb-3 text-sm font-medium">Editar dados básicos</div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <Label>Título</Label>
+                  <Input
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Label>Descrição</Label>
+                  <Textarea
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Prioridade</Label>
+                  <Select
+                    value={form.priority}
+                    onValueChange={(v) => setForm({ ...form, priority: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(PRIORITY_LABEL).map(([k, v]) => (
+                        <SelectItem key={k} value={k}>
+                          {v}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label>Previsão início</Label>
+                    <Input
+                      type="date"
+                      value={form.expected_start_date ?? ""}
+                      onChange={(e) =>
+                        setForm({ ...form, expected_start_date: e.target.value || null })
+                      }
+                    />
                   </div>
-                  <div className="mt-1 flex flex-wrap items-center gap-2">
-                    <span className={`rounded px-2 py-0.5 text-xs ${stock.cls}`}>{stock.label}</span>
-                    {it.stock_quantity != null && it.stock_status !== "NA" && (
-                      <span className="text-xs text-muted-foreground">
-                        ({Number(it.stock_quantity).toLocaleString("pt-BR")} em estoque)
-                      </span>
-                    )}
+                  <div>
+                    <Label>Previsão fim</Label>
+                    <Input
+                      type="date"
+                      value={form.expected_end_date ?? ""}
+                      onChange={(e) =>
+                        setForm({ ...form, expected_end_date: e.target.value || null })
+                      }
+                    />
                   </div>
                 </div>
+                <div className="md:col-span-2">
+                  <Label>Observações internas</Label>
+                  <Textarea
+                    value={form.internal_notes}
+                    onChange={(e) => setForm({ ...form, internal_notes: e.target.value })}
+                  />
+                </div>
               </div>
-            );
-          })}
-        </div>
+              <div className="mt-3 flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setEditing(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={() => updateMut.mutate(form)} disabled={updateMut.isPending}>
+                  <Save className="mr-1 h-4 w-4" />
+                  Salvar
+                </Button>
+              </div>
+            </div>
+          )}
 
-        {/* Desktop: table */}
-        <div className="hidden overflow-x-auto md:block">
-        <Table className="min-w-[640px]">
-          <TableHeader>
-            <TableRow>
-              <TableHead></TableHead>
-              <TableHead>Item</TableHead>
-              <TableHead>Descrição</TableHead>
-              <TableHead className="text-right">Quantidade</TableHead>
-              <TableHead>Unidade</TableHead>
-              <TableHead>Estoque</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
-                  Sem itens.
-                </TableCell>
-              </TableRow>
-            ) : items.map((it: any) => {
-              const stock = STOCK_LABEL[it.stock_status] ?? STOCK_LABEL.NA;
-              return (
-                <TableRow key={it.id}>
-                  <TableCell>
-                    {it.image_url ? (
-                      <img src={it.image_url} alt="" className="h-10 w-10 rounded object-cover" />
-                    ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded bg-muted">
-                        <Package className="h-4 w-4 text-muted-foreground" />
+          <div className="rounded-lg border bg-card">
+            <div className="flex items-center gap-2 border-b p-4 text-sm font-medium">
+              <Package className="h-4 w-4" />
+              Itens do projeto
+            </div>
+            {/* Mobile: cards */}
+            <div className="grid grid-cols-[minmax(0,1fr)] gap-2 p-3 md:hidden">
+              {items.length === 0 ? (
+                <div className="py-6 text-center text-sm text-muted-foreground">Sem itens.</div>
+              ) : (
+                items.map((it: any) => {
+                  const stock = STOCK_LABEL[it.stock_status] ?? STOCK_LABEL.NA;
+                  return (
+                    <div key={it.id} className="flex gap-3 overflow-hidden rounded-lg border p-3">
+                      {it.image_url ? (
+                        <img
+                          src={it.image_url}
+                          alt=""
+                          className="h-12 w-12 shrink-0 rounded object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded bg-muted">
+                          <Package className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="truncate font-medium">{it.name}</div>
+                            {it.description && (
+                              <p className="truncate text-xs text-muted-foreground">
+                                {it.description}
+                              </p>
+                            )}
+                          </div>
+                          <div className="shrink-0 text-right text-sm">
+                            <div className="font-medium">
+                              {Number(it.quantity).toLocaleString("pt-BR")} {it.unit}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-center gap-2">
+                          <span className={`rounded px-2 py-0.5 text-xs ${stock.cls}`}>
+                            {stock.label}
+                          </span>
+                          {it.stock_quantity != null && it.stock_status !== "NA" && (
+                            <span className="text-xs text-muted-foreground">
+                              ({Number(it.stock_quantity).toLocaleString("pt-BR")} em estoque)
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-medium">{it.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{it.description ?? "—"}</TableCell>
-                  <TableCell className="text-right">{Number(it.quantity).toLocaleString("pt-BR")}</TableCell>
-                  <TableCell>{it.unit}</TableCell>
-                  <TableCell>
-                    <span className={`rounded px-2 py-0.5 text-xs ${stock.cls}`}>{stock.label}</span>
-                    {it.stock_quantity != null && it.stock_status !== "NA" && (
-                      <span className="ml-2 text-xs text-muted-foreground">
-                        ({Number(it.stock_quantity).toLocaleString("pt-BR")} em estoque)
-                      </span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-        </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
 
-      </div>
+            {/* Desktop: table */}
+            <div className="hidden overflow-x-auto md:block">
+              <Table className="min-w-[640px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead></TableHead>
+                    <TableHead>Item</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead className="text-right">Quantidade</TableHead>
+                    <TableHead>Unidade</TableHead>
+                    <TableHead>Estoque</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {items.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                        Sem itens.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    items.map((it: any) => {
+                      const stock = STOCK_LABEL[it.stock_status] ?? STOCK_LABEL.NA;
+                      return (
+                        <TableRow key={it.id}>
+                          <TableCell>
+                            {it.image_url ? (
+                              <img
+                                src={it.image_url}
+                                alt=""
+                                className="h-10 w-10 rounded object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-10 w-10 items-center justify-center rounded bg-muted">
+                                <Package className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="font-medium">{it.name}</TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {it.description ?? "—"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {Number(it.quantity).toLocaleString("pt-BR")}
+                          </TableCell>
+                          <TableCell>{it.unit}</TableCell>
+                          <TableCell>
+                            <span className={`rounded px-2 py-0.5 text-xs ${stock.cls}`}>
+                              {stock.label}
+                            </span>
+                            {it.stock_quantity != null && it.stock_status !== "NA" && (
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                ({Number(it.stock_quantity).toLocaleString("pt-BR")} em estoque)
+                              </span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
 
-      {project.notes && (
-        <div className="rounded-lg border bg-card p-4">
-          <div className="mb-2 text-sm font-medium">Observações</div>
-          <p className="whitespace-pre-wrap text-sm text-muted-foreground">{project.notes}</p>
-        </div>
-      )}
+          {project.notes && (
+            <div className="rounded-lg border bg-card p-4">
+              <div className="mb-2 text-sm font-medium">Observações</div>
+              <p className="whitespace-pre-wrap text-sm text-muted-foreground">{project.notes}</p>
+            </div>
+          )}
 
-      <ProjectMarginSummary projectId={project.id} />
-      <ProjectFinancialSummary projectId={project.id} />
-      <EmployeeCostsPanel scope="project" projectId={project.id} />
-      <ProjectServiceOrdersList projectId={project.id} />
+          <ProjectMarginSummary projectId={project.id} />
+          <ProjectFinancialSummary projectId={project.id} />
+          <EmployeeCostsPanel scope="project" projectId={project.id} />
+          <ProjectServiceOrdersList projectId={project.id} />
         </TabsContent>
 
         <TabsContent value="planning">
@@ -496,20 +621,22 @@ function ProjectDetailPage() {
         </TabsContent>
       </Tabs>
 
-
       <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Cancelar este projeto?</AlertDialogTitle>
             <AlertDialogDescription>
-              O projeto será marcado como cancelado. Esta ação pode ser revertida apenas por
-              edição direta no banco de dados.
+              O projeto será marcado como cancelado. Esta ação pode ser revertida apenas por edição
+              direta no banco de dados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={cancelMut.isPending}>Voltar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={(e) => { e.preventDefault(); cancelMut.mutate(); }}
+              onClick={(e) => {
+                e.preventDefault();
+                cancelMut.mutate();
+              }}
               disabled={cancelMut.isPending}
             >
               Confirmar cancelamento
@@ -525,18 +652,25 @@ function ProjectDetailPage() {
               {hasResponsible ? "Alterar responsável do projeto" : "Definir responsável do projeto"}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              O responsável principal é sugerido como técnico ao gerar Ordens de Serviço.
-              Alterar aqui não altera OS já criadas.
+              O responsável principal é sugerido como técnico ao gerar Ordens de Serviço. Alterar
+              aqui não altera OS já criadas.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-2 py-2">
             <Label>Responsável</Label>
-            <Select value={respValue || "__none__"} onValueChange={(v) => setRespValue(v === "__none__" ? "" : v)}>
-              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <Select
+              value={respValue || "__none__"}
+              onValueChange={(v) => setRespValue(v === "__none__" ? "" : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__none__">Sem responsável</SelectItem>
                 {(team?.members ?? []).map((m: any) => (
-                  <SelectItem key={m.id} value={m.id}>{m.full_name || m.email}</SelectItem>
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.full_name || m.email}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -544,7 +678,10 @@ function ProjectDetailPage() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={setRespMut.isPending}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={(e) => { e.preventDefault(); setRespMut.mutate(); }}
+              onClick={(e) => {
+                e.preventDefault();
+                setRespMut.mutate();
+              }}
               disabled={setRespMut.isPending}
             >
               {setRespMut.isPending ? "Salvando..." : "Salvar"}
@@ -558,13 +695,17 @@ function ProjectDetailPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Tem certeza que deseja finalizar este projeto?</AlertDialogTitle>
             <AlertDialogDescription>
-              Após a finalização, novas ordens de serviço não poderão ser criadas sem reabrir o projeto.
+              Após a finalização, novas ordens de serviço não poderão ser criadas sem reabrir o
+              projeto.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={completeMut.isPending}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={(e) => { e.preventDefault(); if (!completeMut.isPending) completeMut.mutate(); }}
+              onClick={(e) => {
+                e.preventDefault();
+                if (!completeMut.isPending) completeMut.mutate();
+              }}
               disabled={completeMut.isPending}
             >
               {completeMut.isPending ? "Finalizando..." : "Finalizar projeto"}

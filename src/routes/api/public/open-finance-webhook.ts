@@ -14,9 +14,7 @@ export const Route = createFileRoute("/api/public/open-finance-webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { getOpenFinanceProvider } = await import(
-          "@/lib/open-finance/provider"
-        );
+        const { getOpenFinanceProvider } = await import("@/lib/open-finance/provider");
         const provider = getOpenFinanceProvider();
         if (!provider.status().configured) {
           // Don't reveal config state to a public caller.
@@ -41,9 +39,7 @@ export const Route = createFileRoute("/api/public/open-finance-webhook")({
         const providerConnectionId: string | null =
           payload?.itemId ?? payload?.item_id ?? payload?.connection_id ?? null;
 
-        const { supabaseAdmin } = await import(
-          "@/integrations/supabase/client.server"
-        );
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         // Idempotency check
         if (eventId) {
@@ -74,17 +70,15 @@ export const Route = createFileRoute("/api/public/open-finance-webhook")({
           }
         }
 
-        const { error: logErr } = await supabaseAdmin
-          .from("openfinance_webhook_events")
-          .insert({
-            provider: provider.name,
-            event_id: eventId,
-            event_type: eventType,
-            connection_id: connectionId,
-            company_id: companyId,
-            payload,
-            status: "RECEIVED",
-          });
+        const { error: logErr } = await supabaseAdmin.from("openfinance_webhook_events").insert({
+          provider: provider.name,
+          event_id: eventId,
+          event_type: eventType,
+          connection_id: connectionId,
+          company_id: companyId,
+          payload,
+          status: "RECEIVED",
+        });
         if (logErr) {
           console.error("[open-finance webhook] log insert failed", logErr.message);
           return new Response("Server error", { status: 500 });

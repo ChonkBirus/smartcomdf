@@ -17,14 +17,18 @@ type Props = {
 };
 
 export function FinancialSummaryCard({
-  summary, title = "Resumo financeiro",
-  loading = false, showCosts = true, emptyHint,
+  summary,
+  title = "Resumo financeiro",
+  loading = false,
+  showCosts = true,
+  emptyHint,
 }: Props) {
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <Wallet className="h-4 w-4" />{title}
+          <Wallet className="h-4 w-4" />
+          {title}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -39,7 +43,11 @@ export function FinancialSummaryCard({
             <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
               <Kpi label="A receber" value={fmtBRL(summary.totalReceivable)} />
               <Kpi label="Recebido" value={fmtBRL(summary.totalReceived)} tone="ok" />
-              <Kpi label="Vencido" value={fmtBRL(summary.totalOverdue)} tone={summary.totalOverdue > 0 ? "bad" : "muted"} />
+              <Kpi
+                label="Vencido"
+                value={fmtBRL(summary.totalOverdue)}
+                tone={summary.totalOverdue > 0 ? "bad" : "muted"}
+              />
               {showCosts && <Kpi label="A pagar" value={fmtBRL(summary.totalPayable)} />}
             </div>
 
@@ -50,7 +58,9 @@ export function FinancialSummaryCard({
                     <p className="truncate font-medium">{t.description}</p>
                     <p className="text-xs text-muted-foreground">
                       {t.type === "INCOME" ? "Entrada" : "Saída"} ·{" "}
-                      {t.due_date ? new Date(t.due_date).toLocaleDateString("pt-BR") : "Sem vencimento"}
+                      {t.due_date
+                        ? new Date(t.due_date).toLocaleDateString("pt-BR")
+                        : "Sem vencimento"}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 whitespace-nowrap">
@@ -76,10 +86,17 @@ export function FinancialSummaryCard({
   );
 }
 
-function Kpi({ label, value, tone = "muted" }: { label: string; value: string; tone?: "ok" | "bad" | "muted" }) {
+function Kpi({
+  label,
+  value,
+  tone = "muted",
+}: {
+  label: string;
+  value: string;
+  tone?: "ok" | "bad" | "muted";
+}) {
   const color =
-    tone === "ok" ? "text-emerald-600" :
-    tone === "bad" ? "text-rose-600" : "text-foreground";
+    tone === "ok" ? "text-emerald-600" : tone === "bad" ? "text-rose-600" : "text-foreground";
   return (
     <div className="rounded-md border bg-background p-2">
       <p className="text-xs text-muted-foreground">{label}</p>

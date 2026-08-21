@@ -8,14 +8,24 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  listServiceOrderPhotos, registerServiceOrderPhoto, deleteServiceOrderPhoto,
+  listServiceOrderPhotos,
+  registerServiceOrderPhoto,
+  deleteServiceOrderPhoto,
   type ServiceOrderPhoto,
 } from "@/lib/service-order-photos.functions";
 
@@ -66,7 +76,10 @@ export function ServiceOrderPhotos({
 
   const removeMutation = useMutation({
     mutationFn: (photoId: string) => deleteFn({ data: { photoId } }),
-    onSuccess: () => { invalidate(); toast.success("Foto removida."); },
+    onSuccess: () => {
+      invalidate();
+      toast.success("Foto removida.");
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao remover foto"),
   });
 
@@ -100,15 +113,21 @@ export function ServiceOrderPhotos({
               onClick={() => setPreviewPhoto(p)}
             >
               {p.signed_url ? (
-                <img src={p.signed_url} alt={p.file_name}
-                  className="h-full w-full object-cover" loading="lazy" />
+                <img
+                  src={p.signed_url}
+                  alt={p.file_name}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
                   Sem prévia
                 </div>
               )}
               <div className="absolute top-1 left-1">
-                <Badge variant="secondary" className="text-nano">{TYPE_LABEL[p.photo_type]}</Badge>
+                <Badge variant="secondary" className="text-nano">
+                  {TYPE_LABEL[p.photo_type]}
+                </Badge>
               </div>
             </button>
           ))}
@@ -121,8 +140,11 @@ export function ServiceOrderPhotos({
             <DialogTitle>{previewPhoto ? TYPE_LABEL[previewPhoto.photo_type] : ""}</DialogTitle>
           </DialogHeader>
           {previewPhoto?.signed_url && (
-            <img src={previewPhoto.signed_url} alt={previewPhoto.file_name}
-              className="w-full max-h-[70vh] object-contain rounded-md bg-foreground" />
+            <img
+              src={previewPhoto.signed_url}
+              alt={previewPhoto.file_name}
+              className="w-full max-h-[70vh] object-contain rounded-md bg-foreground"
+            />
           )}
           {previewPhoto?.description && (
             <p className="text-sm text-muted-foreground">{previewPhoto.description}</p>
@@ -226,17 +248,26 @@ function UploadControls({
         <div>
           <Label className="text-xs">Tipo da foto</Label>
           <Select value={photoType} onValueChange={(v) => setPhotoType(v as any)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {(Object.keys(TYPE_LABEL) as Array<keyof typeof TYPE_LABEL>).map((k) => (
-                <SelectItem key={k} value={k}>{TYPE_LABEL[k]}</SelectItem>
+                <SelectItem key={k} value={k}>
+                  {TYPE_LABEL[k]}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div>
           <Label className="text-xs">Descrição (opcional)</Label>
-          <Textarea rows={1} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} />
+          <Textarea
+            rows={1}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            maxLength={500}
+          />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2">
@@ -262,7 +293,11 @@ function UploadControls({
           disabled={uploading}
           onClick={() => cameraRef.current?.click()}
         >
-          {uploading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Camera className="h-5 w-5 mr-2" />}
+          {uploading ? (
+            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+          ) : (
+            <Camera className="h-5 w-5 mr-2" />
+          )}
           Câmera
         </Button>
         <Button

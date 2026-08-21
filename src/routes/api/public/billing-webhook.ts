@@ -45,8 +45,7 @@ export const Route = createFileRoute("/api/public/billing-webhook")({
         const eventId: string | null = payload?.id ?? null;
         const payment = payload?.payment ?? null;
         const subscription = payload?.subscription ?? null;
-        const providerObjectId: string | null =
-          payment?.id ?? subscription?.id ?? null;
+        const providerObjectId: string | null = payment?.id ?? subscription?.id ?? null;
 
         console.log("[ASAAS WEBHOOK] event received", {
           eventType,
@@ -55,9 +54,7 @@ export const Route = createFileRoute("/api/public/billing-webhook")({
           subscriptionId: subscription?.id ?? null,
         });
 
-        const { supabaseAdmin } = await import(
-          "@/integrations/supabase/client.server"
-        );
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         // Idempotency: by event id when available
         if (eventId) {
@@ -92,33 +89,22 @@ export const Route = createFileRoute("/api/public/billing-webhook")({
 
         try {
           if (payment?.id) {
-            const { applyChargeStatus } = await import(
-              "@/lib/billing-webhook.server"
-            );
+            const { applyChargeStatus } = await import("@/lib/billing-webhook.server");
             await applyChargeStatus(supabaseAdmin, {
               providerChargeId: payment.id,
               status: payment.status,
               paidAt:
-                payment.paymentDate ??
-                payment.clientPaymentDate ??
-                payment.confirmedDate ??
-                null,
+                payment.paymentDate ?? payment.clientPaymentDate ?? payment.confirmedDate ?? null,
               raw: payment,
             });
-          } else if (
-            subscription?.id &&
-            eventType.startsWith("SUBSCRIPTION_")
-          ) {
-            const { applySubscriptionEvent } = await import(
-              "@/lib/billing-webhook.server"
-            );
+          } else if (subscription?.id && eventType.startsWith("SUBSCRIPTION_")) {
+            const { applySubscriptionEvent } = await import("@/lib/billing-webhook.server");
             await applySubscriptionEvent(supabaseAdmin, {
               providerSubscriptionId: subscription.id,
               eventType,
               raw: subscription,
             });
           }
-
 
           await supabaseAdmin
             .from("billing_webhook_events")

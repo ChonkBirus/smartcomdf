@@ -2,7 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  ChevronsDownUp,
+  ChevronsUpDown,
+  Pencil,
+  Plus,
+  RotateCcw,
+  Search,
+  Trash2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,13 +22,29 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 import {
@@ -79,11 +105,15 @@ function buildTree(rows: FinancialCategory[]): TreeNode[] {
   });
   const sort = (a: TreeNode, b: TreeNode) => {
     if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
-    const ac = a.code ?? ""; const bc = b.code ?? "";
+    const ac = a.code ?? "";
+    const bc = b.code ?? "";
     if (ac !== bc) return ac.localeCompare(bc);
     return a.name.localeCompare(b.name);
   };
-  const walk = (list: TreeNode[]) => { list.sort(sort); list.forEach((n) => walk(n.children)); };
+  const walk = (list: TreeNode[]) => {
+    list.sort(sort);
+    list.forEach((n) => walk(n.children));
+  };
   walk(roots);
   return roots;
 }
@@ -95,7 +125,11 @@ type FormMode =
   | { mode: "edit"; category: FinancialCategory };
 
 function CategoryFormDialog({
-  open, onOpenChange, mode, siblings, onSaved,
+  open,
+  onOpenChange,
+  mode,
+  siblings,
+  onSaved,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -125,7 +159,9 @@ function CategoryFormDialog({
   }, [mode, siblings]);
 
   const [form, setForm] = useState(initial);
-  useEffect(() => { setForm(initial); }, [initial]);
+  useEffect(() => {
+    setForm(initial);
+  }, [initial]);
 
   const save = useMutation({
     mutationFn: async () => {
@@ -194,14 +230,22 @@ function CategoryFormDialog({
             </div>
             <div className="col-span-2">
               <Label>Nome</Label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <Input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Tipo financeiro</Label>
-              <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as FinTxType })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={form.type}
+                onValueChange={(v) => setForm({ ...form, type: v as FinTxType })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="INCOME">Entrada</SelectItem>
                   <SelectItem value="EXPENSE">Saída</SelectItem>
@@ -216,13 +260,20 @@ function CategoryFormDialog({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
+            <Switch
+              checked={form.active}
+              onCheckedChange={(v) => setForm({ ...form, active: v })}
+            />
             <Label className="cursor-pointer">Ativa</Label>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={save.isPending}>Cancelar</Button>
-          <Button onClick={() => save.mutate()} disabled={save.isPending}>Salvar</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={save.isPending}>
+            Cancelar
+          </Button>
+          <Button onClick={() => save.mutate()} disabled={save.isPending}>
+            Salvar
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -232,7 +283,15 @@ function CategoryFormDialog({
 // -------- Tree row --------
 
 function TreeRow({
-  node, depth, expanded, onToggle, onAddChild, onEdit, onToggleActive, onDelete, canManage,
+  node,
+  depth,
+  expanded,
+  onToggle,
+  onAddChild,
+  onEdit,
+  onToggleActive,
+  onDelete,
+  canManage,
 }: {
   node: TreeNode;
   depth: number;
@@ -264,17 +323,27 @@ function TreeRow({
           disabled={!hasChildren}
           aria-label={isOpen ? "Recolher" : "Expandir"}
         >
-          {hasChildren
-            ? (isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />)
-            : <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />}
+          {hasChildren ? (
+            isOpen ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )
+          ) : (
+            <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
+          )}
         </button>
         <div className="flex min-w-0 flex-1 items-center gap-2">
           {node.code && (
             <span className="shrink-0 font-mono text-xs text-muted-foreground">{node.code}</span>
           )}
-          <span className={cn("truncate text-sm", !node.active && "line-through")}>{node.name}</span>
+          <span className={cn("truncate text-sm", !node.active && "line-through")}>
+            {node.name}
+          </span>
           {node.is_default && (
-            <Badge variant="outline" className="ml-1 shrink-0 text-[10px]">padrão</Badge>
+            <Badge variant="outline" className="ml-1 shrink-0 text-[10px]">
+              padrão
+            </Badge>
           )}
           {node.category_group && (
             <Badge variant="secondary" className="ml-1 shrink-0 text-[10px]">
@@ -282,17 +351,31 @@ function TreeRow({
             </Badge>
           )}
           {!node.active && (
-            <Badge variant="outline" className="ml-1 shrink-0 text-[10px]">inativa</Badge>
+            <Badge variant="outline" className="ml-1 shrink-0 text-[10px]">
+              inativa
+            </Badge>
           )}
         </div>
         <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
           {canAddChild && (
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onAddChild(node)} title="Nova subcategoria">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7"
+              onClick={() => onAddChild(node)}
+              title="Nova subcategoria"
+            >
               <Plus className="h-4 w-4" />
             </Button>
           )}
           {canManage && (
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onEdit(node)} title="Editar">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7"
+              onClick={() => onEdit(node)}
+              title="Editar"
+            >
               <Pencil className="h-4 w-4" />
             </Button>
           )}
@@ -308,26 +391,33 @@ function TreeRow({
             </Button>
           )}
           {canManage && !node.is_default && (
-            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => onDelete(node)} title="Excluir">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 text-destructive"
+              onClick={() => onDelete(node)}
+              title="Excluir"
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
           )}
         </div>
       </div>
-      {isOpen && node.children.map((c) => (
-        <TreeRow
-          key={c.id}
-          node={c}
-          depth={depth + 1}
-          expanded={expanded}
-          onToggle={onToggle}
-          onAddChild={onAddChild}
-          onEdit={onEdit}
-          onToggleActive={onToggleActive}
-          onDelete={onDelete}
-          canManage={canManage}
-        />
-      ))}
+      {isOpen &&
+        node.children.map((c) => (
+          <TreeRow
+            key={c.id}
+            node={c}
+            depth={depth + 1}
+            expanded={expanded}
+            onToggle={onToggle}
+            onAddChild={onAddChild}
+            onEdit={onEdit}
+            onToggleActive={onToggleActive}
+            onDelete={onDelete}
+            canManage={canManage}
+          />
+        ))}
     </>
   );
 }
@@ -417,7 +507,11 @@ export function ChartOfAccountsPage({ canManage = true }: { canManage?: boolean 
   }, [search, filtered, levelView]);
 
   const onToggle = (id: string) =>
-    setExpanded((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+    setExpanded((prev) => {
+      const n = new Set(prev);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
 
   const openCreateRoot = () => {
     setFormMode({ mode: "create", parent: null, type: "EXPENSE" });
@@ -434,7 +528,10 @@ export function ChartOfAccountsPage({ canManage = true }: { canManage?: boolean 
 
   const toggleActive = useMutation({
     mutationFn: (n: FinancialCategory) => deactivateFn({ data: { id: n.id, active: !n.active } }),
-    onSuccess: (_r, n) => { toast.success(n.active ? "Categoria inativada." : "Categoria reativada."); invalidate(); },
+    onSuccess: (_r, n) => {
+      toast.success(n.active ? "Categoria inativada." : "Categoria reativada.");
+      invalidate();
+    },
     onError: (e: any) => toast.error(e?.message ?? "Erro."),
   });
 
@@ -447,27 +544,38 @@ export function ChartOfAccountsPage({ canManage = true }: { canManage?: boolean 
       } else {
         // Fallback: deactivate.
         const reason = (res as any).reason as "has_transactions" | "has_children" | "default";
-        const msg = reason === "has_transactions"
-          ? "Esta categoria possui lançamentos vinculados. Para preservar o histórico, ela será apenas inativada."
-          : reason === "has_children"
-            ? "Esta categoria tem subcategorias. Ela será apenas inativada."
-            : "Categoria padrão não pode ser excluída. Foi apenas inativada.";
+        const msg =
+          reason === "has_transactions"
+            ? "Esta categoria possui lançamentos vinculados. Para preservar o histórico, ela será apenas inativada."
+            : reason === "has_children"
+              ? "Esta categoria tem subcategorias. Ela será apenas inativada."
+              : "Categoria padrão não pode ser excluída. Foi apenas inativada.";
         toast.message(msg);
         toggleActive.mutate({ ...n, active: true }); // pretend it was active so we flip to inactive
       }
       setPendingDelete(null);
     },
-    onError: (e: any) => { toast.error(e?.message ?? "Erro ao excluir."); setPendingDelete(null); },
+    onError: (e: any) => {
+      toast.error(e?.message ?? "Erro ao excluir.");
+      setPendingDelete(null);
+    },
   });
 
   const runSeed = useMutation({
     mutationFn: () => ensureFn(),
     onSuccess: (res: any) => {
-      toast.success(res?.inserted ? `${res.inserted} categorias adicionadas.` : "Categorias padrão já estavam presentes.");
+      toast.success(
+        res?.inserted
+          ? `${res.inserted} categorias adicionadas.`
+          : "Categorias padrão já estavam presentes.",
+      );
       invalidate();
       setConfirmSeed(false);
     },
-    onError: (e: any) => { toast.error(e?.message ?? "Erro."); setConfirmSeed(false); },
+    onError: (e: any) => {
+      toast.error(e?.message ?? "Erro.");
+      setConfirmSeed(false);
+    },
   });
 
   // Siblings of the parent-in-form (used to suggest next code).
@@ -485,7 +593,8 @@ export function ChartOfAccountsPage({ canManage = true }: { canManage?: boolean 
             <div>
               <h2 className="text-lg font-semibold">Plano de Contas</h2>
               <p className="text-sm text-muted-foreground">
-                Estrutura hierárquica de categorias em três níveis. Usada nos lançamentos financeiros.
+                Estrutura hierárquica de categorias em três níveis. Usada nos lançamentos
+                financeiros.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -544,7 +653,6 @@ export function ChartOfAccountsPage({ canManage = true }: { canManage?: boolean 
               Mostrar inativas
             </label>
           </div>
-
         </CardContent>
       </Card>
 

@@ -2,7 +2,19 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plus, Wallet, TrendingUp, TrendingDown, AlertTriangle, Calendar, CheckCircle2, XCircle, Trash2, Pencil, Settings2 } from "lucide-react";
+import {
+  Plus,
+  Wallet,
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
+  Calendar,
+  CheckCircle2,
+  XCircle,
+  Trash2,
+  Pencil,
+  Settings2,
+} from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
@@ -11,25 +23,51 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LabelWithHelp } from "@/components/ui/FieldHelp";
 
 import {
-  ensureDefaultFinancialCategories, getFinanceOverview, getCashFlow,
-  listFinancialTransactions, listFinancialCategories,
-  createFinancialTransaction, markTransactionAsPaid,
-  cancelFinancialTransaction, softDeleteFinancialTransaction, updateFinancialTransaction,
-  createFinancialCategory, deactivateFinancialCategory,
-  type FinancialTransaction, type FinancialCategory, type FinTxType, type FinTxStatus,
+  ensureDefaultFinancialCategories,
+  getFinanceOverview,
+  getCashFlow,
+  listFinancialTransactions,
+  listFinancialCategories,
+  createFinancialTransaction,
+  markTransactionAsPaid,
+  cancelFinancialTransaction,
+  softDeleteFinancialTransaction,
+  updateFinancialTransaction,
+  createFinancialCategory,
+  deactivateFinancialCategory,
+  type FinancialTransaction,
+  type FinancialCategory,
+  type FinTxType,
+  type FinTxStatus,
 } from "@/lib/finance.functions";
 import { listBankAccounts } from "@/lib/bank-accounts.functions";
 import { getTxOriginLabel } from "@/lib/finance-origin";
 import { useCompanyId } from "@/hooks/use-company-id";
-import { FinancialHealthScoreCard, FinancialHealthPage } from "@/components/finance/FinancialHealthPage";
+import {
+  FinancialHealthScoreCard,
+  FinancialHealthPage,
+} from "@/components/finance/FinancialHealthPage";
 import { FinanceAgentChat } from "@/components/finance/FinanceAgentChat";
 import { BankReconciliationPanel } from "@/components/finance/BankReconciliationPanel";
 import { BankStatementReconciliationPanel } from "@/components/finance/BankStatementReconciliationPanel";
@@ -40,28 +78,40 @@ import { AccountBalancesCard } from "@/components/finance/AccountBalancesCard";
 import { ChartOfAccountsPage } from "@/components/finance/chart-of-accounts/ChartOfAccountsPage";
 import { CategorySelect } from "@/components/finance/chart-of-accounts/CategorySelect";
 
-
 const BRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 type Preset = "today" | "7d" | "month" | "lastMonth" | "next7" | "next30" | "year" | "custom";
 
 function rangeFor(p: Preset, custom?: { from?: string; to?: string }) {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const iso = (d: Date) => d.toISOString().slice(0, 10);
-  const start = new Date(today), end = new Date(today);
+  const start = new Date(today),
+    end = new Date(today);
   switch (p) {
-    case "today": return { from: iso(today), to: iso(today) };
-    case "7d": start.setDate(today.getDate() - 7); return { from: iso(start), to: iso(today) };
-    case "month": start.setDate(1); return { from: iso(start), to: iso(today) };
+    case "today":
+      return { from: iso(today), to: iso(today) };
+    case "7d":
+      start.setDate(today.getDate() - 7);
+      return { from: iso(start), to: iso(today) };
+    case "month":
+      start.setDate(1);
+      return { from: iso(start), to: iso(today) };
     case "lastMonth": {
       const s = new Date(today.getFullYear(), today.getMonth() - 1, 1);
       const e = new Date(today.getFullYear(), today.getMonth(), 0);
       return { from: iso(s), to: iso(e) };
     }
-    case "next7": end.setDate(today.getDate() + 7); return { from: iso(today), to: iso(end) };
-    case "next30": end.setDate(today.getDate() + 30); return { from: iso(today), to: iso(end) };
-    case "year": return { from: `${today.getFullYear()}-01-01`, to: iso(today) };
-    case "custom": return { from: custom?.from, to: custom?.to };
+    case "next7":
+      end.setDate(today.getDate() + 7);
+      return { from: iso(today), to: iso(end) };
+    case "next30":
+      end.setDate(today.getDate() + 30);
+      return { from: iso(today), to: iso(end) };
+    case "year":
+      return { from: `${today.getFullYear()}-01-01`, to: iso(today) };
+    case "custom":
+      return { from: custom?.from, to: custom?.to };
   }
 }
 
@@ -74,25 +124,39 @@ function StatusBadge({ s }: { s: FinTxStatus }) {
     RECONCILED: { label: "Conciliado", cls: "bg-primary/15 text-primary" },
   };
   const e = map[s];
-  return <Badge variant="outline" className={e.cls}>{e.label}</Badge>;
+  return (
+    <Badge variant="outline" className={e.cls}>
+      {e.label}
+    </Badge>
+  );
 }
 
 function effStatus(t: { status: FinTxStatus; due_date: string | null }): FinTxStatus {
   if (t.status === "PLANNED" && t.due_date) {
-    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     if (new Date(t.due_date) < today) return "OVERDUE";
   }
   return t.status;
 }
 
-export function FinanceFilters({ preset, onChange, custom, onCustom }: {
-  preset: Preset; onChange: (p: Preset) => void;
-  custom: { from?: string; to?: string }; onCustom: (c: { from?: string; to?: string }) => void;
+export function FinanceFilters({
+  preset,
+  onChange,
+  custom,
+  onCustom,
+}: {
+  preset: Preset;
+  onChange: (p: Preset) => void;
+  custom: { from?: string; to?: string };
+  onCustom: (c: { from?: string; to?: string }) => void;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Select value={preset} onValueChange={(v) => onChange(v as Preset)}>
-        <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+        <SelectTrigger className="w-[200px]">
+          <SelectValue />
+        </SelectTrigger>
         <SelectContent>
           <SelectItem value="today">Hoje</SelectItem>
           <SelectItem value="7d">Últimos 7 dias</SelectItem>
@@ -106,28 +170,53 @@ export function FinanceFilters({ preset, onChange, custom, onCustom }: {
       </Select>
       {preset === "custom" && (
         <>
-          <Input type="date" value={custom.from ?? ""} onChange={(e) => onCustom({ ...custom, from: e.target.value })} className="w-[160px]" />
-          <Input type="date" value={custom.to ?? ""} onChange={(e) => onCustom({ ...custom, to: e.target.value })} className="w-[160px]" />
+          <Input
+            type="date"
+            value={custom.from ?? ""}
+            onChange={(e) => onCustom({ ...custom, from: e.target.value })}
+            className="w-[160px]"
+          />
+          <Input
+            type="date"
+            value={custom.to ?? ""}
+            onChange={(e) => onCustom({ ...custom, to: e.target.value })}
+            className="w-[160px]"
+          />
         </>
       )}
     </div>
   );
 }
 
-function FinanceMetricCard({ title, value, hint, icon, tone }: {
-  title: string; value: string; hint: string; icon: React.ReactNode;
+function FinanceMetricCard({
+  title,
+  value,
+  hint,
+  icon,
+  tone,
+}: {
+  title: string;
+  value: string;
+  hint: string;
+  icon: React.ReactNode;
   tone?: "success" | "danger" | "warning" | "default";
 }) {
-  const toneCls = tone === "success" ? "text-success"
-    : tone === "danger" ? "text-destructive"
-    : tone === "warning" ? "text-amber-500"
-    : "text-foreground";
+  const toneCls =
+    tone === "success"
+      ? "text-success"
+      : tone === "danger"
+        ? "text-destructive"
+        : tone === "warning"
+          ? "text-amber-500"
+          : "text-foreground";
   return (
     <Card>
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {title}
+            </p>
             <p className={`mt-1 text-2xl font-bold tracking-tight ${toneCls}`}>{value}</p>
             <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
           </div>
@@ -138,9 +227,18 @@ function FinanceMetricCard({ title, value, hint, icon, tone }: {
   );
 }
 
-function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
-  open: boolean; onOpenChange: (o: boolean) => void;
-  type: FinTxType; editing?: FinancialTransaction | null; onSaved?: () => void;
+function TransactionFormSheet({
+  open,
+  onOpenChange,
+  type,
+  editing,
+  onSaved,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  type: FinTxType;
+  editing?: FinancialTransaction | null;
+  onSaved?: () => void;
 }) {
   const companyId = useCompanyId();
   const catsFn = useServerFn(listFinancialCategories);
@@ -190,30 +288,50 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
     },
     onSuccess: () => {
       toast.success(editing ? "Lançamento atualizado." : "Lançamento criado.");
-      onSaved?.(); onOpenChange(false);
+      onSaved?.();
+      onOpenChange(false);
     },
     onError: (e: any) => toast.error(e?.message ?? "Erro ao salvar."),
   });
-
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>{editing ? "Editar" : "Nova"} {type === "INCOME" ? "entrada" : "saída"}</SheetTitle>
+          <SheetTitle>
+            {editing ? "Editar" : "Nova"} {type === "INCOME" ? "entrada" : "saída"}
+          </SheetTitle>
         </SheetHeader>
         <div className="mt-4 space-y-3">
           <div>
-            <LabelWithHelp label="Descrição" help="O que foi este lançamento? Ex.: Instalação cliente João." />
-            <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Ex.: Instalação cliente João" />
+            <LabelWithHelp
+              label="Descrição"
+              help="O que foi este lançamento? Ex.: Instalação cliente João."
+            />
+            <Input
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="Ex.: Instalação cliente João"
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <LabelWithHelp label="Valor (R$)" help="Quanto entrou ou saiu. Use vírgula ou ponto para os centavos." />
-              <Input inputMode="decimal" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="0,00" />
+              <LabelWithHelp
+                label="Valor (R$)"
+                help="Quanto entrou ou saiu. Use vírgula ou ponto para os centavos."
+              />
+              <Input
+                inputMode="decimal"
+                value={form.amount}
+                onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                placeholder="0,00"
+              />
             </div>
             <div>
-              <LabelWithHelp label="Categoria financeira" help="Selecione no Plano de Contas. Entrada mostra receitas; saída mostra custos, despesas e investimentos." />
+              <LabelWithHelp
+                label="Categoria financeira"
+                help="Selecione no Plano de Contas. Entrada mostra receitas; saída mostra custos, despesas e investimentos."
+              />
               <CategorySelect
                 value={form.category_id || null}
                 onChange={(id) => setForm({ ...form, category_id: id ?? "" })}
@@ -222,12 +340,19 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
             </div>
           </div>
           <div>
-            <LabelWithHelp label="Conta financeira" help="De onde o dinheiro saiu ou entrou: carteira, banco, caixa. Cadastre em Configurações → Contas financeiras." />
+            <LabelWithHelp
+              label="Conta financeira"
+              help="De onde o dinheiro saiu ou entrou: carteira, banco, caixa. Cadastre em Configurações → Contas financeiras."
+            />
             <Select
               value={form.bank_account_id || "__none__"}
-              onValueChange={(v) => setForm({ ...form, bank_account_id: v === "__none__" ? "" : v })}
+              onValueChange={(v) =>
+                setForm({ ...form, bank_account_id: v === "__none__" ? "" : v })
+              }
             >
-              <SelectTrigger><SelectValue placeholder="Sem conta definida" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Sem conta definida" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__none__">Sem conta definida</SelectItem>
                 {(accs.data ?? []).map((a) => (
@@ -241,21 +366,34 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <LabelWithHelp label="Vencimento" help="Data prevista para pagar ou receber." />
-              <Input type="date" value={form.due_date ?? ""} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
+              <Input
+                type="date"
+                value={form.due_date ?? ""}
+                onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+              />
             </div>
             <div>
               <LabelWithHelp
                 label={type === "INCOME" ? "Recebido em" : "Pago em"}
                 help="Data em que o dinheiro realmente saiu ou entrou."
               />
-              <Input type="date" value={form.paid_at ?? ""} onChange={(e) => setForm({ ...form, paid_at: e.target.value })} />
+              <Input
+                type="date"
+                value={form.paid_at ?? ""}
+                onChange={(e) => setForm({ ...form, paid_at: e.target.value })}
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Status</Label>
-              <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as FinTxStatus })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={form.status}
+                onValueChange={(v) => setForm({ ...form, status: v as FinTxStatus })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="PLANNED">Planejado</SelectItem>
                   <SelectItem value="PAID">Pago</SelectItem>
@@ -265,15 +403,27 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
             </div>
             <div>
               <Label>Forma de pagamento</Label>
-              <Input value={form.payment_method ?? ""} onChange={(e) => setForm({ ...form, payment_method: e.target.value })} placeholder="Pix, cartão, dinheiro…" />
+              <Input
+                value={form.payment_method ?? ""}
+                onChange={(e) => setForm({ ...form, payment_method: e.target.value })}
+                placeholder="Pix, cartão, dinheiro…"
+              />
             </div>
           </div>
           <div>
             <Label>Observações</Label>
-            <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} />
+            <Textarea
+              value={form.notes ?? ""}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              rows={3}
+            />
           </div>
 
-          <Button className="w-full" onClick={() => submitting.mutate()} disabled={!form.description || !form.amount || submitting.isPending}>
+          <Button
+            className="w-full"
+            onClick={() => submitting.mutate()}
+            disabled={!form.description || !form.amount || submitting.isPending}
+          >
             {submitting.isPending ? "Salvando…" : "Salvar"}
           </Button>
         </div>
@@ -282,7 +432,15 @@ function TransactionFormSheet({ open, onOpenChange, type, editing, onSaved }: {
   );
 }
 
-function TransactionTable({ rows, onChanged, highlightId }: { rows: FinancialTransaction[]; onChanged: () => void; highlightId?: string | null }) {
+function TransactionTable({
+  rows,
+  onChanged,
+  highlightId,
+}: {
+  rows: FinancialTransaction[];
+  onChanged: () => void;
+  highlightId?: string | null;
+}) {
   const markPaid = useServerFn(markTransactionAsPaid);
   const cancelFn = useServerFn(cancelFinancialTransaction);
   const delFn = useServerFn(softDeleteFinancialTransaction);
@@ -301,7 +459,10 @@ function TransactionTable({ rows, onChanged, highlightId }: { rows: FinancialTra
       if (kind === "cancel") return cancelFn({ data: { id } });
       return delFn({ data: { id } });
     },
-    onSuccess: () => { toast.success("Atualizado."); onChanged(); },
+    onSuccess: () => {
+      toast.success("Atualizado.");
+      onChanged();
+    },
     onError: (e: any) => toast.error(e?.message ?? "Erro."),
   });
 
@@ -339,8 +500,14 @@ function TransactionTable({ rows, onChanged, highlightId }: { rows: FinancialTra
                 return (
                   <TableRow
                     key={t.id}
-                    ref={(el) => { rowRefs.current[t.id] = el; }}
-                    className={highlightId === t.id ? "bg-primary/10 ring-2 ring-primary ring-inset transition-colors" : undefined}
+                    ref={(el) => {
+                      rowRefs.current[t.id] = el;
+                    }}
+                    className={
+                      highlightId === t.id
+                        ? "bg-primary/10 ring-2 ring-primary ring-inset transition-colors"
+                        : undefined
+                    }
                   >
                     <TableCell className="whitespace-nowrap">{t.due_date ?? "—"}</TableCell>
                     <TableCell>
@@ -359,7 +526,11 @@ function TransactionTable({ rows, onChanged, highlightId }: { rows: FinancialTra
                           </span>
                         );
                         return o.href ? (
-                          <Link to={o.href} className="hover:underline" title={o.description ?? o.label}>
+                          <Link
+                            to={o.href}
+                            className="hover:underline"
+                            title={o.description ?? o.label}
+                          >
                             {content}
                           </Link>
                         ) : (
@@ -373,24 +544,48 @@ function TransactionTable({ rows, onChanged, highlightId }: { rows: FinancialTra
                       </span>
                     </TableCell>
                     <TableCell className="text-right font-mono">{BRL(t.amount)}</TableCell>
-                    <TableCell><StatusBadge s={eff} /></TableCell>
-                    <TableCell className="whitespace-nowrap text-xs">{t.paid_at ? new Date(t.paid_at).toLocaleDateString("pt-BR") : "—"}</TableCell>
+                    <TableCell>
+                      <StatusBadge s={eff} />
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-xs">
+                      {t.paid_at ? new Date(t.paid_at).toLocaleDateString("pt-BR") : "—"}
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         {eff !== "PAID" && eff !== "CANCELED" && (
-                          <Button size="sm" variant="ghost" title="Marcar como pago" onClick={() => act.mutate({ kind: "paid", id: t.id })}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            title="Marcar como pago"
+                            onClick={() => act.mutate({ kind: "paid", id: t.id })}
+                          >
                             <CheckCircle2 className="h-4 w-4" />
                           </Button>
                         )}
-                        <Button size="sm" variant="ghost" title="Editar" onClick={() => setEditing(t)}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          title="Editar"
+                          onClick={() => setEditing(t)}
+                        >
                           <Pencil className="h-4 w-4" />
                         </Button>
                         {eff !== "CANCELED" && (
-                          <Button size="sm" variant="ghost" title="Cancelar" onClick={() => act.mutate({ kind: "cancel", id: t.id })}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            title="Cancelar"
+                            onClick={() => act.mutate({ kind: "cancel", id: t.id })}
+                          >
                             <XCircle className="h-4 w-4" />
                           </Button>
                         )}
-                        <Button size="sm" variant="ghost" title="Excluir" onClick={() => act.mutate({ kind: "delete", id: t.id })}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          title="Excluir"
+                          onClick={() => act.mutate({ kind: "delete", id: t.id })}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -432,16 +627,25 @@ function CategoriesManager() {
 
   const create = useMutation({
     mutationFn: () => createFn({ data: { name, type } }),
-    onSuccess: () => { toast.success("Categoria criada."); setName(""); qc.invalidateQueries({ queryKey: ["fin-cats-all", companyId] }); qc.invalidateQueries({ queryKey: ["fin-cats", companyId] }); },
+    onSuccess: () => {
+      toast.success("Categoria criada.");
+      setName("");
+      qc.invalidateQueries({ queryKey: ["fin-cats-all", companyId] });
+      qc.invalidateQueries({ queryKey: ["fin-cats", companyId] });
+    },
     onError: (e: any) => toast.error(e?.message ?? "Erro."),
   });
   const deactivate = useMutation({
     mutationFn: (id: string) => deactivateFn({ data: { id } }),
-    onSuccess: () => { toast.success("Categoria desativada."); qc.invalidateQueries({ queryKey: ["fin-cats-all", companyId] }); },
+    onSuccess: () => {
+      toast.success("Categoria desativada.");
+      qc.invalidateQueries({ queryKey: ["fin-cats-all", companyId] });
+    },
   });
 
   const grouped = useMemo(() => {
-    const inc: FinancialCategory[] = []; const exp: FinancialCategory[] = [];
+    const inc: FinancialCategory[] = [];
+    const exp: FinancialCategory[] = [];
     (q.data ?? []).forEach((c) => (c.type === "INCOME" ? inc : exp).push(c));
     return { inc, exp };
   }, [q.data]);
@@ -457,7 +661,9 @@ function CategoriesManager() {
           <div>
             <Label>Tipo</Label>
             <Select value={type} onValueChange={(v) => setType(v as FinTxType)}>
-              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="INCOME">Entrada</SelectItem>
                 <SelectItem value="EXPENSE">Saída</SelectItem>
@@ -477,12 +683,22 @@ function CategoriesManager() {
               <h3 className="mb-2 font-semibold">{k === "inc" ? "Entradas" : "Saídas"}</h3>
               <ul className="space-y-1">
                 {(k === "inc" ? grouped.inc : grouped.exp).map((c) => (
-                  <li key={c.id} className="flex items-center justify-between rounded px-2 py-1 hover:bg-muted/50">
+                  <li
+                    key={c.id}
+                    className="flex items-center justify-between rounded px-2 py-1 hover:bg-muted/50"
+                  >
                     <span className={c.active ? "" : "text-muted-foreground line-through"}>
-                      {c.name} {c.is_default && <Badge variant="outline" className="ml-1 text-[10px]">padrão</Badge>}
+                      {c.name}{" "}
+                      {c.is_default && (
+                        <Badge variant="outline" className="ml-1 text-[10px]">
+                          padrão
+                        </Badge>
+                      )}
                     </span>
                     {c.active && (
-                      <Button size="sm" variant="ghost" onClick={() => deactivate.mutate(c.id)}>Desativar</Button>
+                      <Button size="sm" variant="ghost" onClick={() => deactivate.mutate(c.id)}>
+                        Desativar
+                      </Button>
                     )}
                   </li>
                 ))}
@@ -543,7 +759,10 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
     qc.invalidateQueries({ queryKey: ["fin-expenses", companyId] });
   };
 
-  const [sheet, setSheet] = useState<{ open: boolean; type: FinTxType }>({ open: false, type: "INCOME" });
+  const [sheet, setSheet] = useState<{ open: boolean; type: FinTxType }>({
+    open: false,
+    type: "INCOME",
+  });
   const [quickOpen, setQuickOpen] = useState(false);
 
   const o = overview.data;
@@ -571,10 +790,17 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold tracking-tight md:text-3xl">Financeiro</h1>
-          <p className="text-sm text-muted-foreground">Entradas, saídas e fluxo de caixa da sua empresa.</p>
+          <p className="text-sm text-muted-foreground">
+            Entradas, saídas e fluxo de caixa da sua empresa.
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <FinanceFilters preset={preset} onChange={setPreset} custom={custom} onCustom={setCustom} />
+          <FinanceFilters
+            preset={preset}
+            onChange={setPreset}
+            custom={custom}
+            onCustom={setCustom}
+          />
           <Button asChild variant="outline">
             <Link to="/finance/pricing/settings">
               <Settings2 className="mr-1 h-4 w-4" /> Custos & Precificação
@@ -609,36 +835,95 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
         <TabsContent value="overview" className="mt-4 space-y-4">
           <FinancialHealthScoreCard filters={filters} compact />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <FinanceMetricCard title="Entradas no período" value={BRL(o?.income ?? 0)} hint="Somente lançamentos pagos." tone="success" icon={<TrendingUp className="h-5 w-5" />} />
-            <FinanceMetricCard title="Saídas no período" value={BRL(o?.expense ?? 0)} hint="Somente lançamentos pagos." tone="danger" icon={<TrendingDown className="h-5 w-5" />} />
-            <FinanceMetricCard title="Saldo do período" value={BRL(o?.balance ?? 0)} hint="Quanto sobrou após entradas e saídas." tone={(o?.balance ?? 0) >= 0 ? "success" : "danger"} icon={<Wallet className="h-5 w-5" />} />
-            <FinanceMetricCard title="A receber" value={BRL(o?.receivables ?? 0)} hint="Entradas planejadas e em aberto." icon={<Calendar className="h-5 w-5" />} />
-            <FinanceMetricCard title="A pagar" value={BRL(o?.payables ?? 0)} hint="Saídas planejadas e em aberto." icon={<Calendar className="h-5 w-5" />} />
-            <FinanceMetricCard title="Recebimentos atrasados" value={BRL(o?.overdueReceivables ?? 0)} hint="Entradas vencidas e não recebidas." tone="warning" icon={<AlertTriangle className="h-5 w-5" />} />
-            <FinanceMetricCard title="Contas vencidas" value={BRL(o?.overduePayables ?? 0)} hint="Saídas vencidas e não pagas." tone="warning" icon={<AlertTriangle className="h-5 w-5" />} />
+            <FinanceMetricCard
+              title="Entradas no período"
+              value={BRL(o?.income ?? 0)}
+              hint="Somente lançamentos pagos."
+              tone="success"
+              icon={<TrendingUp className="h-5 w-5" />}
+            />
+            <FinanceMetricCard
+              title="Saídas no período"
+              value={BRL(o?.expense ?? 0)}
+              hint="Somente lançamentos pagos."
+              tone="danger"
+              icon={<TrendingDown className="h-5 w-5" />}
+            />
+            <FinanceMetricCard
+              title="Saldo do período"
+              value={BRL(o?.balance ?? 0)}
+              hint="Quanto sobrou após entradas e saídas."
+              tone={(o?.balance ?? 0) >= 0 ? "success" : "danger"}
+              icon={<Wallet className="h-5 w-5" />}
+            />
+            <FinanceMetricCard
+              title="A receber"
+              value={BRL(o?.receivables ?? 0)}
+              hint="Entradas planejadas e em aberto."
+              icon={<Calendar className="h-5 w-5" />}
+            />
+            <FinanceMetricCard
+              title="A pagar"
+              value={BRL(o?.payables ?? 0)}
+              hint="Saídas planejadas e em aberto."
+              icon={<Calendar className="h-5 w-5" />}
+            />
+            <FinanceMetricCard
+              title="Recebimentos atrasados"
+              value={BRL(o?.overdueReceivables ?? 0)}
+              hint="Entradas vencidas e não recebidas."
+              tone="warning"
+              icon={<AlertTriangle className="h-5 w-5" />}
+            />
+            <FinanceMetricCard
+              title="Contas vencidas"
+              value={BRL(o?.overduePayables ?? 0)}
+              hint="Saídas vencidas e não pagas."
+              tone="warning"
+              icon={<AlertTriangle className="h-5 w-5" />}
+            />
           </div>
           <AccountBalancesCard />
         </TabsContent>
-
 
         <TabsContent value="health" className="mt-4">
           <FinancialHealthPage filters={filters} />
         </TabsContent>
 
         <TabsContent value="cashflow" className="mt-4">
-          <TransactionTable rows={cashflow.data ?? []} onChanged={invalidateAll} highlightId={highlightTxId} />
+          <TransactionTable
+            rows={cashflow.data ?? []}
+            onChanged={invalidateAll}
+            highlightId={highlightTxId}
+          />
         </TabsContent>
         <TabsContent value="income" className="mt-4">
-          <TransactionTable rows={incomes.data ?? []} onChanged={invalidateAll} highlightId={highlightTxId} />
+          <TransactionTable
+            rows={incomes.data ?? []}
+            onChanged={invalidateAll}
+            highlightId={highlightTxId}
+          />
         </TabsContent>
         <TabsContent value="expense" className="mt-4">
-          <TransactionTable rows={expenses.data ?? []} onChanged={invalidateAll} highlightId={highlightTxId} />
+          <TransactionTable
+            rows={expenses.data ?? []}
+            onChanged={invalidateAll}
+            highlightId={highlightTxId}
+          />
         </TabsContent>
         <TabsContent value="receivables" className="mt-4">
-          <TransactionTable rows={(incomes.data ?? []).filter((t) => t.status !== "RECONCILED")} onChanged={invalidateAll} highlightId={highlightTxId} />
+          <TransactionTable
+            rows={(incomes.data ?? []).filter((t) => t.status !== "RECONCILED")}
+            onChanged={invalidateAll}
+            highlightId={highlightTxId}
+          />
         </TabsContent>
         <TabsContent value="payables" className="mt-4">
-          <TransactionTable rows={(expenses.data ?? []).filter((t) => t.status !== "RECONCILED")} onChanged={invalidateAll} highlightId={highlightTxId} />
+          <TransactionTable
+            rows={(expenses.data ?? []).filter((t) => t.status !== "RECONCILED")}
+            onChanged={invalidateAll}
+            highlightId={highlightTxId}
+          />
         </TabsContent>
         <TabsContent value="categories" className="mt-4">
           <ChartOfAccountsPage />
@@ -685,4 +970,3 @@ export function FinancePage({ defaultTab = "overview" }: { defaultTab?: string }
     </div>
   );
 }
-

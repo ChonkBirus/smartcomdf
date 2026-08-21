@@ -14,7 +14,12 @@ import { appUrl } from "@/lib/app-url";
 import { logAuthDev, maskEmail } from "@/lib/auth-dev-log";
 
 export const Route = createFileRoute("/forgot-password")({
-  head: () => ({ meta: [{ title: "Recuperar senha — SmartPro" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [
+      { title: "Recuperar senha — SmartPro" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: ForgotPassword,
 });
 
@@ -42,7 +47,12 @@ function ForgotPassword() {
     setLoading(false);
     if (error) {
       if (import.meta.env.DEV) console.warn("[AUTH RESET PASSWORD] error", error.message);
-      logAuthDev({ flow: "reset_password", status: "error", emailMasked: masked, message: error.message });
+      logAuthDev({
+        flow: "reset_password",
+        status: "error",
+        emailMasked: masked,
+        message: error.message,
+      });
     } else {
       logAuthDev({ flow: "reset_password", status: "success", emailMasked: masked, redirectUrl });
     }
@@ -61,7 +71,9 @@ function ForgotPassword() {
           {sent ? (
             <div className="space-y-3 text-sm">
               <p>Se o e-mail existir, você receberá as instruções em instantes.</p>
-              <Link to="/auth" className="text-primary hover:underline">Voltar ao login</Link>
+              <Link to="/auth" className="text-primary hover:underline">
+                Voltar ao login
+              </Link>
             </div>
           ) : (
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
@@ -72,7 +84,9 @@ function ForgotPassword() {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Enviando..." : "Enviar link"}
               </Button>
-              <Link to="/auth" className="block text-center text-xs text-primary hover:underline">Voltar ao login</Link>
+              <Link to="/auth" className="block text-center text-xs text-primary hover:underline">
+                Voltar ao login
+              </Link>
             </form>
           )}
         </CardContent>

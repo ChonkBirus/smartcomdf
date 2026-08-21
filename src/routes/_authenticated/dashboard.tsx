@@ -1,9 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
 import {
-  Users, FileText, DollarSign, TrendingUp, Activity,
-  PackageX, AlertTriangle, Boxes, CheckCircle2, PercentCircle,
-  FolderKanban, Wrench, Wallet, BarChart3, FilePlus2, Sparkles,
+  Users,
+  FileText,
+  DollarSign,
+  TrendingUp,
+  Activity,
+  PackageX,
+  AlertTriangle,
+  Boxes,
+  CheckCircle2,
+  PercentCircle,
+  FolderKanban,
+  Wrench,
+  Wallet,
+  BarChart3,
+  FilePlus2,
+  Sparkles,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -62,11 +75,19 @@ function Dashboard() {
     payments: { ...emptyDashboardMetrics.payments, ...(rawData?.payments ?? {}) },
     recentActivity: rawData?.recentActivity ?? emptyDashboardMetrics.recentActivity,
     charts: {
-      quotesByStatus: rawData?.charts?.quotesByStatus ?? emptyDashboardMetrics.charts.quotesByStatus,
+      quotesByStatus:
+        rawData?.charts?.quotesByStatus ?? emptyDashboardMetrics.charts.quotesByStatus,
     },
   };
-  const openServiceOrders = Math.max(0, (data.serviceOrders.total ?? 0) - (data.serviceOrders.completed ?? 0));
-  const isFreshAccount = !metrics.isLoading && !metrics.isError && (data.quotes.total ?? 0) === 0 && (data.customers.total ?? 0) === 0;
+  const openServiceOrders = Math.max(
+    0,
+    (data.serviceOrders.total ?? 0) - (data.serviceOrders.completed ?? 0),
+  );
+  const isFreshAccount =
+    !metrics.isLoading &&
+    !metrics.isError &&
+    (data.quotes.total ?? 0) === 0 &&
+    (data.customers.total ?? 0) === 0;
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -86,7 +107,8 @@ function Dashboard() {
               <div>
                 <h2 className="text-base font-semibold">Pronto para começar?</h2>
                 <p className="mt-0.5 text-sm text-muted-foreground">
-                  O jeito mais rápido de conhecer o Smart Pro é criar seu primeiro orçamento — dá pra cadastrar o cliente na hora.
+                  O jeito mais rápido de conhecer o Smart Pro é criar seu primeiro orçamento — dá
+                  pra cadastrar o cliente na hora.
                 </p>
               </div>
             </div>
@@ -102,7 +124,6 @@ function Dashboard() {
       <div className="mb-6">
         <GettingStartedChecklist />
       </div>
-
 
       {companyContext.isLoading ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -127,19 +148,56 @@ function Dashboard() {
           icon={<AlertTriangle className="h-6 w-6" />}
           title="Não foi possível carregar o dashboard"
           description="Houve um erro ao buscar os dados reais da sua empresa. Tente novamente em instantes."
-          action={<Button onClick={() => metrics.refetch()} variant="outline">Tentar novamente</Button>}
+          action={
+            <Button onClick={() => metrics.refetch()} variant="outline">
+              Tentar novamente
+            </Button>
+          }
         />
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard title="Clientes" value={String(data.customers.total ?? 0)} icon={<Users className="h-5 w-5" />} />
-            <KpiCard title="Orçamentos" value={String(data.quotes.total ?? 0)} icon={<FileText className="h-5 w-5" />} hint={`${data.quotes.pending ?? 0} pendentes`} />
-            <KpiCard title="Aprovados" value={String(data.quotes.approved ?? 0)} icon={<CheckCircle2 className="h-5 w-5" />} />
-            <KpiCard title="Valor aprovado" value={formatCurrency(data.quotes.approvedAmount ?? 0)} icon={<DollarSign className="h-5 w-5" />} />
-            <KpiCard title="Taxa de conversão" value={`${(data.quotes.conversionRate ?? 0).toFixed(1)}%`} icon={<PercentCircle className="h-5 w-5" />} />
-            <KpiCard title="Projetos ativos" value={String(data.projects.active ?? 0)} icon={<FolderKanban className="h-5 w-5" />} />
-            <KpiCard title="OS abertas" value={String(openServiceOrders)} icon={<Wrench className="h-5 w-5" />} />
-            <KpiCard title="Pagamentos pendentes" value={String(data.payments.waiting ?? 0)} icon={<Wallet className="h-5 w-5" />} />
+            <KpiCard
+              title="Clientes"
+              value={String(data.customers.total ?? 0)}
+              icon={<Users className="h-5 w-5" />}
+            />
+            <KpiCard
+              title="Orçamentos"
+              value={String(data.quotes.total ?? 0)}
+              icon={<FileText className="h-5 w-5" />}
+              hint={`${data.quotes.pending ?? 0} pendentes`}
+            />
+            <KpiCard
+              title="Aprovados"
+              value={String(data.quotes.approved ?? 0)}
+              icon={<CheckCircle2 className="h-5 w-5" />}
+            />
+            <KpiCard
+              title="Valor aprovado"
+              value={formatCurrency(data.quotes.approvedAmount ?? 0)}
+              icon={<DollarSign className="h-5 w-5" />}
+            />
+            <KpiCard
+              title="Taxa de conversão"
+              value={`${(data.quotes.conversionRate ?? 0).toFixed(1)}%`}
+              icon={<PercentCircle className="h-5 w-5" />}
+            />
+            <KpiCard
+              title="Projetos ativos"
+              value={String(data.projects.active ?? 0)}
+              icon={<FolderKanban className="h-5 w-5" />}
+            />
+            <KpiCard
+              title="OS abertas"
+              value={String(openServiceOrders)}
+              icon={<Wrench className="h-5 w-5" />}
+            />
+            <KpiCard
+              title="Pagamentos pendentes"
+              value={String(data.payments.waiting ?? 0)}
+              icon={<Wallet className="h-5 w-5" />}
+            />
           </div>
 
           <Card className="card-elevated mt-6">
@@ -151,7 +209,8 @@ function Dashboard() {
             <CardContent>
               {(data.charts.quotesByStatus ?? []).length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Nenhum dado para exibir. Cadastre clientes, produtos e orçamentos para visualizar dados reais aqui.
+                  Nenhum dado para exibir. Cadastre clientes, produtos e orçamentos para visualizar
+                  dados reais aqui.
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -179,8 +238,16 @@ function Dashboard() {
 
       {showStock && !!companyId && !metrics.isLoading && !metrics.isError && (
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
-          <KpiCard title="Itens sem estoque" value={String(data.stock.outOfStock ?? 0)} icon={<PackageX className="h-5 w-5" />} />
-          <KpiCard title="Abaixo do mínimo" value={String(data.stock.lowStock ?? 0)} icon={<AlertTriangle className="h-5 w-5" />} />
+          <KpiCard
+            title="Itens sem estoque"
+            value={String(data.stock.outOfStock ?? 0)}
+            icon={<PackageX className="h-5 w-5" />}
+          />
+          <KpiCard
+            title="Abaixo do mínimo"
+            value={String(data.stock.lowStock ?? 0)}
+            icon={<AlertTriangle className="h-5 w-5" />}
+          />
           <Card className="card-elevated">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -191,7 +258,9 @@ function Dashboard() {
               {(data.stock.recentMovements ?? 0) === 0 ? (
                 <p className="text-muted-foreground">Nenhuma movimentação recente.</p>
               ) : (
-                <p className="text-muted-foreground">{data.stock.recentMovements} movimentações registradas.</p>
+                <p className="text-muted-foreground">
+                  {data.stock.recentMovements} movimentações registradas.
+                </p>
               )}
               <div className="pt-2">
                 <Button asChild size="sm" variant="outline" className="w-full">
@@ -211,12 +280,23 @@ function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p>Use o menu lateral para cadastrar clientes, produtos, orçamentos, projetos e ordens de serviço.</p>
+            <p>
+              Use o menu lateral para cadastrar clientes, produtos, orçamentos, projetos e ordens de
+              serviço.
+            </p>
             <div className="flex flex-wrap gap-2 pt-2">
-              <Button asChild size="sm" variant="outline"><Link to="/clients">Clientes</Link></Button>
-              <Button asChild size="sm" variant="outline"><Link to="/products">Produtos</Link></Button>
-              <Button asChild size="sm" variant="outline"><Link to="/quotes">Orçamentos</Link></Button>
-              <Button asChild size="sm" variant="outline"><Link to="/service-orders">Ordens de Serviço</Link></Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/clients">Clientes</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/products">Produtos</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/quotes">Orçamentos</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/service-orders">Ordens de Serviço</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -224,29 +304,36 @@ function Dashboard() {
       </div>
 
       {companyId && !metrics.isLoading && !metrics.isError && (
-      <div className="mt-6">
-        <Card className="card-elevated">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Activity className="h-4 w-4 text-primary" /> Atividade recente
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            {(data.recentActivity ?? []).length === 0 ? (
-              <p className="text-muted-foreground">Nenhuma atividade real registrada para esta empresa.</p>
-            ) : (
-              (data.recentActivity ?? []).map((activity) => (
-                <div key={activity.id} className="flex flex-col gap-1 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between">
-                  <span>{activity.label}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {activity.created_at ? new Date(activity.created_at).toLocaleString("pt-BR") : "—"}
-                  </span>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
-      </div>
+        <div className="mt-6">
+          <Card className="card-elevated">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Activity className="h-4 w-4 text-primary" /> Atividade recente
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              {(data.recentActivity ?? []).length === 0 ? (
+                <p className="text-muted-foreground">
+                  Nenhuma atividade real registrada para esta empresa.
+                </p>
+              ) : (
+                (data.recentActivity ?? []).map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="flex flex-col gap-1 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <span>{activity.label}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {activity.created_at
+                        ? new Date(activity.created_at).toLocaleString("pt-BR")
+                        : "—"}
+                    </span>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );

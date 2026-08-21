@@ -18,7 +18,8 @@ function UsageCard({
   limit: number | null | undefined;
   suffix?: string;
 }) {
-  const limitLabel = limit === null || limit === undefined ? "ilimitado" : `${limit}${suffix ?? ""}`;
+  const limitLabel =
+    limit === null || limit === undefined ? "ilimitado" : `${limit}${suffix ?? ""}`;
   const pct = limit && limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
   const over = limit !== null && limit !== undefined && limit > 0 && used >= limit;
   return (
@@ -44,11 +45,7 @@ export function SubscriptionUsageCards({ usage, limits }: Props) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <UsageCard title="Usuários ativos" used={usage.users_count} limit={limits?.max_users} />
-      <UsageCard
-        title="OCR no mês"
-        used={usage.ocr_used_count}
-        limit={limits?.monthly_ocr_limit}
-      />
+      <UsageCard title="OCR no mês" used={usage.ocr_used_count} limit={limits?.monthly_ocr_limit} />
       <UsageCard
         title="Importações no mês"
         used={usage.imports_used_count}

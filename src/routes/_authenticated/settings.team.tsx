@@ -11,13 +11,27 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
-  listTeam, inviteMember, revokeInvitation, resendInvitation, updateMemberRole, removeMember,
+  listTeam,
+  inviteMember,
+  revokeInvitation,
+  resendInvitation,
+  updateMemberRole,
+  removeMember,
 } from "@/lib/team.functions";
 import { appUrl } from "@/lib/app-url";
 import { logAuthDev, maskEmail } from "@/lib/auth-dev-log";
@@ -45,7 +59,11 @@ function TeamPage() {
   const remove = useServerFn(removeMember);
 
   const companyId = useCompanyId();
-  const { data } = useQuery({ queryKey: ["team", companyId], queryFn: () => fetch(), enabled: !!companyId });
+  const { data } = useQuery({
+    queryKey: ["team", companyId],
+    queryFn: () => fetch(),
+    enabled: !!companyId,
+  });
 
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("commercial");
@@ -67,7 +85,12 @@ function TeamPage() {
     },
     onError: (e: any) => {
       if (import.meta.env.DEV) console.warn("[AUTH INVITE] error", e?.message);
-      logAuthDev({ flow: "invite", status: "error", emailMasked: maskEmail(email), message: e?.message });
+      logAuthDev({
+        flow: "invite",
+        status: "error",
+        emailMasked: maskEmail(email),
+        message: e?.message,
+      });
       toast.error(e?.message ?? "Falha ao convidar.");
     },
   });
@@ -76,7 +99,12 @@ function TeamPage() {
     mutationFn: (id: string) => resend({ data: { id } }),
     onSuccess: (inv: any) => {
       const link = appUrl(`/invite/${inv.token}`);
-      logAuthDev({ flow: "invite_resend", status: "success", emailMasked: maskEmail(inv.email), redirectUrl: link });
+      logAuthDev({
+        flow: "invite_resend",
+        status: "success",
+        emailMasked: maskEmail(inv.email),
+        redirectUrl: link,
+      });
       navigator.clipboard?.writeText(link).catch(() => {});
       toast.success("Convite reenviado.", { description: link });
       qc.invalidateQueries({ queryKey: ["team", companyId] });
@@ -89,18 +117,27 @@ function TeamPage() {
 
   const revokeMut = useMutation({
     mutationFn: (id: string) => revoke({ data: { id } }),
-    onSuccess: () => { toast.success("Convite revogado."); qc.invalidateQueries({ queryKey: ["team", companyId] }); },
+    onSuccess: () => {
+      toast.success("Convite revogado.");
+      qc.invalidateQueries({ queryKey: ["team", companyId] });
+    },
   });
 
   const roleMut = useMutation({
     mutationFn: (v: { user_id: string; role: string }) => updateRole({ data: v as any }),
-    onSuccess: () => { toast.success("Papel atualizado."); qc.invalidateQueries({ queryKey: ["team", companyId] }); },
+    onSuccess: () => {
+      toast.success("Papel atualizado.");
+      qc.invalidateQueries({ queryKey: ["team", companyId] });
+    },
     onError: (e: any) => toast.error(e.message ?? "Erro."),
   });
 
   const removeMut = useMutation({
     mutationFn: (user_id: string) => remove({ data: { user_id } }),
-    onSuccess: () => { toast.success("Membro removido."); qc.invalidateQueries({ queryKey: ["team", companyId] }); },
+    onSuccess: () => {
+      toast.success("Membro removido.");
+      qc.invalidateQueries({ queryKey: ["team", companyId] });
+    },
     onError: (e: any) => toast.error(e.message ?? "Erro."),
   });
 
@@ -114,7 +151,10 @@ function TeamPage() {
         </CardHeader>
         <CardContent>
           <form
-            onSubmit={(e) => { e.preventDefault(); inviteMut.mutate(); }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              inviteMut.mutate();
+            }}
             className="grid gap-3 md:grid-cols-[1fr_220px_auto]"
           >
             <div className="space-y-1">
@@ -131,10 +171,14 @@ function TeamPage() {
             <div className="space-y-1">
               <Label>Papel</Label>
               <Select value={role} onValueChange={setRole}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {ROLE_OPTIONS.map((r) => (
-                    <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                    <SelectItem key={r.value} value={r.value}>
+                      {r.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -188,10 +232,14 @@ function TeamPage() {
                           value={primaryRole ?? "commercial"}
                           onValueChange={(v) => roleMut.mutate({ user_id: m.id, role: v })}
                         >
-                          <SelectTrigger className="h-8 w-[150px]"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="h-8 w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
                           <SelectContent>
                             {ROLE_OPTIONS.map((r) => (
-                              <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                              <SelectItem key={r.value} value={r.value}>
+                                {r.label}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -214,7 +262,11 @@ function TeamPage() {
                 );
               })}
               {!data?.members?.length && (
-                <TableRow><TableCell colSpan={4} className="py-8 text-center text-sm text-muted-foreground">Nenhum membro.</TableCell></TableRow>
+                <TableRow>
+                  <TableCell colSpan={4} className="py-8 text-center text-sm text-muted-foreground">
+                    Nenhum membro.
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
           </Table>
@@ -240,7 +292,9 @@ function TeamPage() {
               {(data?.invitations ?? []).map((inv: any) => (
                 <TableRow key={inv.id}>
                   <TableCell>{inv.email}</TableCell>
-                  <TableCell><Badge variant="secondary">{inv.role}</Badge></TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">{inv.role}</Badge>
+                  </TableCell>
                   <TableCell>
                     <Badge variant={inv.status === "pending" ? "default" : "secondary"}>
                       {inv.status}
@@ -273,7 +327,12 @@ function TeamPage() {
                         >
                           <RefreshCw className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" title="Revogar" onClick={() => revokeMut.mutate(inv.id)}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          title="Revogar"
+                          onClick={() => revokeMut.mutate(inv.id)}
+                        >
                           <X className="h-4 w-4 text-destructive" />
                         </Button>
                       </>
@@ -282,7 +341,11 @@ function TeamPage() {
                 </TableRow>
               ))}
               {!data?.invitations?.length && (
-                <TableRow><TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">Nenhum convite.</TableCell></TableRow>
+                <TableRow>
+                  <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+                    Nenhum convite.
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
           </Table>

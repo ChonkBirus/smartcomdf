@@ -3,9 +3,7 @@ import { Bell, CheckCheck } from "lucide-react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
-import {
-  Popover, PopoverContent, PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,7 +48,9 @@ export function NotificationsBell({ userId }: { userId?: string | null }) {
         () => qc.invalidateQueries({ queryKey: ["notifications"] }),
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [userId, qc]);
 
   const unread = (data ?? []).filter((n) => !n.read).length;
@@ -93,7 +93,9 @@ export function NotificationsBell({ userId }: { userId?: string | null }) {
                     <span className="font-medium">{n.title}</span>
                     {!n.read && <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />}
                   </div>
-                  {n.message && <div className="mt-1 text-xs text-muted-foreground">{n.message}</div>}
+                  {n.message && (
+                    <div className="mt-1 text-xs text-muted-foreground">{n.message}</div>
+                  )}
                   <div className="mt-1 text-nano text-muted-foreground">
                     {new Date(n.created_at).toLocaleString("pt-BR")}
                   </div>

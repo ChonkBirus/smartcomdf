@@ -56,7 +56,8 @@ function DevAuthDiagnosticsPage() {
               <ShieldAlert className="h-5 w-5" /> Disponível apenas em desenvolvimento
             </CardTitle>
             <CardDescription>
-              Esta página de diagnóstico é desativada em produção para não expor dados de fluxos de autenticação.
+              Esta página de diagnóstico é desativada em produção para não expor dados de fluxos de
+              autenticação.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -87,10 +88,21 @@ function DevAuthDiagnosticsPage() {
           <CardTitle>Ambiente</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
-          <div><span className="text-muted-foreground">APP_BASE_URL:</span> <code>{APP_BASE_URL}</code></div>
-          <div><span className="text-muted-foreground">window.origin:</span> <code>{origin || "—"}</code></div>
-          <div><span className="text-muted-foreground">appUrl("/dashboard"):</span> <code>{appUrl("/dashboard")}</code></div>
-          <div><span className="text-muted-foreground">appUrl("/reset-password"):</span> <code>{appUrl("/reset-password")}</code></div>
+          <div>
+            <span className="text-muted-foreground">APP_BASE_URL:</span> <code>{APP_BASE_URL}</code>
+          </div>
+          <div>
+            <span className="text-muted-foreground">window.origin:</span>{" "}
+            <code>{origin || "—"}</code>
+          </div>
+          <div>
+            <span className="text-muted-foreground">appUrl("/dashboard"):</span>{" "}
+            <code>{appUrl("/dashboard")}</code>
+          </div>
+          <div>
+            <span className="text-muted-foreground">appUrl("/reset-password"):</span>{" "}
+            <code>{appUrl("/reset-password")}</code>
+          </div>
         </CardContent>
       </Card>
 
@@ -99,8 +111,8 @@ function DevAuthDiagnosticsPage() {
           <div>
             <CardTitle>Eventos recentes</CardTitle>
             <CardDescription>
-              {entries.length} registro(s) · sucesso: {counts.success ?? 0} · erro: {counts.error ?? 0} ·
-              tentativa: {counts.attempt ?? 0}
+              {entries.length} registro(s) · sucesso: {counts.success ?? 0} · erro:{" "}
+              {counts.error ?? 0} · tentativa: {counts.attempt ?? 0}
             </CardDescription>
           </div>
           <div className="flex gap-2">
@@ -122,7 +134,8 @@ function DevAuthDiagnosticsPage() {
         <CardContent>
           {entries.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Nenhum evento registrado ainda. Use o cadastro, recuperar senha ou convites para gerar entradas.
+              Nenhum evento registrado ainda. Use o cadastro, recuperar senha ou convites para gerar
+              entradas.
             </p>
           ) : (
             <ul className="divide-y">
@@ -131,11 +144,21 @@ function DevAuthDiagnosticsPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant={STATUS_VARIANT[e.status]}>{e.status}</Badge>
                     <span className="font-medium">{FLOW_LABEL[e.flow] ?? e.flow}</span>
-                    <span className="text-xs text-muted-foreground">{new Date(e.ts).toLocaleString()}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(e.ts).toLocaleString()}
+                    </span>
                   </div>
                   <div className="grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
-                    {e.emailMasked && <span>email: <code>{e.emailMasked}</code></span>}
-                    {e.redirectUrl && <span>redirect: <code className="break-all">{e.redirectUrl}</code></span>}
+                    {e.emailMasked && (
+                      <span>
+                        email: <code>{e.emailMasked}</code>
+                      </span>
+                    )}
+                    {e.redirectUrl && (
+                      <span>
+                        redirect: <code className="break-all">{e.redirectUrl}</code>
+                      </span>
+                    )}
                   </div>
                   {e.message && (
                     <p className="text-xs text-destructive break-words">erro: {e.message}</p>

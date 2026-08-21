@@ -1,9 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  Copy, Download, FileText, Loader2, Mail, MessageCircle, Sparkles,
-} from "lucide-react";
+import { Copy, Download, FileText, Loader2, Mail, MessageCircle, Sparkles } from "lucide-react";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
@@ -88,41 +86,67 @@ function buildPdfBlob(opts: {
   const W = doc.internal.pageSize.getWidth();
   let y = 40;
 
-  doc.setFontSize(16); doc.setFont("helvetica", "bold");
-  doc.text(`Relatório de Serviço ${opts.reportNumber}`, 40, y); y += 18;
-  doc.setFontSize(10); doc.setFont("helvetica", "normal");
-  doc.text(`OS #${opts.serviceOrderNumber}`, 40, y); y += 14;
-  doc.text(`Cliente: ${opts.customerName}`, 40, y); y += 14;
-  if (opts.customerEmail) { doc.text(`E-mail: ${opts.customerEmail}`, 40, y); y += 14; }
-  y += 6; doc.setDrawColor(220); doc.line(40, y, W - 40, y); y += 16;
-
-  doc.setFont("helvetica", "bold"); doc.text("Serviço realizado", 40, y); y += 14;
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.text(`Relatório de Serviço ${opts.reportNumber}`, 40, y);
+  y += 18;
+  doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text(opts.serviceTitle, 40, y); y += 14;
+  doc.text(`OS #${opts.serviceOrderNumber}`, 40, y);
+  y += 14;
+  doc.text(`Cliente: ${opts.customerName}`, 40, y);
+  y += 14;
+  if (opts.customerEmail) {
+    doc.text(`E-mail: ${opts.customerEmail}`, 40, y);
+    y += 14;
+  }
+  y += 6;
+  doc.setDrawColor(220);
+  doc.line(40, y, W - 40, y);
+  y += 16;
+
+  doc.setFont("helvetica", "bold");
+  doc.text("Serviço realizado", 40, y);
+  y += 14;
+  doc.setFont("helvetica", "normal");
+  doc.text(opts.serviceTitle, 40, y);
+  y += 14;
   if (opts.description) {
     const lines = doc.splitTextToSize(opts.description, W - 80);
-    doc.text(lines, 40, y); y += lines.length * 12 + 4;
+    doc.text(lines, 40, y);
+    y += lines.length * 12 + 4;
   }
-  doc.text(`Início: ${fmtDate(opts.startedAt)}`, 40, y); y += 12;
-  doc.text(`Conclusão: ${fmtDate(opts.completedAt)}`, 40, y); y += 16;
+  doc.text(`Início: ${fmtDate(opts.startedAt)}`, 40, y);
+  y += 12;
+  doc.text(`Conclusão: ${fmtDate(opts.completedAt)}`, 40, y);
+  y += 16;
 
   if (opts.issue) {
-    doc.setFont("helvetica", "bold"); doc.text("Problema relatado", 40, y); y += 12;
+    doc.setFont("helvetica", "bold");
+    doc.text("Problema relatado", 40, y);
+    y += 12;
     doc.setFont("helvetica", "normal");
     const lines = doc.splitTextToSize(opts.issue, W - 80);
-    doc.text(lines, 40, y); y += lines.length * 12 + 8;
+    doc.text(lines, 40, y);
+    y += lines.length * 12 + 8;
   }
   if (opts.solution) {
-    doc.setFont("helvetica", "bold"); doc.text("Solução aplicada", 40, y); y += 12;
+    doc.setFont("helvetica", "bold");
+    doc.text("Solução aplicada", 40, y);
+    y += 12;
     doc.setFont("helvetica", "normal");
     const lines = doc.splitTextToSize(opts.solution, W - 80);
-    doc.text(lines, 40, y); y += lines.length * 12 + 8;
+    doc.text(lines, 40, y);
+    y += lines.length * 12 + 8;
   }
   if (opts.technicianReport) {
-    doc.setFont("helvetica", "bold"); doc.text("Relatório do técnico", 40, y); y += 12;
+    doc.setFont("helvetica", "bold");
+    doc.text("Relatório do técnico", 40, y);
+    y += 12;
     doc.setFont("helvetica", "normal");
     const lines = doc.splitTextToSize(opts.technicianReport, W - 80);
-    doc.text(lines, 40, y); y += lines.length * 12 + 8;
+    doc.text(lines, 40, y);
+    y += lines.length * 12 + 8;
   }
 
   if (opts.checklist.length > 0) {
@@ -158,10 +182,16 @@ function buildPdfBlob(opts: {
   }
 
   if (opts.signatures.length > 0) {
-    doc.setFont("helvetica", "bold"); doc.text("Assinaturas", 40, y); y += 12;
+    doc.setFont("helvetica", "bold");
+    doc.text("Assinaturas", 40, y);
+    y += 12;
     doc.setFont("helvetica", "normal");
     opts.signatures.forEach((s) => {
-      doc.text(`${s.signature_type === "CUSTOMER" ? "Cliente" : "Técnico"}: ${s.signer_name} — ${fmtDate(s.signed_at)}`, 40, y);
+      doc.text(
+        `${s.signature_type === "CUSTOMER" ? "Cliente" : "Técnico"}: ${s.signer_name} — ${fmtDate(s.signed_at)}`,
+        40,
+        y,
+      );
       y += 12;
     });
   }
@@ -215,10 +245,12 @@ export function ServiceOrderFinalReport({
       const rep = await genFn({ data: { service_order_id: serviceOrderId } });
 
       // 2) Build PDF on the client using current OS payload
-      const { getMobileServiceOrderDetails } = await import("@/lib/technician-service-orders.functions");
+      const { getMobileServiceOrderDetails } =
+        await import("@/lib/technician-service-orders.functions");
       const { listChecklistItems } = await import("@/lib/service-order-checklist.functions");
       const { listMaterialUsage } = await import("@/lib/service-order-materials.functions");
-      const { listServiceOrderSignatures } = await import("@/lib/service-order-signatures.functions");
+      const { listServiceOrderSignatures } =
+        await import("@/lib/service-order-signatures.functions");
 
       const [details, checklist, materials, signatures] = await Promise.all([
         (getMobileServiceOrderDetails as any)({ data: { id: serviceOrderId } }),
@@ -241,13 +273,19 @@ export function ServiceOrderFinalReport({
         solution: so.solution_applied,
         technicianReport: so.technician_report,
         materials: (materials ?? []).map((m: any) => ({
-          name: m.item_name ?? "Material", quantity: Number(m.used_quantity ?? 0), unit: m.unit ?? "",
+          name: m.item_name ?? "Material",
+          quantity: Number(m.used_quantity ?? 0),
+          unit: m.unit ?? "",
         })),
         checklist: (checklist ?? []).map((c: any) => ({
-          title: c.title, is_completed: !!c.is_completed, is_required: !!c.is_required,
+          title: c.title,
+          is_completed: !!c.is_completed,
+          is_required: !!c.is_required,
         })),
         signatures: (signatures ?? []).map((s: any) => ({
-          signer_name: s.signer_name, signature_type: s.signature_type, signed_at: s.signed_at,
+          signer_name: s.signer_name,
+          signature_type: s.signature_type,
+          signed_at: s.signed_at,
         })),
       });
 
@@ -306,8 +344,11 @@ export function ServiceOrderFinalReport({
     window.open(url, "_blank");
     await logFn({
       data: {
-        report_id: report.id, channel: "WHATSAPP", status: "SENT",
-        recipient_name: customerName ?? null, recipient_contact: customerWhatsapp ?? null,
+        report_id: report.id,
+        channel: "WHATSAPP",
+        status: "SENT",
+        recipient_name: customerName ?? null,
+        recipient_contact: customerWhatsapp ?? null,
       },
     });
     qc.invalidateQueries({ queryKey: ["so-report-events", report.id] });
@@ -324,8 +365,11 @@ export function ServiceOrderFinalReport({
     window.open(`mailto:${to}?subject=${subject}&body=${body}`, "_blank");
     await logFn({
       data: {
-        report_id: report.id, channel: "EMAIL", status: "SENT",
-        recipient_name: customerName ?? null, recipient_contact: to || null,
+        report_id: report.id,
+        channel: "EMAIL",
+        status: "SENT",
+        recipient_name: customerName ?? null,
+        recipient_contact: to || null,
       },
     });
     qc.invalidateQueries({ queryKey: ["so-report-events", report.id] });
@@ -336,14 +380,15 @@ export function ServiceOrderFinalReport({
     return (
       <div className="space-y-3">
         <p className="text-sm text-muted-foreground">
-          {isCompleted
-            ? "Nenhum relatório gerado ainda."
-            : "Finalize a OS para gerar o relatório."}
+          {isCompleted ? "Nenhum relatório gerado ainda." : "Finalize a OS para gerar o relatório."}
         </p>
         {canGenerate && (
           <Button onClick={handleGenerate} disabled={!isCompleted || busy} size="sm">
-            {busy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                  : <Sparkles className="h-4 w-4 mr-1" />}
+            {busy ? (
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4 mr-1" />
+            )}
             Gerar relatório final
           </Button>
         )}
@@ -377,7 +422,12 @@ export function ServiceOrderFinalReport({
 
       <div className="flex flex-wrap gap-2">
         {canDownload && (
-          <Button size="sm" variant="outline" onClick={handleDownload} disabled={!report.signed_pdf_url}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleDownload}
+            disabled={!report.signed_pdf_url}
+          >
             <Download className="h-4 w-4 mr-1" /> PDF
           </Button>
         )}
@@ -393,8 +443,11 @@ export function ServiceOrderFinalReport({
         )}
         {canGenerate && (
           <Button size="sm" variant="ghost" onClick={handleGenerate} disabled={busy}>
-            {busy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                  : <FileText className="h-4 w-4 mr-1" />}
+            {busy ? (
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4 mr-1" />
+            )}
             Regerar PDF
           </Button>
         )}
@@ -402,15 +455,21 @@ export function ServiceOrderFinalReport({
 
       {events.length > 0 && (
         <div className="pt-2 border-t">
-          <div className="text-xs font-semibold text-muted-foreground mb-1">Histórico de envios</div>
+          <div className="text-xs font-semibold text-muted-foreground mb-1">
+            Histórico de envios
+          </div>
           <ul className="space-y-1 text-xs">
             {events.map((ev) => (
               <li key={ev.id} className="flex items-start justify-between gap-2">
                 <div>
                   <span className="font-medium">{CHANNEL_LABEL[ev.channel] ?? ev.channel}</span>
-                  {ev.recipient_contact && <span className="text-muted-foreground"> · {ev.recipient_contact}</span>}
+                  {ev.recipient_contact && (
+                    <span className="text-muted-foreground"> · {ev.recipient_contact}</span>
+                  )}
                 </div>
-                <span className="text-muted-foreground whitespace-nowrap">{fmtDate(ev.sent_at)}</span>
+                <span className="text-muted-foreground whitespace-nowrap">
+                  {fmtDate(ev.sent_at)}
+                </span>
               </li>
             ))}
           </ul>

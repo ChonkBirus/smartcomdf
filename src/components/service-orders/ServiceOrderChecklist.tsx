@@ -2,7 +2,14 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  Plus, Loader2, AlertTriangle, CheckCircle2, Pencil, Trash2, ArrowUp, ArrowDown,
+  Plus,
+  Loader2,
+  AlertTriangle,
+  CheckCircle2,
+  Pencil,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,14 +19,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  listChecklistItems, toggleChecklistItem, addChecklistItem,
-  updateChecklistItem, deleteChecklistItem, reorderChecklistItems,
+  listChecklistItems,
+  toggleChecklistItem,
+  addChecklistItem,
+  updateChecklistItem,
+  deleteChecklistItem,
+  reorderChecklistItems,
   type ChecklistItem,
 } from "@/lib/service-order-checklist.functions";
-
 
 type Status = "DRAFT" | "SCHEDULED" | "IN_PROGRESS" | "PAUSED" | "COMPLETED" | "CANCELLED";
 
@@ -65,19 +80,28 @@ export function ServiceOrderChecklist({
 
   const add = useMutation({
     mutationFn: addFn,
-    onSuccess: () => { invalidate(); toast.success("Item adicionado."); },
+    onSuccess: () => {
+      invalidate();
+      toast.success("Item adicionado.");
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao adicionar item"),
   });
 
   const update = useMutation({
     mutationFn: updateFn,
-    onSuccess: () => { invalidate(); toast.success("Item atualizado."); },
+    onSuccess: () => {
+      invalidate();
+      toast.success("Item atualizado.");
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao atualizar item"),
   });
 
   const remove = useMutation({
     mutationFn: deleteFn,
-    onSuccess: () => { invalidate(); toast.success("Item removido."); },
+    onSuccess: () => {
+      invalidate();
+      toast.success("Item removido.");
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao remover item"),
   });
 
@@ -107,10 +131,14 @@ export function ServiceOrderChecklist({
     <div className="space-y-3" role="region" aria-label="Checklist da ordem de serviço">
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>{done}/{data.length} concluídos {reqTotal > 0 && `· obrigatórios ${reqDone}/${reqTotal}`}</span>
+          <span>
+            {done}/{data.length} concluídos{" "}
+            {reqTotal > 0 && `· obrigatórios ${reqDone}/${reqTotal}`}
+          </span>
           {reqPending > 0 ? (
             <span className="inline-flex items-center gap-1 text-warning font-medium" role="status">
-              <AlertTriangle className="h-3 w-3" aria-hidden="true" /> {reqPending} obrigatório(s) pendente(s)
+              <AlertTriangle className="h-3 w-3" aria-hidden="true" /> {reqPending} obrigatório(s)
+              pendente(s)
             </span>
           ) : reqTotal > 0 ? (
             <span className="inline-flex items-center gap-1 text-success font-medium" role="status">
@@ -158,25 +186,30 @@ export function ServiceOrderChecklist({
         </ul>
       )}
 
-
       {editable && (
         <AddItemDialog
           busy={add.isPending}
-          onSubmit={(values) =>
-            add.mutate({ data: { serviceOrderId, ...values } })
-          }
+          onSubmit={(values) => add.mutate({ data: { serviceOrderId, ...values } })}
         />
       )}
     </div>
   );
 }
 
-
 type EditPatch = { title?: string; description?: string | null; required?: boolean };
 
 function ChecklistRow({
-  item, executable, editable, busy, isFirst, isLast,
-  onToggle, onSaveEdit, onDelete, onMoveUp, onMoveDown,
+  item,
+  executable,
+  editable,
+  busy,
+  isFirst,
+  isLast,
+  onToggle,
+  onSaveEdit,
+  onDelete,
+  onMoveUp,
+  onMoveDown,
 }: {
   item: ChecklistItem;
   executable: boolean;
@@ -232,7 +265,9 @@ function ChecklistRow({
         />
         <div className="flex-1 min-w-0">
           <label htmlFor={cbId} className="flex items-center gap-2 flex-wrap cursor-pointer">
-            <span className={`font-medium ${item.checked ? "line-through text-muted-foreground" : ""}`}>
+            <span
+              className={`font-medium ${item.checked ? "line-through text-muted-foreground" : ""}`}
+            >
               {item.title}
             </span>
             {item.required && (
@@ -240,9 +275,13 @@ function ChecklistRow({
                 variant={pendingRequired ? "destructive" : "outline"}
                 className="text-xs inline-flex items-center gap-1"
               >
-                {pendingRequired && <AlertTriangle className="h-3 w-3 animate-pulse" aria-hidden="true" />}
+                {pendingRequired && (
+                  <AlertTriangle className="h-3 w-3 animate-pulse" aria-hidden="true" />
+                )}
                 <span aria-hidden="true">Obrigatório</span>
-                <span className="sr-only">{pendingRequired ? "Obrigatório pendente" : "Obrigatório concluído"}</span>
+                <span className="sr-only">
+                  {pendingRequired ? "Obrigatório pendente" : "Obrigatório concluído"}
+                </span>
               </Badge>
             )}
             {item.checked && <CheckCircle2 className="h-4 w-4 text-success" aria-hidden="true" />}
@@ -260,8 +299,8 @@ function ChecklistRow({
           {item.notes && !editingNote && (
             <p className="text-xs italic text-muted-foreground mt-1">Obs: {item.notes}</p>
           )}
-          {executable && (
-            editingNote ? (
+          {executable &&
+            (editingNote ? (
               <div className="mt-2 space-y-2">
                 <Textarea
                   value={notes}
@@ -272,51 +311,88 @@ function ChecklistRow({
                 <div className="flex gap-2">
                   <Button
                     size="sm"
-                    onClick={() => { onToggle(item.checked, notes); setEditingNote(false); }}
+                    onClick={() => {
+                      onToggle(item.checked, notes);
+                      setEditingNote(false);
+                    }}
                     disabled={busy}
                   >
                     Salvar
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => { setEditingNote(false); setNotes(item.notes ?? ""); }}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setEditingNote(false);
+                      setNotes(item.notes ?? "");
+                    }}
+                  >
                     Cancelar
                   </Button>
                 </div>
               </div>
             ) : (
-              <Button size="sm" variant="ghost" className="h-7 px-2 mt-1 text-xs"
-                onClick={() => setEditingNote(true)}>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2 mt-1 text-xs"
+                onClick={() => setEditingNote(true)}
+              >
                 {item.notes ? "Editar observação" : "Adicionar observação"}
               </Button>
-            )
-          )}
+            ))}
         </div>
 
         {editable && (
           <div className="flex flex-col items-end gap-1">
             <div className="flex gap-1">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={openEdit}
-                disabled={busy} title="Editar" aria-label={`Editar item ${item.title}`}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={openEdit}
+                disabled={busy}
+                title="Editar"
+                aria-label={`Editar item ${item.title}`}
+              >
                 <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"
-                onClick={() => setConfirmDel(true)} disabled={busy}
-                title="Remover" aria-label={`Remover item ${item.title}`}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-destructive"
+                onClick={() => setConfirmDel(true)}
+                disabled={busy}
+                title="Remover"
+                aria-label={`Remover item ${item.title}`}
+              >
                 <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
               </Button>
             </div>
             <div className="flex gap-1">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onMoveUp}
-                disabled={busy || isFirst} title="Mover para cima"
-                aria-label={`Mover ${item.title} para cima`}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={onMoveUp}
+                disabled={busy || isFirst}
+                title="Mover para cima"
+                aria-label={`Mover ${item.title} para cima`}
+              >
                 <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onMoveDown}
-                disabled={busy || isLast} title="Mover para baixo"
-                aria-label={`Mover ${item.title} para baixo`}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={onMoveDown}
+                disabled={busy || isLast}
+                title="Mover para baixo"
+                aria-label={`Mover ${item.title} para baixo`}
+              >
                 <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
               </Button>
             </div>
-
           </div>
         )}
       </div>
@@ -334,7 +410,12 @@ function ChecklistRow({
             </div>
             <div>
               <Label>Descrição</Label>
-              <Textarea value={eDesc} onChange={(e) => setEDesc(e.target.value)} rows={3} maxLength={500} />
+              <Textarea
+                value={eDesc}
+                onChange={(e) => setEDesc(e.target.value)}
+                rows={3}
+                maxLength={500}
+              />
             </div>
             <label className="flex items-center gap-2 text-sm">
               <Checkbox checked={eReq} onCheckedChange={(v) => setEReq(Boolean(v))} />
@@ -342,10 +423,15 @@ function ChecklistRow({
             </label>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>
+              Cancelar
+            </Button>
             <Button
               onClick={() => {
-                if (!eTitle.trim()) { toast.error("Informe o título."); return; }
+                if (!eTitle.trim()) {
+                  toast.error("Informe o título.");
+                  return;
+                }
                 onSaveEdit({
                   title: eTitle.trim(),
                   description: eDesc.trim() ? eDesc.trim() : null,
@@ -370,8 +456,17 @@ function ChecklistRow({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmDel(false)}>Cancelar</Button>
-            <Button variant="destructive" onClick={() => { onDelete(); setConfirmDel(false); }} disabled={busy}>
+            <Button variant="outline" onClick={() => setConfirmDel(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                onDelete();
+                setConfirmDel(false);
+              }}
+              disabled={busy}
+            >
               Remover
             </Button>
           </DialogFooter>
@@ -380,7 +475,6 @@ function ChecklistRow({
     </li>
   );
 }
-
 
 function AddItemDialog({
   busy,
@@ -395,9 +489,15 @@ function AddItemDialog({
   const [required, setRequired] = useState(false);
 
   const submit = () => {
-    if (!title.trim()) { toast.error("Informe o título."); return; }
+    if (!title.trim()) {
+      toast.error("Informe o título.");
+      return;
+    }
     onSubmit({ title: title.trim(), description: description.trim() || undefined, required });
-    setOpen(false); setTitle(""); setDescription(""); setRequired(false);
+    setOpen(false);
+    setTitle("");
+    setDescription("");
+    setRequired(false);
   };
 
   return (
@@ -417,7 +517,12 @@ function AddItemDialog({
           </div>
           <div>
             <Label>Descrição (opcional)</Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={500} />
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              maxLength={500}
+            />
           </div>
           <label className="flex items-center gap-2 text-sm">
             <Checkbox checked={required} onCheckedChange={(v) => setRequired(Boolean(v))} />
@@ -425,7 +530,9 @@ function AddItemDialog({
           </label>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancelar
+          </Button>
           <Button onClick={submit} disabled={busy}>
             {busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />} Adicionar
           </Button>

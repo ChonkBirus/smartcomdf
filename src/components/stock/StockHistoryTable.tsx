@@ -4,8 +4,21 @@ import { useServerFn } from "@tanstack/react-start";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { listLocations, listMovements, type MovementType } from "@/lib/stock.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
 import { ArrowDownLeft, ArrowUpRight, RefreshCw, MoveRight, MoveLeft } from "lucide-react";
@@ -33,23 +46,31 @@ export function StockHistoryTable() {
   });
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["stock_movements", companyId, type, location, search],
-    queryFn: () => listMov({
-      data: {
-        movement_type: type !== "all" ? (type as MovementType) : undefined,
-        location_id: location !== "all" ? location : undefined,
-        search,
-        limit: 200,
-      },
-    }),
+    queryFn: () =>
+      listMov({
+        data: {
+          movement_type: type !== "all" ? (type as MovementType) : undefined,
+          location_id: location !== "all" ? location : undefined,
+          search,
+          limit: 200,
+        },
+      }),
     enabled: !!companyId,
   });
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        <Input placeholder="Buscar item ou SKU…" className="max-w-xs" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Input
+          placeholder="Buscar item ou SKU…"
+          className="max-w-xs"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
         <Select value={type} onValueChange={setType}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Tipo" /></SelectTrigger>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="Tipo" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os tipos</SelectItem>
             <SelectItem value="ENTRY">Entrada</SelectItem>
@@ -60,10 +81,16 @@ export function StockHistoryTable() {
           </SelectContent>
         </Select>
         <Select value={location} onValueChange={setLocation}>
-          <SelectTrigger className="w-48"><SelectValue placeholder="Local" /></SelectTrigger>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Local" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os locais</SelectItem>
-            {locations.map((l) => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
+            {locations.map((l) => (
+              <SelectItem key={l.id} value={l.id}>
+                {l.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -83,25 +110,51 @@ export function StockHistoryTable() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={8} className="text-center text-sm text-muted-foreground py-8">Carregando…</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={8} className="text-center text-sm text-muted-foreground py-8">
+                  Carregando…
+                </TableCell>
+              </TableRow>
             ) : rows.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center text-sm text-muted-foreground py-8">Nenhuma movimentação encontrada.</TableCell></TableRow>
-            ) : rows.map((r) => {
-              const m = TYPE_META[r.movement_type];
-              const Icon = m.icon;
-              return (
-                <TableRow key={r.id}>
-                  <TableCell className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString("pt-BR")}</TableCell>
-                  <TableCell><div className="font-medium">{r.item_name}</div>{r.item_sku && <div className="text-xs text-muted-foreground">{r.item_sku}</div>}</TableCell>
-                  <TableCell><Badge variant="secondary" className="gap-1"><Icon className={`h-3 w-3 ${m.cls}`} />{m.label}</Badge></TableCell>
-                  <TableCell>{r.location_name}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.quantity}</TableCell>
-                  <TableCell className="text-right tabular-nums text-muted-foreground">{r.previous_balance}</TableCell>
-                  <TableCell className="text-right tabular-nums font-semibold">{r.new_balance}</TableCell>
-                  <TableCell className="text-xs">{r.user_name || "—"}</TableCell>
-                </TableRow>
-              );
-            })}
+              <TableRow>
+                <TableCell colSpan={8} className="text-center text-sm text-muted-foreground py-8">
+                  Nenhuma movimentação encontrada.
+                </TableCell>
+              </TableRow>
+            ) : (
+              rows.map((r) => {
+                const m = TYPE_META[r.movement_type];
+                const Icon = m.icon;
+                return (
+                  <TableRow key={r.id}>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {new Date(r.created_at).toLocaleString("pt-BR")}
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{r.item_name}</div>
+                      {r.item_sku && (
+                        <div className="text-xs text-muted-foreground">{r.item_sku}</div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="gap-1">
+                        <Icon className={`h-3 w-3 ${m.cls}`} />
+                        {m.label}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{r.location_name}</TableCell>
+                    <TableCell className="text-right tabular-nums">{r.quantity}</TableCell>
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
+                      {r.previous_balance}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums font-semibold">
+                      {r.new_balance}
+                    </TableCell>
+                    <TableCell className="text-xs">{r.user_name || "—"}</TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </Card>

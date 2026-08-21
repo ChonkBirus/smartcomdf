@@ -52,19 +52,14 @@ function getEnv() {
   if (!apiKey) throw new Error("ASAAS_API_KEY not configured");
   const env = (process.env.ASAAS_ENV ?? "sandbox").toLowerCase();
   const baseUrl =
-    env === "production"
-      ? "https://api.asaas.com/v3"
-      : "https://sandbox.asaas.com/api/v3";
+    env === "production" ? "https://api.asaas.com/v3" : "https://sandbox.asaas.com/api/v3";
   if (env === "production" && apiKey.includes("sandbox")) {
     console.warn("[ASAAS] WARNING: production env but sandbox-looking key");
   }
   return { apiKey, baseUrl, env };
 }
 
-async function asaasFetch<T>(
-  path: string,
-  init: RequestInit = {},
-): Promise<T> {
+async function asaasFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const { apiKey, baseUrl } = getEnv();
   const res = await fetch(`${baseUrl}${path}`, {
     ...init,
@@ -101,9 +96,7 @@ export async function asaasFindCustomerByExternalRef(
   return res.data?.[0] ?? null;
 }
 
-export async function asaasCreateCustomer(
-  input: AsaasCustomerInput,
-): Promise<AsaasCustomer> {
+export async function asaasCreateCustomer(input: AsaasCustomerInput): Promise<AsaasCustomer> {
   return asaasFetch<AsaasCustomer>("/customers", {
     method: "POST",
     body: JSON.stringify(input),
@@ -114,9 +107,7 @@ export async function asaasGetCustomer(id: string): Promise<AsaasCustomer> {
   return asaasFetch<AsaasCustomer>(`/customers/${id}`);
 }
 
-export async function asaasCreatePayment(
-  input: AsaasPaymentInput,
-): Promise<AsaasPayment> {
+export async function asaasCreatePayment(input: AsaasPaymentInput): Promise<AsaasPayment> {
   return asaasFetch<AsaasPayment>("/payments", {
     method: "POST",
     body: JSON.stringify(input),
@@ -127,9 +118,7 @@ export async function asaasGetPayment(id: string): Promise<AsaasPayment> {
   return asaasFetch<AsaasPayment>(`/payments/${id}`);
 }
 
-export async function asaasGetPixQrCode(
-  paymentId: string,
-): Promise<AsaasPixQrCode> {
+export async function asaasGetPixQrCode(paymentId: string): Promise<AsaasPixQrCode> {
   return asaasFetch<AsaasPixQrCode>(`/payments/${paymentId}/pixQrCode`);
 }
 

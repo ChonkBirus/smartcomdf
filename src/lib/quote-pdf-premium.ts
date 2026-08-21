@@ -106,7 +106,9 @@ export type PremiumPdfConfig = {
   responsiblePhone?: string | null;
 };
 
-const DEFAULTS: Required<Omit<PremiumPdfConfig, "kpis" | "responsibleName" | "responsiblePhone">> & {
+const DEFAULTS: Required<
+  Omit<PremiumPdfConfig, "kpis" | "responsibleName" | "responsiblePhone">
+> & {
   kpis: NonNullable<PremiumPdfConfig["kpis"]>;
   responsibleName: string | null;
   responsiblePhone: string | null;
@@ -139,12 +141,30 @@ const DEFAULTS: Required<Omit<PremiumPdfConfig, "kpis" | "responsibleName" | "re
 type ScoredItem = { item: PdfItem; score: number; category: HighlightCategory };
 
 type HighlightCategory =
-  | "camera" | "dvr" | "switch" | "alarm_central" | "sensor" | "siren"
-  | "intercom" | "lock" | "access_reader" | "controller" | "router" | "ap"
-  | "motor" | "inverter" | "solar_panel" | "ev_charger" | "amp" | "speaker"
-  | "led_panel" | "radio" | "other";
+  | "camera"
+  | "dvr"
+  | "switch"
+  | "alarm_central"
+  | "sensor"
+  | "siren"
+  | "intercom"
+  | "lock"
+  | "access_reader"
+  | "controller"
+  | "router"
+  | "ap"
+  | "motor"
+  | "inverter"
+  | "solar_panel"
+  | "ev_charger"
+  | "amp"
+  | "speaker"
+  | "led_panel"
+  | "radio"
+  | "other";
 
-const NEGATIVE_RE = /(cabo|canaleta|conector|parafuso|caixa\s*de\s*passag|disjuntor|protetor|suporte|abraçad|abracad|braçad|bracad|eletrod|terminal|presilha|fita|bucha|chumb|silicone|fonte\s*simples|adaptador\s*simples)/i;
+const NEGATIVE_RE =
+  /(cabo|canaleta|conector|parafuso|caixa\s*de\s*passag|disjuntor|protetor|suporte|abraçad|abracad|braçad|bracad|eletrod|terminal|presilha|fita|bucha|chumb|silicone|fonte\s*simples|adaptador\s*simples)/i;
 
 function categorizeItem(it: PdfItem): HighlightCategory {
   const s = `${it.name} ${it.description ?? ""}`.toLowerCase();
@@ -224,34 +244,59 @@ export function selectStrategicQuoteItems(
 }
 
 const RESOLVES_COPY: Record<HighlightCategory, string> = {
-  camera: "Permite monitorar pontos estratégicos, registrar imagens com mais clareza e aumentar a capacidade de identificação de movimentações no ambiente.",
+  camera:
+    "Permite monitorar pontos estratégicos, registrar imagens com mais clareza e aumentar a capacidade de identificação de movimentações no ambiente.",
   dvr: "Centraliza a gravação das imagens, organiza o monitoramento e permite consulta posterior de eventos importantes.",
-  switch: "Reduz a necessidade de fontes individuais, melhora a organização da infraestrutura e facilita a alimentação dos dispositivos pela rede.",
-  alarm_central: "Monitora sensores e eventos de intrusão, permitindo resposta mais rápida em caso de tentativa de acesso indevido.",
-  sensor: "Detecta movimentação, abertura ou impacto em pontos críticos do ambiente, ativando o sistema de proteção quando necessário.",
-  siren: "Inibe ações suspeitas e sinaliza eventos de forma audível, reforçando o efeito dissuasivo do sistema.",
-  intercom: "Melhora a comunicação com visitantes, aumenta o controle de acesso e torna a entrada no ambiente mais segura e organizada.",
+  switch:
+    "Reduz a necessidade de fontes individuais, melhora a organização da infraestrutura e facilita a alimentação dos dispositivos pela rede.",
+  alarm_central:
+    "Monitora sensores e eventos de intrusão, permitindo resposta mais rápida em caso de tentativa de acesso indevido.",
+  sensor:
+    "Detecta movimentação, abertura ou impacto em pontos críticos do ambiente, ativando o sistema de proteção quando necessário.",
+  siren:
+    "Inibe ações suspeitas e sinaliza eventos de forma audível, reforçando o efeito dissuasivo do sistema.",
+  intercom:
+    "Melhora a comunicação com visitantes, aumenta o controle de acesso e torna a entrada no ambiente mais segura e organizada.",
   lock: "Controla a liberação de acesso, reduz uso de chaves físicas e aumenta a segurança da entrada.",
-  access_reader: "Identifica usuários autorizados e libera o acesso com rastreabilidade, reduzindo riscos de entradas indevidas.",
-  controller: "Centraliza a operação da solução, garantindo integração e funcionamento confiável entre os dispositivos.",
-  router: "Garante a conectividade do ambiente, organiza o tráfego de rede e dá base estável para os demais sistemas.",
+  access_reader:
+    "Identifica usuários autorizados e libera o acesso com rastreabilidade, reduzindo riscos de entradas indevidas.",
+  controller:
+    "Centraliza a operação da solução, garantindo integração e funcionamento confiável entre os dispositivos.",
+  router:
+    "Garante a conectividade do ambiente, organiza o tráfego de rede e dá base estável para os demais sistemas.",
   ap: "Distribui o sinal Wi-Fi nos pontos certos, reduzindo zonas mortas e melhorando a experiência de uso.",
-  motor: "Automatiza o acesso, melhora a praticidade e contribui para a segurança e o controle na entrada.",
-  inverter: "Converte a energia gerada pelos módulos para uso no imóvel, sendo o coração do sistema fotovoltaico.",
-  solar_panel: "Capta a luz solar e gera energia limpa, reduzindo o custo mensal de eletricidade do imóvel.",
-  ev_charger: "Permite recarregar o veículo elétrico em casa, com mais praticidade, segurança e economia.",
+  motor:
+    "Automatiza o acesso, melhora a praticidade e contribui para a segurança e o controle na entrada.",
+  inverter:
+    "Converte a energia gerada pelos módulos para uso no imóvel, sendo o coração do sistema fotovoltaico.",
+  solar_panel:
+    "Capta a luz solar e gera energia limpa, reduzindo o custo mensal de eletricidade do imóvel.",
+  ev_charger:
+    "Permite recarregar o veículo elétrico em casa, com mais praticidade, segurança e economia.",
   amp: "Distribui o áudio com qualidade para todo o ambiente, sustentando a experiência sonora da solução.",
-  speaker: "Entrega cobertura sonora equilibrada, melhorando a experiência e a ambientação do espaço.",
-  led_panel: "Comunica informações e conteúdos visuais com alto impacto, fortalecendo a apresentação do ambiente.",
-  radio: "Estabelece o enlace de comunicação entre pontos distantes, mantendo dados e imagens disponíveis com estabilidade.",
-  other: "Contribui para o funcionamento da solução, oferecendo desempenho e confiabilidade adequados ao projeto.",
+  speaker:
+    "Entrega cobertura sonora equilibrada, melhorando a experiência e a ambientação do espaço.",
+  led_panel:
+    "Comunica informações e conteúdos visuais com alto impacto, fortalecendo a apresentação do ambiente.",
+  radio:
+    "Estabelece o enlace de comunicação entre pontos distantes, mantendo dados e imagens disponíveis com estabilidade.",
+  other:
+    "Contribui para o funcionamento da solução, oferecendo desempenho e confiabilidade adequados ao projeto.",
 };
 
 // ---- Helpers specific to this template ----
 
 type SolutionKey =
-  | "cftv" | "alarm" | "intercom" | "access" | "network"
-  | "automation" | "solar" | "ev" | "audio" | "generic";
+  | "cftv"
+  | "alarm"
+  | "intercom"
+  | "access"
+  | "network"
+  | "automation"
+  | "solar"
+  | "ev"
+  | "audio"
+  | "generic";
 
 type SolutionContent = {
   subtitle: string;
@@ -270,12 +315,27 @@ const SOLUTION_CONTENT: Record<SolutionKey, SolutionContent> = {
     importanceIntro:
       "Um sistema de CFTV bem instalado não serve apenas para gravar imagens. Ele ajuda a prevenir ocorrências, acompanhar movimentações, registrar evidências, aumentar a sensação de segurança e melhorar a gestão do ambiente.",
     importanceCards: [
-      { t: "Prevenção", b: "Câmeras visíveis inibem ações suspeitas e reduzem vulnerabilidades do ambiente." },
-      { t: "Registro de evidências", b: "Imagens auxiliam na análise de ocorrências e tomada de decisão." },
-      { t: "Controle do ambiente", b: "Acompanhe entradas, saídas, áreas comuns e pontos críticos." },
+      {
+        t: "Prevenção",
+        b: "Câmeras visíveis inibem ações suspeitas e reduzem vulnerabilidades do ambiente.",
+      },
+      {
+        t: "Registro de evidências",
+        b: "Imagens auxiliam na análise de ocorrências e tomada de decisão.",
+      },
+      {
+        t: "Controle do ambiente",
+        b: "Acompanhe entradas, saídas, áreas comuns e pontos críticos.",
+      },
       { t: "Mais tranquilidade", b: "Síndicos, gestores e moradores ganham segurança e controle." },
-      { t: "Valorização do imóvel", b: "Ambientes com estrutura de segurança transmitem organização." },
-      { t: "Integração", b: "CFTV trabalha junto com alarmes, controle de acesso, redes e automação." },
+      {
+        t: "Valorização do imóvel",
+        b: "Ambientes com estrutura de segurança transmitem organização.",
+      },
+      {
+        t: "Integração",
+        b: "CFTV trabalha junto com alarmes, controle de acesso, redes e automação.",
+      },
     ],
     solutionTitle: "Solução de monitoramento e vigilância",
     solutionIntro:
@@ -517,19 +577,28 @@ const SOLUTION_CONTENT: Record<SolutionKey, SolutionContent> = {
 };
 
 function detectSolutionKey(quote: PdfQuote, items: PdfItem[]): SolutionKey {
-  const haystack = [
-    quote.title ?? "",
-    ...items.map((i) => `${i.name} ${i.description ?? ""}`),
-  ].join(" ").toLowerCase();
+  const haystack = [quote.title ?? "", ...items.map((i) => `${i.name} ${i.description ?? ""}`)]
+    .join(" ")
+    .toLowerCase();
   const test = (re: RegExp) => re.test(haystack);
   if (test(/(interfon|porteiro\s*eletr|video[- ]?porteir)/)) return "intercom";
-  if (test(/(controle\s*de\s*acesso|catraca|biometr|leitor\s*(rfid|nfc|tag)|fechadura\s*(eletr|digital))/)) return "access";
-  if (test(/(alarme|sensor\s*(de\s*)?(presen|movim|abert)|central\s*de\s*alarme|sirene)/)) return "alarm";
+  if (
+    test(
+      /(controle\s*de\s*acesso|catraca|biometr|leitor\s*(rfid|nfc|tag)|fechadura\s*(eletr|digital))/,
+    )
+  )
+    return "access";
+  if (test(/(alarme|sensor\s*(de\s*)?(presen|movim|abert)|central\s*de\s*alarme|sirene)/))
+    return "alarm";
   if (test(/(carregador|wallbox|veic|ev\b|recarga)/)) return "ev";
   if (test(/(solar|fotovolt|inversor|placa\s*solar)/)) return "solar";
   if (test(/(automa(c|ç)ão|domot|cena|smart\s*home)/)) return "automation";
-  if (test(/(rede|switch|roteador|wifi|wi[- ]fi|cabea(mento)?\s*estrutur|patch\s*panel|rack|fibra)/)) return "network";
-  if (test(/(som\s*ambient|caixa\s*acust|amplificad|painel\s*de\s*led|mídia|midia)/)) return "audio";
+  if (
+    test(/(rede|switch|roteador|wifi|wi[- ]fi|cabea(mento)?\s*estrutur|patch\s*panel|rack|fibra)/)
+  )
+    return "network";
+  if (test(/(som\s*ambient|caixa\s*acust|amplificad|painel\s*de\s*led|mídia|midia)/))
+    return "audio";
   if (test(/(cftv|c(â|a)mer|dvr|nvr|vigil|monitor)/)) return "cftv";
   return "generic";
 }
@@ -656,7 +725,8 @@ async function renderCoverPage(
   doc.text("PROPOSTA COMERCIAL", A4.w / 2, titleY, { align: "center" });
 
   // ------- Subtitle: quote title or solution subtitle -------
-  const subtitle = (ctx.quote.title && ctx.quote.title.trim()) || inferSubtitle(ctx.quote, ctx.items);
+  const subtitle =
+    (ctx.quote.title && ctx.quote.title.trim()) || inferSubtitle(ctx.quote, ctx.items);
   setText(doc, COVER_GREEN_SOFT);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(12);
@@ -684,10 +754,7 @@ async function renderCoverPage(
   doc.text("PROPOSTA PREPARADA PARA", cardX + 24, cardY + 30);
 
   const clientLabel =
-    ctx.customer?.name ||
-    ctx.customer?.trade_name ||
-    ctx.customer?.corporate_name ||
-    NA;
+    ctx.customer?.name || ctx.customer?.trade_name || ctx.customer?.corporate_name || NA;
   setText(doc, "#0B0B0B");
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
@@ -715,7 +782,8 @@ async function renderCoverPage(
 
   const responsible =
     ctx.cfg.responsibleName ||
-    (ctx.company?.trade_name || ctx.company?.corporate_name) ||
+    ctx.company?.trade_name ||
+    ctx.company?.corporate_name ||
     companyName(ctx.company) ||
     NA;
 
@@ -725,12 +793,32 @@ async function renderCoverPage(
   let nextRowY = metaY + 42;
   if (ctx.customer?.cpf_cnpj) {
     drawMeta(cardX + 24, nextRowY, "Documento", ctx.customer.cpf_cnpj);
-    drawMeta(cardX + 24 + colW + 24, nextRowY, "Data de emissão", ctx.quote.issue_date ? fmtDate(ctx.quote.issue_date) : NA);
+    drawMeta(
+      cardX + 24 + colW + 24,
+      nextRowY,
+      "Data de emissão",
+      ctx.quote.issue_date ? fmtDate(ctx.quote.issue_date) : NA,
+    );
     nextRowY += 42;
-    drawMeta(cardX + 24, nextRowY, "Validade", ctx.quote.valid_until ? fmtDate(ctx.quote.valid_until) : NA);
+    drawMeta(
+      cardX + 24,
+      nextRowY,
+      "Validade",
+      ctx.quote.valid_until ? fmtDate(ctx.quote.valid_until) : NA,
+    );
   } else {
-    drawMeta(cardX + 24, nextRowY, "Data de emissão", ctx.quote.issue_date ? fmtDate(ctx.quote.issue_date) : NA);
-    drawMeta(cardX + 24 + colW + 24, nextRowY, "Validade", ctx.quote.valid_until ? fmtDate(ctx.quote.valid_until) : NA);
+    drawMeta(
+      cardX + 24,
+      nextRowY,
+      "Data de emissão",
+      ctx.quote.issue_date ? fmtDate(ctx.quote.issue_date) : NA,
+    );
+    drawMeta(
+      cardX + 24 + colW + 24,
+      nextRowY,
+      "Validade",
+      ctx.quote.valid_until ? fmtDate(ctx.quote.valid_until) : NA,
+    );
   }
 
   // ------- Footer contact strip -------
@@ -819,13 +907,30 @@ function renderAboutPage(doc: jsPDF, ctx: { company: PdfCompany; cfg: typeof DEF
   y += 8;
   // 3 pillars
   const pillars = [
-    { t: "Levantamento técnico", b: "Análise correta do ambiente, dimensionamento e escolha dos equipamentos adequados." },
-    { t: "Instalação profissional", b: "Execução organizada, com acabamento, testes e documentação técnica." },
-    { t: "Suporte e garantia", b: "Acompanhamento pós-instalação, suporte técnico e garantia sobre os serviços." },
+    {
+      t: "Levantamento técnico",
+      b: "Análise correta do ambiente, dimensionamento e escolha dos equipamentos adequados.",
+    },
+    {
+      t: "Instalação profissional",
+      b: "Execução organizada, com acabamento, testes e documentação técnica.",
+    },
+    {
+      t: "Suporte e garantia",
+      b: "Acompanhamento pós-instalação, suporte técnico e garantia sobre os serviços.",
+    },
   ];
   const cardW = (A4.w - MARGIN * 2 - 16) / 3;
   pillars.forEach((p, i) =>
-    drawCard(doc, { x: MARGIN + i * (cardW + 8), y, w: cardW, h: 90, title: p.t, body: p.b, gold: true }),
+    drawCard(doc, {
+      x: MARGIN + i * (cardW + 8),
+      y,
+      w: cardW,
+      h: 90,
+      title: p.t,
+      body: p.b,
+      gold: true,
+    }),
   );
   y += 110;
 
@@ -859,7 +964,10 @@ function renderAboutPage(doc: jsPDF, ctx: { company: PdfCompany; cfg: typeof DEF
   });
 }
 
-function renderTechnicalAuthorityPage(doc: jsPDF, ctx: { settings: PdfSettings; company: PdfCompany }) {
+function renderTechnicalAuthorityPage(
+  doc: jsPDF,
+  ctx: { settings: PdfSettings; company: PdfCompany },
+) {
   let y = newPage(doc);
   y = drawEyebrow(doc, "Responsabilidade Técnica", y);
   y = drawSectionTitle(doc, "Por que contratar uma empresa com responsabilidade técnica?", y);
@@ -897,7 +1005,8 @@ function renderTechnicalAuthorityPage(doc: jsPDF, ctx: { settings: PdfSettings; 
   if (s.cft_registry) creds.push({ label: "Registro CFT", value: String(s.cft_registry) });
   if (s.nr10) creds.push({ label: "NR-10", value: "Certificação ativa" });
   if (s.nr35) creds.push({ label: "NR-35", value: "Certificação ativa" });
-  if (s.technical_responsible) creds.push({ label: "Responsável técnico", value: String(s.technical_responsible) });
+  if (s.technical_responsible)
+    creds.push({ label: "Responsável técnico", value: String(s.technical_responsible) });
 
   setFill(doc, PALETTE.graphite);
   doc.roundedRect(MARGIN, y, A4.w - MARGIN * 2, creds.length ? 110 : 70, 6, 6, "F");
@@ -1005,14 +1114,14 @@ function renderDiagnosisPage(doc: jsPDF, ctx: { quote: PdfQuote }) {
   drawParagraph(doc, text, y);
 }
 
-
 function renderSolutionSummaryPage(doc: jsPDF, ctx: { quote: PdfQuote; items: PdfItem[] }) {
   const content = getSolutionContent(ctx.quote, ctx.items);
   let y = newPage(doc);
   y = drawEyebrow(doc, "Solução Proposta", y);
   y = drawSectionTitle(doc, content.solutionTitle, y);
 
-  const totalItems = ctx.items.filter((i) => i.kind !== "LABOR")
+  const totalItems = ctx.items
+    .filter((i) => i.kind !== "LABOR")
     .reduce((s, i) => s + i.quantity, 0);
 
   y = drawParagraph(doc, content.solutionIntro, y);
@@ -1142,12 +1251,7 @@ async function renderMaterialsTablePage(
     setText(doc, PALETTE.grayDark);
     doc.setFont("helvetica", "italic");
     doc.setFontSize(11);
-    doc.text(
-      "Nenhum material cadastrado neste orçamento.",
-      A4.w / 2,
-      y + 40,
-      { align: "center" },
-    );
+    doc.text("Nenhum material cadastrado neste orçamento.", A4.w / 2, y + 40, { align: "center" });
     return;
   }
 
@@ -1163,7 +1267,13 @@ async function renderMaterialsTablePage(
       String(Number(it.quantity)).replace(".", ","),
       it.unit || "UN",
     ]),
-    styles: { fontSize: 10, cellPadding: 6, valign: "middle", textColor: [30, 30, 30], minCellHeight: ROW_H },
+    styles: {
+      fontSize: 10,
+      cellPadding: 6,
+      valign: "middle",
+      textColor: [30, 30, 30],
+      minCellHeight: ROW_H,
+    },
     headStyles: {
       fillColor: [11, 11, 11],
       textColor: [201, 162, 75],
@@ -1185,7 +1295,7 @@ async function renderMaterialsTablePage(
       const it = visible[data.row.index];
       if (!it) return;
       const url = it.image_url ?? null;
-      const dataUrl = url ? ctx.thumbnails.get(url) ?? null : null;
+      const dataUrl = url ? (ctx.thumbnails.get(url) ?? null) : null;
       const cell = data.cell;
       const size = Math.min(cell.width, cell.height) - 6;
       const cx = cell.x + (cell.width - size) / 2;
@@ -1221,10 +1331,15 @@ async function renderMaterialsTablePage(
   );
 }
 
-
 async function renderProductHighlight(
   doc: jsPDF,
-  ctx: { item: PdfItem; imageDataUrl: string | null; index: number; total: number; category: HighlightCategory },
+  ctx: {
+    item: PdfItem;
+    imageDataUrl: string | null;
+    index: number;
+    total: number;
+    category: HighlightCategory;
+  },
 ) {
   let y = newPage(doc);
   y = drawEyebrow(doc, `Produto estratégico da solução · ${ctx.index + 1}/${ctx.total}`, y);
@@ -1238,7 +1353,16 @@ async function renderProductHighlight(
   if (ctx.imageDataUrl) {
     try {
       const fmt = detectImageFormat(ctx.imageDataUrl);
-      doc.addImage(ctx.imageDataUrl, fmt, MARGIN + 6, y + 6, imgW - 12, imgH - 12, undefined, "FAST");
+      doc.addImage(
+        ctx.imageDataUrl,
+        fmt,
+        MARGIN + 6,
+        y + 6,
+        imgW - 12,
+        imgH - 12,
+        undefined,
+        "FAST",
+      );
     } catch {
       /* ignore */
     }
@@ -1263,7 +1387,10 @@ async function renderProductHighlight(
     "Este equipamento foi selecionado por ser uma peça importante para o funcionamento da solução proposta. Ele contribui para maior segurança, estabilidade e confiabilidade do sistema, reduzindo riscos de falhas e facilitando a operação no dia a dia.";
   const rLines = doc.splitTextToSize(reason, tw) as string[];
   let cy = y + 32;
-  rLines.forEach((ln) => { doc.text(ln, tx, cy); cy += 13; });
+  rLines.forEach((ln) => {
+    doc.text(ln, tx, cy);
+    cy += 13;
+  });
 
   cy += 6;
   setText(doc, PALETTE.gold);
@@ -1276,7 +1403,10 @@ async function renderProductHighlight(
   doc.setFontSize(9.5);
   const resolves = RESOLVES_COPY[ctx.category] ?? RESOLVES_COPY.other;
   const resLines = doc.splitTextToSize(resolves, tw) as string[];
-  resLines.forEach((ln) => { doc.text(ln, tx, cy); cy += 12; });
+  resLines.forEach((ln) => {
+    doc.text(ln, tx, cy);
+    cy += 12;
+  });
 
   if (ctx.item.description) {
     cy += 6;
@@ -1289,11 +1419,14 @@ async function renderProductHighlight(
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9.5);
     const dLines = doc.splitTextToSize(ctx.item.description, tw) as string[];
-    dLines.slice(0, 6).forEach((ln) => { doc.text(ln, tx, cy); cy += 12; });
+    dLines.slice(0, 6).forEach((ln) => {
+      doc.text(ln, tx, cy);
+      cy += 12;
+    });
   }
 
   // Quantity badge
-  let by = y + imgH + 16;
+  const by = y + imgH + 16;
   setFill(doc, PALETTE.black);
   doc.roundedRect(MARGIN, by, imgW, 36, 6, 6, "F");
   setText(doc, PALETTE.goldSoft);
@@ -1410,11 +1543,7 @@ function renderCommercialConditionsPage(doc: jsPDF, ctx: { quote: PdfQuote }) {
   setText(doc, PALETTE.gray);
   doc.setFont("helvetica", "italic");
   doc.setFontSize(9);
-  doc.text(
-    "Valor total com materiais, serviços e mão de obra inclusos.",
-    MARGIN + 20,
-    y + 92,
-  );
+  doc.text("Valor total com materiais, serviços e mão de obra inclusos.", MARGIN + 20, y + 92);
   y += 130;
 
   // Terms grid
@@ -1591,39 +1720,40 @@ function renderCompanyDataPage(doc: jsPDF, ctx: { company: PdfCompany; settings:
     { label: "Registro CFT", value: ctx.settings?.cft_registry },
   ];
 
-  rows.filter((r) => r.value).forEach((r) => {
-    setText(doc, PALETTE.gold);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
-    doc.text(r.label.toUpperCase(), MARGIN, y);
-    setText(doc, PALETTE.black);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-    const valueText = String(r.value);
-    if (r.label === "WhatsApp") {
-      const digits = valueText.replace(/\D/g, "");
-      if (digits) {
-        const intlDigits = digits.startsWith("55") ? digits : `55${digits}`;
-        const waUrl = `https://wa.me/${intlDigits}`;
+  rows
+    .filter((r) => r.value)
+    .forEach((r) => {
+      setText(doc, PALETTE.gold);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text(r.label.toUpperCase(), MARGIN, y);
+      setText(doc, PALETTE.black);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      const valueText = String(r.value);
+      if (r.label === "WhatsApp") {
+        const digits = valueText.replace(/\D/g, "");
+        if (digits) {
+          const intlDigits = digits.startsWith("55") ? digits : `55${digits}`;
+          const waUrl = `https://wa.me/${intlDigits}`;
+          setText(doc, PALETTE.gold);
+          doc.textWithLink(valueText, MARGIN + 140, y, { url: waUrl });
+          setText(doc, PALETTE.gray);
+          doc.setFontSize(8);
+          doc.text(waUrl, MARGIN + 140, y + 12);
+        } else {
+          doc.text(valueText, MARGIN + 140, y);
+        }
+      } else if (r.label === "E-mail") {
         setText(doc, PALETTE.gold);
-        doc.textWithLink(valueText, MARGIN + 140, y, { url: waUrl });
-        setText(doc, PALETTE.gray);
-        doc.setFontSize(8);
-        doc.text(waUrl, MARGIN + 140, y + 12);
+        doc.textWithLink(valueText, MARGIN + 140, y, { url: `mailto:${valueText}` });
       } else {
         doc.text(valueText, MARGIN + 140, y);
       }
-    } else if (r.label === "E-mail") {
-      setText(doc, PALETTE.gold);
-      doc.textWithLink(valueText, MARGIN + 140, y, { url: `mailto:${valueText}` });
-    } else {
-      doc.text(valueText, MARGIN + 140, y);
-    }
-    setStroke(doc, PALETTE.grayLight);
-    doc.line(MARGIN, y + 18, A4.w - MARGIN, y + 18);
-    y += r.label === "WhatsApp" && String(r.value).replace(/\D/g, "") ? 36 : 28;
-  });
-
+      setStroke(doc, PALETTE.grayLight);
+      doc.line(MARGIN, y + 18, A4.w - MARGIN, y + 18);
+      y += r.label === "WhatsApp" && String(r.value).replace(/\D/g, "") ? 36 : 28;
+    });
 
   y += 16;
   setFill(doc, PALETTE.black);
@@ -1653,8 +1783,11 @@ export async function generatePremiumQuotePDF(opts: {
   config?: PremiumPdfConfig;
   output?: "save" | "blob";
 }): Promise<Blob | void> {
-
-  const cfg = { ...DEFAULTS, ...(opts.config ?? {}), kpis: { ...DEFAULTS.kpis, ...(opts.config?.kpis ?? {}) } };
+  const cfg = {
+    ...DEFAULTS,
+    ...(opts.config ?? {}),
+    kpis: { ...DEFAULTS.kpis, ...(opts.config?.kpis ?? {}) },
+  };
 
   const doc = new jsPDF({ unit: "pt", format: "a4", compress: true });
 
@@ -1727,12 +1860,16 @@ export async function generatePremiumQuotePDF(opts: {
   });
   if (effective.showCompanyIntro) renderCompanyIntroPage(doc, { company: opts.company });
   if (effective.showAbout) renderAboutPage(doc, { company: opts.company, cfg });
-  if (effective.showCftPage) renderTechnicalAuthorityPage(doc, { settings: opts.settings, company: opts.company });
-  if (effective.showCftvImportance) renderCftvImportancePage(doc, { quote: opts.quote, items: opts.items });
+  if (effective.showCftPage)
+    renderTechnicalAuthorityPage(doc, { settings: opts.settings, company: opts.company });
+  if (effective.showCftvImportance)
+    renderCftvImportancePage(doc, { quote: opts.quote, items: opts.items });
   if (effective.showDiagnosis) renderDiagnosisPage(doc, { quote: opts.quote });
-  if (effective.showSolutionSummary) renderSolutionSummaryPage(doc, { quote: opts.quote, items: opts.items });
+  if (effective.showSolutionSummary)
+    renderSolutionSummaryPage(doc, { quote: opts.quote, items: opts.items });
   if (effective.showScope) renderScopePage(doc);
-  if (effective.showMaterialsTable) await renderMaterialsTablePage(doc, { items: opts.items, thumbnails });
+  if (effective.showMaterialsTable)
+    await renderMaterialsTablePage(doc, { items: opts.items, thumbnails });
   if (effective.showProductHighlights) {
     for (let i = 0; i < strategicItems.length; i++) {
       await renderProductHighlight(doc, {
@@ -1746,7 +1883,8 @@ export async function generatePremiumQuotePDF(opts: {
   }
   if (effective.showExecutionProcess) renderExecutionProcessPage(doc);
   if (effective.showWarrantySupport) renderWarrantySupportPage(doc);
-  if (effective.showCommercialConditions) renderCommercialConditionsPage(doc, { quote: opts.quote });
+  if (effective.showCommercialConditions)
+    renderCommercialConditionsPage(doc, { quote: opts.quote });
   if (effective.showImportantNotes) renderImportantNotesPage(doc, { quote: opts.quote });
   if (effective.showAcceptancePage) {
     await renderAcceptancePage(doc, {
@@ -1795,4 +1933,3 @@ export async function generatePremiumQuotePDF(opts: {
   if (opts.output === "blob") return doc.output("blob");
   doc.save(`Proposta-${opts.quote.quote_number}.pdf`);
 }
-

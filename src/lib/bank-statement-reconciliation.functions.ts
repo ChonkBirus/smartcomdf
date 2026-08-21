@@ -42,13 +42,15 @@ async function getCompanyId(sb: any, userId: string): Promise<string> {
   return cid;
 }
 
-const ListSchema = z.object({
-  importId: z.string().uuid().optional(),
-  bankAccountId: z.string().uuid().optional(),
-  status: z.enum(["PENDING", "SUGGESTED", "RECONCILED", "IGNORED"]).optional(),
-  minScore: z.number().min(0).max(100).default(50),
-  limit: z.number().int().min(1).max(200).default(100),
-}).default({ minScore: 50, limit: 100 });
+const ListSchema = z
+  .object({
+    importId: z.string().uuid().optional(),
+    bankAccountId: z.string().uuid().optional(),
+    status: z.enum(["PENDING", "SUGGESTED", "RECONCILED", "IGNORED"]).optional(),
+    minScore: z.number().min(0).max(100).default(50),
+    limit: z.number().int().min(1).max(200).default(100),
+  })
+  .default({ minScore: 50, limit: 100 });
 
 export const listStatementSuggestions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -59,7 +61,9 @@ export const listStatementSuggestions = createServerFn({ method: "POST" })
 
     let q = sb
       .from("bank_statement_transactions")
-      .select("id, transaction_date, description, amount, type, reconciliation_status, bank_account_id")
+      .select(
+        "id, transaction_date, description, amount, type, reconciliation_status, bank_account_id",
+      )
       .eq("company_id", companyId)
       .order("transaction_date", { ascending: false })
       .limit(data.limit);
@@ -74,8 +78,10 @@ export const listStatementSuggestions = createServerFn({ method: "POST" })
     const dates = bankTxs.map((b: any) => b.transaction_date);
     const minDate = dates.reduce((m: string, d: string) => (d < m ? d : m), dates[0]);
     const maxDate = dates.reduce((m: string, d: string) => (d > m ? d : m), dates[0]);
-    const wStart = new Date(minDate); wStart.setDate(wStart.getDate() - 15);
-    const wEnd = new Date(maxDate); wEnd.setDate(wEnd.getDate() + 15);
+    const wStart = new Date(minDate);
+    wStart.setDate(wStart.getDate() - 15);
+    const wEnd = new Date(maxDate);
+    wEnd.setDate(wEnd.getDate() + 15);
 
     const { data: finTxs } = await sb
       .from("financial_transactions")
@@ -138,24 +144,32 @@ export const listStatementSuggestions = createServerFn({ method: "POST" })
 export const confirmStatementReconciliation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      bankStatementTransactionId: z.string().uuid(),
-      financialTransactionId: z.string().uuid(),
-      confidenceScore: z.number().min(0).max(100).optional(),
-    }).parse(d)
+    z
+      .object({
+        bankStatementTransactionId: z.string().uuid(),
+        financialTransactionId: z.string().uuid(),
+        confidenceScore: z.number().min(0).max(100).optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
 
     const [{ data: bank }, { data: fin }] = await Promise.all([
-      sb.from("bank_statement_transactions")
+      sb
+        .from("bank_statement_transactions")
         .select("id, transaction_date, reconciliation_status")
-        .eq("id", data.bankStatementTransactionId).eq("company_id", companyId).maybeSingle(),
-      sb.from("financial_transactions")
+        .eq("id", data.bankStatementTransactionId)
+        .eq("company_id", companyId)
+        .maybeSingle(),
+      sb
+        .from("financial_transactions")
         .select("id, paid_at, status")
-        .eq("id", data.financialTransactionId).eq("company_id", companyId)
-        .is("deleted_at", null).maybeSingle(),
+        .eq("id", data.financialTransactionId)
+        .eq("company_id", companyId)
+        .is("deleted_at", null)
+        .maybeSingle(),
     ]);
     if (!bank) throw new Error("Lançamento bancário não encontrado.");
     if (!fin) throw new Error("Lançamento financeiro não encontrado.");
@@ -174,14 +188,16 @@ export const confirmStatementReconciliation = createServerFn({ method: "POST" })
     });
     if (rErr) throw new Error(rErr.message);
 
-    await sb.from("bank_statement_transactions")
+    await sb
+      .from("bank_statement_transactions")
       .update({
         reconciliation_status: "RECONCILED",
         reconciled_financial_transaction_id: fin.id,
       })
       .eq("id", bank.id);
 
-    await sb.from("financial_transactions")
+    await sb
+      .from("financial_transactions")
       .update({
         status: "RECONCILED",
         paid_at: fin.paid_at ?? new Date(bank.transaction_date).toISOString(),
@@ -194,15 +210,18 @@ export const confirmStatementReconciliation = createServerFn({ method: "POST" })
 export const ignoreStatementTransaction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      bankStatementTransactionId: z.string().uuid(),
-      reason: z.string().trim().max(280).optional(),
-    }).parse(d)
+    z
+      .object({
+        bankStatementTransactionId: z.string().uuid(),
+        reason: z.string().trim().max(280).optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
-    const { error } = await sb.from("bank_statement_transactions")
+    const { error } = await sb
+      .from("bank_statement_transactions")
       .update({ reconciliation_status: "IGNORED", ignored_reason: data.reason ?? null })
       .eq("id", data.bankStatementTransactionId)
       .eq("company_id", companyId);
@@ -213,31 +232,37 @@ export const ignoreStatementTransaction = createServerFn({ method: "POST" })
 export const undoStatementReconciliation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({ bankStatementTransactionId: z.string().uuid() }).parse(d)
+    z.object({ bankStatementTransactionId: z.string().uuid() }).parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
 
-    const { data: bank } = await sb.from("bank_statement_transactions")
+    const { data: bank } = await sb
+      .from("bank_statement_transactions")
       .select("id, reconciled_financial_transaction_id")
-      .eq("id", data.bankStatementTransactionId).eq("company_id", companyId).maybeSingle();
+      .eq("id", data.bankStatementTransactionId)
+      .eq("company_id", companyId)
+      .maybeSingle();
     if (!bank) throw new Error("Lançamento bancário não encontrado.");
 
-    await sb.from("bank_reconciliations")
+    await sb
+      .from("bank_reconciliations")
       .update({ status: "CANCELED" })
       .eq("bank_transaction_id", bank.id)
       .eq("company_id", companyId)
       .eq("status", "CONFIRMED");
 
     if (bank.reconciled_financial_transaction_id) {
-      await sb.from("financial_transactions")
+      await sb
+        .from("financial_transactions")
         .update({ status: "PLANNED" })
         .eq("id", bank.reconciled_financial_transaction_id)
         .eq("company_id", companyId);
     }
 
-    await sb.from("bank_statement_transactions")
+    await sb
+      .from("bank_statement_transactions")
       .update({ reconciliation_status: "PENDING", reconciled_financial_transaction_id: null })
       .eq("id", bank.id);
 
@@ -247,18 +272,24 @@ export const undoStatementReconciliation = createServerFn({ method: "POST" })
 export const createFinancialFromStatementTransaction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      bankStatementTransactionId: z.string().uuid(),
-      categoryId: z.string().uuid().nullable().optional(),
-      customerId: z.string().uuid().nullable().optional(),
-      supplierId: z.string().uuid().nullable().optional(),
-    }).parse(d)
+    z
+      .object({
+        bankStatementTransactionId: z.string().uuid(),
+        categoryId: z.string().uuid().nullable().optional(),
+        customerId: z.string().uuid().nullable().optional(),
+        supplierId: z.string().uuid().nullable().optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
-    const { data: b } = await sb.from("bank_statement_transactions")
-      .select("*").eq("id", data.bankStatementTransactionId).eq("company_id", companyId).maybeSingle();
+    const { data: b } = await sb
+      .from("bank_statement_transactions")
+      .select("*")
+      .eq("id", data.bankStatementTransactionId)
+      .eq("company_id", companyId)
+      .maybeSingle();
     if (!b) throw new Error("Lançamento bancário não encontrado.");
 
     // Idempotência: se já existe lançamento vinculado a esta linha do extrato,
@@ -275,14 +306,16 @@ export const createFinancialFromStatementTransaction = createServerFn({ method: 
     }
 
     // Defesa adicional: reconciliação confirmada existente para esta linha.
-    const { data: existingRec } = await sb.from("bank_reconciliations")
+    const { data: existingRec } = await sb
+      .from("bank_reconciliations")
       .select("financial_transaction_id")
       .eq("company_id", companyId)
       .eq("bank_transaction_id", b.id)
       .eq("status", "CONFIRMED")
       .maybeSingle();
     if (existingRec?.financial_transaction_id) {
-      await sb.from("bank_statement_transactions")
+      await sb
+        .from("bank_statement_transactions")
         .update({
           reconciliation_status: "RECONCILED",
           reconciled_financial_transaction_id: existingRec.financial_transaction_id,
@@ -298,20 +331,24 @@ export const createFinancialFromStatementTransaction = createServerFn({ method: 
     const type = b.type === "CREDIT" ? "INCOME" : "EXPENSE";
     const amount = Math.abs(Number(b.amount));
 
-    const { data: fin, error } = await sb.from("financial_transactions").insert({
-      company_id: companyId,
-      type,
-      category_id: data.categoryId ?? null,
-      customer_id: data.customerId ?? null,
-      supplier_id: data.supplierId ?? null,
-      description: b.description ?? "Lançamento bancário",
-      amount,
-      due_date: b.transaction_date,
-      paid_at: new Date(b.transaction_date).toISOString(),
-      status: "RECONCILED",
-      origin: "BANK_STATEMENT",
-      created_by: context.userId,
-    }).select("id").single();
+    const { data: fin, error } = await sb
+      .from("financial_transactions")
+      .insert({
+        company_id: companyId,
+        type,
+        category_id: data.categoryId ?? null,
+        customer_id: data.customerId ?? null,
+        supplier_id: data.supplierId ?? null,
+        description: b.description ?? "Lançamento bancário",
+        amount,
+        due_date: b.transaction_date,
+        paid_at: new Date(b.transaction_date).toISOString(),
+        status: "RECONCILED",
+        origin: "BANK_STATEMENT",
+        created_by: context.userId,
+      })
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
 
     await sb.from("bank_reconciliations").insert({
@@ -325,7 +362,8 @@ export const createFinancialFromStatementTransaction = createServerFn({ method: 
       confirmed_at: new Date().toISOString(),
     });
 
-    await sb.from("bank_statement_transactions")
+    await sb
+      .from("bank_statement_transactions")
       .update({
         reconciliation_status: "RECONCILED",
         reconciled_financial_transaction_id: fin.id,

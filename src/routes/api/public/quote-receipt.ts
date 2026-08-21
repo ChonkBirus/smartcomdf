@@ -95,7 +95,9 @@ export const Route = createFileRoute("/api/public/quote-receipt")({
 
         if (upErr) {
           // rollback: remove o pagamento pendente para não ficar apontando pra arquivo inexistente
-          await supabaseAdmin.rpc("rollback_public_quote_receipt", { _payment_id: paymentId } as any);
+          await supabaseAdmin.rpc("rollback_public_quote_receipt", {
+            _payment_id: paymentId,
+          } as any);
           return json({ error: "Falha ao enviar o arquivo. Tente novamente." }, 500);
         }
 

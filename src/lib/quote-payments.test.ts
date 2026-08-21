@@ -37,12 +37,19 @@ function makeSb(initialFinancial: Row[] = []) {
     const nullFilters: string[] = [];
     const api: any = {
       select: () => api,
-      eq: (k: string, v: unknown) => { filters[k] = v; return api; },
-      is: (k: string, v: unknown) => { if (v === null) nullFilters.push(k); return api; },
+      eq: (k: string, v: unknown) => {
+        filters[k] = v;
+        return api;
+      },
+      is: (k: string, v: unknown) => {
+        if (v === null) nullFilters.push(k);
+        return api;
+      },
       maybeSingle: async () => {
-        const row = financial.find((r) =>
-          Object.entries(filters).every(([k, v]) => (r as any)[k] === v) &&
-          nullFilters.every((k) => (r as any)[k] === null),
+        const row = financial.find(
+          (r) =>
+            Object.entries(filters).every(([k, v]) => (r as any)[k] === v) &&
+            nullFilters.every((k) => (r as any)[k] === null),
         );
         return { data: row ?? null, error: null };
       },

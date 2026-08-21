@@ -49,15 +49,28 @@ const supplierSchema = z.object({
 
 export const listSuppliers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({
-    search: z.string().optional(),
-    active: z.boolean().optional(),
-  }).parse(d ?? {}))
+  .inputValidator((d) =>
+    z
+      .object({
+        search: z.string().optional(),
+        active: z.boolean().optional(),
+      })
+      .parse(d ?? {}),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
-    let q = sb.from("suppliers").select("*").eq("company_id", prof.company_id).is("deleted_at", null).order("corporate_name");
+    let q = sb
+      .from("suppliers")
+      .select("*")
+      .eq("company_id", prof.company_id)
+      .is("deleted_at", null)
+      .order("corporate_name");
     if (typeof data.active === "boolean") q = q.eq("active", data.active);
     if (data.search?.trim()) {
       const s = data.search.trim();
@@ -75,9 +88,18 @@ export const getSupplier = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
-    const { data: row, error } = await sb.from("suppliers").select("*").eq("id", data.id).eq("company_id", prof.company_id).maybeSingle();
+    const { data: row, error } = await sb
+      .from("suppliers")
+      .select("*")
+      .eq("id", data.id)
+      .eq("company_id", prof.company_id)
+      .maybeSingle();
     if (error) throw new Error(error.message);
     return row as Supplier | null;
   });
@@ -87,7 +109,11 @@ export const saveSupplier = createServerFn({ method: "POST" })
   .inputValidator((d) => supplierSchema.parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: profile } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!profile?.company_id) throw new Error("Sem empresa.");
 
     const payload = {
@@ -114,12 +140,23 @@ export const saveSupplier = createServerFn({ method: "POST" })
       const { data: old } = await sb.from("suppliers").select("*").eq("id", data.id).maybeSingle();
       const { error } = await sb.from("suppliers").update(payload).eq("id", data.id);
       if (error) throw new Error(error.message);
-      await sb.rpc("log_audit", { _module: "suppliers", _action: "update", _record_id: data.id, _old_data: old, _new_data: payload });
+      await sb.rpc("log_audit", {
+        _module: "suppliers",
+        _action: "update",
+        _record_id: data.id,
+        _old_data: old,
+        _new_data: payload,
+      });
       return { id: data.id };
     }
     const { data: row, error } = await sb.from("suppliers").insert(payload).select("id").single();
     if (error) throw new Error(error.message);
-    await sb.rpc("log_audit", { _module: "suppliers", _action: "create", _record_id: row.id, _new_data: payload });
+    await sb.rpc("log_audit", {
+      _module: "suppliers",
+      _action: "create",
+      _record_id: row.id,
+      _new_data: payload,
+    });
     return { id: row.id as string };
   });
 
@@ -130,7 +167,11 @@ export const toggleSupplier = createServerFn({ method: "POST" })
     const sb = context.supabase as any;
     const { error } = await sb.from("suppliers").update({ active: data.active }).eq("id", data.id);
     if (error) throw new Error(error.message);
-    await sb.rpc("log_audit", { _module: "suppliers", _action: data.active ? "enable" : "disable", _record_id: data.id });
+    await sb.rpc("log_audit", {
+      _module: "suppliers",
+      _action: data.active ? "enable" : "disable",
+      _record_id: data.id,
+    });
     return { ok: true };
   });
 
@@ -139,7 +180,10 @@ export const deleteSupplier = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { error } = await sb.from("suppliers").update({ deleted_at: new Date().toISOString(), active: false }).eq("id", data.id);
+    const { error } = await sb
+      .from("suppliers")
+      .update({ deleted_at: new Date().toISOString(), active: false })
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
     await sb.rpc("log_audit", { _module: "suppliers", _action: "delete", _record_id: data.id });
     return { ok: true };

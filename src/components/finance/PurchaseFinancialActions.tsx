@@ -5,7 +5,8 @@ import { Wallet, Plus, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
-  createPayableFromPurchase, getPayableByPurchase,
+  createPayableFromPurchase,
+  getPayableByPurchase,
 } from "@/lib/finance-integrations.functions";
 import { usePermissions } from "@/lib/permissions";
 import { FinancialLinkedBadge } from "./FinancialLinkedBadge";
@@ -38,7 +39,8 @@ export function PurchaseFinancialActions({ purchaseId }: { purchaseId: string })
   return (
     <div className="rounded-lg border bg-card p-4">
       <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-        <Wallet className="h-4 w-4" />Conta a pagar
+        <Wallet className="h-4 w-4" />
+        Conta a pagar
       </div>
       {isLoading ? (
         <p className="text-xs text-muted-foreground">Carregando…</p>
@@ -49,7 +51,10 @@ export function PurchaseFinancialActions({ purchaseId }: { purchaseId: string })
             <FinancialLinkedBadge status={(payable as any).status} />
           </div>
           <Button asChild variant="outline" className="w-full">
-            <Link to="/finance"><ExternalLink className="mr-1 h-4 w-4" />Ver no financeiro</Link>
+            <Link to="/finance">
+              <ExternalLink className="mr-1 h-4 w-4" />
+              Ver no financeiro
+            </Link>
           </Button>
         </div>
       ) : canManage ? (

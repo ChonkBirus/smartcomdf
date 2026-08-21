@@ -96,14 +96,11 @@ export const requestPlanChangeV2 = createServerFn({ method: "POST" })
     const { data: canChange } = await supabase.rpc("has_permission", {
       _slug: "billing.change_plan",
     });
-    if (canChange === false)
-      throw new Error("Sem permissão para alterar o plano.");
+    if (canChange === false) throw new Error("Sem permissão para alterar o plano.");
 
     const { data: sub } = await supabase
       .from("subscriptions")
-      .select(
-        "id, plan_id, billing_cycle, current_period_end, status, plans(slug, sort_order)",
-      )
+      .select("id, plan_id, billing_cycle, current_period_end, status, plans(slug, sort_order)")
       .eq("company_id", companyId)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -130,8 +127,7 @@ export const requestPlanChangeV2 = createServerFn({ method: "POST" })
       };
     }
 
-    const kind: "UPGRADE" | "DOWNGRADE" =
-      targetSort > currentSort ? "UPGRADE" : "DOWNGRADE";
+    const kind: "UPGRADE" | "DOWNGRADE" = targetSort > currentSort ? "UPGRADE" : "DOWNGRADE";
 
     if (kind === "UPGRADE") {
       // Frontend opens CheckoutDialog; webhook will activate new plan on payment.
@@ -200,27 +196,15 @@ export const requestPlanChangeV2 = createServerFn({ method: "POST" })
       const breaches: string[] = [];
       if (limits.max_users != null && (usersRes.count ?? 0) > limits.max_users)
         breaches.push(`usuários (${usersRes.count}/${limits.max_users})`);
-      if (
-        limits.monthly_ocr_limit != null &&
-        (ocrRes.count ?? 0) > limits.monthly_ocr_limit
-      )
-        breaches.push(
-          `OCR no mês (${ocrRes.count}/${limits.monthly_ocr_limit})`,
-        );
-      if (
-        limits.monthly_import_limit != null &&
-        (impRes.count ?? 0) > limits.monthly_import_limit
-      )
-        breaches.push(
-          `importações no mês (${impRes.count}/${limits.monthly_import_limit})`,
-        );
+      if (limits.monthly_ocr_limit != null && (ocrRes.count ?? 0) > limits.monthly_ocr_limit)
+        breaches.push(`OCR no mês (${ocrRes.count}/${limits.monthly_ocr_limit})`);
+      if (limits.monthly_import_limit != null && (impRes.count ?? 0) > limits.monthly_import_limit)
+        breaches.push(`importações no mês (${impRes.count}/${limits.monthly_import_limit})`);
       if (
         limits.monthly_service_order_limit != null &&
         (osRes.count ?? 0) > limits.monthly_service_order_limit
       )
-        breaches.push(
-          `OSs no mês (${osRes.count}/${limits.monthly_service_order_limit})`,
-        );
+        breaches.push(`OSs no mês (${osRes.count}/${limits.monthly_service_order_limit})`);
       if (breaches.length) {
         throw new Error(
           "Uso atual excede os limites do plano de destino: " +
@@ -294,8 +278,7 @@ export const cancelPendingPlanChange = createServerFn({ method: "POST" })
     const { data: canChange } = await supabase.rpc("has_permission", {
       _slug: "billing.change_plan",
     });
-    if (canChange === false)
-      throw new Error("Sem permissão para alterar o plano.");
+    if (canChange === false) throw new Error("Sem permissão para alterar o plano.");
 
     const { data: sub } = await supabase
       .from("subscriptions")
@@ -304,8 +287,7 @@ export const cancelPendingPlanChange = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (!sub?.pending_plan_id)
-      return { ok: true, message: "Nenhuma alteração pendente." };
+    if (!sub?.pending_plan_id) return { ok: true, message: "Nenhuma alteração pendente." };
 
     await supabase
       .from("subscriptions")
@@ -323,9 +305,7 @@ export const cancelPendingPlanChange = createServerFn({ method: "POST" })
       company_id: companyId,
       subscription_id: sub.id,
       event_type:
-        sub.pending_plan_change_type === "UPGRADE"
-          ? "UPGRADE_CANCELED"
-          : "DOWNGRADE_CANCELED",
+        sub.pending_plan_change_type === "UPGRADE" ? "UPGRADE_CANCELED" : "DOWNGRADE_CANCELED",
       metadata: {},
       created_by: userId,
     } as any);

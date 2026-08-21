@@ -27,8 +27,26 @@ export type ScoreInput = {
 };
 
 const STOPWORDS = new Set([
-  "de","da","do","para","com","em","na","no","a","o","e",
-  "pagamento","pagto","transferencia","ted","doc","pix","boleto","compra","venda",
+  "de",
+  "da",
+  "do",
+  "para",
+  "com",
+  "em",
+  "na",
+  "no",
+  "a",
+  "o",
+  "e",
+  "pagamento",
+  "pagto",
+  "transferencia",
+  "ted",
+  "doc",
+  "pix",
+  "boleto",
+  "compra",
+  "venda",
 ]);
 
 export function tokenize(s: string): string[] {
@@ -61,7 +79,7 @@ export function daysBetween(a: string, b: string | null): number {
 
 export function typesCompatible(
   bankType: ScoreInput["bankType"],
-  finType: ScoreInput["finType"]
+  finType: ScoreInput["finType"],
 ): boolean {
   return (
     (bankType === "CREDIT" && finType === "INCOME") ||
@@ -96,7 +114,11 @@ export function scoreMatch(input: ScoreInput): number {
   if (input.customerCompatible || input.supplierCompatible) score += 10;
 
   // Status
-  if (input.finStatus === "PLANNED" || input.finStatus === "OVERDUE" || input.finStatus === "PAID") {
+  if (
+    input.finStatus === "PLANNED" ||
+    input.finStatus === "OVERDUE" ||
+    input.finStatus === "PAID"
+  ) {
     score += 10;
   }
 

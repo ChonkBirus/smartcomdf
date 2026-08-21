@@ -97,10 +97,8 @@ async function validateSoBelongsToProject(
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("OS não encontrada.");
-  if (data.company_id !== companyId)
-    throw new Error("OS pertence a outra empresa.");
-  if (data.project_id !== projectId)
-    throw new Error("OS não pertence a este projeto.");
+  if (data.company_id !== companyId) throw new Error("OS pertence a outra empresa.");
+  if (data.project_id !== projectId) throw new Error("OS não pertence a este projeto.");
 }
 
 function mapRow(r: any): ProjectEmployeeCost {
@@ -143,9 +141,7 @@ export const listProjectEmployeeCosts = createServerFn({ method: "GET" })
 
 export const listServiceOrderEmployeeCosts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z.object({ service_order_id: z.string().uuid() }).parse(d),
-  )
+  .inputValidator((d) => z.object({ service_order_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { data: rows, error } = await sb
@@ -178,15 +174,9 @@ export const addProjectEmployeeCost = createServerFn({ method: "POST" })
       .eq("id", data.project_id)
       .maybeSingle();
     if (projErr) throw new Error(projErr.message);
-    if (!proj || proj.company_id !== companyId)
-      throw new Error("Projeto não encontrado.");
+    if (!proj || proj.company_id !== companyId) throw new Error("Projeto não encontrado.");
 
-    await validateSoBelongsToProject(
-      sb,
-      companyId,
-      data.project_id,
-      data.service_order_id ?? null,
-    );
+    await validateSoBelongsToProject(sb, companyId, data.project_id, data.service_order_id ?? null);
 
     // Snapshot employee
     const { data: emp, error: empErr } = await sb
@@ -195,8 +185,7 @@ export const addProjectEmployeeCost = createServerFn({ method: "POST" })
       .eq("id", data.employee_id)
       .maybeSingle();
     if (empErr) throw new Error(empErr.message);
-    if (!emp || emp.company_id !== companyId)
-      throw new Error("Funcionário não encontrado.");
+    if (!emp || emp.company_id !== companyId) throw new Error("Funcionário não encontrado.");
     if (!emp.active) throw new Error("Funcionário inativo não pode ser vinculado.");
 
     const payload = {
@@ -205,8 +194,7 @@ export const addProjectEmployeeCost = createServerFn({ method: "POST" })
       service_order_id: data.service_order_id ?? null,
       employee_id: data.employee_id,
       role_snapshot: emp.role ?? null,
-      daily_rate_snapshot:
-        data.daily_rate_snapshot ?? Number(emp.daily_rate ?? 0),
+      daily_rate_snapshot: data.daily_rate_snapshot ?? Number(emp.daily_rate ?? 0),
       days_count: data.days_count,
       transport_cost: data.transport_cost ?? Number(emp.transport_cost ?? 0),
       meal_cost: data.meal_cost ?? Number(emp.meal_cost ?? 0),
@@ -237,16 +225,10 @@ export const updateProjectEmployeeCost = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .maybeSingle();
     if (exErr) throw new Error(exErr.message);
-    if (!existing || existing.company_id !== companyId)
-      throw new Error("Vínculo não encontrado.");
+    if (!existing || existing.company_id !== companyId) throw new Error("Vínculo não encontrado.");
 
     if (data.service_order_id !== undefined) {
-      await validateSoBelongsToProject(
-        sb,
-        companyId,
-        existing.project_id,
-        data.service_order_id,
-      );
+      await validateSoBelongsToProject(sb, companyId, existing.project_id, data.service_order_id);
     }
 
     const update: Record<string, any> = {
@@ -256,11 +238,9 @@ export const updateProjectEmployeeCost = createServerFn({ method: "POST" })
     };
     if (data.daily_rate_snapshot !== undefined)
       update.daily_rate_snapshot = data.daily_rate_snapshot;
-    if (data.transport_cost !== undefined)
-      update.transport_cost = data.transport_cost;
+    if (data.transport_cost !== undefined) update.transport_cost = data.transport_cost;
     if (data.meal_cost !== undefined) update.meal_cost = data.meal_cost;
-    if (data.service_order_id !== undefined)
-      update.service_order_id = data.service_order_id;
+    if (data.service_order_id !== undefined) update.service_order_id = data.service_order_id;
 
     const { error } = await sb
       .from("project_employee_costs")
@@ -288,15 +268,12 @@ export const deleteProjectEmployeeCost = createServerFn({ method: "POST" })
 
 export const listServiceOrderTeamPublic = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z.object({ service_order_id: z.string().uuid() }).parse(d),
-  )
+  .inputValidator((d) => z.object({ service_order_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: rows, error } = await sb.rpc(
-      "list_service_order_team_public",
-      { _service_order_id: data.service_order_id },
-    );
+    const { data: rows, error } = await sb.rpc("list_service_order_team_public", {
+      _service_order_id: data.service_order_id,
+    });
     if (error) throw new Error(error.message);
     return (rows ?? []) as ServiceOrderTeamPublicItem[];
   });

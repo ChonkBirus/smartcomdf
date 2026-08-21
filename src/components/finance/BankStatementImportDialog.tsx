@@ -2,20 +2,40 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Upload, FileSpreadsheet, Loader2, AlertTriangle, CheckCircle2, ArrowRight } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Upload,
+  FileSpreadsheet,
+  Loader2,
+  AlertTriangle,
+  CheckCircle2,
+  ArrowRight,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { parseStatementFile, type ParsedTx } from "@/lib/bank-statement-parsers";
 import {
-  createBankStatementImport, confirmBankStatementImport, cancelBankStatementImport,
+  createBankStatementImport,
+  confirmBankStatementImport,
+  cancelBankStatementImport,
   listBankAccountsForImport,
 } from "@/lib/bank-statement-import.functions";
 
@@ -28,8 +48,14 @@ type DraftResult = { import_id: string; total: number; inserted: number; duplica
 const BRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export function BankStatementImportDialog({
-  open, onOpenChange, onImported,
-}: { open: boolean; onOpenChange: (o: boolean) => void; onImported?: () => void }) {
+  open,
+  onOpenChange,
+  onImported,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  onImported?: () => void;
+}) {
   const createFn = useServerFn(createBankStatementImport);
   const confirmFn = useServerFn(confirmBankStatementImport);
   const cancelFn = useServerFn(cancelBankStatementImport);
@@ -51,13 +77,22 @@ export function BankStatementImportDialog({
   const [draft, setDraft] = useState<DraftResult | null>(null);
 
   const reset = () => {
-    setStep("upload"); setFile(null); setRows([]); setWarnings([]);
-    setFileType(null); setBankAccountId("__none__"); setDraft(null);
+    setStep("upload");
+    setFile(null);
+    setRows([]);
+    setWarnings([]);
+    setFileType(null);
+    setBankAccountId("__none__");
+    setDraft(null);
   };
 
   const handleFile = async (f: File) => {
-    if (f.size > MAX_BYTES) { toast.error("Arquivo excede 10 MB."); return; }
-    setFile(f); setParsing(true);
+    if (f.size > MAX_BYTES) {
+      toast.error("Arquivo excede 10 MB.");
+      return;
+    }
+    setFile(f);
+    setParsing(true);
     try {
       const res = await parseStatementFile(f);
       if (!res.rows.length) {
@@ -90,37 +125,60 @@ export function BankStatementImportDialog({
         },
       });
     },
-    onSuccess: (data) => { setDraft(data); setStep("done"); onImported?.(); },
+    onSuccess: (data) => {
+      setDraft(data);
+      setStep("done");
+      onImported?.();
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
   const confirmMutation = useMutation({
     mutationFn: () => confirmFn({ data: { import_id: draft!.import_id } }),
-    onSuccess: () => { toast.success("Importação concluída."); onImported?.(); onOpenChange(false); reset(); },
+    onSuccess: () => {
+      toast.success("Importação concluída.");
+      onImported?.();
+      onOpenChange(false);
+      reset();
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
   const discardMutation = useMutation({
     mutationFn: () => cancelFn({ data: { import_id: draft!.import_id } }),
-    onSuccess: () => { toast.success("Importação descartada."); onImported?.(); onOpenChange(false); reset(); },
+    onSuccess: () => {
+      toast.success("Importação descartada.");
+      onImported?.();
+      onOpenChange(false);
+      reset();
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
   const totals = useMemo(() => {
-    let credit = 0, debit = 0;
+    let credit = 0,
+      debit = 0;
     for (const r of rows) {
-      if (r.amount >= 0) credit += r.amount; else debit += r.amount;
+      if (r.amount >= 0) credit += r.amount;
+      else debit += r.amount;
     }
     return { credit, debit, net: credit + debit };
   }, [rows]);
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) reset(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        onOpenChange(o);
+        if (!o) reset();
+      }}
+    >
       <DialogContent className="max-w-5xl">
         <DialogHeader>
           <DialogTitle>Importar extrato bancário</DialogTitle>
           <DialogDescription>
-            Aceitamos OFX, CSV, XLSX ou XLS — até 10 MB. As transações duplicadas são detectadas automaticamente.
+            Aceitamos OFX, CSV, XLSX ou XLS — até 10 MB. As transações duplicadas são detectadas
+            automaticamente.
           </DialogDescription>
         </DialogHeader>
 
@@ -141,10 +199,20 @@ export function BankStatementImportDialog({
               <Upload className="h-8 w-8 text-muted-foreground" />
               <div className="text-center">
                 <div className="font-medium">Selecione o arquivo do extrato</div>
-                <div className="text-xs text-muted-foreground">OFX, CSV, XLSX ou XLS — até 10 MB</div>
+                <div className="text-xs text-muted-foreground">
+                  OFX, CSV, XLSX ou XLS — até 10 MB
+                </div>
               </div>
-              <Input type="file" accept={ACCEPT} className="hidden" disabled={parsing}
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+              <Input
+                type="file"
+                accept={ACCEPT}
+                className="hidden"
+                disabled={parsing}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleFile(f);
+                }}
+              />
               {parsing && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Loader2 className="h-3 w-3 animate-spin" /> Processando arquivo...
@@ -152,7 +220,8 @@ export function BankStatementImportDialog({
               )}
               {file && !parsing && (
                 <div className="flex items-center gap-2 text-xs">
-                  <FileSpreadsheet className="h-4 w-4" />{file.name}
+                  <FileSpreadsheet className="h-4 w-4" />
+                  {file.name}
                 </div>
               )}
             </label>
@@ -166,8 +235,9 @@ export function BankStatementImportDialog({
             <Alert>
               <AlertTitle>Colunas reconhecidas (CSV/XLSX)</AlertTitle>
               <AlertDescription className="text-xs">
-                Data, Descrição/Histórico, Valor (ou Crédito/Débito separados), Documento, Tipo, ID/FITID.
-                Para OFX usamos as tags <code>DTPOSTED</code>, <code>TRNAMT</code>, <code>MEMO</code>, <code>FITID</code>.
+                Data, Descrição/Histórico, Valor (ou Crédito/Débito separados), Documento, Tipo,
+                ID/FITID. Para OFX usamos as tags <code>DTPOSTED</code>, <code>TRNAMT</code>,{" "}
+                <code>MEMO</code>, <code>FITID</code>.
               </AlertDescription>
             </Alert>
           </div>
@@ -186,11 +256,15 @@ export function BankStatementImportDialog({
               <div className="space-y-1">
                 <Label className="text-xs">Conta bancária (opcional)</Label>
                 <Select value={bankAccountId} onValueChange={setBankAccountId}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecionar..." />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">— Não vincular —</SelectItem>
                     {(accountsQuery.data ?? []).map((a) => (
-                      <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -229,7 +303,9 @@ export function BankStatementImportDialog({
                           {r.type === "CREDIT" ? "Entrada" : "Saída"}
                         </Badge>
                       </td>
-                      <td className={`px-2 py-1.5 text-right tabular-nums ${r.amount >= 0 ? "text-success" : "text-destructive"}`}>
+                      <td
+                        className={`px-2 py-1.5 text-right tabular-nums ${r.amount >= 0 ? "text-success" : "text-destructive"}`}
+                      >
                         {BRL(r.amount)}
                       </td>
                     </tr>
@@ -250,20 +326,28 @@ export function BankStatementImportDialog({
             <CheckCircle2 className="h-4 w-4" />
             <AlertTitle>Prévia salva</AlertTitle>
             <AlertDescription className="text-xs">
-              {draft.inserted} novas transações · {draft.duplicates} duplicadas ignoradas · {draft.total} processadas.
-              Confirme para concluir a importação ou descarte para apagar.
+              {draft.inserted} novas transações · {draft.duplicates} duplicadas ignoradas ·{" "}
+              {draft.total} processadas. Confirme para concluir a importação ou descarte para
+              apagar.
             </AlertDescription>
           </Alert>
         )}
 
         <DialogFooter>
           {step === "upload" && (
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
           )}
           {step === "preview" && (
             <>
-              <Button variant="outline" onClick={() => setStep("upload")}>Voltar</Button>
-              <Button onClick={() => importMutation.mutate()} disabled={importMutation.isPending || !rows.length}>
+              <Button variant="outline" onClick={() => setStep("upload")}>
+                Voltar
+              </Button>
+              <Button
+                onClick={() => importMutation.mutate()}
+                disabled={importMutation.isPending || !rows.length}
+              >
                 {importMutation.isPending && <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />}
                 Importar para prévia
               </Button>
@@ -271,7 +355,11 @@ export function BankStatementImportDialog({
           )}
           {step === "done" && (
             <>
-              <Button variant="outline" onClick={() => discardMutation.mutate()} disabled={discardMutation.isPending}>
+              <Button
+                variant="outline"
+                onClick={() => discardMutation.mutate()}
+                disabled={discardMutation.isPending}
+              >
                 {discardMutation.isPending && <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />}
                 Descartar
               </Button>

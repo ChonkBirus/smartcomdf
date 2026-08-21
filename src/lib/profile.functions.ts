@@ -26,10 +26,10 @@ export const updateMyProfile = createServerFn({ method: "POST" })
   });
 
 const optStr = (max: number) =>
-  z.preprocess(
-    (v) => (v == null || v === "" ? "" : String(v)),
-    z.string().trim().max(max),
-  ).optional().or(z.literal(""));
+  z
+    .preprocess((v) => (v == null || v === "" ? "" : String(v)), z.string().trim().max(max))
+    .optional()
+    .or(z.literal(""));
 
 const companySchema = z.object({
   corporate_name: z.string().trim().min(2).max(150),
@@ -37,10 +37,12 @@ const companySchema = z.object({
   cnpj: optStr(20),
   phone: optStr(20),
   whatsapp: optStr(20),
-  email: z.preprocess(
-    (v) => (v == null ? "" : String(v).trim()),
-    z.union([z.literal(""), z.string().email().max(255)]),
-  ).optional(),
+  email: z
+    .preprocess(
+      (v) => (v == null ? "" : String(v).trim()),
+      z.union([z.literal(""), z.string().email().max(255)]),
+    )
+    .optional(),
   logo_url: optStr(500),
   zipcode: optStr(20),
   street: optStr(200),
@@ -57,7 +59,11 @@ export const updateMyCompany = createServerFn({ method: "POST" })
   .inputValidator((d) => companySchema.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: me } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+    const { data: me } = await supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", userId)
+      .maybeSingle();
     if (!me?.company_id) throw new Error("Sem empresa vinculada.");
 
     const { data: rows } = await supabase
@@ -94,15 +100,15 @@ export const updateMyCompany = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-
-
 export const getSignedImageUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      bucket: z.enum(["avatars", "company-logos"]),
-      path: z.string().min(1).max(500),
-    }).parse(d),
+    z
+      .object({
+        bucket: z.enum(["avatars", "company-logos"]),
+        path: z.string().min(1).max(500),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;

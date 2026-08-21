@@ -21,7 +21,9 @@ export const listQaBugs = createServerFn({ method: "GET" })
     await assertSuperAdmin(supabase, userId);
     const { data, error } = await supabase
       .from("qa_bugs")
-      .select("id, screen, description, impact, root_cause, fix, priority, status, assignee, created_at, updated_at")
+      .select(
+        "id, screen, description, impact, root_cause, fix, priority, status, assignee, created_at, updated_at",
+      )
       .order("priority", { ascending: true })
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);

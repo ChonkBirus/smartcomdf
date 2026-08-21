@@ -4,8 +4,14 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { sanitizePostgrestSearch } from "@/lib/postgrest-sanitize";
 
 export type QuoteStatus =
-  | "DRAFT" | "SENT" | "VIEWED" | "APPROVED" | "REJECTED"
-  | "CANCELLED" | "EXPIRED" | "CONVERTED";
+  | "DRAFT"
+  | "SENT"
+  | "VIEWED"
+  | "APPROVED"
+  | "REJECTED"
+  | "CANCELLED"
+  | "EXPIRED"
+  | "CONVERTED";
 
 export type QuoteItemKind = "PRODUCT" | "SERVICE" | "LABOR" | "OTHER";
 
@@ -57,12 +63,13 @@ export type Quote = {
 };
 
 export type QuotePaymentStatus =
-  | "NOT_STARTED" | "WAITING_PAYMENT" | "PAYMENT_APPROVED"
-  | "PAYMENT_REJECTED" | "PAYMENT_CANCELLED";
+  | "NOT_STARTED"
+  | "WAITING_PAYMENT"
+  | "PAYMENT_APPROVED"
+  | "PAYMENT_REJECTED"
+  | "PAYMENT_CANCELLED";
 
-export type QuoteFinancialStatus =
-  | "PENDING" | "PARTIALLY_PAID" | "PAID" | "CANCELLED" | "REFUNDED";
-
+export type QuoteFinancialStatus = "PENDING" | "PARTIALLY_PAID" | "PAID" | "CANCELLED" | "REFUNDED";
 
 export type QuoteHistoryEvent = {
   id: string;
@@ -101,7 +108,6 @@ const itemLineSchema = z.object({
   position: z.number().int().min(0).default(0),
   image_path: z.string().trim().max(500).optional().nullable(),
 });
-
 
 const quoteSchema = z.object({
   id: z.string().uuid().optional(),
@@ -152,15 +158,21 @@ export type QuoteCatalogItem = {
 export const listQuoteCatalog = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      search: z.string().optional(),
-    }).parse(d ?? {}),
+    z
+      .object({
+        search: z.string().optional(),
+      })
+      .parse(d ?? {}),
   )
   .handler(async ({ data: inputData, context }) => {
     const sb = context.supabase as any;
-    const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: profile } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!profile?.company_id) throw new Error("Sem empresa.");
-    
+
     const s = sanitizePostgrestSearch(inputData.search ?? "");
     let query = sb
       .from("items")
@@ -178,7 +190,7 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
     const { data, error } = await query;
     if (error) throw new Error(error.message);
 
-    let itemsRaw = (data ?? []) as any[];
+    const itemsRaw = (data ?? []) as any[];
     if (s) {
       const searchLower = s.toLowerCase();
       itemsRaw.sort((a, b) => {
@@ -230,14 +242,12 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
 
     // Fetch primary images and stock balances in parallel
     const [imagesRes, stockRes] = await Promise.all([
-      sb.from("item_images")
-        .select("item_id, file_path")
-        .in("item_id", ids)
-        .eq("is_primary", true),
-      sb.from("stock_balances")
+      sb.from("item_images").select("item_id, file_path").in("item_id", ids).eq("is_primary", true),
+      sb
+        .from("stock_balances")
         .select("item_id, quantity")
         .in("item_id", ids)
-        .eq("company_id", profile.company_id)
+        .eq("company_id", profile.company_id),
     ]);
 
     const imageMap = new Map<string, string>();
@@ -255,7 +265,7 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
       Array.from(imageMap.entries()).map(async ([itemId, path]) => {
         const { data } = await sb.storage.from("product-images").createSignedUrl(path, SIGNED_TTL);
         signedImages.set(itemId, data?.signedUrl ?? null);
-      })
+      }),
     );
 
     return topItems.map((r: any) => ({
@@ -273,25 +283,28 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
     })) as QuoteCatalogItem[];
   });
 
-
-
-
 // ============================================================
 // LIST
 // ============================================================
 export const listQuotes = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      status: z.string().optional(),
-      payment_status: z.string().optional(),
-      customer_id: z.string().uuid().optional(),
-      search: z.string().optional(),
-    }).parse(d ?? {}),
+    z
+      .object({
+        status: z.string().optional(),
+        payment_status: z.string().optional(),
+        customer_id: z.string().uuid().optional(),
+        search: z.string().optional(),
+      })
+      .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     let q = sb
       .from("quotes")
@@ -340,7 +353,11 @@ export const quoteMetrics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: rows, error } = await sb
       .from("quotes")
@@ -349,7 +366,8 @@ export const quoteMetrics = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     const list = rows ?? [];
     const month = new Date();
-    month.setDate(1); month.setHours(0, 0, 0, 0);
+    month.setDate(1);
+    month.setHours(0, 0, 0, 0);
     const sumBy = (pred: (r: any) => boolean) =>
       list.filter(pred).reduce((s: number, r: any) => s + Number(r.total_amount || 0), 0);
     return {
@@ -371,11 +389,17 @@ export const getQuote = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: prof } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: prof } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!prof?.company_id) throw new Error("Sem empresa.");
     const { data: q, error: e1 } = await sb
       .from("quotes")
-      .select("*, customers:customer_id(id, name, trade_name, corporate_name, cpf_cnpj, email, phone, whatsapp)")
+      .select(
+        "*, customers:customer_id(id, name, trade_name, corporate_name, cpf_cnpj, email, phone, whatsapp)",
+      )
       .eq("id", data.id)
       .eq("company_id", prof.company_id)
       .maybeSingle();
@@ -432,7 +456,10 @@ export const saveQuote = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { data: profile } = await sb
-      .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!profile?.company_id) throw new Error("Sem empresa.");
     const companyId = profile.company_id;
 
@@ -440,60 +467,78 @@ export const saveQuote = createServerFn({ method: "POST" })
 
     if (quoteId) {
       const { data: existing } = await sb
-        .from("quotes").select("status").eq("id", quoteId).maybeSingle();
+        .from("quotes")
+        .select("status")
+        .eq("id", quoteId)
+        .maybeSingle();
       if (!existing) throw new Error("Orçamento não encontrado.");
       if (!["DRAFT", "SENT", "VIEWED"].includes(existing.status)) {
-        throw new Error("Orçamento aprovado/cancelado/expirado não pode ser editado. Duplique para nova revisão.");
+        throw new Error(
+          "Orçamento aprovado/cancelado/expirado não pode ser editado. Duplique para nova revisão.",
+        );
       }
-      const { error } = await sb.from("quotes").update({
-        customer_id: data.customer_id,
-        title: nz(data.title),
-        issue_date: data.issue_date,
-        valid_until: nz(data.valid_until),
-        payment_terms: nz(data.payment_terms),
-        delivery_terms: nz(data.delivery_terms),
-        warranty_terms: nz(data.warranty_terms),
-        completion_estimate: nz(data.completion_estimate),
-        customer_notes: nz(data.customer_notes),
-        internal_notes: nz(data.internal_notes),
-        labor_cost: data.labor_cost,
-        discount: data.discount,
-        diagnosis_problem: nz(data.diagnosis_problem),
-        diagnosis_need: nz(data.diagnosis_need),
-        diagnosis_environment: nz(data.diagnosis_environment),
-        diagnosis_objective: nz(data.diagnosis_objective),
-        diagnosis_critical_points: nz(data.diagnosis_critical_points),
-        diagnosis_technical_notes: nz(data.diagnosis_technical_notes),
-      }).eq("id", quoteId);
+      const { error } = await sb
+        .from("quotes")
+        .update({
+          customer_id: data.customer_id,
+          title: nz(data.title),
+          issue_date: data.issue_date,
+          valid_until: nz(data.valid_until),
+          payment_terms: nz(data.payment_terms),
+          delivery_terms: nz(data.delivery_terms),
+          warranty_terms: nz(data.warranty_terms),
+          completion_estimate: nz(data.completion_estimate),
+          customer_notes: nz(data.customer_notes),
+          internal_notes: nz(data.internal_notes),
+          labor_cost: data.labor_cost,
+          discount: data.discount,
+          diagnosis_problem: nz(data.diagnosis_problem),
+          diagnosis_need: nz(data.diagnosis_need),
+          diagnosis_environment: nz(data.diagnosis_environment),
+          diagnosis_objective: nz(data.diagnosis_objective),
+          diagnosis_critical_points: nz(data.diagnosis_critical_points),
+          diagnosis_technical_notes: nz(data.diagnosis_technical_notes),
+        })
+        .eq("id", quoteId);
       if (error) throw new Error(error.message);
       await sb.from("quote_items").delete().eq("quote_id", quoteId);
     } else {
-      const { data: numRow, error: ne } = await sb.rpc("next_quote_number", { _company_id: companyId });
+      const { data: numRow, error: ne } = await sb.rpc("next_quote_number", {
+        _company_id: companyId,
+      });
       if (ne) throw new Error(ne.message);
-      const { data: row, error } = await sb.from("quotes").insert({
-        company_id: companyId,
-        customer_id: data.customer_id,
-        quote_number: numRow as string,
-        status: "DRAFT",
-        title: nz(data.title),
-        issue_date: data.issue_date,
-        valid_until: nz(data.valid_until) ?? new Date(new Date(data.issue_date).getTime() + 15 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-        payment_terms: nz(data.payment_terms),
-        delivery_terms: nz(data.delivery_terms),
-        warranty_terms: nz(data.warranty_terms),
-        completion_estimate: nz(data.completion_estimate),
-        customer_notes: nz(data.customer_notes),
-        internal_notes: nz(data.internal_notes),
-        labor_cost: data.labor_cost,
-        discount: data.discount,
-        diagnosis_problem: nz(data.diagnosis_problem),
-        diagnosis_need: nz(data.diagnosis_need),
-        diagnosis_environment: nz(data.diagnosis_environment),
-        diagnosis_objective: nz(data.diagnosis_objective),
-        diagnosis_critical_points: nz(data.diagnosis_critical_points),
-        diagnosis_technical_notes: nz(data.diagnosis_technical_notes),
-        created_by: context.userId,
-      }).select("id").single();
+      const { data: row, error } = await sb
+        .from("quotes")
+        .insert({
+          company_id: companyId,
+          customer_id: data.customer_id,
+          quote_number: numRow as string,
+          status: "DRAFT",
+          title: nz(data.title),
+          issue_date: data.issue_date,
+          valid_until:
+            nz(data.valid_until) ??
+            new Date(new Date(data.issue_date).getTime() + 15 * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .slice(0, 10),
+          payment_terms: nz(data.payment_terms),
+          delivery_terms: nz(data.delivery_terms),
+          warranty_terms: nz(data.warranty_terms),
+          completion_estimate: nz(data.completion_estimate),
+          customer_notes: nz(data.customer_notes),
+          internal_notes: nz(data.internal_notes),
+          labor_cost: data.labor_cost,
+          discount: data.discount,
+          diagnosis_problem: nz(data.diagnosis_problem),
+          diagnosis_need: nz(data.diagnosis_need),
+          diagnosis_environment: nz(data.diagnosis_environment),
+          diagnosis_objective: nz(data.diagnosis_objective),
+          diagnosis_critical_points: nz(data.diagnosis_critical_points),
+          diagnosis_technical_notes: nz(data.diagnosis_technical_notes),
+          created_by: context.userId,
+        })
+        .select("id")
+        .single();
       if (error) throw new Error(error.message);
       quoteId = row.id as string;
     }
@@ -540,7 +585,10 @@ async function setStatus(
   if (!from.includes(cur.status)) {
     throw new Error(`Transição inválida (de ${cur.status} para ${to}).`);
   }
-  const { error } = await sb.from("quotes").update({ status: to, ...extra }).eq("id", id);
+  const { error } = await sb
+    .from("quotes")
+    .update({ status: to, ...extra })
+    .eq("id", id);
   if (error) throw new Error(error.message);
 }
 
@@ -555,18 +603,20 @@ export const markQuoteSent = createServerFn({ method: "POST" })
 
 export const cancelQuote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({
-    id: z.string().uuid(),
-    reason: z.string().trim().max(500).optional(),
-  }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        reason: z.string().trim().max(500).optional(),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    await setStatus(
-      sb, data.id,
-      ["DRAFT", "SENT", "VIEWED", "APPROVED"],
-      "CANCELLED",
-      { cancelled_at: new Date().toISOString(), internal_notes: data.reason || undefined },
-    );
+    await setStatus(sb, data.id, ["DRAFT", "SENT", "VIEWED", "APPROVED"], "CANCELLED", {
+      cancelled_at: new Date().toISOString(),
+      internal_notes: data.reason || undefined,
+    });
     return { ok: true };
   });
 
@@ -591,7 +641,11 @@ export const duplicateQuote = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: profile } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!profile?.company_id) throw new Error("Sem empresa.");
 
     const { data: src } = await sb.from("quotes").select("*").eq("id", data.id).maybeSingle();
@@ -599,24 +653,28 @@ export const duplicateQuote = createServerFn({ method: "POST" })
     const { data: items } = await sb.from("quote_items").select("*").eq("quote_id", data.id);
 
     const { data: num } = await sb.rpc("next_quote_number", { _company_id: profile.company_id });
-    const { data: row, error } = await sb.from("quotes").insert({
-      company_id: profile.company_id,
-      customer_id: src.customer_id,
-      quote_number: num as string,
-      status: "DRAFT",
-      title: src.title,
-      issue_date: new Date().toISOString().slice(0, 10),
-      valid_until: null,
-      payment_terms: src.payment_terms,
-      delivery_terms: src.delivery_terms,
-      warranty_terms: src.warranty_terms,
-      completion_estimate: src.completion_estimate,
-      customer_notes: src.customer_notes,
-      internal_notes: src.internal_notes,
-      labor_cost: src.labor_cost,
-      discount: src.discount,
-      created_by: context.userId,
-    }).select("id").single();
+    const { data: row, error } = await sb
+      .from("quotes")
+      .insert({
+        company_id: profile.company_id,
+        customer_id: src.customer_id,
+        quote_number: num as string,
+        status: "DRAFT",
+        title: src.title,
+        issue_date: new Date().toISOString().slice(0, 10),
+        valid_until: null,
+        payment_terms: src.payment_terms,
+        delivery_terms: src.delivery_terms,
+        warranty_terms: src.warranty_terms,
+        completion_estimate: src.completion_estimate,
+        customer_notes: src.customer_notes,
+        internal_notes: src.internal_notes,
+        labor_cost: src.labor_cost,
+        discount: src.discount,
+        created_by: context.userId,
+      })
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
 
     if ((items ?? []).length > 0) {
@@ -670,15 +728,31 @@ export const getQuoteHistory = createServerFn({ method: "GET" })
 
 export const logQuoteEvent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({
-    quote_id: z.string().uuid(),
-    event_type: z.enum(["sent", "link_copied", "whatsapp_sent", "pdf_downloaded", "email_sent", "pix_sent_whatsapp", "pix_copied"]),
-    actor_label: z.string().trim().max(120).optional(),
-    meta: z.record(z.string(), z.any()).optional(),
-  }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({
+        quote_id: z.string().uuid(),
+        event_type: z.enum([
+          "sent",
+          "link_copied",
+          "whatsapp_sent",
+          "pdf_downloaded",
+          "email_sent",
+          "pix_sent_whatsapp",
+          "pix_copied",
+        ]),
+        actor_label: z.string().trim().max(120).optional(),
+        meta: z.record(z.string(), z.any()).optional(),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: q } = await sb.from("quotes").select("company_id").eq("id", data.quote_id).maybeSingle();
+    const { data: q } = await sb
+      .from("quotes")
+      .select("company_id")
+      .eq("id", data.quote_id)
+      .maybeSingle();
     if (!q) throw new Error("Orçamento não encontrado.");
     const { error } = await sb.from("quote_history").insert({
       company_id: q.company_id,

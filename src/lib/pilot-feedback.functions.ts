@@ -41,7 +41,18 @@ async function assertSuperAdmin(supabase: any, userId: string) {
 
 export const listPilotFeedback = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { pilot_id?: string | null; company_id?: string | null; status?: string | null; feedback_type?: string | null } | undefined) => d ?? {})
+  .inputValidator(
+    (
+      d:
+        | {
+            pilot_id?: string | null;
+            company_id?: string | null;
+            status?: string | null;
+            feedback_type?: string | null;
+          }
+        | undefined,
+    ) => d ?? {},
+  )
   .handler(async ({ data, context }): Promise<PilotFeedbackRow[]> => {
     await assertSuperAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -52,7 +63,8 @@ export const listPilotFeedback = createServerFn({ method: "GET" })
     if (data.pilot_id) q = q.eq("pilot_id", data.pilot_id);
     if (data.company_id) q = q.eq("company_id", data.company_id);
     if (data.status && data.status !== "ALL") q = q.eq("status", data.status);
-    if (data.feedback_type && data.feedback_type !== "ALL") q = q.eq("feedback_type", data.feedback_type);
+    if (data.feedback_type && data.feedback_type !== "ALL")
+      q = q.eq("feedback_type", data.feedback_type);
     const { data: rows, error } = await q;
     if (error) throw error;
     return (rows ?? []) as PilotFeedbackRow[];
@@ -139,7 +151,8 @@ export const getPilotDetail = createServerFn({ method: "GET" })
     return {
       pilot: {
         ...(pilot as any),
-        company_name: (pilot as any).companies?.trade_name ?? (pilot as any).companies?.corporate_name ?? null,
+        company_name:
+          (pilot as any).companies?.trade_name ?? (pilot as any).companies?.corporate_name ?? null,
         company_email: (pilot as any).companies?.email ?? null,
         company_whatsapp: (pilot as any).companies?.whatsapp ?? null,
       },

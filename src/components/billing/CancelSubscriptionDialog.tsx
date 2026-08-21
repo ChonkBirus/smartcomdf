@@ -34,8 +34,7 @@ export function CancelSubscriptionDialog({ open, onOpenChange, periodEnd }: Prop
   const fn = useServerFn(scheduleCancellation);
 
   const mut = useMutation({
-    mutationFn: () =>
-      fn({ data: { reason: reason.trim() || undefined, immediate } }),
+    mutationFn: () => fn({ data: { reason: reason.trim() || undefined, immediate } }),
     onSuccess: (res) => {
       toast.success(
         res.immediate
@@ -60,8 +59,8 @@ export function CancelSubscriptionDialog({ open, onOpenChange, periodEnd }: Prop
             Cancelar assinatura
           </DialogTitle>
           <DialogDescription>
-            Por padrão, o cancelamento é agendado para o fim do período já pago
-            ({fmtDate(periodEnd)}). Você continua com acesso até lá.
+            Por padrão, o cancelamento é agendado para o fim do período já pago (
+            {fmtDate(periodEnd)}). Você continua com acesso até lá.
           </DialogDescription>
         </DialogHeader>
 
@@ -79,25 +78,16 @@ export function CancelSubscriptionDialog({ open, onOpenChange, periodEnd }: Prop
           </div>
 
           <label className="flex items-start gap-2 text-sm">
-            <Checkbox
-              checked={immediate}
-              onCheckedChange={(v) => setImmediate(v === true)}
-            />
+            <Checkbox checked={immediate} onCheckedChange={(v) => setImmediate(v === true)} />
             <span>
-              Cancelar <strong>imediatamente</strong> (perde acesso agora; sem
-              reembolso do período em curso).
+              Cancelar <strong>imediatamente</strong> (perde acesso agora; sem reembolso do período
+              em curso).
             </span>
           </label>
 
           <label className="flex items-start gap-2 text-sm">
-            <Checkbox
-              checked={confirmed}
-              onCheckedChange={(v) => setConfirmed(v === true)}
-            />
-            <span>
-              Entendo que poderei reativar a assinatura voltando a contratar um
-              plano.
-            </span>
+            <Checkbox checked={confirmed} onCheckedChange={(v) => setConfirmed(v === true)} />
+            <span>Entendo que poderei reativar a assinatura voltando a contratar um plano.</span>
           </label>
         </div>
 

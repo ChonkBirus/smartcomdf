@@ -73,13 +73,15 @@ export const generateServiceOrderFinalReport = createServerFn({ method: "POST" }
 export const uploadServiceOrderReportPdf = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      report_id: z.string().uuid(),
-      company_id: z.string().uuid(),
-      service_order_id: z.string().uuid(),
-      file_name: z.string().min(1),
-      file_base64: z.string().min(1),
-    }).parse(d),
+    z
+      .object({
+        report_id: z.string().uuid(),
+        company_id: z.string().uuid(),
+        service_order_id: z.string().uuid(),
+        file_name: z.string().min(1),
+        file_base64: z.string().min(1),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }): Promise<ServiceOrderReport> => {
     const sb = context.supabase as any;
@@ -102,14 +104,16 @@ export const uploadServiceOrderReportPdf = createServerFn({ method: "POST" })
 export const logServiceOrderReportSend = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      report_id: z.string().uuid(),
-      channel: z.enum(["WHATSAPP", "EMAIL", "COPY_LINK", "PDF_DOWNLOAD", "MANUAL"]),
-      status: z.enum(["SENT", "FAILED", "COPIED", "DOWNLOADED"]),
-      recipient_name: z.string().nullable().optional(),
-      recipient_contact: z.string().nullable().optional(),
-      message: z.string().nullable().optional(),
-    }).parse(d),
+    z
+      .object({
+        report_id: z.string().uuid(),
+        channel: z.enum(["WHATSAPP", "EMAIL", "COPY_LINK", "PDF_DOWNLOAD", "MANUAL"]),
+        status: z.enum(["SENT", "FAILED", "COPIED", "DOWNLOADED"]),
+        recipient_name: z.string().nullable().optional(),
+        recipient_contact: z.string().nullable().optional(),
+        message: z.string().nullable().optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -145,11 +149,9 @@ export const getPublicServiceOrderReport = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ token: z.string().min(16) }).parse(d))
   .handler(async ({ data }) => {
     const { createClient } = await import("@supabase/supabase-js");
-    const sb = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_PUBLISHABLE_KEY!,
-      { auth: { persistSession: false, autoRefreshToken: false } },
-    );
+    const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
     const { data: payload, error } = await sb.rpc("get_public_so_report", { _token: data.token });
     if (error) throw new Error(error.message);
     if (!payload) throw new Error("Relatório não encontrado.");
@@ -173,7 +175,9 @@ export const getPublicServiceOrderReport = createServerFn({ method: "GET" })
         if (s?.path && s?.signedUrl) signedPhotos.set(s.path, s.signedUrl);
       });
     }
-    const sigPaths: string[] = (p.signatures ?? []).map((s: any) => s.signature_file_url).filter(Boolean);
+    const sigPaths: string[] = (p.signatures ?? [])
+      .map((s: any) => s.signature_file_url)
+      .filter(Boolean);
     const signedSigs = new Map<string, string>();
     if (sigPaths.length > 0) {
       const { data: signed } = await supabaseAdmin.storage
@@ -186,7 +190,13 @@ export const getPublicServiceOrderReport = createServerFn({ method: "GET" })
     return {
       ...p,
       report: { ...p.report, signed_pdf_url: pdfUrl },
-      photos: (p.photos ?? []).map((ph: any) => ({ ...ph, signed_url: signedPhotos.get(ph.storage_path) ?? null })),
-      signatures: (p.signatures ?? []).map((s: any) => ({ ...s, signed_url: signedSigs.get(s.signature_file_url) ?? null })),
+      photos: (p.photos ?? []).map((ph: any) => ({
+        ...ph,
+        signed_url: signedPhotos.get(ph.storage_path) ?? null,
+      })),
+      signatures: (p.signatures ?? []).map((s: any) => ({
+        ...s,
+        signed_url: signedSigs.get(s.signature_file_url) ?? null,
+      })),
     };
   });

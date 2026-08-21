@@ -135,8 +135,7 @@ function ConversationSidebar() {
   });
 
   const renameMut = useMutation({
-    mutationFn: (vars: { conversationId: string; title: string }) =>
-      renameFn({ data: vars }),
+    mutationFn: (vars: { conversationId: string; title: string }) => renameFn({ data: vars }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["assistant", "conversations"] });
       setRenamingId(null);
@@ -240,7 +239,8 @@ function ChatPanel() {
 
   const { data: initialMessages, isLoading: loadingMsgs } = useQuery({
     queryKey: ["assistant", "messages", activeId],
-    queryFn: () => (activeId ? fetchMessages({ data: { conversationId: activeId } }) : Promise.resolve([])),
+    queryFn: () =>
+      activeId ? fetchMessages({ data: { conversationId: activeId } }) : Promise.resolve([]),
     enabled: !!activeId,
     staleTime: 0,
   });
@@ -391,11 +391,8 @@ function ChatWindow({
 
           {messages.map((m) => {
             const isUser = m.role === "user";
-            const textContent = m.parts
-              .map((p) => (p.type === "text" ? p.text : ""))
-              .join("");
-            const isStreamingLast =
-              status === "streaming" && !isUser && m.id === lastAssistantId;
+            const textContent = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
+            const isStreamingLast = status === "streaming" && !isUser && m.id === lastAssistantId;
             return (
               <Message key={m.id} from={isUser ? "user" : "assistant"}>
                 {isUser ? (

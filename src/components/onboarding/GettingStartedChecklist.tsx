@@ -6,7 +6,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2, ChevronDown, ChevronUp, Circle, Rocket, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getGettingStartedStatus, type GettingStartedStatus, getOnboardingProgress, upsertOnboardingProgress } from "@/lib/onboarding.functions";
+import {
+  getGettingStartedStatus,
+  type GettingStartedStatus,
+  getOnboardingProgress,
+  upsertOnboardingProgress,
+} from "@/lib/onboarding.functions";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
@@ -21,16 +26,76 @@ type Item = {
 const CORE_KEYS: Array<keyof GettingStartedStatus> = ["hasCompanyData", "hasProduct", "hasQuote"];
 
 const ITEMS: Item[] = [
-  { key: "hasCompanyData", title: "Configurar dados da empresa", description: "Razão social, CNPJ e contato aparecem em propostas e relatórios.", to: "/settings/company", cta: "Configurar" },
-  { key: "hasProduct", title: "Cadastrar primeiro produto ou serviço", description: "Adicione os itens que entram nas suas propostas e atendimentos.", to: "/products", cta: "Cadastrar" },
-  { key: "hasQuote", title: "Criar primeiro orçamento", description: "Monte uma proposta em minutos — cliente pode ser criado direto no orçamento.", to: "/quotes", cta: "Criar orçamento" },
-  { key: "hasCustomer", title: "Cadastrar primeiro cliente", description: "Também dá pra criar clientes direto no orçamento.", to: "/clients", cta: "Cadastrar cliente" },
-  { key: "hasCrmOpportunity", title: "Registrar primeira oportunidade no CRM", description: "Acompanhe leads e negociações no funil de vendas estilo Kanban.", to: "/crm", cta: "Abrir CRM" },
-  { key: "hasQuotePdf", title: "Gerar PDF da proposta", description: "Gere a versão Premium para impressionar o cliente.", to: "/quotes", cta: "Ir para orçamentos" },
-  { key: "hasQuoteSent", title: "Enviar proposta para o cliente", description: "WhatsApp, e-mail ou link público com aceite eletrônico.", to: "/quotes", cta: "Enviar" },
-  { key: "hasQuoteApproved", title: "Aprovar orçamento", description: "Acompanhe o aceite — orçamentos aprovados viram projetos.", to: "/quotes", cta: "Ver orçamentos" },
-  { key: "hasCrmWon", title: "Marcar oportunidade como ganha", description: "Feche o ciclo comercial marcando a oportunidade como ganha no CRM.", to: "/crm", cta: "Ir para CRM" },
-  { key: "hasServiceOrder", title: "Criar primeira ordem de serviço", description: "Organize a execução com checklist, fotos e relatório.", to: "/service-orders", cta: "Nova OS" },
+  {
+    key: "hasCompanyData",
+    title: "Configurar dados da empresa",
+    description: "Razão social, CNPJ e contato aparecem em propostas e relatórios.",
+    to: "/settings/company",
+    cta: "Configurar",
+  },
+  {
+    key: "hasProduct",
+    title: "Cadastrar primeiro produto ou serviço",
+    description: "Adicione os itens que entram nas suas propostas e atendimentos.",
+    to: "/products",
+    cta: "Cadastrar",
+  },
+  {
+    key: "hasQuote",
+    title: "Criar primeiro orçamento",
+    description: "Monte uma proposta em minutos — cliente pode ser criado direto no orçamento.",
+    to: "/quotes",
+    cta: "Criar orçamento",
+  },
+  {
+    key: "hasCustomer",
+    title: "Cadastrar primeiro cliente",
+    description: "Também dá pra criar clientes direto no orçamento.",
+    to: "/clients",
+    cta: "Cadastrar cliente",
+  },
+  {
+    key: "hasCrmOpportunity",
+    title: "Registrar primeira oportunidade no CRM",
+    description: "Acompanhe leads e negociações no funil de vendas estilo Kanban.",
+    to: "/crm",
+    cta: "Abrir CRM",
+  },
+  {
+    key: "hasQuotePdf",
+    title: "Gerar PDF da proposta",
+    description: "Gere a versão Premium para impressionar o cliente.",
+    to: "/quotes",
+    cta: "Ir para orçamentos",
+  },
+  {
+    key: "hasQuoteSent",
+    title: "Enviar proposta para o cliente",
+    description: "WhatsApp, e-mail ou link público com aceite eletrônico.",
+    to: "/quotes",
+    cta: "Enviar",
+  },
+  {
+    key: "hasQuoteApproved",
+    title: "Aprovar orçamento",
+    description: "Acompanhe o aceite — orçamentos aprovados viram projetos.",
+    to: "/quotes",
+    cta: "Ver orçamentos",
+  },
+  {
+    key: "hasCrmWon",
+    title: "Marcar oportunidade como ganha",
+    description: "Feche o ciclo comercial marcando a oportunidade como ganha no CRM.",
+    to: "/crm",
+    cta: "Ir para CRM",
+  },
+  {
+    key: "hasServiceOrder",
+    title: "Criar primeira ordem de serviço",
+    description: "Organize a execução com checklist, fotos e relatório.",
+    to: "/service-orders",
+    cta: "Nova OS",
+  },
 ];
 
 const TOUR_KEY = "getting_started_checklist";
@@ -72,11 +137,13 @@ export function GettingStartedChecklist() {
   const percent = total > 0 ? Math.round((effectiveDone / total) * 100) : 0;
 
   const completeMutation = useMutation({
-    mutationFn: () => upsertProgress({ data: { tourKey: TOUR_KEY, status: "COMPLETED", currentStep: total } }),
+    mutationFn: () =>
+      upsertProgress({ data: { tourKey: TOUR_KEY, status: "COMPLETED", currentStep: total } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["onboarding_progress", TOUR_KEY] }),
   });
   const stepMutation = useMutation({
-    mutationFn: (step: number) => upsertProgress({ data: { tourKey: TOUR_KEY, status: "IN_PROGRESS", currentStep: step } }),
+    mutationFn: (step: number) =>
+      upsertProgress({ data: { tourKey: TOUR_KEY, status: "IN_PROGRESS", currentStep: step } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["onboarding_progress", TOUR_KEY] }),
   });
 
@@ -89,21 +156,21 @@ export function GettingStartedChecklist() {
     const t = setTimeout(() => {
       if (cancelled) return;
       if (allDone) {
-        if (progress?.status !== "COMPLETED" && !completeMutation.isPending) completeMutation.mutate();
+        if (progress?.status !== "COMPLETED" && !completeMutation.isPending)
+          completeMutation.mutate();
       } else if ((progress?.current_step ?? -1) !== doneCount && !stepMutation.isPending) {
         stepMutation.mutate(doneCount);
       }
     }, 0);
-    return () => { cancelled = true; clearTimeout(t); };
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, progress, doneCount, allDone]);
 
-
   if (isSkipped) return null;
   if (isCompleted && !isLoading) return null;
-
-
-
 
   return (
     <Card className="card-elevated">
@@ -116,11 +183,12 @@ export function GettingStartedChecklist() {
           {status ? (
             <div className="mt-2 space-y-1.5">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{effectiveDone} de {total} concluídos</span>
+                <span>
+                  {effectiveDone} de {total} concluídos
+                </span>
                 <span className="font-medium text-foreground">{percent}%</span>
               </div>
               <Progress value={percent} className="h-2" />
-
             </div>
           ) : (
             <p className="mt-1 text-xs text-muted-foreground">Carregando...</p>
@@ -137,7 +205,8 @@ export function GettingStartedChecklist() {
       <CardContent className="space-y-2">
         {(() => {
           const coreDone = CORE_KEYS.every((k) => !!status?.[k]);
-          const visibleItems = expanded || coreDone ? ITEMS : ITEMS.filter((i) => CORE_KEYS.includes(i.key));
+          const visibleItems =
+            expanded || coreDone ? ITEMS : ITEMS.filter((i) => CORE_KEYS.includes(i.key));
           const hiddenCount = ITEMS.length - visibleItems.length;
           return (
             <>
@@ -158,12 +227,19 @@ export function GettingStartedChecklist() {
                         <Circle className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
                       )}
                       <div className="min-w-0 flex-1">
-                        <div className={cn("text-sm font-medium", ok && "line-through")}>{it.title}</div>
+                        <div className={cn("text-sm font-medium", ok && "line-through")}>
+                          {it.title}
+                        </div>
                         <p className="mt-0.5 text-xs text-muted-foreground">{it.description}</p>
                       </div>
                     </div>
                     {!ok && (
-                      <Button asChild size="sm" variant="outline" className="w-full shrink-0 sm:w-auto">
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="outline"
+                        className="w-full shrink-0 sm:w-auto"
+                      >
                         <Link to={it.to as never}>{it.cta}</Link>
                       </Button>
                     )}
@@ -178,8 +254,14 @@ export function GettingStartedChecklist() {
                   onClick={() => setExpanded((v) => !v)}
                   className="w-full justify-center gap-1 text-muted-foreground"
                 >
-                  {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  {expanded ? "Mostrar apenas o essencial" : `Ver mais ${hiddenCount} passos avançados`}
+                  {expanded ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                  {expanded
+                    ? "Mostrar apenas o essencial"
+                    : `Ver mais ${hiddenCount} passos avançados`}
                 </Button>
               )}
             </>

@@ -6,10 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Tag, X } from "lucide-react";
-import {
-  validateCoupon,
-  type ValidatedCoupon,
-} from "@/lib/billing-coupons.functions";
+import { validateCoupon, type ValidatedCoupon } from "@/lib/billing-coupons.functions";
 
 type Props = {
   planId: string;
@@ -23,15 +20,13 @@ export function CouponInput({ planId, amount, value, onChange }: Props) {
   const fn = useServerFn(validateCoupon);
 
   const m = useMutation({
-    mutationFn: () =>
-      fn({ data: { code: code.trim(), plan_id: planId, amount } }),
+    mutationFn: () => fn({ data: { code: code.trim(), plan_id: planId, amount } }),
     onSuccess: (r) => {
       onChange(r);
       toast.success(`Cupom ${r.code} aplicado.`);
       setCode("");
     },
-    onError: (e: any) =>
-      toast.error(e?.message ?? "Cupom inválido."),
+    onError: (e: any) => toast.error(e?.message ?? "Cupom inválido."),
   });
 
   if (value) {
@@ -78,11 +73,7 @@ export function CouponInput({ planId, amount, value, onChange }: Props) {
           onClick={() => m.mutate()}
           disabled={!code.trim() || m.isPending}
         >
-          {m.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            "Aplicar"
-          )}
+          {m.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Aplicar"}
         </Button>
       </div>
     </div>

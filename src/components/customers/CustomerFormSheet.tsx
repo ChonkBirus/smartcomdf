@@ -2,7 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Plus, Trash2, Star } from "lucide-react";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,13 +18,24 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
-  getCustomer, saveCustomer, listCustomerTags, createCustomerTag,
-  type CustomerAddress, type CustomerContact, type CustomerType, type CustomerStatus, type CustomerAddressType,
+  getCustomer,
+  saveCustomer,
+  listCustomerTags,
+  createCustomerTag,
+  type CustomerAddress,
+  type CustomerContact,
+  type CustomerType,
+  type CustomerStatus,
+  type CustomerAddressType,
 } from "@/lib/customers.functions";
 import { COUNTRIES, statesFor, isValidEmail } from "@/lib/locations";
 import { CustomerCnpjLookupButton } from "@/components/customers/CustomerCnpjLookupDialog";
@@ -27,8 +44,14 @@ import { useCompanyId } from "@/hooks/use-company-id";
 import { CepInput } from "@/components/shared/CepInput";
 import type { CepResult } from "@/lib/address-lookup";
 
-type AddrRow = Omit<CustomerAddress, "id" | "company_id" | "customer_id" | "created_at" | "updated_at"> & { id?: string };
-type ContactRow = Omit<CustomerContact, "id" | "company_id" | "customer_id" | "created_at" | "updated_at"> & { id?: string };
+type AddrRow = Omit<
+  CustomerAddress,
+  "id" | "company_id" | "customer_id" | "created_at" | "updated_at"
+> & { id?: string };
+type ContactRow = Omit<
+  CustomerContact,
+  "id" | "company_id" | "customer_id" | "created_at" | "updated_at"
+> & { id?: string };
 
 type FormState = {
   id?: string;
@@ -53,29 +76,54 @@ type FormState = {
 
 const EMPTY: FormState = {
   customer_type: "INDIVIDUAL",
-  name: "", corporate_name: "", trade_name: "", cpf_cnpj: "",
-  state_registration: "", municipal_registration: "",
-  email: "", phone: "", whatsapp: "",
-  customer_status: "ACTIVE", customer_origin: "",
-  notes: "", active: true,
+  name: "",
+  corporate_name: "",
+  trade_name: "",
+  cpf_cnpj: "",
+  state_registration: "",
+  municipal_registration: "",
+  email: "",
+  phone: "",
+  whatsapp: "",
+  customer_status: "ACTIVE",
+  customer_origin: "",
+  notes: "",
+  active: true,
   addresses: [],
   contacts: [],
   tag_ids: [],
 };
 
 const EMPTY_ADDR: AddrRow = {
-  address_type: "BILLING", country: "BR", zipcode: null, street: null, number: null,
-  complement: null, district: null, city: null, state: null, reference: null,
+  address_type: "BILLING",
+  country: "BR",
+  zipcode: null,
+  street: null,
+  number: null,
+  complement: null,
+  district: null,
+  city: null,
+  state: null,
+  reference: null,
   is_primary: false,
 };
 const EMPTY_CONTACT: ContactRow = {
-  name: "", role: null, email: null, phone: null, whatsapp: null,
-  is_primary: false, active: true,
+  name: "",
+  role: null,
+  email: null,
+  phone: null,
+  whatsapp: null,
+  is_primary: false,
+  active: true,
 };
 
 function maskCpfCnpj(v: string, type: CustomerType) {
   const d = v.replace(/\D/g, "").slice(0, type === "INDIVIDUAL" ? 11 : 14);
-  if (type === "INDIVIDUAL") return d.replace(/(\d{3})(\d{3})?(\d{3})?(\d{2})?/, (_, a, b, c, d2) => [a, b, c].filter(Boolean).join(".") + (d2 ? "-" + d2 : ""));
+  if (type === "INDIVIDUAL")
+    return d.replace(
+      /(\d{3})(\d{3})?(\d{3})?(\d{2})?/,
+      (_, a, b, c, d2) => [a, b, c].filter(Boolean).join(".") + (d2 ? "-" + d2 : ""),
+    );
   return d.replace(/(\d{2})(\d{3})?(\d{3})?(\d{4})?(\d{2})?/, (_, a, b, c, d2, e) => {
     let s = a;
     if (b) s += "." + b;
@@ -88,7 +136,10 @@ function maskCpfCnpj(v: string, type: CustomerType) {
 
 function maskPhone(v: string) {
   const d = v.replace(/\D/g, "").slice(0, 11);
-  if (d.length <= 10) return d.replace(/(\d{0,2})(\d{0,4})(\d{0,4})/, (_, a, b, c) => [a && `(${a})`, b, c && `-${c}`].filter(Boolean).join(" ").trim());
+  if (d.length <= 10)
+    return d.replace(/(\d{0,2})(\d{0,4})(\d{0,4})/, (_, a, b, c) =>
+      [a && `(${a})`, b, c && `-${c}`].filter(Boolean).join(" ").trim(),
+    );
   return d.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3");
 }
 
@@ -102,11 +153,13 @@ function isValidCPF(v: string) {
   if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
   let s = 0;
   for (let i = 0; i < 9; i++) s += parseInt(c[i]) * (10 - i);
-  let d1 = 11 - (s % 11); if (d1 >= 10) d1 = 0;
+  let d1 = 11 - (s % 11);
+  if (d1 >= 10) d1 = 0;
   if (d1 !== parseInt(c[9])) return false;
   s = 0;
   for (let i = 0; i < 10; i++) s += parseInt(c[i]) * (11 - i);
-  let d2 = 11 - (s % 11); if (d2 >= 10) d2 = 0;
+  let d2 = 11 - (s % 11);
+  if (d2 >= 10) d2 = 0;
   return d2 === parseInt(c[10]);
 }
 
@@ -114,7 +167,8 @@ function isValidCNPJ(v: string) {
   const c = v.replace(/\D/g, "");
   if (c.length !== 14 || /^(\d)\1+$/.test(c)) return false;
   const calc = (len: number) => {
-    const w = len === 12 ? [5,4,3,2,9,8,7,6,5,4,3,2] : [6,5,4,3,2,9,8,7,6,5,4,3,2];
+    const w =
+      len === 12 ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2] : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
     let s = 0;
     for (let i = 0; i < len; i++) s += parseInt(c[i]) * w[i];
     const r = s % 11;
@@ -124,9 +178,16 @@ function isValidCNPJ(v: string) {
 }
 
 export function CustomerFormSheet({
-  open, onOpenChange, customerId, onCreated,
-}: { open: boolean; onOpenChange: (o: boolean) => void; customerId: string | null; onCreated?: (id: string) => void }) {
-
+  open,
+  onOpenChange,
+  customerId,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  customerId: string | null;
+  onCreated?: (id: string) => void;
+}) {
   const qc = useQueryClient();
   const fetchOne = useServerFn(getCustomer);
   const save = useServerFn(saveCustomer);
@@ -194,7 +255,6 @@ export function CustomerFormSheet({
     onError: (e: any) => toast.error(e?.message ?? "Falha ao salvar."),
   });
 
-
   const tagMut = useMutation({
     mutationFn: (name: string) => newTag({ data: { name, color: "#3B82F6" } }),
     onSuccess: (t) => {
@@ -215,7 +275,8 @@ export function CustomerFormSheet({
     }
     if (!form.email.trim()) errs.email = "E-mail é obrigatório.";
     else if (!isValidEmail(form.email)) errs.email = "Informe um e-mail válido.";
-    if (!form.phone.trim() && !form.whatsapp.trim()) errs.whatsapp = "Informe WhatsApp ou Telefone.";
+    if (!form.phone.trim() && !form.whatsapp.trim())
+      errs.whatsapp = "Informe WhatsApp ou Telefone.";
     // Filter out fully empty contacts before validating/sending.
     const cleanedContacts = form.contacts
       .map((c) => ({
@@ -229,7 +290,8 @@ export function CustomerFormSheet({
       .filter((c) => c.name || c.role || c.email || c.phone || c.whatsapp);
     cleanedContacts.forEach((c, i) => {
       if (!c.name) errs[`contact_${i}_name`] = "Nome é obrigatório.";
-      if (c.email && !isValidEmail(c.email)) errs[`contact_${i}_email`] = "Informe um e-mail válido.";
+      if (c.email && !isValidEmail(c.email))
+        errs[`contact_${i}_email`] = "Informe um e-mail válido.";
     });
     form.addresses.forEach((a, i) => {
       if (!a.country) errs[`addr_${i}_country`] = "País é obrigatório.";
@@ -247,7 +309,6 @@ export function CustomerFormSheet({
     }
     mutation.mutate({ ...form, contacts: cleanedContacts as any });
   }
-
 
   const isCompany = form.customer_type === "COMPANY";
   const docDigits = form.cpf_cnpj.replace(/\D/g, "");
@@ -290,14 +351,19 @@ export function CustomerFormSheet({
         whatsapp: take(s.whatsapp, d.phone),
         state_registration: take(s.state_registration, d.state_registration),
         municipal_registration: take(s.municipal_registration, d.municipal_registration),
-        notes: d.main_activity && !s.notes ? `CNAE: ${d.main_cnae ?? ""} - ${d.main_activity}` : s.notes,
+        notes:
+          d.main_activity && !s.notes ? `CNAE: ${d.main_cnae ?? ""} - ${d.main_activity}` : s.notes,
         addresses: nextAddrs,
       };
     });
   }
 
-  const hasExistingPjData = !!(form.corporate_name || form.trade_name || form.email || form.addresses.length > 0);
-
+  const hasExistingPjData = !!(
+    form.corporate_name ||
+    form.trade_name ||
+    form.email ||
+    form.addresses.length > 0
+  );
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -328,7 +394,9 @@ export function CustomerFormSheet({
                     value={form.customer_type}
                     onValueChange={(v) => set("customer_type", v as CustomerType)}
                   >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="INDIVIDUAL">Pessoa Física</SelectItem>
                       <SelectItem value="COMPANY">Pessoa Jurídica</SelectItem>
@@ -344,7 +412,9 @@ export function CustomerFormSheet({
                     value={form.customer_status}
                     onValueChange={(v) => set("customer_status", v as CustomerStatus)}
                   >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="LEAD">Lead</SelectItem>
                       <SelectItem value="ACTIVE">Ativo</SelectItem>
@@ -359,49 +429,82 @@ export function CustomerFormSheet({
                 <div className="sm:col-span-2">
                   <LabelWithHelp
                     label={isCompany ? "Nome (referência) *" : "Nome completo *"}
-                    help={isCompany
-                      ? "Como esta empresa vai aparecer nas listas. Pode ser o nome fantasia ou um apelido."
-                      : "Nome completo do cliente, como consta no documento."}
+                    help={
+                      isCompany
+                        ? "Como esta empresa vai aparecer nas listas. Pode ser o nome fantasia ou um apelido."
+                        : "Nome completo do cliente, como consta no documento."
+                    }
                   />
-                  <Input value={form.name} onChange={(e) => set("name", e.target.value)} aria-invalid={!!errors.name}
-                    className={errors.name ? "border-destructive" : ""} />
+                  <Input
+                    value={form.name}
+                    onChange={(e) => set("name", e.target.value)}
+                    aria-invalid={!!errors.name}
+                    className={errors.name ? "border-destructive" : ""}
+                  />
                   {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name}</p>}
                 </div>
                 {isCompany && (
                   <>
                     <div>
-                      <LabelWithHelp label="Razão social" help="Nome oficial registrado da empresa (aparece na nota fiscal)." />
-                      <Input value={form.corporate_name} onChange={(e) => set("corporate_name", e.target.value)} />
+                      <LabelWithHelp
+                        label="Razão social"
+                        help="Nome oficial registrado da empresa (aparece na nota fiscal)."
+                      />
+                      <Input
+                        value={form.corporate_name}
+                        onChange={(e) => set("corporate_name", e.target.value)}
+                      />
                     </div>
                     <div>
-                      <LabelWithHelp label="Nome fantasia" help="Nome comercial pelo qual a empresa é conhecida no mercado." />
-                      <Input value={form.trade_name} onChange={(e) => set("trade_name", e.target.value)} />
+                      <LabelWithHelp
+                        label="Nome fantasia"
+                        help="Nome comercial pelo qual a empresa é conhecida no mercado."
+                      />
+                      <Input
+                        value={form.trade_name}
+                        onChange={(e) => set("trade_name", e.target.value)}
+                      />
                     </div>
                   </>
                 )}
                 <div>
                   <LabelWithHelp
                     label={isCompany ? "CNPJ" : "CPF"}
-                    help={isCompany
-                      ? "Documento da empresa (14 dígitos). Digite e clique em buscar para preencher automaticamente."
-                      : "Documento do cliente (11 dígitos). Usado em orçamentos e notas."}
+                    help={
+                      isCompany
+                        ? "Documento da empresa (14 dígitos). Digite e clique em buscar para preencher automaticamente."
+                        : "Documento do cliente (11 dígitos). Usado em orçamentos e notas."
+                    }
                   />
                   <Input
                     value={maskCpfCnpj(form.cpf_cnpj, form.customer_type)}
                     onChange={(e) => set("cpf_cnpj", e.target.value)}
                     aria-invalid={!!errors.cpf_cnpj || (docTouched && docComplete && !docValid)}
-                    className={(errors.cpf_cnpj || (docTouched && docComplete && !docValid)) ? "border-destructive focus-visible:ring-destructive" : docTouched && docValid ? "border-emerald-500" : ""}
+                    className={
+                      errors.cpf_cnpj || (docTouched && docComplete && !docValid)
+                        ? "border-destructive focus-visible:ring-destructive"
+                        : docTouched && docValid
+                          ? "border-emerald-500"
+                          : ""
+                    }
                   />
                   {errors.cpf_cnpj ? (
                     <p className="mt-1 text-xs text-destructive">{errors.cpf_cnpj}</p>
-                  ) : docTouched && (
-                    docValid ? (
-                      <p className="mt-1 text-xs text-emerald-600">{isCompany ? "CNPJ válido" : "CPF válido"}</p>
+                  ) : (
+                    docTouched &&
+                    (docValid ? (
+                      <p className="mt-1 text-xs text-emerald-600">
+                        {isCompany ? "CNPJ válido" : "CPF válido"}
+                      </p>
                     ) : docComplete ? (
-                      <p className="mt-1 text-xs text-destructive">{isCompany ? "CNPJ inválido" : "CPF inválido"}</p>
+                      <p className="mt-1 text-xs text-destructive">
+                        {isCompany ? "CNPJ inválido" : "CPF inválido"}
+                      </p>
                     ) : (
-                      <p className="mt-1 text-xs text-muted-foreground">{docDigits.length}/{docExpectedLen} dígitos</p>
-                    )
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {docDigits.length}/{docExpectedLen} dígitos
+                      </p>
+                    ))
                   )}
                   {isCompany && (
                     <div className="mt-2">
@@ -418,12 +521,24 @@ export function CustomerFormSheet({
                 {isCompany && (
                   <>
                     <div>
-                      <LabelWithHelp label="Inscrição estadual" help="Registro da empresa na receita estadual. Deixe vazio se isento." />
-                      <Input value={form.state_registration} onChange={(e) => set("state_registration", e.target.value)} />
+                      <LabelWithHelp
+                        label="Inscrição estadual"
+                        help="Registro da empresa na receita estadual. Deixe vazio se isento."
+                      />
+                      <Input
+                        value={form.state_registration}
+                        onChange={(e) => set("state_registration", e.target.value)}
+                      />
                     </div>
                     <div>
-                      <LabelWithHelp label="Inscrição municipal" help="Registro da empresa na prefeitura, usado para nota de serviço." />
-                      <Input value={form.municipal_registration} onChange={(e) => set("municipal_registration", e.target.value)} />
+                      <LabelWithHelp
+                        label="Inscrição municipal"
+                        help="Registro da empresa na prefeitura, usado para nota de serviço."
+                      />
+                      <Input
+                        value={form.municipal_registration}
+                        onChange={(e) => set("municipal_registration", e.target.value)}
+                      />
                     </div>
                   </>
                 )}
@@ -432,37 +547,66 @@ export function CustomerFormSheet({
               <Separator />
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <LabelWithHelp label="E-mail *" help="Usado para enviar orçamentos, cobranças e comunicados." />
-                  <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)}
+                  <LabelWithHelp
+                    label="E-mail *"
+                    help="Usado para enviar orçamentos, cobranças e comunicados."
+                  />
+                  <Input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => set("email", e.target.value)}
                     aria-invalid={!!errors.email}
-                    className={errors.email ? "border-destructive" : ""} />
-                  {errors.email
-                    ? <p className="mt-1 text-xs text-destructive">{errors.email}</p>
-                    : <p className="mt-1 text-xs text-muted-foreground">Este campo é obrigatório.</p>}
+                    className={errors.email ? "border-destructive" : ""}
+                  />
+                  {errors.email ? (
+                    <p className="mt-1 text-xs text-destructive">{errors.email}</p>
+                  ) : (
+                    <p className="mt-1 text-xs text-muted-foreground">Este campo é obrigatório.</p>
+                  )}
                 </div>
                 <div>
                   <LabelWithHelp label="Telefone" help="Telefone fixo ou celular para ligações." />
-                  <Input value={maskPhone(form.phone)} onChange={(e) => set("phone", e.target.value)}
+                  <Input
+                    value={maskPhone(form.phone)}
+                    onChange={(e) => set("phone", e.target.value)}
                     aria-invalid={!!errors.whatsapp}
-                    className={errors.whatsapp ? "border-destructive" : ""} />
+                    className={errors.whatsapp ? "border-destructive" : ""}
+                  />
                 </div>
                 <div>
-                  <LabelWithHelp label="WhatsApp *" help="Número usado para enviar orçamentos e mensagens pelo WhatsApp. Informe WhatsApp ou telefone." />
-                  <Input value={maskPhone(form.whatsapp)} onChange={(e) => set("whatsapp", e.target.value)}
+                  <LabelWithHelp
+                    label="WhatsApp *"
+                    help="Número usado para enviar orçamentos e mensagens pelo WhatsApp. Informe WhatsApp ou telefone."
+                  />
+                  <Input
+                    value={maskPhone(form.whatsapp)}
+                    onChange={(e) => set("whatsapp", e.target.value)}
                     aria-invalid={!!errors.whatsapp}
-                    className={errors.whatsapp ? "border-destructive" : ""} />
-                  {errors.whatsapp && <p className="mt-1 text-xs text-destructive">{errors.whatsapp}</p>}
+                    className={errors.whatsapp ? "border-destructive" : ""}
+                  />
+                  {errors.whatsapp && (
+                    <p className="mt-1 text-xs text-destructive">{errors.whatsapp}</p>
+                  )}
                 </div>
                 <div>
-                  <LabelWithHelp label="Origem" help="Como este cliente chegou até você. Ajuda a saber quais canais funcionam." />
-                  <Input value={form.customer_origin} onChange={(e) => set("customer_origin", e.target.value)} placeholder="Indicação, site, Instagram..." />
+                  <LabelWithHelp
+                    label="Origem"
+                    help="Como este cliente chegou até você. Ajuda a saber quais canais funcionam."
+                  />
+                  <Input
+                    value={form.customer_origin}
+                    onChange={(e) => set("customer_origin", e.target.value)}
+                    placeholder="Indicação, site, Instagram..."
+                  />
                 </div>
               </div>
 
               <div className="flex items-center justify-between rounded-md border p-3">
                 <div>
                   <Label className="font-medium">Ativo</Label>
-                  <p className="text-xs text-muted-foreground">Clientes inativos não aparecem em novos orçamentos.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Clientes inativos não aparecem em novos orçamentos.
+                  </p>
                 </div>
                 <Switch checked={form.active} onCheckedChange={(v) => set("active", v)} />
               </div>
@@ -484,7 +628,9 @@ export function CustomerFormSheet({
                         set("addresses", next);
                       }}
                     >
-                      <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="BILLING">Cobrança</SelectItem>
                         <SelectItem value="INSTALLATION">Instalação</SelectItem>
@@ -494,17 +640,30 @@ export function CustomerFormSheet({
                     </Select>
                     <div className="flex items-center gap-2">
                       <Button
-                        type="button" size="sm" variant={a.is_primary ? "default" : "outline"}
+                        type="button"
+                        size="sm"
+                        variant={a.is_primary ? "default" : "outline"}
                         onClick={() => {
-                          const next = form.addresses.map((x, idx) => ({ ...x, is_primary: idx === i }));
+                          const next = form.addresses.map((x, idx) => ({
+                            ...x,
+                            is_primary: idx === i,
+                          }));
                           set("addresses", next);
                         }}
                       >
-                        <Star className="mr-1 h-3.5 w-3.5" />Principal
+                        <Star className="mr-1 h-3.5 w-3.5" />
+                        Principal
                       </Button>
                       <Button
-                        type="button" size="icon" variant="ghost"
-                        onClick={() => set("addresses", form.addresses.filter((_, idx) => idx !== i))}
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        onClick={() =>
+                          set(
+                            "addresses",
+                            form.addresses.filter((_, idx) => idx !== i),
+                          )
+                        }
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -512,7 +671,10 @@ export function CustomerFormSheet({
                   </div>
                   <div className="grid gap-2 sm:grid-cols-3">
                     <div>
-                      <LabelWithHelp label="País *" help="País do endereço. Muda a lista de estados/UF disponível." />
+                      <LabelWithHelp
+                        label="País *"
+                        help="País do endereço. Muda a lista de estados/UF disponível."
+                      />
                       <Select
                         value={a.country || "BR"}
                         onValueChange={(v) => {
@@ -521,23 +683,32 @@ export function CustomerFormSheet({
                           set("addresses", next);
                         }}
                       >
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
                           {COUNTRIES.map((c) => (
-                            <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                            <SelectItem key={c.code} value={c.code}>
+                              {c.label}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
                     <div>
-                      <LabelWithHelp label="CEP *" help="Digite o CEP para preencher rua, bairro, cidade e UF automaticamente." />
+                      <LabelWithHelp
+                        label="CEP *"
+                        help="Digite o CEP para preencher rua, bairro, cidade e UF automaticamente."
+                      />
                       {a.country === "BR" ? (
                         <CepInput
                           value={a.zipcode ?? ""}
                           aria-invalid={!!errors[`addr_${i}_zipcode`]}
                           className={errors[`addr_${i}_zipcode`] ? "border-destructive" : ""}
                           onChange={(v: string) => {
-                            const next = [...form.addresses]; next[i] = { ...a, zipcode: v }; set("addresses", next);
+                            const next = [...form.addresses];
+                            next[i] = { ...a, zipcode: v };
+                            set("addresses", next);
                           }}
                           onResolve={(r: CepResult) => {
                             const next = [...form.addresses];
@@ -548,20 +719,30 @@ export function CustomerFormSheet({
                               district: a.district?.trim() ? a.district : r.district,
                               city: a.city?.trim() ? a.city : r.city,
                               state: a.state?.trim() ? a.state : r.state,
-                              complement: a.complement?.trim() ? a.complement : (r.complement ?? a.complement ?? null),
+                              complement: a.complement?.trim()
+                                ? a.complement
+                                : (r.complement ?? a.complement ?? null),
                             };
                             set("addresses", next);
                           }}
                         />
                       ) : (
-                        <Input value={a.zipcode ?? ""}
+                        <Input
+                          value={a.zipcode ?? ""}
                           aria-invalid={!!errors[`addr_${i}_zipcode`]}
                           className={errors[`addr_${i}_zipcode`] ? "border-destructive" : ""}
                           onChange={(e) => {
-                            const next = [...form.addresses]; next[i] = { ...a, zipcode: e.target.value }; set("addresses", next);
-                          }} />
+                            const next = [...form.addresses];
+                            next[i] = { ...a, zipcode: e.target.value };
+                            set("addresses", next);
+                          }}
+                        />
                       )}
-                      {errors[`addr_${i}_zipcode`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_zipcode`]}</p>}
+                      {errors[`addr_${i}_zipcode`] && (
+                        <p className="mt-1 text-xs text-destructive">
+                          {errors[`addr_${i}_zipcode`]}
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -569,79 +750,146 @@ export function CustomerFormSheet({
                       <Select
                         value={a.state ?? ""}
                         onValueChange={(v) => {
-                          const next = [...form.addresses]; next[i] = { ...a, state: v }; set("addresses", next);
+                          const next = [...form.addresses];
+                          next[i] = { ...a, state: v };
+                          set("addresses", next);
                         }}
                       >
-                        <SelectTrigger aria-invalid={!!errors[`addr_${i}_state`]}
-                          className={errors[`addr_${i}_state`] ? "border-destructive" : ""}>
+                        <SelectTrigger
+                          aria-invalid={!!errors[`addr_${i}_state`]}
+                          className={errors[`addr_${i}_state`] ? "border-destructive" : ""}
+                        >
                           <SelectValue placeholder="Selecione..." />
                         </SelectTrigger>
                         <SelectContent>
                           {statesFor(a.country || "BR").map((s) => (
-                            <SelectItem key={s.code} value={s.code}>{s.code} — {s.label}</SelectItem>
+                            <SelectItem key={s.code} value={s.code}>
+                              {s.code} — {s.label}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                      {errors[`addr_${i}_state`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_state`]}</p>}
+                      {errors[`addr_${i}_state`] && (
+                        <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_state`]}</p>
+                      )}
                     </div>
                     <div className="sm:col-span-2">
                       <LabelWithHelp label="Rua *" help="Nome da rua, avenida ou logradouro." />
-                      <Input value={a.street ?? ""}
+                      <Input
+                        value={a.street ?? ""}
                         aria-invalid={!!errors[`addr_${i}_street`]}
                         className={errors[`addr_${i}_street`] ? "border-destructive" : ""}
                         onChange={(e) => {
-                          const next = [...form.addresses]; next[i] = { ...a, street: e.target.value }; set("addresses", next);
-                        }} />
-                      {errors[`addr_${i}_street`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_street`]}</p>}
+                          const next = [...form.addresses];
+                          next[i] = { ...a, street: e.target.value };
+                          set("addresses", next);
+                        }}
+                      />
+                      {errors[`addr_${i}_street`] && (
+                        <p className="mt-1 text-xs text-destructive">
+                          {errors[`addr_${i}_street`]}
+                        </p>
+                      )}
                     </div>
                     <div>
-                      <LabelWithHelp label="Número *" help="Número do imóvel. Use S/N se não houver." />
-                      <Input value={a.number ?? ""}
+                      <LabelWithHelp
+                        label="Número *"
+                        help="Número do imóvel. Use S/N se não houver."
+                      />
+                      <Input
+                        value={a.number ?? ""}
                         aria-invalid={!!errors[`addr_${i}_number`]}
                         className={errors[`addr_${i}_number`] ? "border-destructive" : ""}
                         onChange={(e) => {
-                          const next = [...form.addresses]; next[i] = { ...a, number: e.target.value }; set("addresses", next);
-                        }} />
-                      {errors[`addr_${i}_number`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_number`]}</p>}
+                          const next = [...form.addresses];
+                          next[i] = { ...a, number: e.target.value };
+                          set("addresses", next);
+                        }}
+                      />
+                      {errors[`addr_${i}_number`] && (
+                        <p className="mt-1 text-xs text-destructive">
+                          {errors[`addr_${i}_number`]}
+                        </p>
+                      )}
                     </div>
                     <div>
-                      <LabelWithHelp label="Complemento" help="Apto, sala, bloco, andar. Opcional." />
-                      <Input value={a.complement ?? ""} onChange={(e) => {
-                        const next = [...form.addresses]; next[i] = { ...a, complement: e.target.value }; set("addresses", next);
-                      }} />
+                      <LabelWithHelp
+                        label="Complemento"
+                        help="Apto, sala, bloco, andar. Opcional."
+                      />
+                      <Input
+                        value={a.complement ?? ""}
+                        onChange={(e) => {
+                          const next = [...form.addresses];
+                          next[i] = { ...a, complement: e.target.value };
+                          set("addresses", next);
+                        }}
+                      />
                     </div>
                     <div>
                       <LabelWithHelp label="Bairro *" help="Bairro do endereço." />
-                      <Input value={a.district ?? ""}
+                      <Input
+                        value={a.district ?? ""}
                         aria-invalid={!!errors[`addr_${i}_district`]}
                         className={errors[`addr_${i}_district`] ? "border-destructive" : ""}
                         onChange={(e) => {
-                          const next = [...form.addresses]; next[i] = { ...a, district: e.target.value }; set("addresses", next);
-                        }} />
-                      {errors[`addr_${i}_district`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_district`]}</p>}
+                          const next = [...form.addresses];
+                          next[i] = { ...a, district: e.target.value };
+                          set("addresses", next);
+                        }}
+                      />
+                      {errors[`addr_${i}_district`] && (
+                        <p className="mt-1 text-xs text-destructive">
+                          {errors[`addr_${i}_district`]}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <LabelWithHelp label="Cidade *" help="Cidade do endereço." />
-                      <Input value={a.city ?? ""}
+                      <Input
+                        value={a.city ?? ""}
                         aria-invalid={!!errors[`addr_${i}_city`]}
                         className={errors[`addr_${i}_city`] ? "border-destructive" : ""}
                         onChange={(e) => {
-                          const next = [...form.addresses]; next[i] = { ...a, city: e.target.value }; set("addresses", next);
-                        }} />
-                      {errors[`addr_${i}_city`] && <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_city`]}</p>}
+                          const next = [...form.addresses];
+                          next[i] = { ...a, city: e.target.value };
+                          set("addresses", next);
+                        }}
+                      />
+                      {errors[`addr_${i}_city`] && (
+                        <p className="mt-1 text-xs text-destructive">{errors[`addr_${i}_city`]}</p>
+                      )}
                     </div>
                     <div className="sm:col-span-3">
-                      <LabelWithHelp label="Referência" help="Ponto de referência para o técnico chegar mais fácil. Ex.: em frente à padaria." />
-                      <Input value={a.reference ?? ""} onChange={(e) => {
-                        const next = [...form.addresses]; next[i] = { ...a, reference: e.target.value }; set("addresses", next);
-                      }} />
+                      <LabelWithHelp
+                        label="Referência"
+                        help="Ponto de referência para o técnico chegar mais fácil. Ex.: em frente à padaria."
+                      />
+                      <Input
+                        value={a.reference ?? ""}
+                        onChange={(e) => {
+                          const next = [...form.addresses];
+                          next[i] = { ...a, reference: e.target.value };
+                          set("addresses", next);
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
               ))}
-              <Button type="button" variant="outline" size="sm"
-                onClick={() => set("addresses", [...form.addresses, { ...EMPTY_ADDR, is_primary: form.addresses.length === 0 }])}>
-                <Plus className="mr-1 h-4 w-4" />Adicionar endereço
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  set("addresses", [
+                    ...form.addresses,
+                    { ...EMPTY_ADDR, is_primary: form.addresses.length === 0 },
+                  ])
+                }
+              >
+                <Plus className="mr-1 h-4 w-4" />
+                Adicionar endereço
               </Button>
             </TabsContent>
 
@@ -654,90 +902,173 @@ export function CustomerFormSheet({
                 <div key={i} className="space-y-2 rounded-md border p-3">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <LabelWithHelp label="Nome *" help="Nome da pessoa de contato desta empresa/cliente." />
-                      <Input value={c.name}
+                      <LabelWithHelp
+                        label="Nome *"
+                        help="Nome da pessoa de contato desta empresa/cliente."
+                      />
+                      <Input
+                        value={c.name}
                         aria-invalid={!!errors[`contact_${i}_name`]}
                         className={errors[`contact_${i}_name`] ? "border-destructive" : ""}
                         onChange={(e) => {
-                          const next = [...form.contacts]; next[i] = { ...c, name: e.target.value }; set("contacts", next);
-                        }} />
-                      {errors[`contact_${i}_name`] && <p className="mt-1 text-xs text-destructive">{errors[`contact_${i}_name`]}</p>}
+                          const next = [...form.contacts];
+                          next[i] = { ...c, name: e.target.value };
+                          set("contacts", next);
+                        }}
+                      />
+                      {errors[`contact_${i}_name`] && (
+                        <p className="mt-1 text-xs text-destructive">
+                          {errors[`contact_${i}_name`]}
+                        </p>
+                      )}
                     </div>
                     <div className="ml-2 flex items-center gap-1">
                       <Button
-                        type="button" size="sm" variant={c.is_primary ? "default" : "outline"}
+                        type="button"
+                        size="sm"
+                        variant={c.is_primary ? "default" : "outline"}
                         onClick={() => {
-                          const next = form.contacts.map((x, idx) => ({ ...x, is_primary: idx === i }));
+                          const next = form.contacts.map((x, idx) => ({
+                            ...x,
+                            is_primary: idx === i,
+                          }));
                           set("contacts", next);
                         }}
                       >
-                        <Star className="mr-1 h-3.5 w-3.5" />Principal
+                        <Star className="mr-1 h-3.5 w-3.5" />
+                        Principal
                       </Button>
-                      <Button type="button" size="icon" variant="ghost"
-                        onClick={() => set("contacts", form.contacts.filter((_, idx) => idx !== i))}>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        onClick={() =>
+                          set(
+                            "contacts",
+                            form.contacts.filter((_, idx) => idx !== i),
+                          )
+                        }
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                   <div className="grid gap-2 sm:grid-cols-2">
                     <div>
-                      <LabelWithHelp label="Cargo/Função" help="Cargo do contato. Ex.: síndico, gerente, comprador." />
-                      <Input value={c.role ?? ""} onChange={(e) => {
-                        const next = [...form.contacts]; next[i] = { ...c, role: e.target.value }; set("contacts", next);
-                      }} />
+                      <LabelWithHelp
+                        label="Cargo/Função"
+                        help="Cargo do contato. Ex.: síndico, gerente, comprador."
+                      />
+                      <Input
+                        value={c.role ?? ""}
+                        onChange={(e) => {
+                          const next = [...form.contacts];
+                          next[i] = { ...c, role: e.target.value };
+                          set("contacts", next);
+                        }}
+                      />
                     </div>
                     <div>
                       <LabelWithHelp label="E-mail" help="E-mail deste contato específico." />
-                      <Input value={c.email ?? ""}
+                      <Input
+                        value={c.email ?? ""}
                         aria-invalid={!!errors[`contact_${i}_email`]}
                         className={errors[`contact_${i}_email`] ? "border-destructive" : ""}
                         onChange={(e) => {
-                          const next = [...form.contacts]; next[i] = { ...c, email: e.target.value }; set("contacts", next);
-                        }} />
-                      {errors[`contact_${i}_email`] && <p className="mt-1 text-xs text-destructive">{errors[`contact_${i}_email`]}</p>}
+                          const next = [...form.contacts];
+                          next[i] = { ...c, email: e.target.value };
+                          set("contacts", next);
+                        }}
+                      />
+                      {errors[`contact_${i}_email`] && (
+                        <p className="mt-1 text-xs text-destructive">
+                          {errors[`contact_${i}_email`]}
+                        </p>
+                      )}
                     </div>
                     <div>
-                      <LabelWithHelp label="Telefone *" help="Telefone deste contato para ligações." />
-                      <Input value={maskPhone(c.phone ?? "")}
+                      <LabelWithHelp
+                        label="Telefone *"
+                        help="Telefone deste contato para ligações."
+                      />
+                      <Input
+                        value={maskPhone(c.phone ?? "")}
                         aria-invalid={!!errors[`contact_${i}_phone`]}
                         className={errors[`contact_${i}_phone`] ? "border-destructive" : ""}
                         onChange={(e) => {
-                          const next = [...form.contacts]; next[i] = { ...c, phone: e.target.value }; set("contacts", next);
-                        }} />
-                      {errors[`contact_${i}_phone`] && <p className="mt-1 text-xs text-destructive">{errors[`contact_${i}_phone`]}</p>}
+                          const next = [...form.contacts];
+                          next[i] = { ...c, phone: e.target.value };
+                          set("contacts", next);
+                        }}
+                      />
+                      {errors[`contact_${i}_phone`] && (
+                        <p className="mt-1 text-xs text-destructive">
+                          {errors[`contact_${i}_phone`]}
+                        </p>
+                      )}
                     </div>
                     <div>
-                      <LabelWithHelp label="WhatsApp *" help="WhatsApp deste contato para envio de orçamentos e mensagens." />
-                      <Input value={maskPhone(c.whatsapp ?? "")}
+                      <LabelWithHelp
+                        label="WhatsApp *"
+                        help="WhatsApp deste contato para envio de orçamentos e mensagens."
+                      />
+                      <Input
+                        value={maskPhone(c.whatsapp ?? "")}
                         aria-invalid={!!errors[`contact_${i}_phone`]}
                         className={errors[`contact_${i}_phone`] ? "border-destructive" : ""}
                         onChange={(e) => {
-                          const next = [...form.contacts]; next[i] = { ...c, whatsapp: e.target.value }; set("contacts", next);
-                        }} />
+                          const next = [...form.contacts];
+                          next[i] = { ...c, whatsapp: e.target.value };
+                          set("contacts", next);
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
               ))}
-              <Button type="button" variant="outline" size="sm"
-                onClick={() => set("contacts", [...form.contacts, { ...EMPTY_CONTACT, is_primary: form.contacts.length === 0 }])}>
-                <Plus className="mr-1 h-4 w-4" />Adicionar contato
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  set("contacts", [
+                    ...form.contacts,
+                    { ...EMPTY_CONTACT, is_primary: form.contacts.length === 0 },
+                  ])
+                }
+              >
+                <Plus className="mr-1 h-4 w-4" />
+                Adicionar contato
               </Button>
             </TabsContent>
 
             {/* TAGS */}
             <TabsContent value="extra" className="space-y-4 pt-4">
               <div>
-                <LabelWithHelp label="Tags" help="Etiquetas para agrupar clientes (ex.: VIP, Contrato, Manutenção). Clique para marcar ou desmarcar." />
+                <LabelWithHelp
+                  label="Tags"
+                  help="Etiquetas para agrupar clientes (ex.: VIP, Contrato, Manutenção). Clique para marcar ou desmarcar."
+                />
                 <div className="mt-2 flex flex-wrap gap-2">
                   {(tags ?? []).map((t) => {
                     const selected = form.tag_ids.includes(t.id);
                     return (
-                      <Badge key={t.id}
+                      <Badge
+                        key={t.id}
                         variant={selected ? "default" : "outline"}
                         className="cursor-pointer"
-                        style={selected ? { backgroundColor: t.color, color: "white", borderColor: t.color } : { borderColor: t.color, color: t.color }}
+                        style={
+                          selected
+                            ? { backgroundColor: t.color, color: "white", borderColor: t.color }
+                            : { borderColor: t.color, color: t.color }
+                        }
                         onClick={() => {
-                          set("tag_ids", selected ? form.tag_ids.filter((id) => id !== t.id) : [...form.tag_ids, t.id]);
+                          set(
+                            "tag_ids",
+                            selected
+                              ? form.tag_ids.filter((id) => id !== t.id)
+                              : [...form.tag_ids, t.id],
+                          );
                         }}
                       >
                         {t.name}
@@ -749,23 +1080,40 @@ export function CustomerFormSheet({
                   )}
                 </div>
                 <div className="mt-3 flex gap-2">
-                  <Input placeholder="Nova tag..." value={newTagName} onChange={(e) => setNewTagName(e.target.value)} />
-                  <Button type="button" variant="outline" disabled={!newTagName.trim() || tagMut.isPending}
-                    onClick={() => tagMut.mutate(newTagName.trim())}>
+                  <Input
+                    placeholder="Nova tag..."
+                    value={newTagName}
+                    onChange={(e) => setNewTagName(e.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={!newTagName.trim() || tagMut.isPending}
+                    onClick={() => tagMut.mutate(newTagName.trim())}
+                  >
                     Criar tag
                   </Button>
                 </div>
               </div>
               <Separator />
               <div>
-                <LabelWithHelp label="Observações internas" help="Notas que só a sua equipe vê. Não aparece para o cliente." />
-                <Textarea rows={4} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
+                <LabelWithHelp
+                  label="Observações internas"
+                  help="Notas que só a sua equipe vê. Não aparece para o cliente."
+                />
+                <Textarea
+                  rows={4}
+                  value={form.notes}
+                  onChange={(e) => set("notes", e.target.value)}
+                />
               </div>
             </TabsContent>
           </Tabs>
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
             <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "Salvando..." : "Salvar cliente"}
             </Button>

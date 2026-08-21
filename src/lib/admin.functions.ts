@@ -67,8 +67,11 @@ export const listSubscriptions = createServerFn({ method: "GET" })
 const updateSubSchema = z.object({
   subscription_id: z.string().uuid(),
   new_plan_id: z.string().uuid().optional().nullable(),
-  new_status: z.enum(["TRIALING","ACTIVE","PAST_DUE","SUSPENDED","CANCELED","EXPIRED","MANUAL_REVIEW"]).optional().nullable(),
-  new_billing_cycle: z.enum(["MONTHLY","YEARLY"]).optional().nullable(),
+  new_status: z
+    .enum(["TRIALING", "ACTIVE", "PAST_DUE", "SUSPENDED", "CANCELED", "EXPIRED", "MANUAL_REVIEW"])
+    .optional()
+    .nullable(),
+  new_billing_cycle: z.enum(["MONTHLY", "YEARLY"]).optional().nullable(),
   extend_trial_days: z.number().int().optional().nullable(),
   extend_grace_days: z.number().int().optional().nullable(),
   description: z.string().optional().nullable(),

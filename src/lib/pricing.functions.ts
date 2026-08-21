@@ -279,8 +279,7 @@ export const calculateSuggestedPrice = createServerFn({ method: "POST" })
           fixed_cost_allocation_rate:
             data.fixed_cost_allocation_rate ?? cfg.default_fixed_cost_allocation_rate ?? 0,
           pro_labore_rate: data.pro_labore_rate ?? cfg.pro_labore_percent ?? 0.05,
-          desired_margin_rate:
-            data.desired_margin_rate ?? cfg.default_desired_margin_rate ?? 0,
+          desired_margin_rate: data.desired_margin_rate ?? cfg.default_desired_margin_rate ?? 0,
         };
       }
     }
@@ -303,9 +302,7 @@ export const listCompanyFixedCosts = createServerFn({ method: "GET" })
       .order("created_at", { ascending: true });
     if (error) throw error;
     const items = (data ?? []) as CompanyFixedCost[];
-    const total = items
-      .filter((r) => r.active)
-      .reduce((s, r) => s + Number(r.amount ?? 0), 0);
+    const total = items.filter((r) => r.active).reduce((s, r) => s + Number(r.amount ?? 0), 0);
     return { items, total: round2(total) };
   });
 
@@ -327,7 +324,13 @@ export const upsertCompanyFixedCost = createServerFn({ method: "POST" })
     const cid = await getCompanyId(context.supabase, context.userId);
     const payload = { ...data, company_id: cid, created_by: context.userId };
     const q = data.id
-      ? context.supabase.from("company_fixed_costs").update(payload).eq("id", data.id).eq("company_id", cid).select("*").single()
+      ? context.supabase
+          .from("company_fixed_costs")
+          .update(payload)
+          .eq("id", data.id)
+          .eq("company_id", cid)
+          .select("*")
+          .single()
       : context.supabase.from("company_fixed_costs").insert(payload).select("*").single();
     const { data: row, error } = await q;
     if (error) throw error;
@@ -367,7 +370,9 @@ export const syncFixedCostsTotal = createServerFn({ method: "POST" })
       .select("amount, active")
       .eq("company_id", cid);
     const total = round2(
-      (costs ?? []).filter((r: any) => r.active).reduce((s: number, r: any) => s + Number(r.amount ?? 0), 0),
+      (costs ?? [])
+        .filter((r: any) => r.active)
+        .reduce((s: number, r: any) => s + Number(r.amount ?? 0), 0),
     );
 
     const { data: cfg } = await context.supabase
@@ -379,7 +384,10 @@ export const syncFixedCostsTotal = createServerFn({ method: "POST" })
     const revenue = Number(cfg?.expected_monthly_revenue ?? 0);
     const alloc = revenue > 0 ? roundRate(total / revenue) : 0;
     const proValue = Number(cfg?.pro_labore_value ?? 0);
-    const proPercent = proValue > 0 && revenue > 0 ? roundRate(proValue / revenue) : Number(cfg?.pro_labore_percent ?? 0.05);
+    const proPercent =
+      proValue > 0 && revenue > 0
+        ? roundRate(proValue / revenue)
+        : Number(cfg?.pro_labore_percent ?? 0.05);
 
     const payload = {
       company_id: cid,
@@ -502,7 +510,9 @@ export const saveSimulation = createServerFn({ method: "POST" })
 
 export const listRecentSimulations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ limit: z.number().int().min(1).max(50).default(10) }).parse(d))
+  .inputValidator((d: unknown) =>
+    z.object({ limit: z.number().int().min(1).max(50).default(10) }).parse(d),
+  )
   .handler(async ({ data, context }) => {
     if (!(await hasPerm(context.supabase, "finance.pricing.view"))) {
       throw new Error("Sem permissão.");
@@ -510,7 +520,9 @@ export const listRecentSimulations = createServerFn({ method: "GET" })
     const cid = await getCompanyId(context.supabase, context.userId);
     const { data: rows, error } = await context.supabase
       .from("pricing_simulations")
-      .select("id, item_id, item_name, cost_price, additional_costs, suggested_price, current_price, markup_multiplier, markup_percentage, estimated_margin_rate, estimated_profit, applied_to_item, created_at")
+      .select(
+        "id, item_id, item_name, cost_price, additional_costs, suggested_price, current_price, markup_multiplier, markup_percentage, estimated_margin_rate, estimated_profit, applied_to_item, created_at",
+      )
       .eq("company_id", cid)
       .order("created_at", { ascending: false })
       .limit(data.limit);
@@ -524,8 +536,10 @@ export const applySimulationToItem = createServerFn({ method: "POST" })
     z.object({ simulation_id: z.string().uuid(), item_id: z.string().uuid() }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    if (!(await hasPerm(context.supabase, "finance.apply_suggested_price"))
-      && !(await hasPerm(context.supabase, "finance.pricing.manage"))) {
+    if (
+      !(await hasPerm(context.supabase, "finance.apply_suggested_price")) &&
+      !(await hasPerm(context.supabase, "finance.pricing.manage"))
+    ) {
       throw new Error("Sem permissão para aplicar preço no produto.");
     }
     const cid = await getCompanyId(context.supabase, context.userId);
@@ -583,5 +597,10 @@ export const listItemsForPricing = createServerFn({ method: "GET" })
     if (data.search) q = q.ilike("name", `%${data.search}%`);
     const { data: rows, error } = await q;
     if (error) throw error;
-    return (rows ?? []) as Array<{ id: string; name: string; cost_price: number | null; sale_price: number | null }>;
+    return (rows ?? []) as Array<{
+      id: string;
+      name: string;
+      cost_price: number | null;
+      sale_price: number | null;
+    }>;
   });

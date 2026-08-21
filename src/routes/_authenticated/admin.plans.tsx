@@ -29,7 +29,9 @@ function AdminPlansPage() {
               R$ {Number(p.monthly_price).toFixed(2)}
               <span className="text-sm font-normal text-muted-foreground">/mês</span>
             </div>
-            <div className="text-muted-foreground">Anual: R$ {Number(p.annual_price).toFixed(2)}</div>
+            <div className="text-muted-foreground">
+              Anual: R$ {Number(p.annual_price).toFixed(2)}
+            </div>
             <div className="border-t border-border pt-2 text-xs text-muted-foreground">
               <div>Usuários: {p.max_users}</div>
               <div>Storage: {p.max_storage_gb} GB</div>

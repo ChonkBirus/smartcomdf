@@ -40,20 +40,14 @@ export function ReactivateSubscriptionButton({ planName, variant = "default" }: 
 
   return (
     <>
-      <Button
-        variant={variant}
-        onClick={() => mut.mutate()}
-        disabled={mut.isPending}
-      >
+      <Button variant={variant} onClick={() => mut.mutate()} disabled={mut.isPending}>
         <RefreshCcw className="mr-2 h-4 w-4" />
         {mut.isPending ? "Reativando..." : "Reativar assinatura"}
       </Button>
       {checkout ? (
         <CheckoutDialog
           open={checkout.open}
-          onOpenChange={(o) =>
-            setCheckout((s) => (s ? { ...s, open: o } : s))
-          }
+          onOpenChange={(o) => setCheckout((s) => (s ? { ...s, open: o } : s))}
           planSlug={checkout.plan_slug}
           planName={planName}
           cycle={checkout.cycle}

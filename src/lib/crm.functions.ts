@@ -64,9 +64,12 @@ export type CrmOpportunity = {
   updated_at: string;
 };
 
-
 async function getCompanyId(supabase: any, userId: string): Promise<string> {
-  const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  const { data } = await supabase
+    .from("profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .maybeSingle();
   if (!data?.company_id) throw new Error("Sem empresa associada ao usuário.");
   return data.company_id as string;
 }
@@ -151,7 +154,6 @@ export const getCrmBoard = createServerFn({ method: "GET" })
       .order("updated_at", { ascending: false });
     if (oErr) throw new Error(oErr.message);
 
-
     return {
       pipeline,
       pipelines: allPipelines,
@@ -203,7 +205,18 @@ const opportunityInputSchema = z.object({
   estimated_value: z.coerce.number().min(0).default(0),
   temperature: z.enum(["cold", "warm", "hot"]).default("warm"),
   source: z
-    .enum(["site", "indicacao", "whatsapp", "instagram", "facebook", "google", "ligacao", "visita", "evento", "outro"])
+    .enum([
+      "site",
+      "indicacao",
+      "whatsapp",
+      "instagram",
+      "facebook",
+      "google",
+      "ligacao",
+      "visita",
+      "evento",
+      "outro",
+    ])
     .optional()
     .nullable(),
   customer_type: z
@@ -372,7 +385,6 @@ export const reorderOpportunitiesInStage = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-
 export const deleteOpportunity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
@@ -408,7 +420,9 @@ export const getCrmOverview = createServerFn({ method: "GET" })
     const companyId = await getCompanyId(sb, context.userId);
     const { data: opps } = await sb
       .from("crm_opportunities")
-      .select("id, estimated_value, won_at, lost_at, temperature, created_at, next_follow_up_at, stage_id")
+      .select(
+        "id, estimated_value, won_at, lost_at, temperature, created_at, next_follow_up_at, stage_id",
+      )
       .eq("company_id", companyId)
       .is("deleted_at", null);
     const list = (opps ?? []) as any[];
@@ -418,7 +432,9 @@ export const getCrmOverview = createServerFn({ method: "GET" })
     const openList = list.filter((o) => !o.won_at && !o.lost_at);
     const wonList = list.filter((o) => o.won_at);
     const wonRecent = wonList.filter((o) => new Date(o.won_at).getTime() >= start.getTime());
-    const lostRecent = list.filter((o) => o.lost_at && new Date(o.lost_at).getTime() >= start.getTime());
+    const lostRecent = list.filter(
+      (o) => o.lost_at && new Date(o.lost_at).getTime() >= start.getTime(),
+    );
     const openValue = openList.reduce((s, o) => s + Number(o.estimated_value || 0), 0);
     const wonValue = wonRecent.reduce((s, o) => s + Number(o.estimated_value || 0), 0);
     const overdue = openList.filter(
@@ -453,7 +469,15 @@ export type CrmNote = {
 export type CrmActivity = {
   id: string;
   opportunity_id: string | null;
-  activity_type: "call" | "whatsapp" | "email" | "meeting" | "visit" | "follow_up" | "note" | "task";
+  activity_type:
+    | "call"
+    | "whatsapp"
+    | "email"
+    | "meeting"
+    | "visit"
+    | "follow_up"
+    | "note"
+    | "task";
   title: string;
   description: string | null;
   due_at: string | null;
@@ -546,7 +570,16 @@ export const addOpportunityActivity = createServerFn({ method: "POST" })
     z
       .object({
         opportunity_id: z.string().uuid(),
-        activity_type: z.enum(["call", "whatsapp", "email", "meeting", "visit", "follow_up", "note", "task"]),
+        activity_type: z.enum([
+          "call",
+          "whatsapp",
+          "email",
+          "meeting",
+          "visit",
+          "follow_up",
+          "note",
+          "task",
+        ]),
         title: z.string().trim().min(1),
         description: z.string().trim().optional().nullable(),
         due_at: z.string().optional().nullable(),
@@ -679,7 +712,9 @@ export const convertOpportunityToQuote = createServerFn({ method: "POST" })
 
     const { data: opp, error: oErr } = await sb
       .from("crm_opportunities")
-      .select("id, customer_id, lead_name, service_interest, description, estimated_value, quote_id")
+      .select(
+        "id, customer_id, lead_name, service_interest, description, estimated_value, quote_id",
+      )
       .eq("id", data.id)
       .eq("company_id", companyId)
       .maybeSingle();
@@ -772,7 +807,9 @@ export const getOpportunityProjectStatus = createServerFn({ method: "POST" })
     if (!opp?.project_id) return null;
     const { data: p } = await sb
       .from("projects")
-      .select("id, project_number, title, status, total_amount, planned_start_date, planned_end_date, completed_at")
+      .select(
+        "id, project_number, title, status, total_amount, planned_start_date, planned_end_date, completed_at",
+      )
       .eq("id", opp.project_id)
       .eq("company_id", companyId)
       .maybeSingle();
@@ -819,7 +856,11 @@ export const listPipelineStages = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     // sanity: confirm pipeline belongs to company
     const { data: pipe } = await sb
-      .from("crm_pipelines").select("id").eq("id", data.pipeline_id).eq("company_id", companyId).maybeSingle();
+      .from("crm_pipelines")
+      .select("id")
+      .eq("id", data.pipeline_id)
+      .eq("company_id", companyId)
+      .maybeSingle();
     if (!pipe) throw new Error("Funil não encontrado.");
     return (rows ?? []) as CrmStage[];
   });
@@ -827,33 +868,47 @@ export const listPipelineStages = createServerFn({ method: "GET" })
 export const createStage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      pipeline_id: z.string().uuid(),
-      name: z.string().min(1).max(80),
-      color: z.string().max(20).optional(),
-      stage_type: z.enum(["open", "won", "lost"]).default("open"),
-    }).parse(d),
+    z
+      .object({
+        pipeline_id: z.string().uuid(),
+        name: z.string().min(1).max(80),
+        color: z.string().max(20).optional(),
+        stage_type: z.enum(["open", "won", "lost"]).default("open"),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
     const { data: pipe } = await sb
-      .from("crm_pipelines").select("id").eq("id", data.pipeline_id).eq("company_id", companyId).maybeSingle();
+      .from("crm_pipelines")
+      .select("id")
+      .eq("id", data.pipeline_id)
+      .eq("company_id", companyId)
+      .maybeSingle();
     if (!pipe) throw new Error("Funil não encontrado.");
     const { data: max } = await sb
-      .from("crm_stages").select("position").eq("pipeline_id", data.pipeline_id)
-      .order("position", { ascending: false }).limit(1).maybeSingle();
+      .from("crm_stages")
+      .select("position")
+      .eq("pipeline_id", data.pipeline_id)
+      .order("position", { ascending: false })
+      .limit(1)
+      .maybeSingle();
     const next = ((max?.position ?? 0) as number) + 1;
-    const { data: row, error } = await sb.from("crm_stages").insert({
-      company_id: companyId,
-      pipeline_id: data.pipeline_id,
-      name: data.name,
-      position: next,
-      color: data.color ?? null,
-      stage_type: data.stage_type,
-      is_won: data.stage_type === "won",
-      is_lost: data.stage_type === "lost",
-    }).select("*").single();
+    const { data: row, error } = await sb
+      .from("crm_stages")
+      .insert({
+        company_id: companyId,
+        pipeline_id: data.pipeline_id,
+        name: data.name,
+        position: next,
+        color: data.color ?? null,
+        stage_type: data.stage_type,
+        is_won: data.stage_type === "won",
+        is_lost: data.stage_type === "lost",
+      })
+      .select("*")
+      .single();
     if (error) throw new Error(error.message);
     return row as CrmStage;
   });
@@ -861,11 +916,13 @@ export const createStage = createServerFn({ method: "POST" })
 export const updateStage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      id: z.string().uuid(),
-      name: z.string().min(1).max(80).optional(),
-      color: z.string().max(20).nullish(),
-    }).parse(d),
+    z
+      .object({
+        id: z.string().uuid(),
+        name: z.string().min(1).max(80).optional(),
+        color: z.string().max(20).nullish(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -873,7 +930,11 @@ export const updateStage = createServerFn({ method: "POST" })
     const patch: Record<string, any> = {};
     if (data.name !== undefined) patch.name = data.name;
     if (data.color !== undefined) patch.color = data.color;
-    const { error } = await sb.from("crm_stages").update(patch).eq("id", data.id).eq("company_id", companyId);
+    const { error } = await sb
+      .from("crm_stages")
+      .update(patch)
+      .eq("id", data.id)
+      .eq("company_id", companyId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -894,7 +955,11 @@ export const deleteStage = createServerFn({ method: "POST" })
       .eq("stage_id", data.id)
       .eq("company_id", companyId);
     if (mErr) throw new Error(mErr.message);
-    const { error } = await sb.from("crm_stages").delete().eq("id", data.id).eq("company_id", companyId);
+    const { error } = await sb
+      .from("crm_stages")
+      .delete()
+      .eq("id", data.id)
+      .eq("company_id", companyId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -902,18 +967,24 @@ export const deleteStage = createServerFn({ method: "POST" })
 export const reorderStages = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      pipeline_id: z.string().uuid(),
-      ordered_ids: z.array(z.string().uuid()).min(1),
-    }).parse(d),
+    z
+      .object({
+        pipeline_id: z.string().uuid(),
+        ordered_ids: z.array(z.string().uuid()).min(1),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
     const results = await Promise.all(
       data.ordered_ids.map((id, i) =>
-        sb.from("crm_stages").update({ position: i + 1 }).eq("id", id)
-          .eq("pipeline_id", data.pipeline_id).eq("company_id", companyId),
+        sb
+          .from("crm_stages")
+          .update({ position: i + 1 })
+          .eq("id", id)
+          .eq("pipeline_id", data.pipeline_id)
+          .eq("company_id", companyId),
       ),
     );
     const err = results.find((r: any) => r.error);
@@ -924,21 +995,37 @@ export const reorderStages = createServerFn({ method: "POST" })
 export type CrmReports = {
   since: string;
   bySource: { key: string; label: string; count: number; value: number }[];
-  byAssigned: { key: string; label: string; count: number; value: number; won: number; lost: number }[];
+  byAssigned: {
+    key: string;
+    label: string;
+    count: number;
+    value: number;
+    won: number;
+    lost: number;
+  }[];
   byTemperature: { key: string; label: string; count: number; value: number }[];
   lostReasons: { reason: string; count: number }[];
 };
 
 const SOURCE_LABELS: Record<string, string> = {
-  site: "Site", indicacao: "Indicação", whatsapp: "WhatsApp", instagram: "Instagram",
-  facebook: "Facebook", google: "Google", ligacao: "Ligação", visita: "Visita",
-  evento: "Evento", outro: "Outro",
+  site: "Site",
+  indicacao: "Indicação",
+  whatsapp: "WhatsApp",
+  instagram: "Instagram",
+  facebook: "Facebook",
+  google: "Google",
+  ligacao: "Ligação",
+  visita: "Visita",
+  evento: "Evento",
+  outro: "Outro",
 };
 const TEMP_LABELS: Record<string, string> = { cold: "Frio", warm: "Morno", hot: "Quente" };
 
 export const getCrmReports = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ days: z.number().int().min(1).max(365).optional() }).parse(d ?? {}))
+  .inputValidator((d) =>
+    z.object({ days: z.number().int().min(1).max(365).optional() }).parse(d ?? {}),
+  )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const companyId = await getCompanyId(sb, context.userId);
@@ -947,14 +1034,18 @@ export const getCrmReports = createServerFn({ method: "GET" })
 
     const { data: rows, error } = await sb
       .from("crm_opportunities")
-      .select("id, source, temperature, assigned_to, estimated_value, lost_reason, won_at, lost_at, created_at")
+      .select(
+        "id, source, temperature, assigned_to, estimated_value, lost_reason, won_at, lost_at, created_at",
+      )
       .eq("company_id", companyId)
       .is("deleted_at", null)
       .gte("created_at", since);
     if (error) throw new Error(error.message);
 
-    const { data: team } = await sb.from("profiles")
-      .select("id, full_name, email").eq("company_id", companyId);
+    const { data: team } = await sb
+      .from("profiles")
+      .select("id, full_name, email")
+      .eq("company_id", companyId);
     const teamMap = new Map<string, string>();
     for (const p of team ?? []) teamMap.set(p.id, p.full_name ?? p.email ?? "Sem nome");
 
@@ -986,17 +1077,32 @@ export const getCrmReports = createServerFn({ method: "GET" })
 
     return {
       since,
-      bySource: [...bySrc.entries()].map(([k, v]) => ({
-        key: k, label: SOURCE_LABELS[k] ?? k, count: v.count, value: v.value,
-      })).sort((a, b) => b.count - a.count),
-      byAssigned: [...byAssign.entries()].map(([k, v]) => ({
-        key: k, label: k === "unassigned" ? "Sem responsável" : (teamMap.get(k) ?? "—"),
-        count: v.count, value: v.value, won: v.won, lost: v.lost,
-      })).sort((a, b) => b.count - a.count),
+      bySource: [...bySrc.entries()]
+        .map(([k, v]) => ({
+          key: k,
+          label: SOURCE_LABELS[k] ?? k,
+          count: v.count,
+          value: v.value,
+        }))
+        .sort((a, b) => b.count - a.count),
+      byAssigned: [...byAssign.entries()]
+        .map(([k, v]) => ({
+          key: k,
+          label: k === "unassigned" ? "Sem responsável" : (teamMap.get(k) ?? "—"),
+          count: v.count,
+          value: v.value,
+          won: v.won,
+          lost: v.lost,
+        }))
+        .sort((a, b) => b.count - a.count),
       byTemperature: [...byTemp.entries()].map(([k, v]) => ({
-        key: k, label: TEMP_LABELS[k] ?? k, count: v.count, value: v.value,
+        key: k,
+        label: TEMP_LABELS[k] ?? k,
+        count: v.count,
+        value: v.value,
       })),
-      lostReasons: [...lostReasons.entries()].map(([reason, count]) => ({ reason, count }))
+      lostReasons: [...lostReasons.entries()]
+        .map(([reason, count]) => ({ reason, count }))
         .sort((a, b) => b.count - a.count),
     } as CrmReports;
   });
@@ -1019,7 +1125,12 @@ export type DuplicateCustomerCandidate = {
 async function findCustomerDuplicates(
   sb: any,
   companyId: string,
-  input: { name?: string | null; phone?: string | null; email?: string | null; cpf_cnpj?: string | null },
+  input: {
+    name?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    cpf_cnpj?: string | null;
+  },
 ): Promise<DuplicateCustomerCandidate[]> {
   const phoneDigits = onlyDigits(input.phone);
   const cpfDigits = onlyDigits(input.cpf_cnpj);
@@ -1052,13 +1163,15 @@ async function findCustomerDuplicates(
     if (cpfDigits.length >= 11 && onlyDigits(r.cpf_cnpj) === cpfDigits) reasons.push("CPF/CNPJ");
     if (phoneDigits.length >= 8) {
       const tail = phoneDigits.slice(-8);
-      if (onlyDigits(r.phone).endsWith(tail) || onlyDigits(r.whatsapp).endsWith(tail)) reasons.push("telefone");
+      if (onlyDigits(r.phone).endsWith(tail) || onlyDigits(r.whatsapp).endsWith(tail))
+        reasons.push("telefone");
     }
     if (
       name.length >= 3 &&
       (r.name ?? "").toLowerCase().includes(name.toLowerCase()) &&
       phoneDigits.length >= 4 &&
-      (onlyDigits(r.phone).endsWith(phoneDigits.slice(-4)) || onlyDigits(r.whatsapp).endsWith(phoneDigits.slice(-4)))
+      (onlyDigits(r.phone).endsWith(phoneDigits.slice(-4)) ||
+        onlyDigits(r.whatsapp).endsWith(phoneDigits.slice(-4)))
     ) {
       if (!reasons.includes("nome+telefone")) reasons.push("nome+telefone");
     }
@@ -1112,7 +1225,8 @@ export const convertLeadToCustomer = createServerFn({ method: "POST" })
       .maybeSingle();
     if (oErr) throw new Error(oErr.message);
     if (!opp) throw new Error("Oportunidade não encontrada.");
-    if (opp.customer_id) return { customer_id: opp.customer_id as string, already: true, duplicates: [] };
+    if (opp.customer_id)
+      return { customer_id: opp.customer_id as string, already: true, duplicates: [] };
 
     if (!data.force) {
       const dups = await findCustomerDuplicates(sb, companyId, {
@@ -1126,9 +1240,16 @@ export const convertLeadToCustomer = createServerFn({ method: "POST" })
     }
 
     const originMap: Record<string, string> = {
-      site: "Site", indicacao: "Indicação", whatsapp: "WhatsApp", instagram: "Instagram",
-      facebook: "Facebook", google: "Google", ligacao: "Ligação", visita: "Visita",
-      evento: "Evento", outro: "Outro",
+      site: "Site",
+      indicacao: "Indicação",
+      whatsapp: "WhatsApp",
+      instagram: "Instagram",
+      facebook: "Facebook",
+      google: "Google",
+      ligacao: "Ligação",
+      visita: "Visita",
+      evento: "Evento",
+      outro: "Outro",
     };
     const typeMap: Record<string, string> = {};
     void typeMap;
@@ -1139,9 +1260,9 @@ export const convertLeadToCustomer = createServerFn({ method: "POST" })
     const insertPayload: any = {
       company_id: companyId,
       customer_type: opp.lead_type === "pj" ? "COMPANY" : "INDIVIDUAL",
-      name: opp.lead_type === "pj" ? (opp.company_name || opp.lead_name) : opp.lead_name,
-      corporate_name: opp.lead_type === "pj" ? (opp.company_name || opp.lead_name) : null,
-      trade_name: opp.lead_type === "pj" ? (opp.company_name || null) : null,
+      name: opp.lead_type === "pj" ? opp.company_name || opp.lead_name : opp.lead_name,
+      corporate_name: opp.lead_type === "pj" ? opp.company_name || opp.lead_name : null,
+      trade_name: opp.lead_type === "pj" ? opp.company_name || null : null,
       cpf_cnpj: "",
       email: emailNorm,
       phone: phoneDigits || null,
@@ -1176,7 +1297,11 @@ export const convertLeadToCustomer = createServerFn({ method: "POST" })
       created_by: context.userId,
     });
 
-    return { customer_id: created.id as string, already: false, duplicates: [] as DuplicateCustomerCandidate[] };
+    return {
+      customer_id: created.id as string,
+      already: false,
+      duplicates: [] as DuplicateCustomerCandidate[],
+    };
   });
 
 export type CommercialHistoryEvent = {
@@ -1198,7 +1323,9 @@ export const getCustomerCommercialHistory = createServerFn({ method: "POST" })
 
     const { data: opps } = await sb
       .from("crm_opportunities")
-      .select("id, lead_name, service_interest, estimated_value, stage_id, won_at, lost_at, lost_reason, created_at, quote_id")
+      .select(
+        "id, lead_name, service_interest, estimated_value, stage_id, won_at, lost_at, lost_reason, created_at, quote_id",
+      )
       .eq("company_id", companyId)
       .eq("customer_id", data.customer_id)
       .order("created_at", { ascending: false });
@@ -1246,7 +1373,9 @@ export const getCustomerCommercialHistory = createServerFn({ method: "POST" })
 
       const { data: acts } = await sb
         .from("crm_activities")
-        .select("id, opportunity_id, activity_type, title, description, due_at, completed_at, created_at")
+        .select(
+          "id, opportunity_id, activity_type, title, description, due_at, completed_at, created_at",
+        )
         .eq("company_id", companyId)
         .in("opportunity_id", oppIds)
         .is("deleted_at", null)
@@ -1293,7 +1422,9 @@ export const getCrmDashboardKpis = createServerFn({ method: "GET" })
 
     const { data: stages } = await sb
       .from("crm_stages")
-      .select("id, name, color, position, stage_type, is_won, is_lost, pipeline_id, crm_pipelines!inner(company_id)")
+      .select(
+        "id, name, color, position, stage_type, is_won, is_lost, pipeline_id, crm_pipelines!inner(company_id)",
+      )
       .eq("crm_pipelines.company_id", companyId)
       .order("position", { ascending: true });
     const stageList = (stages ?? []) as any[];
@@ -1320,10 +1451,14 @@ export const getCrmDashboardKpis = createServerFn({ method: "GET" })
     const avgTicket = won30.length > 0 ? won30Value / won30.length : 0;
 
     // Ciclo médio (dias) das ganhas nos últimos 90 dias
-    const won90 = won.filter((o) => (now - new Date(o.won_at).getTime()) <= 90 * 86400_000);
+    const won90 = won.filter((o) => now - new Date(o.won_at).getTime() <= 90 * 86400_000);
     const cycleDays = won90.length
-      ? won90.reduce((s, o) => s + (new Date(o.won_at).getTime() - new Date(o.created_at).getTime()), 0)
-        / won90.length / 86400_000
+      ? won90.reduce(
+          (s, o) => s + (new Date(o.won_at).getTime() - new Date(o.created_at).getTime()),
+          0,
+        ) /
+        won90.length /
+        86400_000
       : null;
 
     // Forecast: soma ponderada por temperatura (hot 0.7, warm 0.4, cold 0.1)
@@ -1393,10 +1528,12 @@ export type CrmChurnRow = {
 export const getCrmChurnRisk = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      stalledDays: z.number().int().min(3).max(180).optional(),
-      wonSilenceDays: z.number().int().min(30).max(365).optional(),
-    }).parse(d ?? {}),
+    z
+      .object({
+        stalledDays: z.number().int().min(3).max(180).optional(),
+        wonSilenceDays: z.number().int().min(30).max(365).optional(),
+      })
+      .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -1407,7 +1544,9 @@ export const getCrmChurnRisk = createServerFn({ method: "GET" })
 
     const { data: opps } = await sb
       .from("crm_opportunities")
-      .select("id, lead_name, company_name, customer_id, estimated_value, won_at, lost_at, updated_at, created_at, next_follow_up_at")
+      .select(
+        "id, lead_name, company_name, customer_id, estimated_value, won_at, lost_at, updated_at, created_at, next_follow_up_at",
+      )
       .eq("company_id", companyId)
       .is("deleted_at", null);
     const list = (opps ?? []) as any[];
@@ -1429,9 +1568,10 @@ export const getCrmChurnRisk = createServerFn({ method: "GET" })
           reference_at: o.updated_at ?? o.created_at,
           days_since: days,
           estimated_value: Number(o.estimated_value || 0),
-          reason: o.next_follow_up_at && new Date(o.next_follow_up_at).getTime() < now
-            ? `Follow-up vencido há ${Math.floor((now - new Date(o.next_follow_up_at).getTime()) / 86400_000)}d`
-            : `Sem atualização há ${days}d`,
+          reason:
+            o.next_follow_up_at && new Date(o.next_follow_up_at).getTime() < now
+              ? `Follow-up vencido há ${Math.floor((now - new Date(o.next_follow_up_at).getTime()) / 86400_000)}d`
+              : `Sem atualização há ${days}d`,
         });
       }
     }

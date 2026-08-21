@@ -42,7 +42,10 @@ export const listServiceOrderSignatures = createServerFn({ method: "GET" })
         if (s?.path && s?.signedUrl) signedMap.set(s.path, s.signedUrl);
       });
     }
-    return sigs.map((s: any) => ({ ...s, signed_url: signedMap.get(s.signature_file_url) ?? null }));
+    return sigs.map((s: any) => ({
+      ...s,
+      signed_url: signedMap.get(s.signature_file_url) ?? null,
+    }));
   });
 
 export const collectCustomerSignature = createServerFn({ method: "POST" })

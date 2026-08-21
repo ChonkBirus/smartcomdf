@@ -18,7 +18,14 @@ export type CategorySuggestion = {
 
 const KEYWORDS: Record<string, string[]> = {
   // Receitas
-  recebimento: ["pix recebido", "ted recebida", "deposito", "credito", "recebimento", "fatura paga"],
+  recebimento: [
+    "pix recebido",
+    "ted recebida",
+    "deposito",
+    "credito",
+    "recebimento",
+    "fatura paga",
+  ],
   vendas: ["venda", "pagamento cliente", "pagto", "boleto recebido"],
   // Despesas
   fornecedores: ["fornecedor", "pagamento fornec", "boleto"],
@@ -41,14 +48,20 @@ function normalize(s: string): string {
 export const suggestCategoryForDescription = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      description: z.string().max(500),
-      type: z.enum(["INCOME", "EXPENSE"]),
-    }).parse(d)
+    z
+      .object({
+        description: z.string().max(500),
+        type: z.enum(["INCOME", "EXPENSE"]),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: profile } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     const cid = profile?.company_id;
     if (!cid) throw new Error("Sem empresa.");
 

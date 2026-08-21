@@ -6,11 +6,21 @@ import { Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -21,8 +31,12 @@ import { listTeam } from "@/lib/team.functions";
 import { Can } from "@/components/app/PermissionRoute";
 
 export function CreateServiceOrderFromProjectButton({
-  projectId, planningReady,
-}: { projectId: string; planningReady: boolean }) {
+  projectId,
+  planningReady,
+}: {
+  projectId: string;
+  planningReady: boolean;
+}) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const createFn = useServerFn(createServiceOrderFromProject);
@@ -131,7 +145,8 @@ export function CreateServiceOrderFromProjectButton({
 
   const btn = (
     <Button size="sm" disabled={!planningReady}>
-      <Wrench className="mr-1 h-4 w-4" />Gerar Ordem de Serviço
+      <Wrench className="mr-1 h-4 w-4" />
+      Gerar Ordem de Serviço
     </Button>
   );
 
@@ -139,8 +154,12 @@ export function CreateServiceOrderFromProjectButton({
     return (
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger asChild><span>{btn}</span></TooltipTrigger>
-          <TooltipContent>Finalize o planejamento antes de gerar a Ordem de Serviço.</TooltipContent>
+          <TooltipTrigger asChild>
+            <span>{btn}</span>
+          </TooltipTrigger>
+          <TooltipContent>
+            Finalize o planejamento antes de gerar a Ordem de Serviço.
+          </TooltipContent>
         </Tooltip>
       </TooltipProvider>
     );
@@ -175,7 +194,8 @@ export function CreateServiceOrderFromProjectButton({
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Sugestão inicial: responsável do projeto. Alterar aqui não altera o responsável do projeto.
+              Sugestão inicial: responsável do projeto. Alterar aqui não altera o responsável do
+              projeto.
             </p>
           </div>
 

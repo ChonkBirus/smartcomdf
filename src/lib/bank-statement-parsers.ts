@@ -17,7 +17,9 @@ export type ParseResult = {
 };
 
 // --------- Helpers ---------
-function pad(n: number) { return n < 10 ? `0${n}` : `${n}`; }
+function pad(n: number) {
+  return n < 10 ? `0${n}` : `${n}`;
+}
 
 function toISODate(input: any): string | null {
   if (input == null || input === "") return null;
@@ -80,7 +82,8 @@ function parseOFX(text: string): ParseResult {
   const body = xmlStart >= 0 ? text.slice(xmlStart) : text;
 
   // Match each STMTTRN block (SGML-tolerant: tags may be unclosed)
-  const trnRegex = /<STMTTRN>([\s\S]*?)(?=<STMTTRN>|<\/BANKTRANLIST>|<\/CCSTMTTRNRS>|<\/STMTRS>|$)/gi;
+  const trnRegex =
+    /<STMTTRN>([\s\S]*?)(?=<STMTTRN>|<\/BANKTRANLIST>|<\/CCSTMTTRNRS>|<\/STMTRS>|$)/gi;
   const getField = (block: string, tag: string) => {
     const re = new RegExp(`<${tag}>([^<\\r\\n]+)`, "i");
     const m = block.match(re);
@@ -92,7 +95,10 @@ function parseOFX(text: string): ParseResult {
     const block = match[1];
     const dt = toISODate(getField(block, "DTPOSTED"));
     const amt = toAmount(getField(block, "TRNAMT"));
-    if (!dt || amt == null) { warnings.push("Transação OFX ignorada (data/valor inválidos)"); continue; }
+    if (!dt || amt == null) {
+      warnings.push("Transação OFX ignorada (data/valor inválidos)");
+      continue;
+    }
     const memo = getField(block, "MEMO") ?? getField(block, "NAME") ?? "";
     const fitid = getField(block, "FITID");
     const checknum = getField(block, "CHECKNUM");
@@ -111,15 +117,44 @@ function parseOFX(text: string): ParseResult {
 }
 
 // --------- CSV / XLSX ---------
-const HEADER_MAP: Record<string, "date" | "description" | "amount" | "credit" | "debit" | "doc" | "type" | "id"> = {
-  data: "date", date: "date", "data do lancamento": "date", "data lancamento": "date", "data movimento": "date",
-  descricao: "description", "descrição": "description", historico: "description", "histórico": "description", description: "description", memo: "description",
-  valor: "amount", amount: "amount", "valor (r$)": "amount", montante: "amount",
-  credito: "credit", "crédito": "credit", entrada: "credit", credit: "credit",
-  debito: "debit", "débito": "debit", saida: "debit", "saída": "debit", debit: "debit",
-  documento: "doc", "nº documento": "doc", "n documento": "doc", doc: "doc", "doc.": "doc",
-  tipo: "type", type: "type",
-  id: "id", fitid: "id", "id transacao": "id",
+const HEADER_MAP: Record<
+  string,
+  "date" | "description" | "amount" | "credit" | "debit" | "doc" | "type" | "id"
+> = {
+  data: "date",
+  date: "date",
+  "data do lancamento": "date",
+  "data lancamento": "date",
+  "data movimento": "date",
+  descricao: "description",
+  descrição: "description",
+  historico: "description",
+  histórico: "description",
+  description: "description",
+  memo: "description",
+  valor: "amount",
+  amount: "amount",
+  "valor (r$)": "amount",
+  montante: "amount",
+  credito: "credit",
+  crédito: "credit",
+  entrada: "credit",
+  credit: "credit",
+  debito: "debit",
+  débito: "debit",
+  saida: "debit",
+  saída: "debit",
+  debit: "debit",
+  documento: "doc",
+  "nº documento": "doc",
+  "n documento": "doc",
+  doc: "doc",
+  "doc.": "doc",
+  tipo: "type",
+  type: "type",
+  id: "id",
+  fitid: "id",
+  "id transacao": "id",
 };
 
 function normHeader(h: string) {
@@ -143,7 +178,8 @@ function rowsFromTable(records: Record<string, any>[]): ParseResult {
   }
 
   if (!mapping.date) warnings.push("Coluna de data não reconhecida.");
-  const hasAmount = mapping.amount || (mapping.credit && mapping.debit) || mapping.credit || mapping.debit;
+  const hasAmount =
+    mapping.amount || (mapping.credit && mapping.debit) || mapping.credit || mapping.debit;
   if (!hasAmount) warnings.push("Coluna de valor não reconhecida.");
 
   const rows: ParsedTx[] = [];
@@ -199,7 +235,9 @@ async function parseXLSX(file: File): Promise<ParseResult> {
   return rowsFromTable(json);
 }
 
-export async function parseStatementFile(file: File): Promise<ParseResult & { fileType: "OFX" | "CSV" | "XLSX" }> {
+export async function parseStatementFile(
+  file: File,
+): Promise<ParseResult & { fileType: "OFX" | "CSV" | "XLSX" }> {
   const name = file.name.toLowerCase();
   if (name.endsWith(".ofx") || name.endsWith(".qfx")) {
     const text = await file.text();

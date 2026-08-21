@@ -4,7 +4,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useCompanyId } from "@/hooks/use-company-id";
 import {
-  FileText, Plus, Pencil, Trash2, Copy, Search, Send, XCircle, CheckCircle2, Share2,
+  FileText,
+  Plus,
+  Pencil,
+  Trash2,
+  Copy,
+  Search,
+  Send,
+  XCircle,
+  CheckCircle2,
+  Share2,
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -16,20 +25,35 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { QuoteFormSheet } from "@/components/quotes/QuoteFormSheet";
 import { QuoteStatusBadges } from "@/components/quotes/QuoteStatusBadges";
 import { QuoteSendSheet } from "@/components/quotes/QuoteSendSheet";
 import {
-  listQuotes, quoteMetrics, deleteQuote, duplicateQuote,
-  markQuoteSent, cancelQuote,
-  type QuoteStatus, type QuotePaymentStatus,
+  listQuotes,
+  quoteMetrics,
+  deleteQuote,
+  duplicateQuote,
+  markQuoteSent,
+  cancelQuote,
+  type QuoteStatus,
+  type QuotePaymentStatus,
 } from "@/lib/quotes.functions";
 
 export const Route = createFileRoute("/_authenticated/quotes")({
@@ -38,7 +62,9 @@ export const Route = createFileRoute("/_authenticated/quotes")({
     const isNew = search.new === 1 || search.new === "1" || search.new === true;
     return {
       ...(isNew ? { new: 1 } : {}),
-      ...(typeof search.edit === "string" && search.edit.trim() ? { edit: search.edit.trim() } : {}),
+      ...(typeof search.edit === "string" && search.edit.trim()
+        ? { edit: search.edit.trim() }
+        : {}),
     };
   },
   component: () => (
@@ -51,9 +77,14 @@ export const Route = createFileRoute("/_authenticated/quotes")({
 });
 
 const STATUS_LABEL: Record<QuoteStatus, string> = {
-  DRAFT: "Rascunho", SENT: "Enviado", VIEWED: "Visualizado",
-  APPROVED: "Aprovado", REJECTED: "Rejeitado",
-  CANCELLED: "Cancelado", EXPIRED: "Expirado", CONVERTED: "Convertido",
+  DRAFT: "Rascunho",
+  SENT: "Enviado",
+  VIEWED: "Visualizado",
+  APPROVED: "Aprovado",
+  REJECTED: "Rejeitado",
+  CANCELLED: "Cancelado",
+  EXPIRED: "Expirado",
+  CONVERTED: "Convertido",
 };
 
 const PAY_STATUS_LABEL: Record<QuotePaymentStatus, string> = {
@@ -64,10 +95,8 @@ const PAY_STATUS_LABEL: Record<QuotePaymentStatus, string> = {
   PAYMENT_CANCELLED: "Pagamento cancelado",
 };
 
-const fmtBRL = (n: number) =>
-  n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const fmtDate = (s: string | null) =>
-  s ? new Date(s).toLocaleDateString("pt-BR") : "—";
+const fmtBRL = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleDateString("pt-BR") : "—");
 
 function QuotesPage() {
   const qc = useQueryClient();
@@ -139,7 +168,8 @@ function QuotesPage() {
     onSuccess: (r) => {
       toast.success("Orçamento duplicado.");
       qc.invalidateQueries({ queryKey: ["quotes"] });
-      setEditing(r.id); setOpen(true);
+      setEditing(r.id);
+      setOpen(true);
     },
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
   });
@@ -162,8 +192,14 @@ function QuotesPage() {
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
   });
 
-  function openNew() { setEditing(null); setOpen(true); }
-  function openEdit(id: string) { setEditing(id); setOpen(true); }
+  function openNew() {
+    setEditing(null);
+    setOpen(true);
+  }
+  function openEdit(id: string) {
+    setEditing(id);
+    setOpen(true);
+  }
 
   return (
     <div className="mx-auto max-w-7xl space-y-5">
@@ -173,16 +209,30 @@ function QuotesPage() {
         actions={
           <Can module="quotes" action="create">
             <Button onClick={openNew}>
-              <Plus className="mr-1 h-4 w-4" />Novo orçamento
+              <Plus className="mr-1 h-4 w-4" />
+              Novo orçamento
             </Button>
           </Can>
         }
       />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard title="Total" value={metrics?.total ?? 0} icon={<FileText className="h-5 w-5" />} hint="Histórico geral" />
-        <KpiCard title="Em aberto" value={metrics?.open ?? 0} hint={`Valor: ${fmtBRL(metrics?.open_value ?? 0)}`} />
-        <KpiCard title="Aprovados" value={metrics?.approved ?? 0} hint={`Valor: ${fmtBRL(metrics?.approved_value ?? 0)}`} />
+        <KpiCard
+          title="Total"
+          value={metrics?.total ?? 0}
+          icon={<FileText className="h-5 w-5" />}
+          hint="Histórico geral"
+        />
+        <KpiCard
+          title="Em aberto"
+          value={metrics?.open ?? 0}
+          hint={`Valor: ${fmtBRL(metrics?.open_value ?? 0)}`}
+        />
+        <KpiCard
+          title="Aprovados"
+          value={metrics?.approved ?? 0}
+          hint={`Valor: ${fmtBRL(metrics?.approved_value ?? 0)}`}
+        />
         <KpiCard title="No mês" value={metrics?.this_month ?? 0} hint="Criados em " />
       </div>
 
@@ -197,20 +247,28 @@ function QuotesPage() {
           />
         </div>
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-          <SelectTrigger className="sm:w-56"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="sm:w-56">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">Todos os status</SelectItem>
             {(Object.keys(STATUS_LABEL) as QuoteStatus[]).map((s) => (
-              <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>
+              <SelectItem key={s} value={s}>
+                {STATUS_LABEL[s]}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={payFilter} onValueChange={(v) => setPayFilter(v as any)}>
-          <SelectTrigger className="sm:w-56"><SelectValue placeholder="Pagamento" /></SelectTrigger>
+          <SelectTrigger className="sm:w-56">
+            <SelectValue placeholder="Pagamento" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">Todos pagamentos</SelectItem>
             {(Object.keys(PAY_STATUS_LABEL) as QuotePaymentStatus[]).map((s) => (
-              <SelectItem key={s} value={s}>{PAY_STATUS_LABEL[s]}</SelectItem>
+              <SelectItem key={s} value={s}>
+                {PAY_STATUS_LABEL[s]}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -235,9 +293,7 @@ function QuotesPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="truncate font-medium">{q.quote_number}</div>
-                    {q.title && (
-                      <p className="truncate text-xs text-muted-foreground">{q.title}</p>
-                    )}
+                    {q.title && <p className="truncate text-xs text-muted-foreground">{q.title}</p>}
                     <p className="mt-1 truncate text-sm text-muted-foreground">
                       {q.customer_name ?? "—"}
                     </p>
@@ -255,37 +311,63 @@ function QuotesPage() {
                 </div>
                 <div className="mt-2 flex flex-wrap justify-end gap-1 border-t border-border pt-2">
                   <Can module="quotes" action="edit">
-                    <Button size="icon" variant="ghost" onClick={() => openEdit(q.id)} title="Editar">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => openEdit(q.id)}
+                      title="Editar"
+                    >
                       <Pencil className="h-4 w-4" />
                     </Button>
                   </Can>
                   <Can module="quotes" action="edit">
-                    <Button size="icon" variant="ghost" onClick={() => setSendingId(q.id)} title="Enviar / compartilhar">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setSendingId(q.id)}
+                      title="Enviar / compartilhar"
+                    >
                       <Share2 className="h-4 w-4" />
                     </Button>
                   </Can>
                   {["DRAFT", "VIEWED"].includes(q.status) && (
                     <Can module="quotes" action="edit">
-                      <Button size="icon" variant="ghost" onClick={() => sendMut.mutate(q.id)} title="Marcar como enviado">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => sendMut.mutate(q.id)}
+                        title="Marcar como enviado"
+                      >
                         <Send className="h-4 w-4" />
                       </Button>
                     </Can>
                   )}
                   <Can module="quotes" action="create">
-                    <Button size="icon" variant="ghost" onClick={() => dupMut.mutate(q.id)} title="Duplicar">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => dupMut.mutate(q.id)}
+                      title="Duplicar"
+                    >
                       <Copy className="h-4 w-4" />
                     </Button>
                   </Can>
                   {!["CANCELLED", "EXPIRED"].includes(q.status) && (
                     <Can module="quotes" action="edit">
-                      <Button size="icon" variant="ghost" onClick={() => cancelMut.mutate(q.id)} title="Cancelar">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => cancelMut.mutate(q.id)}
+                        title="Cancelar"
+                      >
                         <XCircle className="h-4 w-4" />
                       </Button>
                     </Can>
                   )}
                   <Can module="quotes" action="delete">
                     <Button
-                      size="icon" variant="ghost"
+                      size="icon"
+                      variant="ghost"
                       onClick={() => setConfirmDel({ id: q.id, number: q.quote_number })}
                       title="Excluir"
                     >
@@ -316,9 +398,7 @@ function QuotesPage() {
                   <tr key={q.id} className="border-t hover:bg-muted/40">
                     <td className="px-3 py-2 font-medium">
                       {q.quote_number}
-                      {q.title && (
-                        <p className="text-xs text-muted-foreground">{q.title}</p>
-                      )}
+                      {q.title && <p className="text-xs text-muted-foreground">{q.title}</p>}
                     </td>
                     <td className="px-3 py-2">{q.customer_name ?? "—"}</td>
                     <td className="px-3 py-2 hidden md:table-cell">{fmtDate(q.issue_date)}</td>
@@ -330,37 +410,63 @@ function QuotesPage() {
                     <td className="px-3 py-2">
                       <div className="flex justify-end gap-1">
                         <Can module="quotes" action="edit">
-                          <Button size="icon" variant="ghost" onClick={() => openEdit(q.id)} title="Editar">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => openEdit(q.id)}
+                            title="Editar"
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
                         </Can>
                         <Can module="quotes" action="edit">
-                          <Button size="icon" variant="ghost" onClick={() => setSendingId(q.id)} title="Enviar / compartilhar">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setSendingId(q.id)}
+                            title="Enviar / compartilhar"
+                          >
                             <Share2 className="h-4 w-4" />
                           </Button>
                         </Can>
                         {["DRAFT", "VIEWED"].includes(q.status) && (
                           <Can module="quotes" action="edit">
-                            <Button size="icon" variant="ghost" onClick={() => sendMut.mutate(q.id)} title="Marcar como enviado">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => sendMut.mutate(q.id)}
+                              title="Marcar como enviado"
+                            >
                               <Send className="h-4 w-4" />
                             </Button>
                           </Can>
                         )}
                         <Can module="quotes" action="create">
-                          <Button size="icon" variant="ghost" onClick={() => dupMut.mutate(q.id)} title="Duplicar">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => dupMut.mutate(q.id)}
+                            title="Duplicar"
+                          >
                             <Copy className="h-4 w-4" />
                           </Button>
                         </Can>
                         {!["CANCELLED", "EXPIRED"].includes(q.status) && (
                           <Can module="quotes" action="edit">
-                            <Button size="icon" variant="ghost" onClick={() => cancelMut.mutate(q.id)} title="Cancelar">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => cancelMut.mutate(q.id)}
+                              title="Cancelar"
+                            >
                               <XCircle className="h-4 w-4" />
                             </Button>
                           </Can>
                         )}
                         <Can module="quotes" action="delete">
                           <Button
-                            size="icon" variant="ghost"
+                            size="icon"
+                            variant="ghost"
                             onClick={() => setConfirmDel({ id: q.id, number: q.quote_number })}
                             title="Excluir"
                           >
@@ -375,11 +481,14 @@ function QuotesPage() {
             </table>
           </div>
         </>
-
       )}
 
       <QuoteFormSheet open={open} onOpenChange={setOpen} quoteId={editing} />
-      <QuoteSendSheet open={!!sendingId} onOpenChange={(o) => !o && setSendingId(null)} quoteId={sendingId} />
+      <QuoteSendSheet
+        open={!!sendingId}
+        onOpenChange={(o) => !o && setSendingId(null)}
+        quoteId={sendingId}
+      />
 
       <AlertDialog open={!!confirmDel} onOpenChange={(o) => !o && setConfirmDel(null)}>
         <AlertDialogContent>
@@ -392,7 +501,8 @@ function QuotesPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={() => confirmDel && delMut.mutate(confirmDel.id)}>
-              <CheckCircle2 className="mr-1 h-4 w-4" />Excluir
+              <CheckCircle2 className="mr-1 h-4 w-4" />
+              Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

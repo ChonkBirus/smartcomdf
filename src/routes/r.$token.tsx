@@ -8,7 +8,9 @@ import { getPublicServiceOrderReport } from "@/lib/service-order-reports.functio
 
 export const Route = createFileRoute("/r/$token")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Relatório de Serviço" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [{ title: "Relatório de Serviço" }, { name: "robots", content: "noindex, nofollow" }],
+  }),
   component: PublicReportPage,
   notFoundComponent: () => <ErrorView message="Relatório não encontrado." />,
   errorComponent: ({ error }) => <ErrorView message={error?.message ?? "Erro."} />,
@@ -41,9 +43,21 @@ function PublicReportPage() {
   if (isLoading) {
     return <div className="p-10 text-center text-sm text-muted-foreground">Carregando…</div>;
   }
-  if (error || !data) return <ErrorView message={(error as any)?.message ?? "Relatório indisponível."} />;
+  if (error || !data)
+    return <ErrorView message={(error as any)?.message ?? "Relatório indisponível."} />;
 
-  const { report, service_order: so, customer, company, address, items, materials, checklist, signatures, photos } = data as any;
+  const {
+    report,
+    service_order: so,
+    customer,
+    company,
+    address,
+    items,
+    materials,
+    checklist,
+    signatures,
+    photos,
+  } = data as any;
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -51,7 +65,9 @@ function PublicReportPage() {
         <Card className="p-6 space-y-2">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wide">Relatório de Serviço</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wide">
+                Relatório de Serviço
+              </div>
               <h1 className="text-xl font-bold">{report.report_number}</h1>
               <div className="text-sm text-muted-foreground">OS #{so.service_order_number}</div>
             </div>
@@ -74,7 +90,9 @@ function PublicReportPage() {
         <Card className="p-6 space-y-2">
           <h2 className="font-semibold">Cliente</h2>
           <div className="text-sm">{customer?.name}</div>
-          {customer?.cpf_cnpj && <div className="text-xs text-muted-foreground">{customer.cpf_cnpj}</div>}
+          {customer?.cpf_cnpj && (
+            <div className="text-xs text-muted-foreground">{customer.cpf_cnpj}</div>
+          )}
           {address && (
             <div className="text-sm text-muted-foreground">
               {[address.street, address.number].filter(Boolean).join(", ")}
@@ -92,16 +110,22 @@ function PublicReportPage() {
             Início: {fmt(so.started_at)} · Conclusão: {fmt(so.completed_at)}
           </div>
           {so.issue_found && (
-            <div className="pt-2"><div className="text-xs font-semibold">Problema</div>
-              <p className="text-sm whitespace-pre-wrap">{so.issue_found}</p></div>
+            <div className="pt-2">
+              <div className="text-xs font-semibold">Problema</div>
+              <p className="text-sm whitespace-pre-wrap">{so.issue_found}</p>
+            </div>
           )}
           {so.solution_applied && (
-            <div className="pt-2"><div className="text-xs font-semibold">Solução</div>
-              <p className="text-sm whitespace-pre-wrap">{so.solution_applied}</p></div>
+            <div className="pt-2">
+              <div className="text-xs font-semibold">Solução</div>
+              <p className="text-sm whitespace-pre-wrap">{so.solution_applied}</p>
+            </div>
           )}
           {so.technician_report && (
-            <div className="pt-2"><div className="text-xs font-semibold">Relatório técnico</div>
-              <p className="text-sm whitespace-pre-wrap">{so.technician_report}</p></div>
+            <div className="pt-2">
+              <div className="text-xs font-semibold">Relatório técnico</div>
+              <p className="text-sm whitespace-pre-wrap">{so.technician_report}</p>
+            </div>
           )}
         </Card>
 
@@ -128,7 +152,9 @@ function PublicReportPage() {
               {materials.map((m: any) => (
                 <li key={m.id} className="py-2 flex justify-between gap-3">
                   <span>{m.name ?? "Material"}</span>
-                  <span className="text-muted-foreground">{Number(m.quantity)} {m.unit ?? ""}</span>
+                  <span className="text-muted-foreground">
+                    {Number(m.quantity)} {m.unit ?? ""}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -155,13 +181,17 @@ function PublicReportPage() {
           <Card className="p-6 space-y-2">
             <h2 className="font-semibold">Fotos</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {photos.map((p: any) => (
+              {photos.map((p: any) =>
                 p.signed_url ? (
                   <a key={p.id} href={p.signed_url} target="_blank" rel="noreferrer">
-                    <img src={p.signed_url} alt={p.caption ?? ""} className="rounded object-cover aspect-square w-full" />
+                    <img
+                      src={p.signed_url}
+                      alt={p.caption ?? ""}
+                      className="rounded object-cover aspect-square w-full"
+                    />
                   </a>
-                ) : null
-              ))}
+                ) : null,
+              )}
             </div>
           </Card>
         )}
@@ -179,7 +209,11 @@ function PublicReportPage() {
                   </div>
                   <div className="text-sm font-medium">{s.signer_name}</div>
                   {s.signed_url && (
-                    <img src={s.signed_url} alt="Assinatura" className="bg-white rounded border max-h-32 object-contain" />
+                    <img
+                      src={s.signed_url}
+                      alt="Assinatura"
+                      className="bg-white rounded border max-h-32 object-contain"
+                    />
                   )}
                   <div className="text-xs text-muted-foreground">{fmt(s.signed_at)}</div>
                 </div>

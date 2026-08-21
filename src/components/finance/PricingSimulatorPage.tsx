@@ -11,13 +11,37 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { FieldHelp, LabelWithHelp } from "@/components/ui/FieldHelp";
 import { usePermissions } from "@/lib/permissions";
@@ -43,25 +67,40 @@ type Rates = {
 };
 
 const zero: Rates = {
-  tax_rate: "0", card_fee_rate: "0", commission_rate: "0", warranty_reserve_rate: "0",
-  operational_cost_rate: "0", fixed_cost_allocation_rate: "0", pro_labore_rate: "0", desired_margin_rate: "15",
+  tax_rate: "0",
+  card_fee_rate: "0",
+  commission_rate: "0",
+  warranty_reserve_rate: "0",
+  operational_cost_rate: "0",
+  fixed_cost_allocation_rate: "0",
+  pro_labore_rate: "0",
+  desired_margin_rate: "15",
 };
 
-
-function pct(n: number | null | undefined) { return String(Number(((Number(n) || 0) * 100).toFixed(4))); }
-function toRate(s: string) { const n = Number((s || "").replace(",", ".")); return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) / 100 : 0; }
+function pct(n: number | null | undefined) {
+  return String(Number(((Number(n) || 0) * 100).toFixed(4)));
+}
+function toRate(s: string) {
+  const n = Number((s || "").replace(",", "."));
+  return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) / 100 : 0;
+}
 
 export function PricingSimulatorPage() {
   const { has } = usePermissions();
   const canView = has("finance.pricing.view") || has("finance.manage");
   const canSave = has("finance.pricing.manage") || has("finance.manage");
-  const canApply = has("finance.apply_suggested_price") || has("finance.pricing.manage") || has("finance.manage");
+  const canApply =
+    has("finance.apply_suggested_price") || has("finance.pricing.manage") || has("finance.manage");
 
   if (!canView) {
     return (
       <div className="mx-auto max-w-7xl">
         <PageHeader title="Precificação e markup" />
-        <EmptyState icon={<Calculator className="h-6 w-6" />} title="Sem acesso" description="Você não tem permissão para visualizar precificação." />
+        <EmptyState
+          icon={<Calculator className="h-6 w-6" />}
+          title="Sem acesso"
+          description="Você não tem permissão para visualizar precificação."
+        />
       </div>
     );
   }
@@ -77,7 +116,6 @@ export function PricingSimulatorPage() {
   );
 }
 
-
 function Simulator({ canSave, canApply }: { canSave: boolean; canApply: boolean }) {
   const qc = useQueryClient();
   const getSettings = useServerFn(getCompanyCostSettings);
@@ -88,7 +126,10 @@ function Simulator({ canSave, canApply }: { canSave: boolean; canApply: boolean 
   const listItems = useServerFn(listItemsForPricing);
 
   const settingsQ = useQuery({ queryKey: ["cost-settings"], queryFn: () => getSettings() });
-  const recentQ = useQuery({ queryKey: ["pricing-recent"], queryFn: () => listRecent({ data: { limit: 10 } }) });
+  const recentQ = useQuery({
+    queryKey: ["pricing-recent"],
+    queryFn: () => listRecent({ data: { limit: 10 } }),
+  });
   const [itemSearch, setItemSearch] = useState("");
   const itemsQ = useQuery({
     queryKey: ["pricing-items", itemSearch],
@@ -102,7 +143,15 @@ function Simulator({ canSave, canApply }: { canSave: boolean; canApply: boolean 
   const [costPrice, setCostPrice] = useState("");
   const [additionalCosts, setAdditionalCosts] = useState("");
   const [rates, setRates] = useState<Rates>(zero);
-  const [result, setResult] = useState<{ ok: boolean; reason?: string; suggested_price: number; markup_multiplier: number; markup_percentage: number; estimated_margin_rate: number; estimated_profit: number } | null>(null);
+  const [result, setResult] = useState<{
+    ok: boolean;
+    reason?: string;
+    suggested_price: number;
+    markup_multiplier: number;
+    markup_percentage: number;
+    estimated_margin_rate: number;
+    estimated_profit: number;
+  } | null>(null);
   const [applyOpen, setApplyOpen] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
 
@@ -135,7 +184,16 @@ function Simulator({ canSave, canApply }: { canSave: boolean; canApply: boolean 
     const cost = Number(costPrice || 0);
     if (cost <= 0) return toast.error("Informe o preço de custo.");
     if (totalPct >= 1) {
-      setResult({ ok: false, reason: "Os percentuais de custos e margem somam 100% ou mais. Reduza custos ou margem para calcular o preço.", suggested_price: 0, markup_multiplier: 0, markup_percentage: 0, estimated_margin_rate: 0, estimated_profit: 0 });
+      setResult({
+        ok: false,
+        reason:
+          "Os percentuais de custos e margem somam 100% ou mais. Reduza custos ou margem para calcular o preço.",
+        suggested_price: 0,
+        markup_multiplier: 0,
+        markup_percentage: 0,
+        estimated_margin_rate: 0,
+        estimated_profit: 0,
+      });
       return;
     }
     try {
@@ -156,7 +214,9 @@ function Simulator({ canSave, canApply }: { canSave: boolean; canApply: boolean 
       });
       setResult(r.result as any);
       setSavedId(null);
-    } catch (e: any) { toast.error(e?.message ?? "Erro."); }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro.");
+    }
   };
 
   const saveMut = useMutation({
@@ -226,37 +286,75 @@ function Simulator({ canSave, canApply }: { canSave: boolean; canApply: boolean 
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">
-              <span className="mr-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">1</span>
+              <span className="mr-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+                1
+              </span>
               O que você quer precificar?
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div className="space-y-1.5">
-                <LabelWithHelp label="Produto/serviço cadastrado (opcional)" help="Selecione um item já cadastrado para puxar o custo automaticamente. Deixe como 'Item avulso' para simular sem cadastro." />
-                <Select value={itemId || "__none__"} onValueChange={(v) => setItemId(v === "__none__" ? "" : v)}>
-                  <SelectTrigger><SelectValue placeholder="Item avulso" /></SelectTrigger>
+                <LabelWithHelp
+                  label="Produto/serviço cadastrado (opcional)"
+                  help="Selecione um item já cadastrado para puxar o custo automaticamente. Deixe como 'Item avulso' para simular sem cadastro."
+                />
+                <Select
+                  value={itemId || "__none__"}
+                  onValueChange={(v) => setItemId(v === "__none__" ? "" : v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Item avulso" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">Item avulso</SelectItem>
                     {(itemsQ.data ?? []).map((it) => (
-                      <SelectItem key={it.id} value={it.id}>{it.name}</SelectItem>
+                      <SelectItem key={it.id} value={it.id}>
+                        {it.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <LabelWithHelp label="Nome do item" help="Como este item será identificado na simulação salva." />
-                <Input value={itemName} onChange={(e) => setItemName(e.target.value)} placeholder="Ex.: Central de alarme" />
+                <LabelWithHelp
+                  label="Nome do item"
+                  help="Como este item será identificado na simulação salva."
+                />
+                <Input
+                  value={itemName}
+                  onChange={(e) => setItemName(e.target.value)}
+                  placeholder="Ex.: Central de alarme"
+                />
               </div>
             </div>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div className="space-y-1.5">
-                <LabelWithHelp label="Custo do produto (R$)" help="Quanto sua empresa paga para comprar ou produzir este item." required />
-                <Input type="number" min={0} step="0.01" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} />
+                <LabelWithHelp
+                  label="Custo do produto (R$)"
+                  help="Quanto sua empresa paga para comprar ou produzir este item."
+                  required
+                />
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={costPrice}
+                  onChange={(e) => setCostPrice(e.target.value)}
+                />
               </div>
               <div className="space-y-1.5">
-                <LabelWithHelp label="Custos adicionais (R$)" help="Outros custos ligados ao item, como frete, embalagem, deslocamento ou instalação terceirizada." />
-                <Input type="number" min={0} step="0.01" value={additionalCosts} onChange={(e) => setAdditionalCosts(e.target.value)} />
+                <LabelWithHelp
+                  label="Custos adicionais (R$)"
+                  help="Outros custos ligados ao item, como frete, embalagem, deslocamento ou instalação terceirizada."
+                />
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={additionalCosts}
+                  onChange={(e) => setAdditionalCosts(e.target.value)}
+                />
               </div>
             </div>
           </CardContent>
@@ -267,7 +365,9 @@ function Simulator({ canSave, canApply }: { canSave: boolean; canApply: boolean 
           <CardHeader className="pb-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <CardTitle className="text-base">
-                <span className="mr-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">2</span>
+                <span className="mr-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+                  2
+                </span>
                 Custos e margem
               </CardTitle>
               <div className="flex gap-2">
@@ -284,18 +384,60 @@ function Simulator({ canSave, canApply }: { canSave: boolean; canApply: boolean 
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
-              <PctField label="Impostos" help="Impostos sobre a venda, como Simples Nacional ou ISS." value={rates.tax_rate} onChange={(v) => setRates((r) => ({ ...r, tax_rate: v }))} />
-              <PctField label="Taxa de cartão" help="Percentual retido pela maquininha ou gateway em vendas com cartão." value={rates.card_fee_rate} onChange={(v) => setRates((r) => ({ ...r, card_fee_rate: v }))} />
-              <PctField label="Comissão" help="Percentual pago ao vendedor por esta venda." value={rates.commission_rate} onChange={(v) => setRates((r) => ({ ...r, commission_rate: v }))} />
-              <PctField label="Reserva de garantia" help="Percentual reservado para cobrir garantias e retrabalhos futuros." value={rates.warranty_reserve_rate} onChange={(v) => setRates((r) => ({ ...r, warranty_reserve_rate: v }))} />
-              <PctField label="Custos variáveis" help="Custos operacionais que aumentam com as vendas, como combustível e frete." value={rates.operational_cost_rate} onChange={(v) => setRates((r) => ({ ...r, operational_cost_rate: v }))} />
-              <PctField label="Custos fixos alocados" help="Fatia dos custos fixos (aluguel, salários, sistema) que cabe a cada venda." value={rates.fixed_cost_allocation_rate} onChange={(v) => setRates((r) => ({ ...r, fixed_cost_allocation_rate: v }))} />
-              <PctField label="Pró-labore" help="Valor destinado ao dono ou sócio. Costuma ser entre 3% e 8%." value={rates.pro_labore_rate} onChange={(v) => setRates((r) => ({ ...r, pro_labore_rate: v }))} />
-              <PctField label="Margem desejada" help="Percentual de lucro que você quer manter depois de pagar tudo." value={rates.desired_margin_rate} onChange={(v) => setRates((r) => ({ ...r, desired_margin_rate: v }))} />
+              <PctField
+                label="Impostos"
+                help="Impostos sobre a venda, como Simples Nacional ou ISS."
+                value={rates.tax_rate}
+                onChange={(v) => setRates((r) => ({ ...r, tax_rate: v }))}
+              />
+              <PctField
+                label="Taxa de cartão"
+                help="Percentual retido pela maquininha ou gateway em vendas com cartão."
+                value={rates.card_fee_rate}
+                onChange={(v) => setRates((r) => ({ ...r, card_fee_rate: v }))}
+              />
+              <PctField
+                label="Comissão"
+                help="Percentual pago ao vendedor por esta venda."
+                value={rates.commission_rate}
+                onChange={(v) => setRates((r) => ({ ...r, commission_rate: v }))}
+              />
+              <PctField
+                label="Reserva de garantia"
+                help="Percentual reservado para cobrir garantias e retrabalhos futuros."
+                value={rates.warranty_reserve_rate}
+                onChange={(v) => setRates((r) => ({ ...r, warranty_reserve_rate: v }))}
+              />
+              <PctField
+                label="Custos variáveis"
+                help="Custos operacionais que aumentam com as vendas, como combustível e frete."
+                value={rates.operational_cost_rate}
+                onChange={(v) => setRates((r) => ({ ...r, operational_cost_rate: v }))}
+              />
+              <PctField
+                label="Custos fixos alocados"
+                help="Fatia dos custos fixos (aluguel, salários, sistema) que cabe a cada venda."
+                value={rates.fixed_cost_allocation_rate}
+                onChange={(v) => setRates((r) => ({ ...r, fixed_cost_allocation_rate: v }))}
+              />
+              <PctField
+                label="Pró-labore"
+                help="Valor destinado ao dono ou sócio. Costuma ser entre 3% e 8%."
+                value={rates.pro_labore_rate}
+                onChange={(v) => setRates((r) => ({ ...r, pro_labore_rate: v }))}
+              />
+              <PctField
+                label="Margem desejada"
+                help="Percentual de lucro que você quer manter depois de pagar tudo."
+                value={rates.desired_margin_rate}
+                onChange={(v) => setRates((r) => ({ ...r, desired_margin_rate: v }))}
+              />
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Soma total de percentuais</span>
-              <Badge variant={totalPct >= 1 ? "destructive" : totalPct >= 0.95 ? "secondary" : "outline"}>
+              <Badge
+                variant={totalPct >= 1 ? "destructive" : totalPct >= 0.95 ? "secondary" : "outline"}
+              >
                 {(totalPct * 100).toFixed(2)}%
               </Badge>
             </div>
@@ -306,24 +448,39 @@ function Simulator({ canSave, canApply }: { canSave: boolean; canApply: boolean 
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">
-              <span className="mr-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">3</span>
+              <span className="mr-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+                3
+              </span>
               Resultado
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-2">
-              <Button size="lg" onClick={doCalc}><Calculator className="mr-2 h-4 w-4" /> Calcular preço</Button>
-              <Button variant="outline" disabled={!result?.ok || !canSave || saveMut.isPending} onClick={() => saveMut.mutate()}>
+              <Button size="lg" onClick={doCalc}>
+                <Calculator className="mr-2 h-4 w-4" /> Calcular preço
+              </Button>
+              <Button
+                variant="outline"
+                disabled={!result?.ok || !canSave || saveMut.isPending}
+                onClick={() => saveMut.mutate()}
+              >
                 <Save className="mr-2 h-4 w-4" /> Salvar simulação
               </Button>
-              <Button variant="secondary" disabled={!savedId || !itemId || !canApply} onClick={() => setApplyOpen(true)}>
+              <Button
+                variant="secondary"
+                disabled={!savedId || !itemId || !canApply}
+                onClick={() => setApplyOpen(true)}
+              >
                 <Sparkles className="mr-2 h-4 w-4" /> Aplicar ao produto
               </Button>
             </div>
 
             {!result && (
-              <EmptyState icon={<Calculator className="h-6 w-6" />} title="Preencha os passos 1 e 2 e clique em Calcular preço"
-                description="O preço sugerido aparecerá aqui em destaque." />
+              <EmptyState
+                icon={<Calculator className="h-6 w-6" />}
+                title="Preencha os passos 1 e 2 e clique em Calcular preço"
+                description="O preço sugerido aparecerá aqui em destaque."
+              />
             )}
             {result && !result.ok && (
               <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
@@ -336,17 +493,25 @@ function Simulator({ canSave, canApply }: { canSave: boolean; canApply: boolean 
                 <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-6 text-center">
                   <div className="flex items-center justify-center gap-1 text-xs uppercase tracking-wide text-muted-foreground">
                     Preço sugerido
-                    <FieldHelp>Preço calculado com base nos custos, taxas, pró-labore e margem desejada.</FieldHelp>
+                    <FieldHelp>
+                      Preço calculado com base nos custos, taxas, pró-labore e margem desejada.
+                    </FieldHelp>
                   </div>
                   <div className="mt-2 text-5xl font-black text-primary">
                     {formatCurrency(result.suggested_price)}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                  <Stat label="Custo total" value={formatCurrency(Number(costPrice || 0) + Number(additionalCosts || 0))} />
+                  <Stat
+                    label="Custo total"
+                    value={formatCurrency(Number(costPrice || 0) + Number(additionalCosts || 0))}
+                  />
                   <Stat label="Markup" value={`${result.markup_multiplier.toFixed(2)}x`} />
                   <Stat label="Lucro estimado" value={formatCurrency(result.estimated_profit)} />
-                  <Stat label="Margem estimada" value={`${(result.estimated_margin_rate * 100).toFixed(2)}%`} />
+                  <Stat
+                    label="Margem estimada"
+                    value={`${(result.estimated_margin_rate * 100).toFixed(2)}%`}
+                  />
                 </div>
                 {selectedItem?.sale_price != null && (
                   <div className="text-xs text-muted-foreground">
@@ -355,21 +520,24 @@ function Simulator({ canSave, canApply }: { canSave: boolean; canApply: boolean 
                 )}
                 <Accordion type="single" collapsible>
                   <AccordionItem value="how" className="border rounded-md px-3">
-                    <AccordionTrigger className="text-sm">Como esse preço foi calculado?</AccordionTrigger>
+                    <AccordionTrigger className="text-sm">
+                      Como esse preço foi calculado?
+                    </AccordionTrigger>
                     <AccordionContent className="text-sm text-muted-foreground space-y-2">
                       <p>
-                        <strong>Fórmula:</strong> Markup = 100 ÷ (100 − soma dos percentuais).
-                        O preço é <em>(custo + custos adicionais) × markup</em>.
+                        <strong>Fórmula:</strong> Markup = 100 ÷ (100 − soma dos percentuais). O
+                        preço é <em>(custo + custos adicionais) × markup</em>.
                       </p>
                       <p>
-                        O sistema soma seus custos, impostos, taxas, comissões, pró-labore, custos fixos e a
-                        margem desejada. Depois calcula um multiplicador (markup) que garante cobrir tudo isso e
-                        ainda deixar a margem que você quer no bolso.
+                        O sistema soma seus custos, impostos, taxas, comissões, pró-labore, custos
+                        fixos e a margem desejada. Depois calcula um multiplicador (markup) que
+                        garante cobrir tudo isso e ainda deixar a margem que você quer no bolso.
                       </p>
                       <p className="text-xs">
-                        Neste cálculo: percentuais somam <strong>{(totalPct * 100).toFixed(2)}%</strong> ·
-                        markup <strong>{result.markup_multiplier.toFixed(2)}x</strong> ·
-                        margem líquida <strong>{(result.estimated_margin_rate * 100).toFixed(2)}%</strong>.
+                        Neste cálculo: percentuais somam{" "}
+                        <strong>{(totalPct * 100).toFixed(2)}%</strong> · markup{" "}
+                        <strong>{result.markup_multiplier.toFixed(2)}x</strong> · margem líquida{" "}
+                        <strong>{(result.estimated_margin_rate * 100).toFixed(2)}%</strong>.
                       </p>
                     </AccordionContent>
                   </AccordionItem>
@@ -380,14 +548,18 @@ function Simulator({ canSave, canApply }: { canSave: boolean; canApply: boolean 
         </Card>
       </div>
 
-
       {/* Últimas simulações */}
       <Card>
-        <CardHeader><CardTitle>Últimas simulações</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Últimas simulações</CardTitle>
+        </CardHeader>
         <CardContent>
           {(recentQ.data ?? []).length === 0 ? (
-            <EmptyState icon={<Calculator className="h-6 w-6" />} title="Nenhuma simulação salva ainda"
-              description="Ao salvar, ela aparece aqui e pode ser aplicada ao produto." />
+            <EmptyState
+              icon={<Calculator className="h-6 w-6" />}
+              title="Nenhuma simulação salva ainda"
+              description="Ao salvar, ela aparece aqui e pode ser aplicada ao produto."
+            />
           ) : (
             <Table>
               <TableHeader>
@@ -405,12 +577,24 @@ function Simulator({ canSave, canApply }: { canSave: boolean; canApply: boolean 
                 {(recentQ.data ?? []).map((s) => (
                   <TableRow key={s.id}>
                     <TableCell>{s.item_name}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(Number(s.cost_price))}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(Number(s.suggested_price))}</TableCell>
-                    <TableCell className="text-right">{Number(s.markup_multiplier).toFixed(2)}x</TableCell>
-                    <TableCell className="text-right">{(Number(s.estimated_margin_rate) * 100).toFixed(2)}%</TableCell>
-                    <TableCell>{s.applied_to_item ? <CheckCircle2 className="h-4 w-4 text-primary" /> : "—"}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{new Date(s.created_at).toLocaleString("pt-BR")}</TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(Number(s.cost_price))}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(Number(s.suggested_price))}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {Number(s.markup_multiplier).toFixed(2)}x
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {(Number(s.estimated_margin_rate) * 100).toFixed(2)}%
+                    </TableCell>
+                    <TableCell>
+                      {s.applied_to_item ? <CheckCircle2 className="h-4 w-4 text-primary" /> : "—"}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {new Date(s.created_at).toLocaleString("pt-BR")}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -425,7 +609,8 @@ function Simulator({ canSave, canApply }: { canSave: boolean; canApply: boolean 
             <AlertDialogTitle>Aplicar preço sugerido ao produto?</AlertDialogTitle>
             <AlertDialogDescription>
               O preço de venda de <b>{selectedItem?.name ?? itemName}</b> será atualizado para{" "}
-              <b>{result ? formatCurrency(result.suggested_price) : ""}</b>. O custo do produto não será alterado.
+              <b>{result ? formatCurrency(result.suggested_price) : ""}</b>. O custo do produto não
+              será alterado.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -446,7 +631,17 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </div>
   );
 }
-function PctField({ label, help, value, onChange }: { label: string; help?: React.ReactNode; value: string; onChange: (v: string) => void }) {
+function PctField({
+  label,
+  help,
+  value,
+  onChange,
+}: {
+  label: string;
+  help?: React.ReactNode;
+  value: string;
+  onChange: (v: string) => void;
+}) {
   return (
     <div className="space-y-1">
       {help ? (
@@ -454,7 +649,14 @@ function PctField({ label, help, value, onChange }: { label: string; help?: Reac
       ) : (
         <Label className="text-xs text-muted-foreground">{label} (%)</Label>
       )}
-      <Input type="number" min={0} max={100} step="0.01" value={value} onChange={(e) => onChange(e.target.value)} />
+      <Input
+        type="number"
+        min={0}
+        max={100}
+        step="0.01"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </div>
   );
 }

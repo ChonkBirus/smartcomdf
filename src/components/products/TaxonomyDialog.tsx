@@ -2,13 +2,25 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Plus, Pencil, Power, PowerOff } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
@@ -44,7 +56,9 @@ export function TaxonomyDialog({
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Cadastros auxiliares</DialogTitle>
-          <DialogDescription>Gerencie categorias, marcas e fabricantes utilizados pelos produtos.</DialogDescription>
+          <DialogDescription>
+            Gerencie categorias, marcas e fabricantes utilizados pelos produtos.
+          </DialogDescription>
         </DialogHeader>
         <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
           <TabsList className="grid w-full grid-cols-3">
@@ -75,7 +89,11 @@ function CategoriesPanel() {
   const saveFn = useServerFn(saveCategory);
   const toggleFn = useServerFn(toggleCategoryActive);
   const companyId = useCompanyId();
-  const { data: items = [] } = useQuery({ queryKey: ["categories", companyId], queryFn: () => listFn(), enabled: !!companyId });
+  const { data: items = [] } = useQuery({
+    queryKey: ["categories", companyId],
+    queryFn: () => listFn(),
+    enabled: !!companyId,
+  });
   const [editing, setEditing] = useState<{
     id?: string;
     name: string;
@@ -105,7 +123,9 @@ function CategoriesPanel() {
         {canCreate("products") && (
           <Button
             size="sm"
-            onClick={() => setEditing({ name: "", description: "", category_type: "BOTH", active: true })}
+            onClick={() =>
+              setEditing({ name: "", description: "", category_type: "BOTH", active: true })
+            }
           >
             <Plus className="mr-1 h-4 w-4" /> Nova categoria
           </Button>
@@ -117,7 +137,10 @@ function CategoriesPanel() {
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-1.5">
               <Label>Nome*</Label>
-              <Input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
+              <Input
+                value={editing.name}
+                onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Aplica-se a</Label>
@@ -136,7 +159,10 @@ function CategoriesPanel() {
               </Select>
             </div>
             <div className="flex items-center gap-2">
-              <Switch checked={editing.active} onCheckedChange={(v) => setEditing({ ...editing, active: v })} />
+              <Switch
+                checked={editing.active}
+                onCheckedChange={(v) => setEditing({ ...editing, active: v })}
+              />
               <Label>Ativo</Label>
             </div>
             <div className="space-y-1.5 md:col-span-2">
@@ -152,7 +178,11 @@ function CategoriesPanel() {
             <Button variant="ghost" size="sm" onClick={() => setEditing(null)}>
               Cancelar
             </Button>
-            <Button size="sm" disabled={!editing.name.trim() || save.isPending} onClick={() => save.mutate(editing)}>
+            <Button
+              size="sm"
+              disabled={!editing.name.trim() || save.isPending}
+              onClick={() => save.mutate(editing)}
+            >
               Salvar
             </Button>
           </div>
@@ -182,7 +212,9 @@ function CategoriesPanel() {
                 <td className="px-3 py-2 font-medium">{c.name}</td>
                 <td className="px-3 py-2 text-muted-foreground">{c.description ?? "—"}</td>
                 <td className="px-3 py-2 text-center">
-                  <Badge variant={c.active ? "default" : "secondary"}>{c.active ? "Ativa" : "Inativa"}</Badge>
+                  <Badge variant={c.active ? "default" : "secondary"}>
+                    {c.active ? "Ativa" : "Inativa"}
+                  </Badge>
                 </td>
                 <td className="px-3 py-2 text-center">
                   <div className="flex justify-center gap-1">
@@ -197,7 +229,11 @@ function CategoriesPanel() {
                         variant="ghost"
                         onClick={() => toggle.mutate({ id: c.id, active: !c.active })}
                       >
-                        {c.active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                        {c.active ? (
+                          <PowerOff className="h-4 w-4" />
+                        ) : (
+                          <Power className="h-4 w-4" />
+                        )}
                       </Button>
                     )}
                   </div>
@@ -219,10 +255,17 @@ function BrandsPanel() {
   const saveFn = useServerFn(saveBrand);
   const toggleFn = useServerFn(toggleBrandActive);
   const companyId = useCompanyId();
-  const { data: items = [] } = useQuery({ queryKey: ["brands", companyId], queryFn: () => listFn(), enabled: !!companyId });
-  const [editing, setEditing] = useState<{ id?: string; name: string; description?: string; active: boolean } | null>(
-    null,
-  );
+  const { data: items = [] } = useQuery({
+    queryKey: ["brands", companyId],
+    queryFn: () => listFn(),
+    enabled: !!companyId,
+  });
+  const [editing, setEditing] = useState<{
+    id?: string;
+    name: string;
+    description?: string;
+    active: boolean;
+  } | null>(null);
 
   const save = useMutation({
     mutationFn: (v: any) => saveFn({ data: v }),
@@ -253,10 +296,16 @@ function BrandsPanel() {
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-1.5">
               <Label>Nome*</Label>
-              <Input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
+              <Input
+                value={editing.name}
+                onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+              />
             </div>
             <div className="flex items-center gap-2 pt-6">
-              <Switch checked={editing.active} onCheckedChange={(v) => setEditing({ ...editing, active: v })} />
+              <Switch
+                checked={editing.active}
+                onCheckedChange={(v) => setEditing({ ...editing, active: v })}
+              />
               <Label>Ativa</Label>
             </div>
             <div className="space-y-1.5 md:col-span-2">
@@ -272,7 +321,11 @@ function BrandsPanel() {
             <Button variant="ghost" size="sm" onClick={() => setEditing(null)}>
               Cancelar
             </Button>
-            <Button size="sm" disabled={!editing.name.trim() || save.isPending} onClick={() => save.mutate(editing)}>
+            <Button
+              size="sm"
+              disabled={!editing.name.trim() || save.isPending}
+              onClick={() => save.mutate(editing)}
+            >
               Salvar
             </Button>
           </div>
@@ -301,7 +354,9 @@ function BrandsPanel() {
                 <td className="px-3 py-2 font-medium">{b.name}</td>
                 <td className="px-3 py-2 text-muted-foreground">{b.description ?? "—"}</td>
                 <td className="px-3 py-2 text-center">
-                  <Badge variant={b.active ? "default" : "secondary"}>{b.active ? "Ativa" : "Inativa"}</Badge>
+                  <Badge variant={b.active ? "default" : "secondary"}>
+                    {b.active ? "Ativa" : "Inativa"}
+                  </Badge>
                 </td>
                 <td className="px-3 py-2 text-center">
                   <div className="flex justify-center gap-1">
@@ -316,7 +371,11 @@ function BrandsPanel() {
                         variant="ghost"
                         onClick={() => toggle.mutate({ id: b.id, active: !b.active })}
                       >
-                        {b.active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                        {b.active ? (
+                          <PowerOff className="h-4 w-4" />
+                        ) : (
+                          <Power className="h-4 w-4" />
+                        )}
                       </Button>
                     )}
                   </div>
@@ -338,7 +397,11 @@ function ManufacturersPanel() {
   const saveFn = useServerFn(saveManufacturer);
   const toggleFn = useServerFn(toggleManufacturerActive);
   const companyId = useCompanyId();
-  const { data: items = [] } = useQuery({ queryKey: ["manufacturers", companyId], queryFn: () => listFn(), enabled: !!companyId });
+  const { data: items = [] } = useQuery({
+    queryKey: ["manufacturers", companyId],
+    queryFn: () => listFn(),
+    enabled: !!companyId,
+  });
   const [editing, setEditing] = useState<any | null>(null);
 
   const save = useMutation({
@@ -362,7 +425,9 @@ function ManufacturersPanel() {
         {canCreate("products") && (
           <Button
             size="sm"
-            onClick={() => setEditing({ name: "", website: "", phone: "", email: "", active: true })}
+            onClick={() =>
+              setEditing({ name: "", website: "", phone: "", email: "", active: true })
+            }
           >
             <Plus className="mr-1 h-4 w-4" /> Novo fabricante
           </Button>
@@ -373,7 +438,10 @@ function ManufacturersPanel() {
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-1.5 md:col-span-2">
               <Label>Nome*</Label>
-              <Input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
+              <Input
+                value={editing.name}
+                onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Website</Label>
@@ -384,7 +452,10 @@ function ManufacturersPanel() {
             </div>
             <div className="space-y-1.5">
               <Label>Telefone</Label>
-              <Input value={editing.phone ?? ""} onChange={(e) => setEditing({ ...editing, phone: e.target.value })} />
+              <Input
+                value={editing.phone ?? ""}
+                onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>E-mail</Label>
@@ -395,7 +466,10 @@ function ManufacturersPanel() {
               />
             </div>
             <div className="flex items-center gap-2 pt-6">
-              <Switch checked={editing.active} onCheckedChange={(v) => setEditing({ ...editing, active: v })} />
+              <Switch
+                checked={editing.active}
+                onCheckedChange={(v) => setEditing({ ...editing, active: v })}
+              />
               <Label>Ativo</Label>
             </div>
           </div>
@@ -403,7 +477,11 @@ function ManufacturersPanel() {
             <Button variant="ghost" size="sm" onClick={() => setEditing(null)}>
               Cancelar
             </Button>
-            <Button size="sm" disabled={!editing.name?.trim() || save.isPending} onClick={() => save.mutate(editing)}>
+            <Button
+              size="sm"
+              disabled={!editing.name?.trim() || save.isPending}
+              onClick={() => save.mutate(editing)}
+            >
               Salvar
             </Button>
           </div>
@@ -434,7 +512,9 @@ function ManufacturersPanel() {
                   {[m.email, m.phone, m.website].filter(Boolean).join(" · ") || "—"}
                 </td>
                 <td className="px-3 py-2 text-center">
-                  <Badge variant={m.active ? "default" : "secondary"}>{m.active ? "Ativo" : "Inativo"}</Badge>
+                  <Badge variant={m.active ? "default" : "secondary"}>
+                    {m.active ? "Ativo" : "Inativo"}
+                  </Badge>
                 </td>
                 <td className="px-3 py-2 text-center">
                   <div className="flex justify-center gap-1">
@@ -449,7 +529,11 @@ function ManufacturersPanel() {
                         variant="ghost"
                         onClick={() => toggle.mutate({ id: m.id, active: !m.active })}
                       >
-                        {m.active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                        {m.active ? (
+                          <PowerOff className="h-4 w-4" />
+                        ) : (
+                          <Power className="h-4 w-4" />
+                        )}
                       </Button>
                     )}
                   </div>

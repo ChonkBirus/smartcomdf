@@ -11,8 +11,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { usePermissions } from "@/lib/permissions";
@@ -43,14 +56,22 @@ function numOrEmpty(v: number | null | undefined) {
 
 export function CostsPage() {
   const { has } = usePermissions();
-  const canView = has("finance.view_costs") || has("finance.manage_cost_settings") || has("finance.manage");
+  const canView =
+    has("finance.view_costs") || has("finance.manage_cost_settings") || has("finance.manage");
   const canEdit = has("finance.manage_cost_settings") || has("finance.manage");
 
   if (!canView) {
     return (
       <div className="mx-auto max-w-7xl">
-        <PageHeader title="Custos da empresa" description="Configure custos e pró-labore para alimentar o markup." />
-        <EmptyState icon={<Wallet className="h-6 w-6" />} title="Sem acesso" description="Você não tem permissão para visualizar custos." />
+        <PageHeader
+          title="Custos da empresa"
+          description="Configure custos e pró-labore para alimentar o markup."
+        />
+        <EmptyState
+          icon={<Wallet className="h-6 w-6" />}
+          title="Sem acesso"
+          description="Você não tem permissão para visualizar custos."
+        />
       </div>
     );
   }
@@ -112,7 +133,9 @@ function Content({ canEdit }: { canEdit: boolean }) {
   const cfRate = revenue > 0 ? fixedTotal / revenue : 0;
   const proRate =
     form.pro_labore_mode === "VALUE"
-      ? revenue > 0 ? Number(form.pro_labore_value || 0) / revenue : 0
+      ? revenue > 0
+        ? Number(form.pro_labore_value || 0) / revenue
+        : 0
       : strToPct(form.pro_labore_percent);
   const dvRate = strToPct(form.default_operational_cost_rate);
   const mlRate = strToPct(form.default_desired_margin_rate);
@@ -120,12 +143,19 @@ function Content({ canEdit }: { canEdit: boolean }) {
 
   const saveMut = useMutation({
     mutationFn: async () => {
-      const proPercent = form.pro_labore_mode === "PERCENT" ? strToPct(form.pro_labore_percent) : (revenue > 0 ? Number(form.pro_labore_value || 0) / revenue : 0);
+      const proPercent =
+        form.pro_labore_mode === "PERCENT"
+          ? strToPct(form.pro_labore_percent)
+          : revenue > 0
+            ? Number(form.pro_labore_value || 0) / revenue
+            : 0;
       const payload = {
         monthly_fixed_costs_total: fixedTotal,
         monthly_operational_costs_total: Number(form.monthly_operational_costs_total || 0),
         expected_monthly_revenue: revenue || null,
-        expected_monthly_sales_count: form.expected_monthly_sales_count ? Number(form.expected_monthly_sales_count) : null,
+        expected_monthly_sales_count: form.expected_monthly_sales_count
+          ? Number(form.expected_monthly_sales_count)
+          : null,
         default_tax_rate: Number(s?.default_tax_rate ?? 0),
         default_card_fee_rate: Number(s?.default_card_fee_rate ?? 0),
         default_commission_rate: Number(s?.default_commission_rate ?? 0),
@@ -134,7 +164,10 @@ function Content({ canEdit }: { canEdit: boolean }) {
         default_fixed_cost_allocation_rate: cfRate,
         default_desired_margin_rate: mlRate,
         pro_labore_percent: proPercent,
-        pro_labore_value: form.pro_labore_mode === "VALUE" && form.pro_labore_value ? Number(form.pro_labore_value) : null,
+        pro_labore_value:
+          form.pro_labore_mode === "VALUE" && form.pro_labore_value
+            ? Number(form.pro_labore_value)
+            : null,
         allocation_method: form.allocation_method,
       };
       return updateSettings({ data: payload });
@@ -149,7 +182,9 @@ function Content({ canEdit }: { canEdit: boolean }) {
   const syncMut = useMutation({
     mutationFn: () => syncTotals(),
     onSuccess: (r: any) => {
-      toast.success(`Total sincronizado: ${formatCurrency(r.total)} (CF ${(r.allocation_rate * 100).toFixed(2)}%).`);
+      toast.success(
+        `Total sincronizado: ${formatCurrency(r.total)} (CF ${(r.allocation_rate * 100).toFixed(2)}%).`,
+      );
       qc.invalidateQueries({ queryKey: ["cost-settings"] });
       qc.invalidateQueries({ queryKey: ["fixed-costs"] });
     },
@@ -160,30 +195,72 @@ function Content({ canEdit }: { canEdit: boolean }) {
     <>
       {/* Resumo */}
       <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-        <SummaryCard icon={<Building2 />} label="Faturamento esperado" value={revenue ? formatCurrency(revenue) : "—"} />
-        <SummaryCard icon={<Wallet />} label={`Custos fixos (CF ${revenue > 0 ? (cfRate * 100).toFixed(1) : "0"}%)`} value={formatCurrency(fixedTotal)} />
-        <SummaryCard icon={<PiggyBank />} label={`Pró-labore (${(proRate * 100).toFixed(1)}%)`} value={form.pro_labore_mode === "VALUE" ? formatCurrency(Number(form.pro_labore_value || 0)) : `${form.pro_labore_percent}%`} />
-        <SummaryCard icon={<Percent />} label="Soma CF + Pró + DV + ML" value={`${(totalDeductions * 100).toFixed(2)}%`} highlight={totalDeductions >= 1} />
+        <SummaryCard
+          icon={<Building2 />}
+          label="Faturamento esperado"
+          value={revenue ? formatCurrency(revenue) : "—"}
+        />
+        <SummaryCard
+          icon={<Wallet />}
+          label={`Custos fixos (CF ${revenue > 0 ? (cfRate * 100).toFixed(1) : "0"}%)`}
+          value={formatCurrency(fixedTotal)}
+        />
+        <SummaryCard
+          icon={<PiggyBank />}
+          label={`Pró-labore (${(proRate * 100).toFixed(1)}%)`}
+          value={
+            form.pro_labore_mode === "VALUE"
+              ? formatCurrency(Number(form.pro_labore_value || 0))
+              : `${form.pro_labore_percent}%`
+          }
+        />
+        <SummaryCard
+          icon={<Percent />}
+          label="Soma CF + Pró + DV + ML"
+          value={`${(totalDeductions * 100).toFixed(2)}%`}
+          highlight={totalDeductions >= 1}
+        />
       </div>
 
       {/* Faturamento e vendas */}
       <Card>
-        <CardHeader><CardTitle>Faturamento e vendas esperados</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Faturamento e vendas esperados</CardTitle>
+        </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Field label="Faturamento mensal esperado (R$)">
-            <Input type="number" min={0} step="0.01" disabled={!canEdit}
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              disabled={!canEdit}
               value={form.expected_monthly_revenue}
-              onChange={(e) => setForm((f) => ({ ...f, expected_monthly_revenue: e.target.value }))} />
+              onChange={(e) => setForm((f) => ({ ...f, expected_monthly_revenue: e.target.value }))}
+            />
           </Field>
           <Field label="Vendas mensais esperadas (qtd)">
-            <Input type="number" min={0} step="1" disabled={!canEdit}
+            <Input
+              type="number"
+              min={0}
+              step="1"
+              disabled={!canEdit}
               value={form.expected_monthly_sales_count}
-              onChange={(e) => setForm((f) => ({ ...f, expected_monthly_sales_count: e.target.value }))} />
+              onChange={(e) =>
+                setForm((f) => ({ ...f, expected_monthly_sales_count: e.target.value }))
+              }
+            />
           </Field>
           <Field label="Método de alocação">
-            <Select value={form.allocation_method} disabled={!canEdit}
-              onValueChange={(v) => setForm((f) => ({ ...f, allocation_method: v as AllocationMethod }))}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+            <Select
+              value={form.allocation_method}
+              disabled={!canEdit}
+              onValueChange={(v) =>
+                setForm((f) => ({ ...f, allocation_method: v as AllocationMethod }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="PERCENT_OF_REVENUE">% sobre faturamento</SelectItem>
                 <SelectItem value="FIXED_PER_SALE">Valor fixo por venda</SelectItem>
@@ -200,9 +277,14 @@ function Content({ canEdit }: { canEdit: boolean }) {
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Field label="Modo">
-            <Select value={form.pro_labore_mode} disabled={!canEdit}
-              onValueChange={(v) => setForm((f) => ({ ...f, pro_labore_mode: v as any }))}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+            <Select
+              value={form.pro_labore_mode}
+              disabled={!canEdit}
+              onValueChange={(v) => setForm((f) => ({ ...f, pro_labore_mode: v as any }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="PERCENT">Percentual sobre faturamento</SelectItem>
                 <SelectItem value="VALUE">Valor fixo mensal</SelectItem>
@@ -211,15 +293,26 @@ function Content({ canEdit }: { canEdit: boolean }) {
           </Field>
           {form.pro_labore_mode === "PERCENT" ? (
             <Field label="Pró-labore (%)  — sugestão 5%">
-              <Input type="number" min={0} max={100} step="0.01" disabled={!canEdit}
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                step="0.01"
+                disabled={!canEdit}
                 value={form.pro_labore_percent}
-                onChange={(e) => setForm((f) => ({ ...f, pro_labore_percent: e.target.value }))} />
+                onChange={(e) => setForm((f) => ({ ...f, pro_labore_percent: e.target.value }))}
+              />
             </Field>
           ) : (
             <Field label="Pró-labore (R$/mês)">
-              <Input type="number" min={0} step="0.01" disabled={!canEdit}
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                disabled={!canEdit}
                 value={form.pro_labore_value}
-                onChange={(e) => setForm((f) => ({ ...f, pro_labore_value: e.target.value }))} />
+                onChange={(e) => setForm((f) => ({ ...f, pro_labore_value: e.target.value }))}
+              />
             </Field>
           )}
           <Field label="Equivalente em % do faturamento">
@@ -232,29 +325,55 @@ function Content({ canEdit }: { canEdit: boolean }) {
 
       {/* Custos variáveis e margem padrão */}
       <Card>
-        <CardHeader><CardTitle>Custos variáveis e margem padrão</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Custos variáveis e margem padrão</CardTitle>
+        </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Field label="Custos variáveis / operacionais (%)">
-            <Input type="number" min={0} max={100} step="0.01" disabled={!canEdit}
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              step="0.01"
+              disabled={!canEdit}
               value={form.default_operational_cost_rate}
-              onChange={(e) => setForm((f) => ({ ...f, default_operational_cost_rate: e.target.value }))} />
+              onChange={(e) =>
+                setForm((f) => ({ ...f, default_operational_cost_rate: e.target.value }))
+              }
+            />
           </Field>
           <Field label="Margem de lucro desejada (%)">
-            <Input type="number" min={0} max={95} step="0.01" disabled={!canEdit}
+            <Input
+              type="number"
+              min={0}
+              max={95}
+              step="0.01"
+              disabled={!canEdit}
               value={form.default_desired_margin_rate}
-              onChange={(e) => setForm((f) => ({ ...f, default_desired_margin_rate: e.target.value }))} />
+              onChange={(e) =>
+                setForm((f) => ({ ...f, default_desired_margin_rate: e.target.value }))
+              }
+            />
           </Field>
           <Field label="Total operacional/mês (R$) — opcional">
-            <Input type="number" min={0} step="0.01" disabled={!canEdit}
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              disabled={!canEdit}
               value={form.monthly_operational_costs_total}
-              onChange={(e) => setForm((f) => ({ ...f, monthly_operational_costs_total: e.target.value }))} />
+              onChange={(e) =>
+                setForm((f) => ({ ...f, monthly_operational_costs_total: e.target.value }))
+              }
+            />
           </Field>
         </CardContent>
       </Card>
 
       {totalDeductions >= 1 && (
         <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-          Os percentuais de custos, pró-labore e margem somam {(totalDeductions * 100).toFixed(2)}%. Reduza custos ou margem para calcular o preço.
+          Os percentuais de custos, pró-labore e margem somam {(totalDeductions * 100).toFixed(2)}%.
+          Reduza custos ou margem para calcular o preço.
         </div>
       )}
 
@@ -285,7 +404,17 @@ function Content({ canEdit }: { canEdit: boolean }) {
   );
 }
 
-function SummaryCard({ icon, label, value, highlight }: { icon: React.ReactNode; label: string; value: string; highlight?: boolean }) {
+function SummaryCard({
+  icon,
+  label,
+  value,
+  highlight,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
   return (
     <Card className={highlight ? "border-destructive/60" : ""}>
       <CardContent className="pt-4">
@@ -309,7 +438,11 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function FixedCostsTable({
-  items, canEdit, onSaved, upsert, remove,
+  items,
+  canEdit,
+  onSaved,
+  upsert,
+  remove,
 }: {
   items: CompanyFixedCost[];
   canEdit: boolean;
@@ -318,10 +451,18 @@ function FixedCostsTable({
   remove: ReturnType<typeof useServerFn<typeof deleteCompanyFixedCost>>;
 }) {
   const [draft, setDraft] = useState({ name: "", category: CATS[0], amount: "" });
-  const total = useMemo(() => items.filter((i) => i.active).reduce((s, i) => s + Number(i.amount || 0), 0), [items]);
+  const total = useMemo(
+    () => items.filter((i) => i.active).reduce((s, i) => s + Number(i.amount || 0), 0),
+    [items],
+  );
 
   const addMut = useMutation({
-    mutationFn: (payload: { name: string; category: string | null; amount: number; active: boolean }) => upsert({ data: payload }),
+    mutationFn: (payload: {
+      name: string;
+      category: string | null;
+      amount: number;
+      active: boolean;
+    }) => upsert({ data: payload }),
     onSuccess: () => {
       setDraft({ name: "", category: CATS[0], amount: "" });
       toast.success("Custo fixo adicionado.");
@@ -330,13 +471,25 @@ function FixedCostsTable({
     onError: (e: any) => toast.error(e?.message ?? "Erro."),
   });
   const toggleMut = useMutation({
-    mutationFn: (r: CompanyFixedCost) => upsert({ data: { id: r.id, name: r.name, category: r.category, amount: Number(r.amount), active: !r.active } }),
+    mutationFn: (r: CompanyFixedCost) =>
+      upsert({
+        data: {
+          id: r.id,
+          name: r.name,
+          category: r.category,
+          amount: Number(r.amount),
+          active: !r.active,
+        },
+      }),
     onSuccess: onSaved,
     onError: (e: any) => toast.error(e?.message ?? "Erro."),
   });
   const delMut = useMutation({
     mutationFn: (id: string) => remove({ data: { id } }),
-    onSuccess: () => { toast.success("Removido."); onSaved(); },
+    onSuccess: () => {
+      toast.success("Removido.");
+      onSaved();
+    },
     onError: (e: any) => toast.error(e?.message ?? "Erro."),
   });
 
@@ -349,17 +502,44 @@ function FixedCostsTable({
       <CardContent className="space-y-4">
         {canEdit && (
           <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_180px_160px_auto]">
-            <Input placeholder="Nome (ex.: Aluguel do escritório)" value={draft.name}
-              onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))} />
-            <Select value={draft.category} onValueChange={(v) => setDraft((d) => ({ ...d, category: v }))}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{CATS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+            <Input
+              placeholder="Nome (ex.: Aluguel do escritório)"
+              value={draft.name}
+              onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+            />
+            <Select
+              value={draft.category}
+              onValueChange={(v) => setDraft((d) => ({ ...d, category: v }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CATS.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
-            <Input type="number" min={0} step="0.01" placeholder="Valor mensal (R$)" value={draft.amount}
-              onChange={(e) => setDraft((d) => ({ ...d, amount: e.target.value }))} />
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              placeholder="Valor mensal (R$)"
+              value={draft.amount}
+              onChange={(e) => setDraft((d) => ({ ...d, amount: e.target.value }))}
+            />
             <Button
               disabled={!draft.name.trim() || !draft.amount || addMut.isPending}
-              onClick={() => addMut.mutate({ name: draft.name.trim(), category: draft.category, amount: Number(draft.amount), active: true })}
+              onClick={() =>
+                addMut.mutate({
+                  name: draft.name.trim(),
+                  category: draft.category,
+                  amount: Number(draft.amount),
+                  active: true,
+                })
+              }
             >
               <Plus className="mr-2 h-4 w-4" /> Adicionar
             </Button>
@@ -367,8 +547,11 @@ function FixedCostsTable({
         )}
 
         {items.length === 0 ? (
-          <EmptyState icon={<Wallet className="h-6 w-6" />} title="Nenhum custo fixo cadastrado"
-            description="Cadastre aluguel, salários, software e outros custos mensais para calcular o markup." />
+          <EmptyState
+            icon={<Wallet className="h-6 w-6" />}
+            title="Nenhum custo fixo cadastrado"
+            description="Cadastre aluguel, salários, software e outros custos mensais para calcular o markup."
+          />
         ) : (
           <Table>
             <TableHeader>
@@ -387,7 +570,11 @@ function FixedCostsTable({
                   <TableCell>{r.category ?? "—"}</TableCell>
                   <TableCell className="text-right">{formatCurrency(Number(r.amount))}</TableCell>
                   <TableCell>
-                    <Switch checked={r.active} disabled={!canEdit} onCheckedChange={() => toggleMut.mutate(r)} />
+                    <Switch
+                      checked={r.active}
+                      disabled={!canEdit}
+                      onCheckedChange={() => toggleMut.mutate(r)}
+                    />
                   </TableCell>
                   <TableCell className="text-right">
                     {canEdit && (

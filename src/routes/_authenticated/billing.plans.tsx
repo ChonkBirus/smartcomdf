@@ -60,11 +60,9 @@ function PlansPage() {
     onError: (e: any) => toast.error(e?.message ?? "Falha ao cancelar"),
   });
 
-  const currentSort =
-    plans?.find((p) => p.id === sub?.plan_id)?.sort_order ?? 0;
+  const currentSort = plans?.find((p) => p.id === sub?.plan_id)?.sort_order ?? 0;
 
-  const fmtDate = (s: string | null) =>
-    s ? new Date(s).toLocaleDateString("pt-BR") : "—";
+  const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleDateString("pt-BR") : "—");
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -85,9 +83,7 @@ function PlansPage() {
           <AlertDescription className="flex flex-wrap items-center gap-3">
             <span>
               Efetivo em {fmtDate(pending.pending_plan_change_at)} (
-              {pending.pending_plan_billing_cycle === "YEARLY"
-                ? "anual"
-                : "mensal"}
+              {pending.pending_plan_billing_cycle === "YEARLY" ? "anual" : "mensal"}
               ).
             </span>
             <Button

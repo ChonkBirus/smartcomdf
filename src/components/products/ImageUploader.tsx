@@ -122,9 +122,16 @@ export function ImageUploader({
       ) : (
         <div className="grid grid-cols-3 gap-3 md:grid-cols-4">
           {images.map((img) => (
-            <div key={img.id} className="group relative overflow-hidden rounded-md border border-border bg-muted">
+            <div
+              key={img.id}
+              className="group relative overflow-hidden rounded-md border border-border bg-muted"
+            >
               {img.url ? (
-                <img src={img.url} alt={img.file_name} className="aspect-square w-full object-cover" />
+                <img
+                  src={img.url}
+                  alt={img.file_name}
+                  className="aspect-square w-full object-cover"
+                />
               ) : (
                 <div className="aspect-square w-full" />
               )}
@@ -147,7 +154,13 @@ export function ImageUploader({
                   </Button>
                 )}
                 {img.is_primary && (
-                  <Button type="button" size="icon" variant="secondary" className="h-7 w-7" disabled>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="secondary"
+                    className="h-7 w-7"
+                    disabled
+                  >
                     <StarOff className="h-3.5 w-3.5" />
                   </Button>
                 )}

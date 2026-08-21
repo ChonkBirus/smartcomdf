@@ -54,14 +54,14 @@ export function ForbiddenPage({
   currentPlan?: string | null;
   adminEmail?: string | null;
 }) {
-  const moduleLabel = module ? MODULE_LABELS[module] ?? module : null;
-  const actionLabel = action ? ACTION_LABELS[action] ?? action : null;
+  const moduleLabel = module ? (MODULE_LABELS[module] ?? module) : null;
+  const actionLabel = action ? (ACTION_LABELS[action] ?? action) : null;
   const isPlan = reason === "plan";
 
   const title = isPlan ? "Recurso disponível em outro plano" : "Acesso não permitido";
   const defaultMsg = isPlan
     ? "Este recurso não está incluído no plano atual da sua empresa."
-    : message ?? "Seu usuário não tem permissão para acessar este recurso.";
+    : (message ?? "Seu usuário não tem permissão para acessar este recurso.");
 
   const mailto = adminEmail
     ? `mailto:${adminEmail}?subject=${encodeURIComponent(

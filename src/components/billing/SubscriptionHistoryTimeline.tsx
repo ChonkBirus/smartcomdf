@@ -45,8 +45,7 @@ const fmtDateTime = (s: string) =>
     minute: "2-digit",
   });
 
-const fmtMoney = (n: number) =>
-  n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const fmtMoney = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 function iconFor(entry: CommercialHistoryEntry) {
   switch (entry.event_type) {
@@ -109,16 +108,7 @@ function csvEscape(v: unknown): string {
 }
 
 function downloadCsv(entries: CommercialHistoryEntry[]) {
-  const header = [
-    "data",
-    "tipo",
-    "origem",
-    "titulo",
-    "descricao",
-    "valor",
-    "responsavel",
-    "nome",
-  ];
+  const header = ["data", "tipo", "origem", "titulo", "descricao", "valor", "responsavel", "nome"];
   const lines = entries.map((e) =>
     [
       new Date(e.event_date).toISOString(),
@@ -304,22 +294,17 @@ export function SubscriptionHistoryTimeline({
                     <div className="min-w-0 truncate font-medium">{e.title}</div>
                     {e.amount !== null && e.amount !== undefined ? (
                       <div
-                        className={`text-sm font-semibold ${
-                          e.amount < 0 ? "text-success" : ""
-                        }`}
+                        className={`text-sm font-semibold ${e.amount < 0 ? "text-success" : ""}`}
                       >
                         {fmtMoney(Number(e.amount))}
                       </div>
                     ) : null}
                   </div>
                   {e.description ? (
-                    <div className="text-sm text-muted-foreground">
-                      {e.description}
-                    </div>
+                    <div className="text-sm text-muted-foreground">{e.description}</div>
                   ) : null}
                   <div className="text-xs text-muted-foreground">
-                    {fmtDateTime(e.event_date)} ·{" "}
-                    {actorLabel[e.actor_type] ?? e.actor_type}
+                    {fmtDateTime(e.event_date)} · {actorLabel[e.actor_type] ?? e.actor_type}
                     {e.actor_name ? ` (${e.actor_name})` : ""}
                   </div>
                 </CardContent>

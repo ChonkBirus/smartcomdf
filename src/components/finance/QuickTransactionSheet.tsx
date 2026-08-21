@@ -7,11 +7,18 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { LabelWithHelp } from "@/components/ui/FieldHelp";
 import {
   createFinancialTransaction,
-  type FinTxType, type FinTxStatus,
+  type FinTxType,
+  type FinTxStatus,
 } from "@/lib/finance.functions";
 import { listBankAccounts } from "@/lib/bank-accounts.functions";
 import { useCompanyId } from "@/hooks/use-company-id";
@@ -45,7 +52,6 @@ export function QuickTransactionSheet({
 
   const accsFn = useServerFn(listBankAccounts);
   const createFn = useServerFn(createFinancialTransaction);
-
 
   const accs = useQuery({
     queryKey: ["fin-bank-accounts", companyId, true],
@@ -81,7 +87,9 @@ export function QuickTransactionSheet({
       qc.invalidateQueries({ queryKey: ["fin-expenses", companyId] });
       qc.invalidateQueries({ queryKey: ["fin-bank-balances", companyId] });
       // reset
-      setDescription(""); setAmount(""); setNotes("");
+      setDescription("");
+      setAmount("");
+      setNotes("");
       onSaved?.();
       onOpenChange(false);
     },
@@ -119,7 +127,10 @@ export function QuickTransactionSheet({
           </div>
 
           <div className="space-y-1.5">
-            <LabelWithHelp label="Descrição" help="O que foi este lançamento? Ex.: Aluguel, gasolina, venda para cliente João." />
+            <LabelWithHelp
+              label="Descrição"
+              help="O que foi este lançamento? Ex.: Aluguel, gasolina, venda para cliente João."
+            />
             <Input
               className="h-12 text-base"
               placeholder="Ex.: Combustível"
@@ -130,7 +141,10 @@ export function QuickTransactionSheet({
           </div>
 
           <div className="space-y-1.5">
-            <LabelWithHelp label="Valor (R$)" help="Quanto entrou ou saiu. Use vírgula ou ponto para os centavos." />
+            <LabelWithHelp
+              label="Valor (R$)"
+              help="Quanto entrou ou saiu. Use vírgula ou ponto para os centavos."
+            />
             <Input
               inputMode="decimal"
               className="h-14 text-2xl font-semibold"
@@ -141,9 +155,17 @@ export function QuickTransactionSheet({
           </div>
 
           <div className="space-y-1.5">
-            <LabelWithHelp label="Conta financeira" help="De qual conta o dinheiro saiu ou entrou: carteira, banco, caixa. Cadastre em Financeiro → Configurações → Contas." />
-            <Select value={accountId || "__none__"} onValueChange={(v) => setAccountId(v === "__none__" ? "" : v)}>
-              <SelectTrigger className="h-12 text-base"><SelectValue placeholder="Selecionar conta" /></SelectTrigger>
+            <LabelWithHelp
+              label="Conta financeira"
+              help="De qual conta o dinheiro saiu ou entrou: carteira, banco, caixa. Cadastre em Financeiro → Configurações → Contas."
+            />
+            <Select
+              value={accountId || "__none__"}
+              onValueChange={(v) => setAccountId(v === "__none__" ? "" : v)}
+            >
+              <SelectTrigger className="h-12 text-base">
+                <SelectValue placeholder="Selecionar conta" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__none__">Sem conta definida</SelectItem>
                 {(accs.data ?? []).map((a) => (
@@ -157,7 +179,10 @@ export function QuickTransactionSheet({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <LabelWithHelp label="Categoria" help="Selecione no Plano de Contas. Entrada mostra receitas; saída mostra custos, despesas e investimentos." />
+              <LabelWithHelp
+                label="Categoria"
+                help="Selecione no Plano de Contas. Entrada mostra receitas; saída mostra custos, despesas e investimentos."
+              />
               <CategorySelect
                 value={categoryId || null}
                 onChange={(id) => setCategoryId(id ?? "")}
@@ -167,8 +192,16 @@ export function QuickTransactionSheet({
               />
             </div>
             <div className="space-y-1.5">
-              <LabelWithHelp label="Data" help="Data em que o dinheiro saiu ou entrou (se pago), ou data de vencimento (se pendente)." />
-              <Input type="date" className="h-12" value={date} onChange={(e) => setDate(e.target.value)} />
+              <LabelWithHelp
+                label="Data"
+                help="Data em que o dinheiro saiu ou entrou (se pago), ou data de vencimento (se pendente)."
+              />
+              <Input
+                type="date"
+                className="h-12"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
             </div>
           </div>
 
@@ -192,12 +225,20 @@ export function QuickTransactionSheet({
           </div>
 
           <div className="space-y-1.5">
-            <LabelWithHelp label="Observação (opcional)" help="Detalhes adicionais que ajudem a identificar depois." />
+            <LabelWithHelp
+              label="Observação (opcional)"
+              help="Detalhes adicionais que ajudem a identificar depois."
+            />
             <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
 
           <div className="sticky bottom-0 -mx-4 flex gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur">
-            <Button variant="outline" className="flex-1 h-12" onClick={() => onOpenChange(false)} disabled={save.isPending}>
+            <Button
+              variant="outline"
+              className="flex-1 h-12"
+              onClick={() => onOpenChange(false)}
+              disabled={save.isPending}
+            >
               Cancelar
             </Button>
             <Button className="flex-1 h-12" onClick={() => save.mutate()} disabled={save.isPending}>

@@ -6,12 +6,22 @@ import { Rocket, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { convertQuoteToProject, getProjectByQuote } from "@/lib/projects.functions";
@@ -27,7 +37,12 @@ type Props = {
 
 const NONE = "__none__";
 
-export function ConvertQuoteToProjectButton({ quoteId, status, financialStatus, projectId }: Props) {
+export function ConvertQuoteToProjectButton({
+  quoteId,
+  status,
+  financialStatus,
+  projectId,
+}: Props) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { has } = usePermissions();
@@ -58,12 +73,13 @@ export function ConvertQuoteToProjectButton({ quoteId, status, financialStatus, 
   const members = team?.members ?? [];
 
   const mut = useMutation({
-    mutationFn: () => convert({
-      data: {
-        quote_id: quoteId,
-        responsible_user_id: responsibleId === NONE ? null : responsibleId,
-      },
-    }),
+    mutationFn: () =>
+      convert({
+        data: {
+          quote_id: quoteId,
+          responsible_user_id: responsibleId === NONE ? null : responsibleId,
+        },
+      }),
     onSuccess: (res) => {
       toast.success("Projeto criado com sucesso.");
       qc.invalidateQueries({ queryKey: ["quotes"] });
@@ -99,9 +115,7 @@ export function ConvertQuoteToProjectButton({ quoteId, status, financialStatus, 
       : !isApproved
         ? "Disponível após aprovação do orçamento."
         : "Aguardando pagamento (parcial ou total) para criar o projeto.";
-    return (
-      <p className="text-xs text-muted-foreground text-center">{hint}</p>
-    );
+    return <p className="text-xs text-muted-foreground text-center">{hint}</p>;
   }
 
   return (
@@ -110,11 +124,7 @@ export function ConvertQuoteToProjectButton({ quoteId, status, financialStatus, 
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="inline-block w-full">
-              <Button
-                onClick={() => setOpen(true)}
-                disabled={mut.isPending}
-                className="w-full"
-              >
+              <Button onClick={() => setOpen(true)} disabled={mut.isPending} className="w-full">
                 <Rocket className="mr-1 h-4 w-4" />
                 Criar projeto
               </Button>
@@ -157,7 +167,10 @@ export function ConvertQuoteToProjectButton({ quoteId, status, financialStatus, 
           <AlertDialogFooter>
             <AlertDialogCancel disabled={mut.isPending}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={(e) => { e.preventDefault(); mut.mutate(); }}
+              onClick={(e) => {
+                e.preventDefault();
+                mut.mutate();
+              }}
               disabled={mut.isPending}
             >
               {mut.isPending ? "Criando..." : "Confirmar"}

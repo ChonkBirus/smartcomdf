@@ -7,11 +7,7 @@ type AnyClient = SupabaseClient<any, "public", any>;
 
 // Asaas payment statuses we care about.
 // https://docs.asaas.com/docs/webhook-para-cobrancas
-export const ASAAS_PAID_STATUSES = new Set([
-  "RECEIVED",
-  "CONFIRMED",
-  "RECEIVED_IN_CASH",
-]);
+export const ASAAS_PAID_STATUSES = new Set(["RECEIVED", "CONFIRMED", "RECEIVED_IN_CASH"]);
 export const ASAAS_OVERDUE_STATUSES = new Set(["OVERDUE"]);
 export const ASAAS_REFUSED_STATUSES = new Set([
   "CREDIT_CARD_CAPTURE_REFUSED",
@@ -32,15 +28,10 @@ export type ApplyChargeInput = {
   raw?: Record<string, unknown> | null;
 };
 
-export async function applyChargeStatus(
-  admin: AnyClient,
-  input: ApplyChargeInput,
-) {
+export async function applyChargeStatus(admin: AnyClient, input: ApplyChargeInput) {
   const { data: charge } = await admin
     .from("billing_charges")
-    .select(
-      "id, company_id, subscription_id, plan_id, amount, billing_cycle, status",
-    )
+    .select("id, company_id, subscription_id, plan_id, amount, billing_cycle, status")
     .eq("provider_charge_id", input.providerChargeId)
     .eq("provider", "ASAAS")
     .maybeSingle();
@@ -135,8 +126,7 @@ export async function applyChargeStatus(
     });
     await insertNotificationForOwners(admin, charge.company_id, {
       title: "Pagamento em atraso",
-      message:
-        "Identificamos uma cobrança em atraso. Regularize para evitar a suspensão.",
+      message: "Identificamos uma cobrança em atraso. Regularize para evitar a suspensão.",
       type: "BILLING",
     });
   } else if (ASAAS_REFUSED_STATUSES.has(input.status)) {
@@ -150,8 +140,7 @@ export async function applyChargeStatus(
     });
     await insertNotificationForOwners(admin, charge.company_id, {
       title: "Pagamento recusado",
-      message:
-        "O pagamento foi recusado pela operadora. Atualize seus dados de pagamento.",
+      message: "O pagamento foi recusado pela operadora. Atualize seus dados de pagamento.",
       type: "BILLING",
     });
   } else if (ASAAS_CANCELED_STATUSES.has(input.status)) {
@@ -192,10 +181,7 @@ export async function applySubscriptionEvent(
     .eq("provider_subscription_id", input.providerSubscriptionId)
     .maybeSingle();
   if (!sub) {
-    console.warn(
-      "[billing-webhook] subscription not found",
-      input.providerSubscriptionId,
-    );
+    console.warn("[billing-webhook] subscription not found", input.providerSubscriptionId);
     return { matched: false };
   }
 
@@ -226,7 +212,6 @@ export async function applySubscriptionEvent(
   return { matched: true };
 }
 
-
 async function insertSubscriptionEvent(
   admin: AnyClient,
   row: {
@@ -252,9 +237,7 @@ async function insertNotificationForOwners(
     .select("profile_id, roles!inner(slug)")
     .eq("company_id", companyId);
   const targets = (owners ?? [])
-    .filter((r: any) =>
-      ["owner", "admin", "finance"].includes(r.roles?.slug ?? ""),
-    )
+    .filter((r: any) => ["owner", "admin", "finance"].includes(r.roles?.slug ?? ""))
     .map((r: any) => r.profile_id);
   if (!targets.length) return;
   const rows = targets.map((uid) => ({

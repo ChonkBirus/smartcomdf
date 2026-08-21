@@ -12,19 +12,29 @@ import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
 
 export const Route = createFileRoute("/reset-password")({
-  head: () => ({ meta: [{ title: "Nova senha — SmartPro" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [{ title: "Nova senha — SmartPro" }, { name: "robots", content: "noindex, nofollow" }],
+  }),
   component: ResetPassword,
 });
 
-const schema = z.object({
-  password: z.string().min(8, "Mínimo 8 caracteres").max(72),
-  confirm: z.string(),
-}).refine((d) => d.password === d.confirm, { message: "As senhas não coincidem", path: ["confirm"] });
+const schema = z
+  .object({
+    password: z.string().min(8, "Mínimo 8 caracteres").max(72),
+    confirm: z.string(),
+  })
+  .refine((d) => d.password === d.confirm, {
+    message: "As senhas não coincidem",
+    path: ["confirm"],
+  });
 
 function ResetPassword() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const form = useForm({ resolver: zodResolver(schema), defaultValues: { password: "", confirm: "" } });
+  const form = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: { password: "", confirm: "" },
+  });
 
   const onSubmit = async (d: z.infer<typeof schema>) => {
     setLoading(true);
@@ -47,12 +57,20 @@ function ResetPassword() {
             <div>
               <Label htmlFor="p">Nova senha</Label>
               <Input id="p" type="password" {...form.register("password")} className="mt-1.5" />
-              {form.formState.errors.password && <p className="mt-1 text-xs text-destructive">{form.formState.errors.password.message}</p>}
+              {form.formState.errors.password && (
+                <p className="mt-1 text-xs text-destructive">
+                  {form.formState.errors.password.message}
+                </p>
+              )}
             </div>
             <div>
               <Label htmlFor="c">Confirmar senha</Label>
               <Input id="c" type="password" {...form.register("confirm")} className="mt-1.5" />
-              {form.formState.errors.confirm && <p className="mt-1 text-xs text-destructive">{form.formState.errors.confirm.message}</p>}
+              {form.formState.errors.confirm && (
+                <p className="mt-1 text-xs text-destructive">
+                  {form.formState.errors.confirm.message}
+                </p>
+              )}
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Salvando..." : "Salvar nova senha"}

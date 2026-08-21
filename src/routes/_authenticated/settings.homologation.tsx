@@ -107,9 +107,7 @@ function HomologationContent() {
               onUpdate={(patch) => mut.mutate({ id: item.id, ...patch })}
             />
           ))}
-          {items.length === 0 && (
-            <p className="text-sm text-muted-foreground">Nenhum item.</p>
-          )}
+          {items.length === 0 && <p className="text-sm text-muted-foreground">Nenhum item.</p>}
         </div>
       )}
     </div>
@@ -159,7 +157,9 @@ function ChecklistRow({
                 {item.title}
               </span>
               {completedLabel && (
-                <Badge variant="secondary" className="text-xs">{completedLabel}</Badge>
+                <Badge variant="secondary" className="text-xs">
+                  {completedLabel}
+                </Badge>
               )}
             </div>
             <div className="mt-3 grid gap-2 sm:grid-cols-[200px_1fr]">

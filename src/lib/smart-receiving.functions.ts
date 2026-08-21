@@ -4,7 +4,13 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { sanitizePostgrestSearch } from "@/lib/postgrest-sanitize";
 
 export type NotaStatus =
-  | "UPLOADED" | "PROCESSING" | "PARSED" | "REVIEWED" | "CONFIRMED" | "FAILED" | "CANCELLED";
+  | "UPLOADED"
+  | "PROCESSING"
+  | "PARSED"
+  | "REVIEWED"
+  | "CONFIRMED"
+  | "FAILED"
+  | "CANCELLED";
 
 export type NotaItemStatus = "PENDING" | "MATCHED" | "NEW" | "IGNORED";
 
@@ -58,7 +64,11 @@ export const listNotaDocuments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
-    const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: profile } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!profile?.company_id) throw new Error("Sem empresa vinculada.");
     const { data, error } = await sb
       .from("nota_documents")
@@ -84,10 +94,18 @@ export const getNotaDocument = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: profile } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!profile?.company_id) throw new Error("Sem empresa vinculada.");
     const { data: doc, error } = await sb
-      .from("nota_documents").select("*").eq("id", data.id).eq("company_id", profile.company_id).maybeSingle();
+      .from("nota_documents")
+      .select("*")
+      .eq("id", data.id)
+      .eq("company_id", profile.company_id)
+      .maybeSingle();
     if (error) throw new Error(error.message);
     if (!doc) return null;
 
@@ -120,7 +138,8 @@ export const getNotaDocument = createServerFn({ method: "GET" })
         raw_unit_cost: it.raw_unit_cost !== null ? Number(it.raw_unit_cost) : null,
         raw_total: it.raw_total !== null ? Number(it.raw_total) : null,
         confirmed_quantity: it.confirmed_quantity !== null ? Number(it.confirmed_quantity) : null,
-        confirmed_unit_cost: it.confirmed_unit_cost !== null ? Number(it.confirmed_unit_cost) : null,
+        confirmed_unit_cost:
+          it.confirmed_unit_cost !== null ? Number(it.confirmed_unit_cost) : null,
         match_confidence: it.match_confidence !== null ? Number(it.match_confidence) : null,
         matched_item_name: it.matched?.name ?? null,
         matched_item_sku: it.matched?.sku ?? null,
@@ -135,31 +154,43 @@ export const getNotaDocument = createServerFn({ method: "GET" })
 export const createNotaDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      file_path: z.string().min(1),
-      original_name: z.string().min(1),
-      mime_type: z.string().min(1),
-      file_size: z.number().int().nonnegative(),
-    }).parse(d),
+    z
+      .object({
+        file_path: z.string().min(1),
+        original_name: z.string().min(1),
+        mime_type: z.string().min(1),
+        file_size: z.number().int().nonnegative(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+    const { data: profile } = await sb
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     if (!profile?.company_id) throw new Error("Sem empresa.");
 
-    const { data: row, error } = await sb.from("nota_documents").insert({
-      company_id: profile.company_id,
-      uploaded_by: context.userId,
-      file_path: data.file_path,
-      original_name: data.original_name,
-      mime_type: data.mime_type,
-      file_size: data.file_size,
-      status: "UPLOADED",
-    }).select("id").single();
+    const { data: row, error } = await sb
+      .from("nota_documents")
+      .insert({
+        company_id: profile.company_id,
+        uploaded_by: context.userId,
+        file_path: data.file_path,
+        original_name: data.original_name,
+        mime_type: data.mime_type,
+        file_size: data.file_size,
+        status: "UPLOADED",
+      })
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
 
     await sb.rpc("log_audit", {
-      _module: "smart_receiving", _action: "upload", _record_id: row.id,
+      _module: "smart_receiving",
+      _action: "upload",
+      _record_id: row.id,
       _new_data: { original_name: data.original_name, mime_type: data.mime_type },
     });
 
@@ -173,17 +204,26 @@ export const createNotaDocument = createServerFn({ method: "POST" })
 export const uploadNotaFile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      original_name: z.string().min(1).max(255),
-      mime_type: z.string().min(1).max(120),
-      file_size: z.number().int().positive().max(20 * 1024 * 1024),
-      file_base64: z.string().min(1),
-    }).parse(d),
+    z
+      .object({
+        original_name: z.string().min(1).max(255),
+        mime_type: z.string().min(1).max(120),
+        file_size: z
+          .number()
+          .int()
+          .positive()
+          .max(20 * 1024 * 1024),
+        file_base64: z.string().min(1),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const { data: profile } = await sb
-      .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+      .from("profiles")
+      .select("company_id")
+      .eq("id", context.userId)
+      .maybeSingle();
     const cid = profile?.company_id;
     if (!cid) throw new Error("Sem empresa.");
 
@@ -191,27 +231,37 @@ export const uploadNotaFile = createServerFn({ method: "POST" })
     const ext = (data.original_name.split(".").pop() || "bin").toLowerCase().slice(0, 8);
     const path = `${cid}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
-    const { error: upErr } = await sb.storage
-      .from("nota-documents")
-      .upload(path, buf, { contentType: data.mime_type || "application/octet-stream", upsert: false });
+    const { error: upErr } = await sb.storage.from("nota-documents").upload(path, buf, {
+      contentType: data.mime_type || "application/octet-stream",
+      upsert: false,
+    });
     if (upErr) throw new Error("Falha no upload: " + upErr.message);
 
-    const { data: row, error } = await sb.from("nota_documents").insert({
-      company_id: cid,
-      uploaded_by: context.userId,
-      file_path: path,
-      original_name: data.original_name,
-      mime_type: data.mime_type,
-      file_size: data.file_size,
-      status: "UPLOADED",
-    }).select("id").single();
+    const { data: row, error } = await sb
+      .from("nota_documents")
+      .insert({
+        company_id: cid,
+        uploaded_by: context.userId,
+        file_path: path,
+        original_name: data.original_name,
+        mime_type: data.mime_type,
+        file_size: data.file_size,
+        status: "UPLOADED",
+      })
+      .select("id")
+      .single();
     if (error) {
-      await sb.storage.from("nota-documents").remove([path]).catch(() => {});
+      await sb.storage
+        .from("nota-documents")
+        .remove([path])
+        .catch(() => {});
       throw new Error(error.message);
     }
 
     await sb.rpc("log_audit", {
-      _module: "smart_receiving", _action: "upload", _record_id: row.id,
+      _module: "smart_receiving",
+      _action: "upload",
+      _record_id: row.id,
       _new_data: { original_name: data.original_name, mime_type: data.mime_type },
     });
 
@@ -272,15 +322,24 @@ export const parseNotaDocument = createServerFn({ method: "POST" })
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY não configurada.");
 
-    const { data: doc } = await sb.from("nota_documents").select("*").eq("id", data.id).maybeSingle();
+    const { data: doc } = await sb
+      .from("nota_documents")
+      .select("*")
+      .eq("id", data.id)
+      .maybeSingle();
     if (!doc) throw new Error("Documento não encontrado.");
     if (doc.status === "CONFIRMED") throw new Error("Documento já confirmado.");
 
-    await sb.from("nota_documents").update({ status: "PROCESSING", error_message: null }).eq("id", data.id);
+    await sb
+      .from("nota_documents")
+      .update({ status: "PROCESSING", error_message: null })
+      .eq("id", data.id);
 
     try {
       // Download file from storage
-      const { data: blob, error: dErr } = await sb.storage.from("nota-documents").download(doc.file_path);
+      const { data: blob, error: dErr } = await sb.storage
+        .from("nota-documents")
+        .download(doc.file_path);
       if (dErr || !blob) throw new Error("Falha ao baixar arquivo: " + (dErr?.message ?? "vazio"));
       const arrayBuffer = await blob.arrayBuffer();
       const base64 = Buffer.from(arrayBuffer).toString("base64");
@@ -289,7 +348,13 @@ export const parseNotaDocument = createServerFn({ method: "POST" })
       const isImage = mime.startsWith("image/");
       const contentBlock = isImage
         ? { type: "image_url", image_url: { url: `data:${mime};base64,${base64}` } }
-        : { type: "file", file: { filename: doc.original_name || "nota.pdf", file_data: `data:${mime};base64,${base64}` } };
+        : {
+            type: "file",
+            file: {
+              filename: doc.original_name || "nota.pdf",
+              file_data: `data:${mime};base64,${base64}`,
+            },
+          };
 
       const model = "google/gemini-2.5-flash";
       const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -306,7 +371,10 @@ export const parseNotaDocument = createServerFn({ method: "POST" })
             {
               role: "user",
               content: [
-                { type: "text", text: "Extraia os dados desta nota fiscal em JSON conforme o schema." },
+                {
+                  type: "text",
+                  text: "Extraia os dados desta nota fiscal em JSON conforme o schema.",
+                },
                 contentBlock,
               ],
             },
@@ -314,8 +382,10 @@ export const parseNotaDocument = createServerFn({ method: "POST" })
         }),
       });
 
-      if (resp.status === 429) throw new Error("Limite de uso da IA atingido. Tente novamente em alguns minutos.");
-      if (resp.status === 402) throw new Error("Créditos de IA esgotados. Adicione créditos ao workspace.");
+      if (resp.status === 429)
+        throw new Error("Limite de uso da IA atingido. Tente novamente em alguns minutos.");
+      if (resp.status === 402)
+        throw new Error("Créditos de IA esgotados. Adicione créditos ao workspace.");
       if (!resp.ok) {
         const errText = await resp.text();
         throw new Error(`IA falhou (${resp.status}): ${errText.slice(0, 300)}`);
@@ -323,10 +393,16 @@ export const parseNotaDocument = createServerFn({ method: "POST" })
 
       const aiJson: any = await resp.json();
       const raw = aiJson.choices?.[0]?.message?.content ?? "";
-      const parsed = JSON.parse(stripJsonFence(typeof raw === "string" ? raw : JSON.stringify(raw)));
+      const parsed = JSON.parse(
+        stripJsonFence(typeof raw === "string" ? raw : JSON.stringify(raw)),
+      );
 
       // Look up existing items to suggest matches (and learned corrections)
-      const { data: profile } = await sb.from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
+      const { data: profile } = await sb
+        .from("profiles")
+        .select("company_id")
+        .eq("id", context.userId)
+        .maybeSingle();
       const cid = profile.company_id;
 
       const { data: corrections } = await sb
@@ -345,7 +421,9 @@ export const parseNotaDocument = createServerFn({ method: "POST" })
       const { data: itemsCatalog } = await sb
         .from("items")
         .select("id, name, sku, unit, cost_price")
-        .eq("active", true).eq("controls_stock", true).eq("item_type", "PRODUCT")
+        .eq("active", true)
+        .eq("controls_stock", true)
+        .eq("item_type", "PRODUCT")
         .limit(2000);
       const catalog = (itemsCatalog ?? []) as any[];
 
@@ -371,7 +449,8 @@ export const parseNotaDocument = createServerFn({ method: "POST" })
           const score = words.length ? hits / words.length : 0;
           if (score >= 0.6 && (!best || score > best.score)) best = { id: it.id, score };
         }
-        if (best) return { id: best.id, conf: 0.5 + best.score * 0.3, reason: "Similaridade textual" };
+        if (best)
+          return { id: best.id, conf: 0.5 + best.score * 0.3, reason: "Similaridade textual" };
         return null;
       }
 
@@ -379,25 +458,32 @@ export const parseNotaDocument = createServerFn({ method: "POST" })
       let supplierMatchId: string | null = null;
       if (parsed.supplier_cnpj || parsed.supplier_name) {
         const { data: supByCnpj } = parsed.supplier_cnpj
-          ? await sb.from("suppliers").select("id").eq("cpf_cnpj", String(parsed.supplier_cnpj).replace(/\D/g, "")).maybeSingle()
+          ? await sb
+              .from("suppliers")
+              .select("id")
+              .eq("cpf_cnpj", String(parsed.supplier_cnpj).replace(/\D/g, ""))
+              .maybeSingle()
           : { data: null };
         if (supByCnpj?.id) supplierMatchId = supByCnpj.id;
       }
 
       // Update doc
-      await sb.from("nota_documents").update({
-        status: "PARSED",
-        ai_supplier_name: parsed.supplier_name ?? null,
-        ai_supplier_cnpj: parsed.supplier_cnpj ?? null,
-        ai_invoice_number: parsed.invoice_number ?? null,
-        ai_issue_date: parsed.issue_date ?? null,
-        ai_total_amount: parsed.total_amount ?? null,
-        ai_confidence: typeof parsed.confidence === "number" ? parsed.confidence : 0.8,
-        ai_raw: parsed,
-        ai_model: model,
-        processed_at: new Date().toISOString(),
-        supplier_id: supplierMatchId,
-      }).eq("id", data.id);
+      await sb
+        .from("nota_documents")
+        .update({
+          status: "PARSED",
+          ai_supplier_name: parsed.supplier_name ?? null,
+          ai_supplier_cnpj: parsed.supplier_cnpj ?? null,
+          ai_invoice_number: parsed.invoice_number ?? null,
+          ai_issue_date: parsed.issue_date ?? null,
+          ai_total_amount: parsed.total_amount ?? null,
+          ai_confidence: typeof parsed.confidence === "number" ? parsed.confidence : 0.8,
+          ai_raw: parsed,
+          ai_model: model,
+          processed_at: new Date().toISOString(),
+          supplier_id: supplierMatchId,
+        })
+        .eq("id", data.id);
 
       // Replace items
       await sb.from("nota_document_items").delete().eq("document_id", data.id);
@@ -428,14 +514,22 @@ export const parseNotaDocument = createServerFn({ method: "POST" })
         if (ie) throw new Error(ie.message);
       }
 
-      await sb.rpc("log_audit", { _module: "smart_receiving", _action: "parse", _record_id: data.id, _new_data: { items: rows.length, model } });
+      await sb.rpc("log_audit", {
+        _module: "smart_receiving",
+        _action: "parse",
+        _record_id: data.id,
+        _new_data: { items: rows.length, model },
+      });
 
       return { ok: true, items: rows.length };
     } catch (e: any) {
-      await sb.from("nota_documents").update({
-        status: "FAILED",
-        error_message: String(e?.message ?? e).slice(0, 1000),
-      }).eq("id", data.id);
+      await sb
+        .from("nota_documents")
+        .update({
+          status: "FAILED",
+          error_message: String(e?.message ?? e).slice(0, 1000),
+        })
+        .eq("id", data.id);
       throw e;
     }
   });
@@ -446,29 +540,37 @@ export const parseNotaDocument = createServerFn({ method: "POST" })
 export const updateNotaItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      id: z.string().uuid(),
-      status: z.enum(["PENDING", "MATCHED", "NEW", "IGNORED"]).optional(),
-      matched_item_id: z.string().uuid().nullable().optional(),
-      confirmed_quantity: z.number().nonnegative().nullable().optional(),
-      confirmed_unit_cost: z.number().nonnegative().nullable().optional(),
-      new_item_payload: z
-        .object({
-          name: z.string().min(1),
-          sku: z.string().optional(),
-          unit: z.string().optional(),
-          cost_price: z.number().nonnegative().optional(),
-          sale_price: z.number().nonnegative().optional(),
-          minimum_stock: z.number().nonnegative().optional(),
-        })
-        .nullable()
-        .optional(),
-    }).parse(d),
+    z
+      .object({
+        id: z.string().uuid(),
+        status: z.enum(["PENDING", "MATCHED", "NEW", "IGNORED"]).optional(),
+        matched_item_id: z.string().uuid().nullable().optional(),
+        confirmed_quantity: z.number().nonnegative().nullable().optional(),
+        confirmed_unit_cost: z.number().nonnegative().nullable().optional(),
+        new_item_payload: z
+          .object({
+            name: z.string().min(1),
+            sku: z.string().optional(),
+            unit: z.string().optional(),
+            cost_price: z.number().nonnegative().optional(),
+            sale_price: z.number().nonnegative().optional(),
+            minimum_stock: z.number().nonnegative().optional(),
+          })
+          .nullable()
+          .optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
     const payload: Record<string, any> = {};
-    for (const k of ["status", "matched_item_id", "confirmed_quantity", "confirmed_unit_cost", "new_item_payload"] as const) {
+    for (const k of [
+      "status",
+      "matched_item_id",
+      "confirmed_quantity",
+      "confirmed_unit_cost",
+      "new_item_payload",
+    ] as const) {
       if (data[k] !== undefined) payload[k] = data[k];
     }
     const { error } = await sb.from("nota_document_items").update(payload).eq("id", data.id);
@@ -482,12 +584,14 @@ export const updateNotaItem = createServerFn({ method: "POST" })
 export const updateNotaDocumentReview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      id: z.string().uuid(),
-      supplier_id: z.string().uuid().nullable().optional(),
-      location_id: z.string().uuid().nullable().optional(),
-      notes: z.string().max(500).optional(),
-    }).parse(d),
+    z
+      .object({
+        id: z.string().uuid(),
+        supplier_id: z.string().uuid().nullable().optional(),
+        location_id: z.string().uuid().nullable().optional(),
+        notes: z.string().max(500).optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -506,12 +610,14 @@ export const updateNotaDocumentReview = createServerFn({ method: "POST" })
 export const confirmNotaReceiving = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      id: z.string().uuid(),
-      location_id: z.string().uuid(),
-      supplier_id: z.string().uuid().optional(),
-      notes: z.string().max(500).optional(),
-    }).parse(d),
+    z
+      .object({
+        id: z.string().uuid(),
+        location_id: z.string().uuid(),
+        supplier_id: z.string().uuid().optional(),
+        notes: z.string().max(500).optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
@@ -533,7 +639,11 @@ export const deleteNotaDocument = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    const { data: doc } = await sb.from("nota_documents").select("file_path, status").eq("id", data.id).maybeSingle();
+    const { data: doc } = await sb
+      .from("nota_documents")
+      .select("file_path, status")
+      .eq("id", data.id)
+      .maybeSingle();
     if (!doc) throw new Error("Documento não encontrado.");
     if (doc.status === "CONFIRMED") throw new Error("Notas confirmadas não podem ser excluídas.");
     if (doc.file_path) {
@@ -541,7 +651,11 @@ export const deleteNotaDocument = createServerFn({ method: "POST" })
     }
     const { error } = await sb.from("nota_documents").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
-    await sb.rpc("log_audit", { _module: "smart_receiving", _action: "delete", _record_id: data.id });
+    await sb.rpc("log_audit", {
+      _module: "smart_receiving",
+      _action: "delete",
+      _record_id: data.id,
+    });
     return { ok: true };
   });
 
@@ -553,10 +667,14 @@ export const searchItemsForMatch = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ query: z.string().optional() }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as any;
-    let q = sb.from("items")
+    let q = sb
+      .from("items")
       .select("id, name, sku, unit")
-      .eq("active", true).eq("controls_stock", true).eq("item_type", "PRODUCT")
-      .order("name").limit(50);
+      .eq("active", true)
+      .eq("controls_stock", true)
+      .eq("item_type", "PRODUCT")
+      .order("name")
+      .limit(50);
     const t = sanitizePostgrestSearch(data.query ?? "");
     if (t) q = q.or(`name.ilike.%${t}%,sku.ilike.%${t}%,barcode.ilike.%${t}%`);
     const { data: rows, error } = await q;

@@ -22,8 +22,20 @@ export type DashboardMetrics = {
     conversionRate: number;
   };
   projects: { total: number; active: number; completed: number };
-  serviceOrders: { total: number; scheduled: number; inProgress: number; completed: number; overdue: number };
-  stock: { products: number; services: number; lowStock: number; outOfStock: number; recentMovements: number };
+  serviceOrders: {
+    total: number;
+    scheduled: number;
+    inProgress: number;
+    completed: number;
+    overdue: number;
+  };
+  stock: {
+    products: number;
+    services: number;
+    lowStock: number;
+    outOfStock: number;
+    recentMovements: number;
+  };
   payments: { waiting: number; approved: number; waitingAmount: number; approvedAmount: number };
   recentActivity: Array<{ id: string; label: string; created_at: string }>;
   charts: { quotesByStatus: Array<{ status: string; count: number }> };
@@ -58,7 +70,8 @@ const monthStart = () => {
 };
 const asNumber = (value: unknown) => Number(value ?? 0) || 0;
 const statusText = (value: unknown) => String(value ?? "").toUpperCase();
-const sum = <T,>(rows: T[], pick: (row: T) => unknown) => rows.reduce((acc, row) => acc + asNumber(pick(row)), 0);
+const sum = <T>(rows: T[], pick: (row: T) => unknown) =>
+  rows.reduce((acc, row) => acc + asNumber(pick(row)), 0);
 
 function logDashboardBlockError(block: string, error: unknown) {
   if (!isDev) return;
@@ -73,7 +86,11 @@ function applyDateRange(query: any, from: string | null, to: string | null) {
 }
 
 async function getCompanyId(sb: any, userId: string): Promise<string | null> {
-  const { data, error } = await sb.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  const { data, error } = await sb
+    .from("profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .maybeSingle();
   if (error) {
     logDashboardBlockError("company", error);
     return null;
@@ -81,7 +98,12 @@ async function getCompanyId(sb: any, userId: string): Promise<string | null> {
   return data?.company_id ?? null;
 }
 
-async function getCustomersMetrics(sb: any, companyId: string, from: string | null, to: string | null): Promise<DashboardMetrics["customers"]> {
+async function getCustomersMetrics(
+  sb: any,
+  companyId: string,
+  from: string | null,
+  to: string | null,
+): Promise<DashboardMetrics["customers"]> {
   try {
     const { data, error } = await sb
       .from("customers")
@@ -96,7 +118,9 @@ async function getCustomersMetrics(sb: any, companyId: string, from: string | nu
     const periodEnd = to ?? new Date().toISOString();
     return {
       total: rows.length,
-      newThisPeriod: rows.filter((row: any) => row.created_at >= periodStart && row.created_at <= periodEnd).length,
+      newThisPeriod: rows.filter(
+        (row: any) => row.created_at >= periodStart && row.created_at <= periodEnd,
+      ).length,
       pf: rows.filter((row: any) => statusText(row.customer_type) === "INDIVIDUAL").length,
       pj: rows.filter((row: any) => statusText(row.customer_type) === "COMPANY").length,
     };
@@ -106,13 +130,15 @@ async function getCustomersMetrics(sb: any, companyId: string, from: string | nu
   }
 }
 
-async function getQuotesMetrics(sb: any, companyId: string, from: string | null, to: string | null) {
+async function getQuotesMetrics(
+  sb: any,
+  companyId: string,
+  from: string | null,
+  to: string | null,
+) {
   try {
     const { data, error } = await applyDateRange(
-      sb
-        .from("quotes")
-        .select("id, status, total_amount, created_at")
-        .eq("company_id", companyId),
+      sb.from("quotes").select("id, status, total_amount, created_at").eq("company_id", companyId),
       from,
       to,
     ).limit(5000);
@@ -138,7 +164,10 @@ async function getQuotesMetrics(sb: any, companyId: string, from: string | null,
         conversionRate: total > 0 ? (approved.length / total) * 100 : 0,
       },
       charts: {
-        quotesByStatus: Array.from(quotesByStatus.entries()).map(([status, count]) => ({ status, count })),
+        quotesByStatus: Array.from(quotesByStatus.entries()).map(([status, count]) => ({
+          status,
+          count,
+        })),
       },
     } satisfies Pick<DashboardMetrics, "quotes" | "charts">;
   } catch (error) {
@@ -147,7 +176,10 @@ async function getQuotesMetrics(sb: any, companyId: string, from: string | null,
   }
 }
 
-async function getProjectsMetrics(sb: any, companyId: string): Promise<DashboardMetrics["projects"]> {
+async function getProjectsMetrics(
+  sb: any,
+  companyId: string,
+): Promise<DashboardMetrics["projects"]> {
   try {
     const { data, error } = await sb
       .from("projects")
@@ -169,7 +201,10 @@ async function getProjectsMetrics(sb: any, companyId: string): Promise<Dashboard
   }
 }
 
-async function getServiceOrdersMetrics(sb: any, companyId: string): Promise<DashboardMetrics["serviceOrders"]> {
+async function getServiceOrdersMetrics(
+  sb: any,
+  companyId: string,
+): Promise<DashboardMetrics["serviceOrders"]> {
   try {
     const today = new Date().toISOString().slice(0, 10);
     const { data, error } = await sb
@@ -187,7 +222,11 @@ async function getServiceOrdersMetrics(sb: any, companyId: string): Promise<Dash
       completed: rows.filter((row: any) => statusText(row.status) === "COMPLETED").length,
       overdue: rows.filter((row: any) => {
         const status = statusText(row.status);
-        return row.scheduled_date && row.scheduled_date < today && !["COMPLETED", "CANCELLED"].includes(status);
+        return (
+          row.scheduled_date &&
+          row.scheduled_date < today &&
+          !["COMPLETED", "CANCELLED"].includes(status)
+        );
       }).length,
     };
   } catch (error) {
@@ -208,17 +247,25 @@ async function getStockMetrics(sb: any, companyId: string): Promise<DashboardMet
     if (itemsError) throw itemsError;
 
     const rows = items ?? [];
-    const stockItems = rows.filter((item: any) => item.controls_stock && statusText(item.item_type) === "PRODUCT");
+    const stockItems = rows.filter(
+      (item: any) => item.controls_stock && statusText(item.item_type) === "PRODUCT",
+    );
     const [balancesRes, movementsRes] = await Promise.all([
       sb.from("stock_balances").select("item_id, quantity").eq("company_id", companyId),
-      sb.from("stock_movements").select("id", { count: "exact", head: true }).eq("company_id", companyId),
+      sb
+        .from("stock_movements")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", companyId),
     ]);
     if (balancesRes.error) throw balancesRes.error;
     if (movementsRes.error) throw movementsRes.error;
 
     const totalByItem = new Map<string, number>();
     for (const balance of balancesRes.data ?? []) {
-      totalByItem.set(balance.item_id, (totalByItem.get(balance.item_id) ?? 0) + asNumber(balance.quantity));
+      totalByItem.set(
+        balance.item_id,
+        (totalByItem.get(balance.item_id) ?? 0) + asNumber(balance.quantity),
+      );
     }
 
     let lowStock = 0;
@@ -243,7 +290,10 @@ async function getStockMetrics(sb: any, companyId: string): Promise<DashboardMet
   }
 }
 
-async function getPaymentsMetrics(sb: any, companyId: string): Promise<DashboardMetrics["payments"]> {
+async function getPaymentsMetrics(
+  sb: any,
+  companyId: string,
+): Promise<DashboardMetrics["payments"]> {
   try {
     const { data, error } = await sb
       .from("quote_payments")
@@ -252,8 +302,12 @@ async function getPaymentsMetrics(sb: any, companyId: string): Promise<Dashboard
       .limit(5000);
     if (error) throw error;
     const rows = data ?? [];
-    const waiting = rows.filter((row: any) => ["PENDING", "WAITING_PAYMENT"].includes(statusText(row.payment_status)));
-    const approved = rows.filter((row: any) => ["APPROVED", "PAYMENT_APPROVED"].includes(statusText(row.payment_status)));
+    const waiting = rows.filter((row: any) =>
+      ["PENDING", "WAITING_PAYMENT"].includes(statusText(row.payment_status)),
+    );
+    const approved = rows.filter((row: any) =>
+      ["APPROVED", "PAYMENT_APPROVED"].includes(statusText(row.payment_status)),
+    );
     return {
       waiting: waiting.length,
       approved: approved.length,
@@ -266,7 +320,10 @@ async function getPaymentsMetrics(sb: any, companyId: string): Promise<Dashboard
   }
 }
 
-async function getRecentActivity(sb: any, companyId: string): Promise<DashboardMetrics["recentActivity"]> {
+async function getRecentActivity(
+  sb: any,
+  companyId: string,
+): Promise<DashboardMetrics["recentActivity"]> {
   try {
     const { data, error } = await sb
       .from("activity_logs")
@@ -297,15 +354,16 @@ export const getDashboardMetrics = createServerFn({ method: "POST" })
     const from = data.from ?? null;
     const to = data.to ?? null;
 
-    const [customers, quoteResult, projects, serviceOrders, stock, payments, recentActivity] = await Promise.all([
-      getCustomersMetrics(sb, companyId, from, to),
-      getQuotesMetrics(sb, companyId, from, to),
-      getProjectsMetrics(sb, companyId),
-      getServiceOrdersMetrics(sb, companyId),
-      getStockMetrics(sb, companyId),
-      getPaymentsMetrics(sb, companyId),
-      getRecentActivity(sb, companyId),
-    ]);
+    const [customers, quoteResult, projects, serviceOrders, stock, payments, recentActivity] =
+      await Promise.all([
+        getCustomersMetrics(sb, companyId, from, to),
+        getQuotesMetrics(sb, companyId, from, to),
+        getProjectsMetrics(sb, companyId),
+        getServiceOrdersMetrics(sb, companyId),
+        getStockMetrics(sb, companyId),
+        getPaymentsMetrics(sb, companyId),
+        getRecentActivity(sb, companyId),
+      ]);
 
     return {
       customers,

@@ -10,7 +10,11 @@ const RangeSchema = z.object({
 });
 
 async function getCompanyId(supabase: any, userId: string): Promise<string> {
-  const { data } = await supabase.from("profiles").select("company_id").eq("id", userId).maybeSingle();
+  const { data } = await supabase
+    .from("profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .maybeSingle();
   const cid = data?.company_id as string | undefined;
   if (!cid) throw new Error("Sem empresa.");
   return cid;
@@ -90,18 +94,28 @@ export const getFinancialComparison = createServerFn({ method: "GET" })
       if (!inA && !inB) continue;
 
       if (inA) {
-        if (type === "INCOME") a.income += amt; else a.expense += amt;
+        if (type === "INCOME") a.income += amt;
+        else a.expense += amt;
       }
       if (inB) {
-        if (type === "INCOME") b.income += amt; else b.expense += amt;
+        if (type === "INCOME") b.income += amt;
+        else b.expense += amt;
       }
 
       const catId = ((r as any).category_id as string | null) ?? "__none__";
-      const catName = ((r as any).financial_categories?.name as string | undefined) ?? "Sem categoria";
+      const catName =
+        ((r as any).financial_categories?.name as string | undefined) ?? "Sem categoria";
       const key = `${type}:${catId}`;
       let row = catMap.get(key);
       if (!row) {
-        row = { category_id: catId === "__none__" ? null : catId, name: catName, type, a: 0, b: 0, deltaAbs: 0 };
+        row = {
+          category_id: catId === "__none__" ? null : catId,
+          name: catName,
+          type,
+          a: 0,
+          b: 0,
+          deltaAbs: 0,
+        };
         catMap.set(key, row);
       }
       if (inA) row.a += amt;
@@ -114,10 +128,12 @@ export const getFinancialComparison = createServerFn({ method: "GET" })
         monthMap.set(mk, mrow);
       }
       if (inA) {
-        if (type === "INCOME") mrow.a_income += amt; else mrow.a_expense += amt;
+        if (type === "INCOME") mrow.a_income += amt;
+        else mrow.a_expense += amt;
       }
       if (inB) {
-        if (type === "INCOME") mrow.b_income += amt; else mrow.b_expense += amt;
+        if (type === "INCOME") mrow.b_income += amt;
+        else mrow.b_expense += amt;
       }
     }
 

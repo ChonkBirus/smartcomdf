@@ -3,8 +3,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  ShoppingCart, Plus, Pencil, Copy, CheckCircle2, XCircle, PackageCheck,
-  Trash2, Send, DollarSign, Clock, CheckCheck,
+  ShoppingCart,
+  Plus,
+  Pencil,
+  Copy,
+  CheckCircle2,
+  XCircle,
+  PackageCheck,
+  Trash2,
+  Send,
+  DollarSign,
+  Clock,
+  CheckCheck,
 } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/EmptyState";
@@ -14,18 +24,36 @@ import { KpiCard } from "@/components/app/KpiCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { PurchaseOrderFormSheet } from "@/components/purchases/PurchaseOrderFormSheet";
 import { ReceivingDialog } from "@/components/purchases/ReceivingDialog";
 import {
-  listPurchaseOrders, submitPurchaseOrder, approvePurchaseOrder,
-  cancelPurchaseOrder, deletePurchaseOrder, duplicatePurchaseOrder,
-  purchaseOverview, type PurchaseOrder, type PurchaseOrderStatus,
+  listPurchaseOrders,
+  submitPurchaseOrder,
+  approvePurchaseOrder,
+  cancelPurchaseOrder,
+  deletePurchaseOrder,
+  duplicatePurchaseOrder,
+  purchaseOverview,
+  type PurchaseOrder,
+  type PurchaseOrderStatus,
 } from "@/lib/purchases.functions";
 import { listPayableStatusesByPurchase } from "@/lib/finance-integrations.functions";
 import { MarkPurchaseOrderPaidDialog } from "@/components/purchases/MarkPurchaseOrderPaidDialog";
@@ -51,7 +79,10 @@ const STATUS_LABEL: Record<PurchaseOrderStatus, string> = {
   CANCELLED: "Cancelado",
 };
 
-const STATUS_VARIANT: Record<PurchaseOrderStatus, "default" | "secondary" | "destructive" | "outline"> = {
+const STATUS_VARIANT: Record<
+  PurchaseOrderStatus,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
   DRAFT: "outline",
   PENDING: "secondary",
   APPROVED: "default",
@@ -108,27 +139,46 @@ function PurchasesPage() {
 
   const submitMut = useMutation({
     mutationFn: (id: string) => submit({ data: { id } }),
-    onSuccess: () => { toast.success("Enviado para aprovação."); invalidate(); },
+    onSuccess: () => {
+      toast.success("Enviado para aprovação.");
+      invalidate();
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
   });
   const approveMut = useMutation({
     mutationFn: (id: string) => approve({ data: { id } }),
-    onSuccess: () => { toast.success("Pedido aprovado."); invalidate(); },
+    onSuccess: () => {
+      toast.success("Pedido aprovado.");
+      invalidate();
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
   });
   const cancelMut = useMutation({
     mutationFn: (id: string) => cancel({ data: { id } }),
-    onSuccess: () => { toast.success("Pedido cancelado."); invalidate(); setConfirmCancel(null); },
+    onSuccess: () => {
+      toast.success("Pedido cancelado.");
+      invalidate();
+      setConfirmCancel(null);
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
   });
   const delMut = useMutation({
     mutationFn: (id: string) => remove({ data: { id } }),
-    onSuccess: () => { toast.success("Rascunho excluído."); invalidate(); setConfirmDel(null); },
+    onSuccess: () => {
+      toast.success("Rascunho excluído.");
+      invalidate();
+      setConfirmDel(null);
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
   });
   const dupMut = useMutation({
     mutationFn: (id: string) => duplicate({ data: { id } }),
-    onSuccess: (r) => { toast.success("Pedido duplicado."); invalidate(); setEditing(r.id); setOpen(true); },
+    onSuccess: (r) => {
+      toast.success("Pedido duplicado.");
+      invalidate();
+      setEditing(r.id);
+      setOpen(true);
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha."),
   });
 
@@ -139,29 +189,59 @@ function PurchasesPage() {
         description="Crie, aprove e receba pedidos de compra."
         actions={
           <Can module="purchases" action="create">
-            <Button onClick={() => { setEditing(null); setOpen(true); }}>
-              <Plus className="mr-1 h-4 w-4" />Novo pedido
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setOpen(true);
+              }}
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              Novo pedido
             </Button>
           </Can>
         }
       />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard title="Compras do mês" value={brl(overview?.monthTotal ?? 0)} icon={<DollarSign className="h-5 w-5" />} />
-        <KpiCard title="Pedidos no mês" value={String(overview?.count ?? 0)} icon={<ShoppingCart className="h-5 w-5" />} />
-        <KpiCard title="Pendentes" value={String(overview?.monthPending ?? 0)} icon={<Clock className="h-5 w-5" />} />
-        <KpiCard title="Recebidos" value={String(overview?.monthReceived ?? 0)} icon={<CheckCheck className="h-5 w-5" />} />
+        <KpiCard
+          title="Compras do mês"
+          value={brl(overview?.monthTotal ?? 0)}
+          icon={<DollarSign className="h-5 w-5" />}
+        />
+        <KpiCard
+          title="Pedidos no mês"
+          value={String(overview?.count ?? 0)}
+          icon={<ShoppingCart className="h-5 w-5" />}
+        />
+        <KpiCard
+          title="Pendentes"
+          value={String(overview?.monthPending ?? 0)}
+          icon={<Clock className="h-5 w-5" />}
+        />
+        <KpiCard
+          title="Recebidos"
+          value={String(overview?.monthReceived ?? 0)}
+          icon={<CheckCheck className="h-5 w-5" />}
+        />
       </div>
 
       <div className="my-4 flex flex-wrap gap-2">
-        <Input className="max-w-xs" placeholder="Buscar nº do pedido" value={search}
-          onChange={(e) => setSearch(e.target.value)} />
+        <Input
+          className="max-w-xs"
+          placeholder="Buscar nº do pedido"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
         <Select value={status || "ALL"} onValueChange={(v) => setStatus(v === "ALL" ? "" : v)}>
-          <SelectTrigger className="w-48"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">Todos os status</SelectItem>
             {(Object.keys(STATUS_LABEL) as PurchaseOrderStatus[]).map((s) => (
-              <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>
+              <SelectItem key={s} value={s}>
+                {STATUS_LABEL[s]}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -170,7 +250,11 @@ function PurchasesPage() {
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
       ) : !orders || orders.length === 0 ? (
-        <EmptyState icon={<ShoppingCart className="h-6 w-6" />} title="Nenhum pedido" description="Crie o primeiro pedido de compra." />
+        <EmptyState
+          icon={<ShoppingCart className="h-6 w-6" />}
+          title="Nenhum pedido"
+          description="Crie o primeiro pedido de compra."
+        />
       ) : (
         <div className="overflow-x-auto rounded-md border">
           <table className="w-full text-sm">
@@ -189,18 +273,25 @@ function PurchasesPage() {
                 <tr key={po.id} className="border-t">
                   <td className="px-3 py-2 font-medium">{po.order_number}</td>
                   <td className="px-3 py-2">{po.supplier_name}</td>
-                  <td className="px-3 py-2">{new Date(po.issue_date).toLocaleDateString("pt-BR")}</td>
+                  <td className="px-3 py-2">
+                    {new Date(po.issue_date).toLocaleDateString("pt-BR")}
+                  </td>
                   <td className="px-3 py-2 text-right">{brl(po.total_amount)}</td>
                   <td className="px-3 py-2">
                     <div className="flex flex-col gap-1">
                       <Badge variant={STATUS_VARIANT[po.status]}>{STATUS_LABEL[po.status]}</Badge>
                       {payableMap?.[po.id]?.status === "PAID" && (
-                        <Badge variant="default" className="w-fit bg-success text-success-foreground hover:bg-success">
+                        <Badge
+                          variant="default"
+                          className="w-fit bg-success text-success-foreground hover:bg-success"
+                        >
                           Pago no financeiro
                         </Badge>
                       )}
                       {payableMap?.[po.id]?.status === "PLANNED" && po.status !== "CANCELLED" && (
-                        <Badge variant="outline" className="w-fit">A pagar</Badge>
+                        <Badge variant="outline" className="w-fit">
+                          A pagar
+                        </Badge>
                       )}
                     </div>
                   </td>
@@ -209,33 +300,50 @@ function PurchasesPage() {
                       {po.status === "DRAFT" && (
                         <Can module="purchases" action="edit">
                           <Button size="sm" variant="ghost" onClick={() => submitMut.mutate(po.id)}>
-                            <Send className="mr-1 h-3 w-3" />Enviar
+                            <Send className="mr-1 h-3 w-3" />
+                            Enviar
                           </Button>
                         </Can>
                       )}
                       {(po.status === "DRAFT" || po.status === "PENDING") && (
                         <Can module="purchases" action="approve">
-                          <Button size="sm" variant="ghost" onClick={() => approveMut.mutate(po.id)}>
-                            <CheckCircle2 className="mr-1 h-3 w-3" />Aprovar
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => approveMut.mutate(po.id)}
+                          >
+                            <CheckCircle2 className="mr-1 h-3 w-3" />
+                            Aprovar
                           </Button>
                         </Can>
                       )}
                       {(po.status === "APPROVED" || po.status === "PARTIALLY_RECEIVED") && (
                         <Can module="purchases" action="receive">
                           <Button size="sm" onClick={() => setReceiving(po.id)}>
-                            <PackageCheck className="mr-1 h-3 w-3" />Receber
+                            <PackageCheck className="mr-1 h-3 w-3" />
+                            Receber
                           </Button>
                         </Can>
                       )}
-                      {(po.status === "APPROVED" || po.status === "PARTIALLY_RECEIVED" || po.status === "RECEIVED") &&
-                       payableMap?.[po.id]?.status !== "PAID" && (
-                        <Button size="sm" variant="outline" onClick={() => setPayingPO(po)}>
-                          <DollarSign className="mr-1 h-3 w-3" />Marcar como pago
-                        </Button>
-                      )}
+                      {(po.status === "APPROVED" ||
+                        po.status === "PARTIALLY_RECEIVED" ||
+                        po.status === "RECEIVED") &&
+                        payableMap?.[po.id]?.status !== "PAID" && (
+                          <Button size="sm" variant="outline" onClick={() => setPayingPO(po)}>
+                            <DollarSign className="mr-1 h-3 w-3" />
+                            Marcar como pago
+                          </Button>
+                        )}
                       {(po.status === "DRAFT" || po.status === "PENDING") && (
                         <Can module="purchases" action="edit">
-                          <Button size="icon" variant="ghost" onClick={() => { setEditing(po.id); setOpen(true); }}>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => {
+                              setEditing(po.id);
+                              setOpen(true);
+                            }}
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
                         </Can>
@@ -269,7 +377,11 @@ function PurchasesPage() {
       )}
 
       <PurchaseOrderFormSheet open={open} onOpenChange={setOpen} orderId={editing} />
-      <ReceivingDialog open={!!receiving} onOpenChange={(o) => !o && setReceiving(null)} orderId={receiving} />
+      <ReceivingDialog
+        open={!!receiving}
+        onOpenChange={(o) => !o && setReceiving(null)}
+        orderId={receiving}
+      />
       <MarkPurchaseOrderPaidDialog
         open={!!payingPO}
         onOpenChange={(o) => !o && setPayingPO(null)}
@@ -282,11 +394,15 @@ function PurchasesPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir rascunho?</AlertDialogTitle>
-            <AlertDialogDescription>O pedido {confirmDel?.order_number} será removido.</AlertDialogDescription>
+            <AlertDialogDescription>
+              O pedido {confirmDel?.order_number} será removido.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => confirmDel && delMut.mutate(confirmDel.id)}>Excluir</AlertDialogAction>
+            <AlertDialogAction onClick={() => confirmDel && delMut.mutate(confirmDel.id)}>
+              Excluir
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -296,7 +412,8 @@ function PurchasesPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Cancelar pedido?</AlertDialogTitle>
             <AlertDialogDescription>
-              {confirmCancel?.order_number} será cancelado. Itens já recebidos permanecem no estoque.
+              {confirmCancel?.order_number} será cancelado. Itens já recebidos permanecem no
+              estoque.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

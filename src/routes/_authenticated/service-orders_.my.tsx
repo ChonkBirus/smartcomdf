@@ -27,7 +27,15 @@ export const Route = createFileRoute("/_authenticated/service-orders_/my")({
   ),
 });
 
-type FilterKey = "ALL" | "TODAY" | "WEEK" | "SCHEDULED" | "IN_PROGRESS" | "PAUSED" | "COMPLETED" | "CANCELLED";
+type FilterKey =
+  | "ALL"
+  | "TODAY"
+  | "WEEK"
+  | "SCHEDULED"
+  | "IN_PROGRESS"
+  | "PAUSED"
+  | "COMPLETED"
+  | "CANCELLED";
 
 const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "ALL", label: "Todas" },
@@ -46,8 +54,10 @@ function todayISO() {
 function weekRangeISO() {
   const now = new Date();
   const day = now.getDay(); // 0 sun
-  const monday = new Date(now); monday.setDate(now.getDate() - ((day + 6) % 7));
-  const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((day + 6) % 7));
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
   return { from: monday.toISOString().slice(0, 10), to: sunday.toISOString().slice(0, 10) };
 }
 
@@ -58,10 +68,18 @@ function MyServiceOrdersPage() {
 
   const params = useMemo(() => {
     const base: any = {};
-    if (filter === "TODAY") { base.from = todayISO(); base.to = todayISO(); }
-    else if (filter === "WEEK") { Object.assign(base, weekRangeISO()); }
-    else if (filter === "SCHEDULED" || filter === "IN_PROGRESS" || filter === "PAUSED"
-      || filter === "COMPLETED" || filter === "CANCELLED") {
+    if (filter === "TODAY") {
+      base.from = todayISO();
+      base.to = todayISO();
+    } else if (filter === "WEEK") {
+      Object.assign(base, weekRangeISO());
+    } else if (
+      filter === "SCHEDULED" ||
+      filter === "IN_PROGRESS" ||
+      filter === "PAUSED" ||
+      filter === "COMPLETED" ||
+      filter === "CANCELLED"
+    ) {
       base.status = filter;
     }
     if (search.trim()) base.search = search.trim();
@@ -131,13 +149,13 @@ function MyServiceOrdersPage() {
       ) : list.length === 0 ? (
         <Card className="p-10 text-center">
           <Wrench className="mx-auto mb-2 h-6 w-6 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            Nenhuma Ordem de Serviço encontrada.
-          </p>
+          <p className="text-sm text-muted-foreground">Nenhuma Ordem de Serviço encontrada.</p>
         </Card>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
-          {list.map((so) => <TechnicianServiceOrderCard key={so.id} so={so} />)}
+          {list.map((so) => (
+            <TechnicianServiceOrderCard key={so.id} so={so} />
+          ))}
         </div>
       )}
     </div>

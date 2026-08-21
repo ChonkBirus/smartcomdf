@@ -6,7 +6,13 @@ import { AlertTriangle, UserX, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getCrmChurnRisk } from "@/lib/crm.functions";
 
 const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -35,21 +41,32 @@ export function CrmChurnRiskPanel() {
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Parada há</span>
           <Select value={String(stalledDays)} onValueChange={(v) => setStalledDays(Number(v))}>
-            <SelectTrigger className="h-9 w-[120px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-9 w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {[7, 14, 21, 30, 45, 60].map((d) => (
-                <SelectItem key={d} value={String(d)}>{d} dias</SelectItem>
+                <SelectItem key={d} value={String(d)}>
+                  {d} dias
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Cliente sem contato há</span>
-          <Select value={String(wonSilenceDays)} onValueChange={(v) => setWonSilenceDays(Number(v))}>
-            <SelectTrigger className="h-9 w-[120px]"><SelectValue /></SelectTrigger>
+          <Select
+            value={String(wonSilenceDays)}
+            onValueChange={(v) => setWonSilenceDays(Number(v))}
+          >
+            <SelectTrigger className="h-9 w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {[30, 60, 90, 120, 180, 365].map((d) => (
-                <SelectItem key={d} value={String(d)}>{d} dias</SelectItem>
+                <SelectItem key={d} value={String(d)}>
+                  {d} dias
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -67,11 +84,16 @@ export function CrmChurnRiskPanel() {
           </CardHeader>
           <CardContent>
             {stalled.length === 0 ? (
-              <p className="py-6 text-center text-sm text-muted-foreground">Nenhuma oportunidade parada 🎉</p>
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                Nenhuma oportunidade parada 🎉
+              </p>
             ) : (
               <ul className="divide-y">
                 {stalled.slice(0, 20).map((r) => (
-                  <li key={`s-${r.opportunity_id}`} className="flex items-center justify-between gap-3 py-2">
+                  <li
+                    key={`s-${r.opportunity_id}`}
+                    className="flex items-center justify-between gap-3 py-2"
+                  >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{r.label}</p>
                       <p className="truncate text-xs text-muted-foreground">{r.reason}</p>
@@ -79,7 +101,10 @@ export function CrmChurnRiskPanel() {
                     <div className="flex items-center gap-2 whitespace-nowrap">
                       <span className="text-xs font-medium">{brl(r.estimated_value)}</span>
                       <Button asChild size="sm" variant="ghost">
-                        <Link to="/crm" search={{ opportunity: r.opportunity_id ?? undefined } as never}>
+                        <Link
+                          to="/crm"
+                          search={{ opportunity: r.opportunity_id ?? undefined } as never}
+                        >
                           <ExternalLink className="h-3.5 w-3.5" />
                         </Link>
                       </Button>
@@ -107,7 +132,10 @@ export function CrmChurnRiskPanel() {
             ) : (
               <ul className="divide-y">
                 {churn.slice(0, 20).map((r) => (
-                  <li key={`c-${r.customer_id}`} className="flex items-center justify-between gap-3 py-2">
+                  <li
+                    key={`c-${r.customer_id}`}
+                    className="flex items-center justify-between gap-3 py-2"
+                  >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{r.label}</p>
                       <p className="truncate text-xs text-muted-foreground">{r.reason}</p>

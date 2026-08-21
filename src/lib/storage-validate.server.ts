@@ -34,8 +34,7 @@ export async function assertUploadedObject(
   const obj = (rows ?? []).find((r: any) => r?.name === name);
   if (!obj) await fail("Arquivo enviado não encontrado no bucket.");
 
-  const mime: string | undefined =
-    obj.metadata?.mimetype || obj.metadata?.contentType;
+  const mime: string | undefined = obj.metadata?.mimetype || obj.metadata?.contentType;
   const size: number | undefined = obj.metadata?.size;
 
   if (!mime || !opts.allowedMimeTypes.includes(mime)) {

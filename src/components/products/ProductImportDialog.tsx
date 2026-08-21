@@ -3,7 +3,14 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
-import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
+import {
+  Upload,
+  FileSpreadsheet,
+  AlertTriangle,
+  CheckCircle2,
+  Loader2,
+  ArrowRight,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +23,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
@@ -52,9 +65,7 @@ const FIELD_LABEL: Record<TargetField, string> = {
   __ignore__: "— Ignorar —",
 };
 
-async function parseFile(
-  file: File,
-): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
+async function parseFile(file: File): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
   const isCsv = /\.csv$/i.test(file.name);
   if (isCsv) {
     return await new Promise((resolve, reject) => {
@@ -63,7 +74,9 @@ async function parseFile(
         skipEmptyLines: true,
         complete: (res) => {
           const headers = (res.meta.fields ?? []).filter((h) => h && h.trim());
-          const rows = (res.data as any[]).filter((r) => Object.values(r).some((v) => v !== "" && v != null));
+          const rows = (res.data as any[]).filter((r) =>
+            Object.values(r).some((v) => v !== "" && v != null),
+          );
           resolve({ headers, rows });
         },
         error: reject,
@@ -79,7 +92,13 @@ async function parseFile(
   return { headers, rows };
 }
 
-export function ProductImportDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+export function ProductImportDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+}) {
   const createFn = useServerFn(createImportJob);
   const validateFn = useServerFn(validateImport);
   const listRowsFn = useServerFn(listImportRows);
@@ -206,7 +225,16 @@ export function ProductImportDialog({ open, onOpenChange }: { open: boolean; onO
           {(["upload", "mapping", "preview", "confirm", "done"] as Step[]).map((s, i) => (
             <div key={s} className="flex items-center gap-2">
               <Badge variant={step === s ? "default" : "secondary"} className="capitalize">
-                {i + 1}. {s === "upload" ? "Upload" : s === "mapping" ? "Mapeamento" : s === "preview" ? "Prévia" : s === "confirm" ? "Confirmar" : "Concluído"}
+                {i + 1}.{" "}
+                {s === "upload"
+                  ? "Upload"
+                  : s === "mapping"
+                    ? "Mapeamento"
+                    : s === "preview"
+                      ? "Prévia"
+                      : s === "confirm"
+                        ? "Confirmar"
+                        : "Concluído"}
               </Badge>
               {i < 4 && <ArrowRight className="h-3 w-3 text-muted-foreground" />}
             </div>
@@ -247,8 +275,9 @@ export function ProductImportDialog({ open, onOpenChange }: { open: boolean; onO
             <Alert>
               <AlertTitle>Colunas reconhecidas</AlertTitle>
               <AlertDescription className="text-xs">
-                Nome, SKU, Código de barras, Categoria, Marca, Fabricante, Unidade, Preço de custo, Preço de venda,
-                Estoque mínimo, NCM, Quantidade inicial. Variações de nome são reconhecidas automaticamente.
+                Nome, SKU, Código de barras, Categoria, Marca, Fabricante, Unidade, Preço de custo,
+                Preço de venda, Estoque mínimo, NCM, Quantidade inicial. Variações de nome são
+                reconhecidas automaticamente.
               </AlertDescription>
             </Alert>
           </div>
@@ -301,7 +330,11 @@ export function ProductImportDialog({ open, onOpenChange }: { open: boolean; onO
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <Stat label="Total" value={validation.total} />
               <Stat label="Válidas" value={validation.valid} tone="ok" />
-              <Stat label="Com erro" value={validation.invalid} tone={validation.invalid ? "err" : undefined} />
+              <Stat
+                label="Com erro"
+                value={validation.invalid}
+                tone={validation.invalid ? "err" : undefined}
+              />
               <Stat label="Estoque inicial" value={validation.initial_stock_entries} />
             </div>
             {(validation.new_categories.length ||
@@ -313,7 +346,9 @@ export function ProductImportDialog({ open, onOpenChange }: { open: boolean; onO
                   {validation.new_categories.length > 0 && (
                     <div>Categorias: {validation.new_categories.join(", ")}</div>
                   )}
-                  {validation.new_brands.length > 0 && <div>Marcas: {validation.new_brands.join(", ")}</div>}
+                  {validation.new_brands.length > 0 && (
+                    <div>Marcas: {validation.new_brands.join(", ")}</div>
+                  )}
                   {validation.new_manufacturers.length > 0 && (
                     <div>Fabricantes: {validation.new_manufacturers.join(", ")}</div>
                   )}
@@ -387,9 +422,13 @@ export function ProductImportDialog({ open, onOpenChange }: { open: boolean; onO
               <AlertTitle>Resumo da importação</AlertTitle>
               <AlertDescription className="text-xs space-y-1">
                 <div>Total de linhas: {validation.total}</div>
-                <div>Produtos novos: {(rowsQuery.data ?? []).filter((r: any) => r.action === "CREATE").length}</div>
                 <div>
-                  Produtos atualizados: {(rowsQuery.data ?? []).filter((r: any) => r.action === "UPDATE").length}
+                  Produtos novos:{" "}
+                  {(rowsQuery.data ?? []).filter((r: any) => r.action === "CREATE").length}
+                </div>
+                <div>
+                  Produtos atualizados:{" "}
+                  {(rowsQuery.data ?? []).filter((r: any) => r.action === "UPDATE").length}
                 </div>
                 <div>Linhas com erro: {validation.invalid}</div>
                 <div>Categorias a criar: {validation.new_categories.length}</div>
@@ -462,7 +501,10 @@ export function ProductImportDialog({ open, onOpenChange }: { open: boolean; onO
               <Button variant="outline" onClick={() => setStep("mapping")}>
                 Voltar
               </Button>
-              <Button onClick={() => setStep("confirm")} disabled={!validation || validation.valid === 0}>
+              <Button
+                onClick={() => setStep("confirm")}
+                disabled={!validation || validation.valid === 0}
+              >
                 Continuar
               </Button>
             </>
@@ -497,6 +539,12 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: "ok
 
 function ActionBadge({ action }: { action: string }) {
   const variant: any =
-    action === "CREATE" ? "default" : action === "UPDATE" ? "secondary" : action === "SKIP" ? "outline" : "destructive";
+    action === "CREATE"
+      ? "default"
+      : action === "UPDATE"
+        ? "secondary"
+        : action === "SKIP"
+          ? "outline"
+          : "destructive";
   return <Badge variant={variant}>{action}</Badge>;
 }

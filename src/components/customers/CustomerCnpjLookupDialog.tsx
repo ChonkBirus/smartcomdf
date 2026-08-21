@@ -5,9 +5,18 @@ import { Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { lookupCnpj, type CnpjLookupFailureDTO, type CnpjLookupResultDTO } from "@/lib/cnpj-lookup.functions";
+import {
+  lookupCnpj,
+  type CnpjLookupFailureDTO,
+  type CnpjLookupResultDTO,
+} from "@/lib/cnpj-lookup.functions";
 
 type Props = {
   cnpj: string;
@@ -36,7 +45,10 @@ export function CustomerCnpjLookupButton({ cnpj, disabled, hasExistingData, onAp
         if (import.meta.env.DEV) {
           console.error("[CNPJ LOOKUP] debug:", d.debug);
         }
-        toast.error(d.userMessage || "Consulta indisponível no momento. Preencha os dados manualmente ou tente novamente.");
+        toast.error(
+          d.userMessage ||
+            "Consulta indisponível no momento. Preencha os dados manualmente ou tente novamente.",
+        );
         return;
       }
       setResult(d);
@@ -80,7 +92,11 @@ export function CustomerCnpjLookupButton({ cnpj, disabled, hasExistingData, onAp
         onClick={onClick}
         disabled={disabled || mut.isPending}
       >
-        {mut.isPending ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Search className="mr-1 h-3.5 w-3.5" />}
+        {mut.isPending ? (
+          <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Search className="mr-1 h-3.5 w-3.5" />
+        )}
         Buscar dados
       </Button>
 
@@ -97,22 +113,47 @@ export function CustomerCnpjLookupButton({ cnpj, disabled, hasExistingData, onAp
 
           {result && (
             <div className="space-y-1 rounded-md border p-3 text-sm">
-              <p><span className="text-muted-foreground">Razão social:</span> {result.corporate_name || "—"}</p>
-              <p><span className="text-muted-foreground">Nome fantasia:</span> {result.trade_name || "—"}</p>
+              <p>
+                <span className="text-muted-foreground">Razão social:</span>{" "}
+                {result.corporate_name || "—"}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Nome fantasia:</span>{" "}
+                {result.trade_name || "—"}
+              </p>
               <p>
                 <span className="text-muted-foreground">Endereço:</span>{" "}
-                {[result.address, result.number, result.district, result.city, result.state, result.zipcode]
-                  .filter(Boolean).join(", ") || "—"}
+                {[
+                  result.address,
+                  result.number,
+                  result.district,
+                  result.city,
+                  result.state,
+                  result.zipcode,
+                ]
+                  .filter(Boolean)
+                  .join(", ") || "—"}
               </p>
-              <p><span className="text-muted-foreground">Situação:</span> {result.registration_status || "—"}</p>
-              <p><span className="text-muted-foreground">Telefone:</span> {result.phone || "—"}</p>
-              <p><span className="text-muted-foreground">E-mail:</span> {result.email || "—"}</p>
-              <p><span className="text-muted-foreground">CNAE:</span> {result.main_activity || "—"}</p>
+              <p>
+                <span className="text-muted-foreground">Situação:</span>{" "}
+                {result.registration_status || "—"}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Telefone:</span> {result.phone || "—"}
+              </p>
+              <p>
+                <span className="text-muted-foreground">E-mail:</span> {result.email || "—"}
+              </p>
+              <p>
+                <span className="text-muted-foreground">CNAE:</span> {result.main_activity || "—"}
+              </p>
             </div>
           )}
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
             <Button type="button" onClick={() => apply(true)}>
               {hasExistingData ? "Substituir e aplicar" : "Aplicar dados"}
             </Button>

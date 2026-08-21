@@ -83,7 +83,9 @@ export function SubscriptionCard() {
               <span className="flex items-center gap-1.5 text-muted-foreground">
                 <Users className="h-3 w-3" /> Usuários
               </span>
-              <span className={usersFull ? "font-semibold text-destructive" : "font-medium"}>{userLimitText}</span>
+              <span className={usersFull ? "font-semibold text-destructive" : "font-medium"}>
+                {userLimitText}
+              </span>
             </div>
             {limits.max_users > 0 && <Progress value={userPct} className="h-1" />}
           </div>
