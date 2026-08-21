@@ -948,14 +948,15 @@ function LineRow({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const catalogButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (autoFocus) {
       containerRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      // Se for produto/serviço, o popover abre manualmente ou o usuário clica.
-      // Para manual/labor/other, focamos no nome.
-      if (line.kind !== "PRODUCT" && line.kind !== "SERVICE") {
-        setTimeout(() => nameInputRef.current?.focus(), 100);
+      if (line.kind === "PRODUCT" || line.kind === "SERVICE") {
+        setTimeout(() => catalogButtonRef.current?.focus(), 150);
+      } else {
+        setTimeout(() => nameInputRef.current?.focus(), 150);
       }
     }
   }, [autoFocus, line.kind]);
