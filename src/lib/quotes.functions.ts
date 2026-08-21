@@ -167,8 +167,7 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
       .select("id, name, sku, unit, item_type, sale_price, cost_price, description, controls_stock, stock_quantity, image_path")
       .eq("company_id", profile.company_id)
       .is("deleted_at", null)
-      .eq("active", true)
-      .in("item_type", ["PRODUCT", "SERVICE"]);
+      .eq("active", true);
 
     if (s) {
       query = query.or(`sku.ilike.%${s}%,name.ilike.%${s}%`);
