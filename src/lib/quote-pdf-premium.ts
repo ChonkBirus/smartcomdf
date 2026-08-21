@@ -1508,7 +1508,9 @@ async function renderAcceptancePage(
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
   doc.text("NOME DO CLIENTE", MARGIN + 14, y + 22);
-  doc.text("CPF / CNPJ", MARGIN + 14 + colW + 14, y + 22);
+  if (ctx.customer?.cpf_cnpj) {
+    doc.text("CPF / CNPJ", MARGIN + 14 + colW + 14, y + 22);
+  }
   setStroke(doc, PALETTE.grayDark);
   doc.line(MARGIN + 14, y + 50, MARGIN + 14 + colW, y + 50);
   doc.line(MARGIN + 14 + colW + 14, y + 50, MARGIN + 14 + colW + 14 + colW, y + 50);
