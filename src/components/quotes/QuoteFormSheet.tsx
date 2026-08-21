@@ -1099,6 +1099,7 @@ function CatalogPicker({
   const { data = [], isLoading } = useQuery({
     queryKey: ["quote-catalog", debouncedSearchTerm, kind],
     queryFn: async () => {
+      console.log('CatalogPicker: calling fetchCatalog with', debouncedSearchTerm);
       const items = await fetchCatalog({ data: { search: debouncedSearchTerm } });
       const normalizedKind = kind.toUpperCase();
       console.log('CatalogPicker results:', { kind, normalizedKind, count: items.length, types: items.map(i => i.item_type) });

@@ -162,7 +162,6 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
     if (!profile?.company_id) throw new Error("Sem empresa.");
     
     console.log('[listQuoteCatalog] Starting search for:', { search: inputData.search, company_id: profile.company_id });
-
     const s = sanitizePostgrestSearch(inputData.search ?? "");
     let query = sb
       .from("items")
@@ -173,6 +172,7 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
       .in("item_type", ["PRODUCT", "SERVICE"]);
 
     if (s) {
+      console.log('[listQuoteCatalog] Applying filter:', `sku.ilike.${s},name.ilike.%${s}%,sku.ilike.%${s}%`);
       query = query.or(`sku.ilike.${s},name.ilike.%${s}%,sku.ilike.%${s}%`);
     }
 
