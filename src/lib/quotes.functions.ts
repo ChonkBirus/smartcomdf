@@ -176,7 +176,6 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
     query = query.limit(50);
 
     const { data, error } = await query;
-    console.log('[listQuoteCatalog] API RESULT:', data?.length, 'Search:', s);
     if (error) throw new Error(error.message);
 
     let itemsRaw = (data ?? []) as any[];
