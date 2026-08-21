@@ -243,8 +243,8 @@ export function CustomerFormSheet({
     setForm((s) => ({ ...s, [k]: v }));
 
   const mutation = useMutation({
-    mutationFn: (payload: FormState) => save({ data: payload as any }),
-    onSuccess: (result: any) => {
+    mutationFn: (payload: FormState) => save({ data: payload }),
+    onSuccess: (result) => {
       toast.success(form.id ? "Cliente atualizado." : "Cliente cadastrado.");
       qc.invalidateQueries({ queryKey: ["customers"] });
       qc.invalidateQueries({ queryKey: ["customer-metrics"] });
@@ -252,7 +252,7 @@ export function CustomerFormSheet({
       if (!form.id && newId && onCreated) onCreated(newId);
       onOpenChange(false);
     },
-    onError: (e: any) => toast.error(e?.message ?? "Falha ao salvar."),
+    onError: (e: Error) => toast.error(e.message ?? "Falha ao salvar."),
   });
 
   const tagMut = useMutation({
