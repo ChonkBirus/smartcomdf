@@ -163,11 +163,13 @@ export const listQuoteCatalog = createServerFn({ method: "GET" })
     
     let query = sb
       .from("items")
-      .select("id, name, sku, unit, item_type, sale_price, cost_price, description, controls_stock")
+      .select("id, name, sku, unit, item_type, sale_price, cost_price, description, controls_stock, stock_quantity, image_path")
       .eq("company_id", profile.company_id)
       .is("deleted_at", null)
       .eq("active", true)
-      .in("item_type", ["PRODUCT", "SERVICE"]);
+      .in("item_type", ["PRODUCT", "SERVICE"])
+      .limit(50);
+
 
     const s = sanitizePostgrestSearch(inputData.search ?? "");
     if (s) {
