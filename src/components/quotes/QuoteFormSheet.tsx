@@ -389,7 +389,12 @@ export function QuoteFormSheet({
 
   // Reseta flag quando fecha
   useEffect(() => {
-    if (!open) { setShowDraftBanner(false); setDraftRestored(false); setInitialSyncDone(false); }
+    if (!open) { 
+      setShowDraftBanner(false); 
+      setDraftRestored(false); 
+      setInitialSyncDone(false); 
+      setAddedLineId(null);
+    }
   }, [open]);
 
   const handleSheetOpenChange = (o: boolean) => {
