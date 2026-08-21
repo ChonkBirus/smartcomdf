@@ -1012,6 +1012,7 @@ function LineRow({
           <Popover open={pickOpen} onOpenChange={setPickOpen}>
             <PopoverTrigger asChild>
               <Button
+                ref={catalogButtonRef}
                 type="button"
                 variant="outline"
                 role="combobox"
