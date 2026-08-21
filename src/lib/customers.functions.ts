@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 export type CustomerType = "INDIVIDUAL" | "COMPANY";
 export type CustomerStatus = "LEAD" | "ACTIVE" | "INACTIVE" | "BLOCKED";
@@ -351,7 +353,7 @@ export const listCustomers = createServerFn({ method: "GET" })
       .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
-    const sb = context.supabase as any;
+    const sb = context.supabase as SupabaseClient<Database>;
     const { data: prof } = await sb
       .from("profiles")
       .select("company_id")
@@ -395,13 +397,15 @@ export const listCustomers = createServerFn({ method: "GET" })
     let filtered = rows ?? [];
     if (data.city) {
       const c = data.city.toLowerCase();
-      filtered = filtered.filter((r: any) =>
-        (r.customer_addresses ?? []).some((a: any) => (a.city ?? "").toLowerCase().includes(c)),
+      filtered = filtered.filter((r) =>
+        (r.customer_addresses ?? []).some((a: CustomerAddress) =>
+          (a.city ?? "").toLowerCase().includes(c),
+        ),
       );
     }
     if (data.tag_id) {
-      filtered = filtered.filter((r: any) =>
-        (r.customer_tag_relations ?? []).some((t: any) => t.tag_id === data.tag_id),
+      filtered = filtered.filter((r) =>
+        (r.customer_tag_relations ?? []).some((t: { tag_id: string }) => t.tag_id === data.tag_id),
       );
     }
 
@@ -409,10 +413,10 @@ export const listCustomers = createServerFn({ method: "GET" })
       total: count ?? filtered.length,
       page: data.page,
       page_size: data.page_size,
-      items: filtered.map((r: any) => ({
+      items: filtered.map((r) => ({
         ...r,
         primary_address:
-          (r.customer_addresses ?? []).find((a: any) => a.is_primary) ??
+          (r.customer_addresses ?? []).find((a: CustomerAddress) => a.is_primary) ??
           (r.customer_addresses ?? [])[0] ??
           null,
         tags: (r.customer_tag_relations ?? []).map((t: any) => t.customer_tags).filter(Boolean),
@@ -434,7 +438,7 @@ export const getActiveCustomersForQuote = createServerFn({ method: "GET" })
       .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
-    const sb = context.supabase as any;
+    const sb = context.supabase as SupabaseClient<Database>;
     const dev = process.env.NODE_ENV === "development";
 
     const { data: profile, error: profileError } = await sb
@@ -472,7 +476,7 @@ export const getCustomer = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const sb = context.supabase as any;
+    const sb = context.supabase as SupabaseClient<Database>;
     const { data: prof } = await sb
       .from("profiles")
       .select("company_id")
@@ -521,7 +525,7 @@ export const saveCustomer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => customerSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const sb = context.supabase as any;
+    const sb = context.supabase as SupabaseClient<Database>;
     const { data: profile } = await sb
       .from("profiles")
       .select("company_id")
@@ -683,7 +687,7 @@ export const toggleCustomer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid(), active: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
-    const sb = context.supabase as any;
+    const sb = context.supabase as SupabaseClient<Database>;
     const { error } = await sb
       .from("customers")
       .update({ active: data.active, customer_status: data.active ? "ACTIVE" : "INACTIVE" })
@@ -719,7 +723,7 @@ export const deleteCustomer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const sb = context.supabase as any;
+    const sb = context.supabase as SupabaseClient<Database>;
     const { error } = await sb
       .from("customers")
       .update({ deleted_at: new Date().toISOString(), active: false })
@@ -740,7 +744,7 @@ export const listCustomerHistory = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ customer_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const sb = context.supabase as any;
+    const sb = context.supabase as SupabaseClient<Database>;
     const { data: prof } = await sb
       .from("profiles")
       .select("company_id")
@@ -770,7 +774,7 @@ export const addCustomerHistory = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const sb = context.supabase as any;
+    const sb = context.supabase as SupabaseClient<Database>;
     const { data: profile } = await sb
       .from("profiles")
       .select("company_id")
@@ -812,7 +816,7 @@ export const addCustomerHistory = createServerFn({ method: "POST" })
 export const listCustomerTags = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const sb = context.supabase as any;
+    const sb = context.supabase as SupabaseClient<Database>;
     const { data: prof } = await sb
       .from("profiles")
       .select("company_id")
@@ -843,7 +847,7 @@ export const createCustomerTag = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const sb = context.supabase as any;
+    const sb = context.supabase as SupabaseClient<Database>;
     const { data: profile } = await sb
       .from("profiles")
       .select("company_id")
@@ -865,7 +869,7 @@ export const createCustomerTag = createServerFn({ method: "POST" })
 export const customerMetrics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const sb = context.supabase as any;
+    const sb = context.supabase as SupabaseClient<Database>;
     const { data: prof } = await sb
       .from("profiles")
       .select("company_id")
