@@ -1152,9 +1152,9 @@ function CatalogPicker({
                   )}
                 />
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border bg-muted text-muted-foreground">
-                  {it.image_path ? (
+                  {(it as any).image_path ? (
                     <img
-                      src={it.image_path}
+                      src={(it as any).image_path}
                       alt={it.name}
                       className="h-full w-full object-cover"
                     />
