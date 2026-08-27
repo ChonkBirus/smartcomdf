@@ -1100,7 +1100,7 @@ export function QuoteFormSheet({
                   canSeeInternal={canSeeInternal}
                   suggestedPrice={suggestPrice(l.cost_price)}
                   onChange={(patch) => setLine(i, patch)}
-                  onPickCatalog={(id) => pickCatalogItem(i, id)}
+                  onPickCatalog={(item) => pickCatalogItem(i, item)}
                   onRemove={() => removeLine(i)}
                   onMove={(dir) => moveLine(i, dir)}
                   autoFocus={l.tempId === addedLineId}
@@ -1270,7 +1270,7 @@ function LineRow({
   canSeeInternal: boolean;
   suggestedPrice: number | null;
   onChange: (patch: Partial<Line>) => void;
-  onPickCatalog: (id: string) => void;
+  onPickCatalog: (item: QuoteCatalogItem) => void;
   onRemove: () => void;
   onMove: (dir: -1 | 1) => void;
   autoFocus?: boolean;
@@ -1374,8 +1374,8 @@ function LineRow({
                 debouncedSearchTerm={debouncedSearchTerm}
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
-                onSelect={(id) => {
-                  onPickCatalog(id);
+                onSelect={(item) => {
+                  onPickCatalog(item);
                   setPickOpen(false);
                 }}
                 selectedId={line.item_id}
@@ -1476,7 +1476,7 @@ function CatalogPicker({
   searchTerm: string;
   debouncedSearchTerm: string;
   onSearchChange: (val: string) => void;
-  onSelect: (id: string) => void;
+  onSelect: (item: QuoteCatalogItem) => void;
   selectedId: string | null;
 }) {
   const fetchCatalog = useServerFn(listQuoteCatalog);
@@ -1515,7 +1515,7 @@ function CatalogPicker({
               <CommandItem
                 key={it.id}
                 value={it.id}
-                onSelect={() => onSelect(it.id)}
+                onSelect={() => onSelect(it)}
                 className="flex items-start gap-2"
               >
                 <Check
