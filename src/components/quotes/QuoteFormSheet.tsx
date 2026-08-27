@@ -653,8 +653,9 @@ export function QuoteFormSheet({
     // Use the item object coming from the picker (server search result).
     // Never re-lookup in the unfiltered catalog list: it is capped at 50 rows
     // and would silently drop products that only appear through search.
-    const it = item ?? catalogItems.find((x) => x.id === item?.id);
+    const it = item;
     if (!it?.id) return;
+
     const current = lines[i];
     setLine(i, {
       item_id: it.id,
