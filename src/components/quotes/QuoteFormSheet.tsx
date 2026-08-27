@@ -1361,7 +1361,10 @@ function LineRow({
               >
                 {selected
                   ? `${selected.name}${selected.sku ? ` (${selected.sku})` : ""}`
-                  : "Pesquisar no catálogo..."}
+                  : line.item_id && line.name
+                    ? line.name
+                    : "Pesquisar no catálogo..."}
+
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
