@@ -668,7 +668,6 @@ export function QuoteFormSheet({
     });
   }
 
-
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!customerId) {
