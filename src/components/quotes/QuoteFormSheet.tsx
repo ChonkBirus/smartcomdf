@@ -649,9 +649,12 @@ export function QuoteFormSheet({
       return arr;
     });
   }
-  function pickCatalogItem(i: number, itemId: string) {
-    const it = catalogItems.find((x) => x.id === itemId);
-    if (!it) return;
+  function pickCatalogItem(i: number, item: QuoteCatalogItem) {
+    // Use the item object coming from the picker (server search result).
+    // Never re-lookup in the unfiltered catalog list: it is capped at 50 rows
+    // and would silently drop products that only appear through search.
+    const it = item ?? catalogItems.find((x) => x.id === item?.id);
+    if (!it?.id) return;
     const current = lines[i];
     setLine(i, {
       item_id: it.id,
@@ -663,6 +666,7 @@ export function QuoteFormSheet({
       image_url: it.image_url,
     });
   }
+
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
