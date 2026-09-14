@@ -11,3 +11,9 @@
 **👤 Usuário:** BUG AINDA ABERTO — SCROLL DO CATÁLOGO NO ORÇAMENTO NÃO FUNCIONA  Teste real confirmado novamente:  DESKTOP: - abrir pesquisa de produtos no orçamento; - aparecem vários resultados; - roda do mouse NÃO rola a lista.  MOBILE: - abrir a mesma pesquisa; - fazer swipe vertical na lista; - a lista NÃO rola.  Portanto:  SEARCH: funcionando. RESULTADOS: aparecem. SCROLL DESKTOP: FALHA. SCROLL MOBILE/TOUCH: FALHA.  As correções anteriores com:  pointer-events-auto  NÃO resolveram o problema real.  Não declarar PASS novamente sem teste funcional.  ================================================== 1. PAUSAR OUTROS TRABALHOS ==================================================  Pausar temporariamente:  - Fase 2A de Visitas; - correção de inserção dos quatro produtos; - qualquer melhoria visual adiciona
 
 **🤖 NexPanel:** Resposta vazia.  --- ⚡ **Consumo desta resposta:** `3.517 tokens`
+
+---
+<!-- turno: 14/09/2026, 15:26 -->
+**👤 Usuário:** CORREÇÃO DEFINITIVA — REMOVER POPOVER DO CATALOGPICKER DO ORÇAMENTO  O scroll continua SEM FUNCIONAR no teste real:  DESKTOP: - wheel não rola a lista.  MOBILE: - swipe não rola a lista.  As tentativas anteriores com:  - pointer-events-auto; - ajustes de overflow; - Portal dentro/fora do Sheet;  não resolveram.  DECISÃO:  PARAR de tentar corrigir o Popover atual.  Refatorar SOMENTE o CatalogPicker do orçamento para NÃO depender de Radix Popover/Portal.  ================================================== 1. OBJETIVO ==================================================  O campo de pesquisa e a lista de resultados devem ficar dentro da mesma árvore DOM do QuoteFormSheet.  Estrutura desejada:  <div className="relative">   campo de pesquisa    quando aberto:     <div className="...">       <Comma
+
+**🤖 NexPanel:** Resposta vazia.  --- ⚡ **Consumo desta resposta:** `3.339 tokens`
